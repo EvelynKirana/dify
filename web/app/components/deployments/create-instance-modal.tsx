@@ -1,7 +1,7 @@
 'use client'
 import type { FC } from 'react'
-import type { AppInfo } from './types'
-import type { AppModeEnum } from '@/types/app'
+import type { AppInfo, AppMode } from './types'
+import type { App, AppModeEnum } from '@/types/app'
 import { Button } from '@langgenius/dify-ui/button'
 import { cn } from '@langgenius/dify-ui/cn'
 import { Dialog, DialogCloseButton, DialogContent, DialogDescription, DialogTitle } from '@langgenius/dify-ui/dialog'
@@ -13,8 +13,23 @@ import { AppTypeIcon } from '@/app/components/app/type-selector'
 import AppIcon from '@/app/components/base/app-icon'
 import Input from '@/app/components/base/input'
 import { useRouter } from '@/next/navigation'
+import { useAppList } from '@/service/use-apps'
 import { useDeploymentsStore } from './store'
-import { useSourceApps } from './use-source-apps'
+
+const MAX_STUDIO_SOURCE_APPS = 100
+
+function toStudioSourceAppInfo(app: App): AppInfo {
+  return {
+    id: app.id,
+    name: app.name,
+    mode: (app.mode || 'workflow') as AppMode,
+    iconType: app.icon_type,
+    icon: app.icon,
+    iconBackground: app.icon_background ?? undefined,
+    iconUrl: app.icon_url,
+    description: app.description || undefined,
+  }
+}
 
 type AppPickerProps = {
   apps: AppInfo[]
@@ -189,7 +204,10 @@ const CreateInstanceForm: FC<{ onClose: () => void }> = ({ onClose }) => {
   const router = useRouter()
   const createInstance = useDeploymentsStore(state => state.createInstance)
   const openDeployDrawer = useDeploymentsStore(state => state.openDeployDrawer)
-  const { apps, isLoading } = useSourceApps()
+  const { data: appList, isLoading } = useAppList({ page: 1, limit: MAX_STUDIO_SOURCE_APPS, name: '' })
+  const apps = useMemo<AppInfo[]>(() => {
+    return (appList?.data ?? []).map(toStudioSourceAppInfo)
+  }, [appList?.data])
 
   const [appId, setAppId] = useState<string>('')
   const [name, setName] = useState('')

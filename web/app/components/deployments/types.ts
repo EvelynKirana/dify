@@ -1,3 +1,5 @@
+import type { AppIconType } from '@/types/app'
+
 export type EnvironmentMode = 'shared' | 'isolated'
 export type EnvironmentHealth = 'ready' | 'degraded'
 
@@ -11,7 +13,7 @@ export type AppInfo = {
   id: string
   name: string
   mode: AppMode
-  iconType?: 'emoji' | 'image'
+  iconType?: AppIconType | null
   icon?: string
   iconBackground?: string
   iconUrl?: string | null
