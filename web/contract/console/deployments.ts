@@ -70,6 +70,24 @@ export type ConsoleWarning = {
   message?: string
 }
 
+export type DeploymentStatusCount = {
+  status?: string
+  count?: number
+}
+
+export type AppDeploymentSummary = {
+  app?: ConsoleAppSummary
+  statusCounts?: DeploymentStatusCount[]
+  deployed?: boolean
+  lastDeployedAt?: Timestamp | null
+}
+
+export type ListAppDeploymentsReply = {
+  data?: AppDeploymentSummary[]
+  environmentOptions?: EnvironmentOption[]
+  pagination?: Pagination
+}
+
 export type DeploymentSummaryRow = {
   environmentId?: string
   environmentName?: string
@@ -404,10 +422,15 @@ export type BindingsProto = {
   envVars?: EnvVarBindingProto[]
 }
 
+export type CreateReleaseFromCurrentApp = {
+  releaseNote?: string
+}
+
 export type CreateDeploymentReply = {
   instanceId?: string
   deploymentId?: string
   status?: string
+  release?: Release
 }
 
 export type CancelDeploymentReply = {
@@ -442,6 +465,21 @@ export type CreateEnvironmentAPITokenReply = {
 }
 
 export type DeleteEnvironmentAPITokenReply = Record<string, never>
+
+export const listAppDeploymentsContract = base
+  .route({
+    path: '/enterprise/deployments',
+    method: 'GET',
+  })
+  .input(type<{
+    query?: {
+      environmentId?: string
+      keyword?: string
+      pageNumber?: number
+      resultsPerPage?: number
+    }
+  }>())
+  .output(type<ListAppDeploymentsReply>())
 
 export const deploymentOverviewContract = base
   .route({
@@ -601,7 +639,8 @@ export const createDeploymentContract = base
       environmentId: string
     }
     body: {
-      releaseId: string
+      releaseId?: string
+      currentApp?: CreateReleaseFromCurrentApp
       bindings?: BindingsProto
       replicas?: number
       idempotencyKey?: string

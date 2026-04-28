@@ -30,8 +30,6 @@ export type CreateDeploymentParams = {
 
 const idempotencyKey = (prefix: string) => `${prefix}-${globalThis.crypto?.randomUUID?.() ?? Date.now()}`
 
-const defaultReleaseName = () => `deploy-${new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19)}`
-
 export const fetchDeploymentAppData = async (appId: string): Promise<DeploymentAppData> => {
   const input = { params: { appId } }
   const [
@@ -70,29 +68,6 @@ export const fetchDeploymentAppData = async (appId: string): Promise<DeploymentA
   }
 }
 
-export const createOrReuseRelease = async (
-  appId: string,
-  releaseId: string | undefined,
-  releaseNote: string | undefined,
-) => {
-  if (releaseId)
-    return releaseId
-
-  const trimmedNote = releaseNote?.trim()
-  const response = await consoleClient.deployments.createRelease({
-    params: { appId },
-    body: {
-      description: trimmedNote || undefined,
-      name: trimmedNote || defaultReleaseName(),
-    },
-  })
-
-  const createdReleaseId = response.release?.id
-  if (!createdReleaseId)
-    throw new Error('Release creation did not return an id.')
-  return createdReleaseId
-}
-
 export const createDeployment = async ({
   appId,
   environmentId,
@@ -100,14 +75,16 @@ export const createDeployment = async ({
   releaseNote,
   bindings,
 }: CreateDeploymentParams) => {
-  const targetReleaseId = await createOrReuseRelease(appId, releaseId, releaseNote)
+  const trimmedReleaseNote = releaseNote?.trim()
   return consoleClient.deployments.createDeployment({
     params: {
       appId,
       environmentId,
     },
     body: {
-      releaseId: targetReleaseId,
+      ...(releaseId
+        ? { releaseId }
+        : { currentApp: { releaseNote: trimmedReleaseNote || undefined } }),
       bindings,
       idempotencyKey: idempotencyKey('deploy'),
     },

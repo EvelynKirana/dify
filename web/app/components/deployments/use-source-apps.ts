@@ -1,60 +1,89 @@
 'use client'
 import type { AppInfo, AppMode } from './types'
-import type { App } from '@/types/app'
+import type { AppDeploymentSummary, ConsoleAppSummary, EnvironmentOption } from '@/contract/console/deployments'
+import { useQuery } from '@tanstack/react-query'
 import { useEffect, useMemo } from 'react'
-import { useAppList } from '@/service/use-apps'
+import { consoleQuery } from '@/service/client'
 import { useDeploymentsStore } from './store'
 import { useDeploymentData } from './use-deployment-data'
 
 const MAX_SOURCE_APPS = 100
 
-function toAppInfo(app: App): AppInfo {
+function toAppInfo(app: ConsoleAppSummary): AppInfo | undefined {
+  if (!app.id || !app.name)
+    return undefined
+
   return {
     id: app.id,
     name: app.name,
-    mode: app.mode as AppMode,
-    iconType: app.icon_type === 'image' ? 'image' : 'emoji',
+    mode: (app.mode || 'workflow') as AppMode,
+    iconType: 'emoji',
     icon: app.icon,
-    iconBackground: app.icon_background ?? undefined,
-    iconUrl: app.icon_url,
-    description: app.description,
+    description: app.description ?? undefined,
   }
 }
 
 type UseSourceAppsOptions = {
   enabled?: boolean
+  environmentId?: string
+  keyword?: string
 }
 
 export function useSourceApps(options: UseSourceAppsOptions = {}) {
-  const { enabled = true } = options
+  const { enabled = true, environmentId, keyword } = options
   const seedInstancesFromApps = useDeploymentsStore(state => state.seedInstancesFromApps)
 
-  const { data, isLoading, isFetching, isError } = useAppList({
-    page: 1,
-    limit: MAX_SOURCE_APPS,
-  }, { enabled })
+  const query = useMemo(() => ({
+    pageNumber: 1,
+    resultsPerPage: MAX_SOURCE_APPS,
+    ...(environmentId ? { environmentId } : {}),
+    ...(keyword?.trim() ? { keyword: keyword.trim() } : {}),
+  }), [environmentId, keyword])
+
+  const listQuery = useQuery(consoleQuery.deployments.list.queryOptions({
+    input: { query },
+    enabled,
+    staleTime: 30 * 1000,
+  }))
 
   const apps = useMemo<AppInfo[]>(() => {
-    return (data?.data ?? []).map(toAppInfo)
-  }, [data?.data])
+    return (listQuery.data?.data ?? [])
+      .map(summary => summary.app ? toAppInfo(summary.app) : undefined)
+      .filter((app): app is AppInfo => Boolean(app))
+  }, [listQuery.data?.data])
 
   const appMap = useMemo<Map<string, AppInfo>>(() => {
     return new Map(apps.map(a => [a.id, a]))
   }, [apps])
 
+  const summaries = useMemo<Record<string, AppDeploymentSummary>>(() => {
+    return Object.fromEntries(
+      (listQuery.data?.data ?? [])
+        .filter(summary => summary.app?.id)
+        .map(summary => [summary.app!.id!, summary]),
+    )
+  }, [listQuery.data?.data])
+
+  const environmentOptions = useMemo<EnvironmentOption[]>(() => {
+    return listQuery.data?.environmentOptions ?? []
+  }, [listQuery.data?.environmentOptions])
+
   useEffect(() => {
-    if (apps.length > 0)
-      seedInstancesFromApps(apps)
-  }, [apps, seedInstancesFromApps])
+    if (!enabled || listQuery.isLoading)
+      return
+    seedInstancesFromApps(apps)
+  }, [apps, enabled, listQuery.isLoading, seedInstancesFromApps])
 
   const deploymentData = useDeploymentData(apps, { enabled: enabled && apps.length > 0 })
 
   return {
     apps,
     appMap,
-    isLoading: isLoading || deploymentData.isLoading,
-    isFetching: isFetching || deploymentData.isFetching,
-    isError: isError || deploymentData.isError,
-    isEmpty: !isLoading && apps.length === 0,
+    summaries,
+    environmentOptions,
+    isLoading: listQuery.isLoading,
+    isFetching: listQuery.isFetching || deploymentData.isFetching,
+    isError: listQuery.isError || deploymentData.isError,
+    isEmpty: !listQuery.isLoading && apps.length === 0,
   }
 }

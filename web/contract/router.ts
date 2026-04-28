@@ -15,6 +15,7 @@ import {
   environmentAccessPolicyContract,
   environmentAPITokensContract,
   environmentDeploymentsContract,
+  listAppDeploymentsContract,
   patchAccessChannelContract,
   releaseHistoryContract,
   rollbackEnvironmentContract,
@@ -112,6 +113,7 @@ export const consoleRouterContract = {
     bindPartnerStack: bindPartnerStackContract,
   },
   deployments: {
+    list: listAppDeploymentsContract,
     overview: deploymentOverviewContract,
     environmentDeployments: environmentDeploymentsContract,
     candidates: deploymentCandidatesContract,

@@ -2,11 +2,8 @@
 import type { FC } from 'react'
 import type { AppInfo } from '../types'
 import { Button } from '@langgenius/dify-ui/button'
-import { toast } from '@langgenius/dify-ui/toast'
 import * as React from 'react'
-import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { useRouter } from '@/next/navigation'
 import { deployedRows } from '../api-utils'
 import { useDeploymentsStore } from '../store'
 import { useSourceApps } from '../use-source-apps'
@@ -22,43 +19,12 @@ type SettingsFormProps = {
 
 const SettingsForm: FC<SettingsFormProps> = ({ app, hasDeployments }) => {
   const { t } = useTranslation('deployments')
-  const router = useRouter()
-  const updateInstance = useDeploymentsStore(state => state.updateInstance)
-  const deleteInstance = useDeploymentsStore(state => state.deleteInstance)
-
-  const [name, setName] = useState(app.name)
-  const [description, setDescription] = useState(app.description ?? '')
-
-  const dirty = name !== app.name || description !== (app.description ?? '')
-
-  const handleSave = () => {
-    if (!name.trim())
-      return
-    updateInstance(app.id, {
-      name: name.trim(),
-      description: description.trim() || undefined,
-    })
-    toast.success(t('settings.updated'))
-  }
-
-  const handleReset = () => {
-    setName(app.name)
-    setDescription(app.description ?? '')
-  }
-
-  const handleDelete = () => {
-    if (hasDeployments) {
-      toast.error(t('settings.undeployFirst'))
-      return
-    }
-    deleteInstance(app.id)
-    router.push('/deployments')
-  }
 
   return (
     <div className="flex max-w-[640px] flex-col gap-5 p-6">
       <div className="flex flex-col gap-3 rounded-xl border border-components-panel-border bg-components-panel-bg p-4">
         <div className="system-sm-semibold text-text-primary">{t('settings.general')}</div>
+        <div className="system-xs-regular text-text-tertiary">{t('settings.readOnly')}</div>
         <div className="flex flex-col gap-2">
           <label className="system-xs-medium-uppercase text-text-tertiary" htmlFor="settings-name">
             {t('settings.name')}
@@ -66,9 +32,10 @@ const SettingsForm: FC<SettingsFormProps> = ({ app, hasDeployments }) => {
           <input
             id="settings-name"
             type="text"
-            value={name}
-            onChange={e => setName(e.target.value)}
-            className="flex h-8 items-center rounded-lg border-[0.5px] border-components-input-border-active bg-components-input-bg-normal px-3 text-[13px] font-medium text-text-secondary outline-hidden placeholder:text-text-quaternary"
+            value={app.name}
+            readOnly
+            disabled
+            className="flex h-8 items-center rounded-lg border-[0.5px] border-components-input-border-active bg-components-input-bg-normal px-3 text-[13px] font-medium text-text-secondary outline-hidden placeholder:text-text-quaternary disabled:opacity-70"
           />
         </div>
         <div className="flex flex-col gap-2">
@@ -77,16 +44,17 @@ const SettingsForm: FC<SettingsFormProps> = ({ app, hasDeployments }) => {
           </label>
           <textarea
             id="settings-desc"
-            value={description}
-            onChange={e => setDescription(e.target.value)}
-            className="min-h-[96px] rounded-lg border-[0.5px] border-components-input-border-active bg-components-input-bg-normal px-3 py-2 text-[13px] text-text-secondary outline-hidden placeholder:text-text-quaternary"
+            value={app.description ?? ''}
+            readOnly
+            disabled
+            className="min-h-[96px] rounded-lg border-[0.5px] border-components-input-border-active bg-components-input-bg-normal px-3 py-2 text-[13px] text-text-secondary outline-hidden placeholder:text-text-quaternary disabled:opacity-70"
           />
         </div>
         <div className="flex justify-end gap-2">
-          <Button variant="secondary" disabled={!dirty} onClick={handleReset}>
+          <Button variant="secondary" disabled>
             {t('settings.reset')}
           </Button>
-          <Button variant="primary" disabled={!dirty || !name.trim()} onClick={handleSave}>
+          <Button variant="primary" disabled>
             {t('settings.save')}
           </Button>
         </div>
@@ -101,13 +69,12 @@ const SettingsForm: FC<SettingsFormProps> = ({ app, hasDeployments }) => {
           <div className="system-xs-regular text-text-tertiary">
             {hasDeployments
               ? t('settings.undeployFirst')
-              : t('settings.safeToDelete')}
+              : t('settings.deleteUnsupported')}
           </div>
           <Button
             variant="primary"
             tone="destructive"
-            disabled={hasDeployments}
-            onClick={handleDelete}
+            disabled
           >
             {t('settings.delete')}
           </Button>

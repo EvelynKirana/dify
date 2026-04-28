@@ -154,23 +154,11 @@ export const useDeploymentsStore = create<DeploymentsState>((set, get) => ({
     return appId
   },
 
-  updateInstance: (appId, patch) => {
-    set(state => ({
-      sourceApps: state.sourceApps.map(app => app.id === appId ? { ...app, ...patch } : app),
-    }))
-  },
+  updateInstance: () => undefined,
 
   switchSourceApp: () => undefined,
 
-  deleteInstance: (appId) => {
-    set(state => ({
-      sourceApps: state.sourceApps.filter(app => app.id !== appId),
-      createdApiToken: state.createdApiToken?.appId === appId ? undefined : state.createdApiToken,
-      appData: Object.fromEntries(
-        Object.entries(state.appData).filter(([key]) => key !== appId),
-      ),
-    }))
-  },
+  deleteInstance: () => undefined,
 
   startDeploy: async ({ appId, environmentId, releaseId, releaseNote, bindings }) => {
     set({ deployDrawer: { open: false } })

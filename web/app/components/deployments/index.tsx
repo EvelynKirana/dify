@@ -1,6 +1,7 @@
 'use client'
 import type { FC } from 'react'
 import type { AppInfo } from './types'
+import type { AppDeploymentSummary } from '@/contract/console/deployments'
 import type { DeploymentAppData } from '@/service/deployments'
 import type { AppModeEnum } from '@/types/app'
 import { cn } from '@langgenius/dify-ui/cn'
@@ -98,15 +99,15 @@ const NewInstanceCard: FC<NewInstanceCardProps> = ({ onOpen }) => {
 type InstanceCardProps = {
   app: AppInfo
   appData?: DeploymentAppData
+  summary?: AppDeploymentSummary
 }
 
-const InstanceCard: FC<InstanceCardProps> = ({ app, appData }) => {
+const InstanceCard: FC<InstanceCardProps> = ({ app, appData, summary }) => {
   const { t } = useTranslation('deployments')
   const router = useRouter()
   const { formatTimeFromNow } = useFormatTimeFromNow()
   const [menuOpen, setMenuOpen] = useState(false)
   const openDeployDrawer = useDeploymentsStore(state => state.openDeployDrawer)
-  const deleteInstance = useDeploymentsStore(state => state.deleteInstance)
 
   const navigateToDetail = () => router.push(`/deployments/${app.id}/overview`)
 
@@ -121,19 +122,32 @@ const InstanceCard: FC<InstanceCardProps> = ({ app, appData }) => {
     () => deployedRows(appData?.environmentDeployments.environmentDeployments),
     [appData?.environmentDeployments.environmentDeployments],
   )
-  const envCount = deployments.length
-  const failedCount = deployments.filter(row => deploymentStatus(row) === 'deploy_failed').length
-  const deployingCount = deployments.filter(row => deploymentStatus(row) === 'deploying').length
-  const readyCount = deployments.filter(row => deploymentStatus(row) === 'ready').length
+  const statusCount = (status: string) =>
+    summary?.statusCounts?.find(item => item.status === status)?.count ?? 0
+  const hasSummary = Boolean(summary)
+  const failedCount = hasSummary
+    ? statusCount('failed') + statusCount('deploy_failed')
+    : deployments.filter(row => deploymentStatus(row) === 'deploy_failed').length
+  const deployingCount = hasSummary
+    ? statusCount('deploying')
+    : deployments.filter(row => deploymentStatus(row) === 'deploying').length
+  const readyCount = hasSummary
+    ? statusCount('ready')
+    : deployments.filter(row => deploymentStatus(row) === 'ready').length
+  const envCount = hasSummary
+    ? (summary?.deployed ? failedCount + deployingCount + readyCount : 0)
+    : deployments.length
 
   const lastDeployedAt = useMemo(() => {
+    if (summary?.lastDeployedAt)
+      return new Date(summary.lastDeployedAt).getTime()
     if (deployments.length === 0)
       return null
     return deployments.reduce((latest, row) => {
       const t = new Date(row.instance?.lastDeployedAt || row.instance?.lastReadyAt || '').getTime()
       return t > latest ? t : latest
     }, 0)
-  }, [deployments])
+  }, [deployments, summary?.lastDeployedAt])
 
   const primaryStatus: 'none' | 'failed' | 'deploying' | 'ready' = envCount === 0
     ? 'none'
@@ -162,29 +176,51 @@ const InstanceCard: FC<InstanceCardProps> = ({ app, appData }) => {
       return t('status.deployFailed')
     return t(`status.${status}`)
   }
+  const statusSummaryLabel = (status?: string) => {
+    if (status === 'failed' || status === 'deploy_failed')
+      return t('status.deployFailed')
+    if (status === 'deploying')
+      return t('status.deploying')
+    if (status === 'ready')
+      return t('status.ready')
+    return status || 'unknown'
+  }
 
+  const statusSummaryTooltip = summary?.statusCounts?.filter(item => item.count && item.status !== 'undeployed') ?? []
   const statusTooltip = primaryStatus === 'none'
     ? t('card.tooltip.notDeployed')
-    : (
-        <div className="flex min-w-[220px] flex-col gap-1">
-          <div className="system-xs-medium text-text-secondary">{t('overview.deploymentStatus')}</div>
-          {deployments.map((deployment) => {
-            const status = deploymentStatus(deployment)
-            return (
-              <div key={environmentId(deployment.environment)} className="flex min-w-0 items-center justify-between gap-3">
-                <span className="min-w-0 truncate text-text-tertiary">
-                  {environmentName(deployment.environment)}
-                </span>
-                <span className="shrink-0 text-text-secondary">
-                  {statusLabel(status)}
-                  {' · '}
-                  {releaseLabel(deployment.observedRuntime?.release || deployment.pendingDeployment?.release)}
-                </span>
+    : deployments.length > 0
+      ? (
+          <div className="flex min-w-[220px] flex-col gap-1">
+            <div className="system-xs-medium text-text-secondary">{t('overview.deploymentStatus')}</div>
+            {deployments.map((deployment) => {
+              const status = deploymentStatus(deployment)
+              return (
+                <div key={environmentId(deployment.environment)} className="flex min-w-0 items-center justify-between gap-3">
+                  <span className="min-w-0 truncate text-text-tertiary">
+                    {environmentName(deployment.environment)}
+                  </span>
+                  <span className="shrink-0 text-text-secondary">
+                    {statusLabel(status)}
+                    {' · '}
+                    {releaseLabel(deployment.observedRuntime?.release || deployment.pendingDeployment?.release)}
+                  </span>
+                </div>
+              )
+            })}
+          </div>
+        )
+      : (
+          <div className="flex min-w-[180px] flex-col gap-1">
+            <div className="system-xs-medium text-text-secondary">{t('overview.deploymentStatus')}</div>
+            {statusSummaryTooltip.map(item => (
+              <div key={item.status} className="flex justify-between gap-3">
+                <span className="text-text-tertiary">{statusSummaryLabel(item.status)}</span>
+                <span className="text-text-secondary">{item.count}</span>
               </div>
-            )
-          })}
-        </div>
-      )
+            ))}
+          </div>
+        )
 
   const healthPillClass = primaryStatus === 'none'
     ? 'text-text-tertiary bg-background-section-burn'
@@ -314,8 +350,13 @@ const InstanceCard: FC<InstanceCardProps> = ({ app, appData }) => {
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem
-                  className="gap-2 px-3"
-                  onClick={e => handleMenuAction(e, () => deleteInstance(app.id))}
+                  aria-disabled
+                  title={t('card.menu.deleteDisabled')}
+                  className="cursor-not-allowed gap-2 px-3 opacity-50"
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    e.preventDefault()
+                  }}
                 >
                   <span className="system-sm-regular text-text-destructive">{t('card.menu.delete')}</span>
                 </DropdownMenuItem>
@@ -332,6 +373,8 @@ type EnvironmentFilterOption = {
   value: string
   text: string
   icon: React.ReactNode
+  disabled?: boolean
+  disabledReason?: string
 }
 
 type EnvironmentFilterProps = {
@@ -373,10 +416,19 @@ const EnvironmentFilter: FC<EnvironmentFilterProps> = ({ value, options, onChang
               <DropdownMenuItem
                 key={option.value}
                 onClick={() => {
+                  if (option.disabled)
+                    return
                   onChange(option.value)
                   setOpen(false)
                 }}
-                className="flex cursor-pointer items-center gap-2 rounded-lg py-[6px] pr-2 pl-3 select-none hover:bg-state-base-hover"
+                title={option.disabled ? option.disabledReason : undefined}
+                aria-disabled={option.disabled}
+                className={cn(
+                  'flex items-center gap-2 rounded-lg py-[6px] pr-2 pl-3 select-none',
+                  option.disabled
+                    ? 'cursor-not-allowed opacity-50'
+                    : 'cursor-pointer hover:bg-state-base-hover',
+                )}
               >
                 <span className="shrink-0 text-text-tertiary">{option.icon}</span>
                 <span className="grow truncate text-sm leading-5 text-text-tertiary">{option.text}</span>
@@ -394,7 +446,6 @@ const EnvironmentFilter: FC<EnvironmentFilterProps> = ({ value, options, onChang
 
 const DeploymentsMain: FC = () => {
   const { t } = useTranslation('deployments')
-  const sourceApps = useDeploymentsStore(state => state.sourceApps)
   const appData = useDeploymentsStore(state => state.appData)
   const openCreateInstanceModal = useDeploymentsStore(state => state.openCreateInstanceModal)
 
@@ -417,29 +468,28 @@ const DeploymentsMain: FC = () => {
     commitKeywords(next)
   }
 
-  const { appMap } = useSourceApps()
-  const apps = useMemo(
-    () => sourceApps.length > 0 ? sourceApps : [...appMap.values()],
-    [appMap, sourceApps],
-  )
-  const appDataList = useMemo(() => Object.values(appData), [appData])
+  const requestedEnvironmentId = envFilter !== 'all' && envFilter !== 'not-deployed'
+    ? envFilter
+    : undefined
+  const {
+    apps,
+    summaries,
+    environmentOptions,
+  } = useSourceApps({
+    environmentId: requestedEnvironmentId,
+    keyword: keywords.trim() || undefined,
+  })
 
   const environments = useMemo(() => {
-    const map = new Map<string, string>()
-    appDataList.forEach((data) => {
-      data.candidates.environmentOptions?.forEach((env) => {
-        const id = environmentId(env)
-        if (id)
-          map.set(id, environmentName(env))
-      })
-      data.environmentDeployments.environmentDeployments?.forEach((row) => {
-        const id = environmentId(row.environment)
-        if (id)
-          map.set(id, environmentName(row.environment))
-      })
-    })
-    return [...map.entries()].map(([id, name]) => ({ id, name }))
-  }, [appDataList])
+    return environmentOptions
+      .filter(env => environmentId(env))
+      .map(env => ({
+        id: environmentId(env),
+        name: environmentName(env),
+        disabled: env.disabled,
+        disabledReason: env.disabledReason,
+      }))
+  }, [environmentOptions])
 
   const envIdSet = useMemo(() => new Set(environments.map(e => e.id)), [environments])
   const activeFilter = envFilter === 'all' || envFilter === 'not-deployed' || envIdSet.has(envFilter)
@@ -457,6 +507,8 @@ const DeploymentsMain: FC = () => {
         value: env.id,
         text: env.name,
         icon: <span className="i-ri-stack-line h-[14px] w-[14px]" />,
+        disabled: env.disabled,
+        disabledReason: env.disabledReason,
       })),
       {
         value: 'not-deployed',
@@ -467,22 +519,10 @@ const DeploymentsMain: FC = () => {
   }, [environments, t])
 
   const visibleInstances = useMemo(() => {
-    const byEnv = activeFilter === 'all'
-      ? apps
-      : activeFilter === 'not-deployed'
-        ? apps.filter(app => deployedRows(appData[app.id]?.environmentDeployments.environmentDeployments).length === 0)
-        : apps.filter(app => deployedRows(appData[app.id]?.environmentDeployments.environmentDeployments).some(row => environmentId(row.environment) === activeFilter))
-
-    const q = keywords.trim().toLowerCase()
-    if (!q)
-      return byEnv
-    return byEnv.filter((app) => {
-      return (
-        app.name.toLowerCase().includes(q)
-        || (app.description ?? '').toLowerCase().includes(q)
-      )
-    })
-  }, [apps, activeFilter, keywords, appData])
+    return activeFilter === 'not-deployed'
+      ? apps.filter(app => summaries[app.id]?.deployed === false)
+      : apps
+  }, [apps, activeFilter, summaries])
 
   return (
     <>
@@ -513,6 +553,7 @@ const DeploymentsMain: FC = () => {
                 key={app.id}
                 app={app}
                 appData={appData[app.id]}
+                summary={summaries[app.id]}
               />
             )
           })}
