@@ -5,7 +5,6 @@ import { useQuery } from '@tanstack/react-query'
 import { useEffect, useMemo } from 'react'
 import { consoleQuery } from '@/service/client'
 import { useDeploymentsStore } from './store'
-import { useDeploymentData } from './use-deployment-data'
 
 const MAX_SOURCE_APPS = 100
 
@@ -74,16 +73,14 @@ export function useSourceApps(options: UseSourceAppsOptions = {}) {
     seedInstancesFromApps(apps)
   }, [apps, enabled, listQuery.isLoading, seedInstancesFromApps])
 
-  const deploymentData = useDeploymentData(apps, { enabled: enabled && apps.length > 0 })
-
   return {
     apps,
     appMap,
     summaries,
     environmentOptions,
     isLoading: listQuery.isLoading,
-    isFetching: listQuery.isFetching || deploymentData.isFetching,
-    isError: listQuery.isError || deploymentData.isError,
+    isFetching: listQuery.isFetching,
+    isError: listQuery.isError,
     isEmpty: !listQuery.isLoading && apps.length === 0,
   }
 }

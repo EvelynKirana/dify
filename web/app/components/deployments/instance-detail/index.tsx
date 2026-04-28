@@ -23,6 +23,7 @@ import { deployedRows, deploymentStatus } from '../api-utils'
 import DeployDrawer from '../deploy-drawer'
 import RollbackModal from '../rollback-modal'
 import { useDeploymentsStore } from '../store'
+import { useDeploymentData } from '../use-deployment-data'
 import { useSourceApps } from '../use-source-apps'
 import { isInstanceDetailTabKey } from './tabs'
 
@@ -229,6 +230,8 @@ const InstanceDetail: FC<InstanceDetailProps> = ({ instanceId, children }) => {
     () => sourceApps.find(item => item.id === instanceId) ?? appMap.get(instanceId),
     [sourceApps, instanceId, appMap],
   )
+  const detailApps = useMemo(() => app ? [app] : [], [app])
+  useDeploymentData(detailApps, { enabled: detailApps.length > 0 })
   const appDeployments = useMemo(
     () => deployedRows(appData[instanceId]?.environmentDeployments.environmentDeployments),
     [appData, instanceId],

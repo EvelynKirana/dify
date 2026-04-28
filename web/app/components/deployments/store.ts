@@ -1,5 +1,5 @@
 import type { AppInfo } from './types'
-import type { APIToken, BindingsProto } from '@/contract/console/deployments'
+import type { AccessSubject, APIToken, BindingsProto } from '@/contract/console/deployments'
 import type { DeploymentAppData } from '@/service/deployments'
 import { create } from 'zustand'
 import {
@@ -99,6 +99,7 @@ type DeploymentsState = {
     channel: string,
     enabled: boolean,
     accessMode: string,
+    subjects: AccessSubject[],
     expectedVersion: number,
   ) => Promise<void>
 }
@@ -223,8 +224,8 @@ export const useDeploymentsStore = create<DeploymentsState>((set, get) => ({
     await get().refreshAppData(appId)
   },
 
-  setEnvironmentAccessPolicy: async (appId, environmentId, channel, enabled, accessMode, expectedVersion) => {
-    await updateEnvironmentAccessPolicy(appId, environmentId, channel, enabled, accessMode, [], expectedVersion)
+  setEnvironmentAccessPolicy: async (appId, environmentId, channel, enabled, accessMode, subjects, expectedVersion) => {
+    await updateEnvironmentAccessPolicy(appId, environmentId, channel, enabled, accessMode, subjects, expectedVersion)
     await get().refreshAppData(appId)
   },
 }))

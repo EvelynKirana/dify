@@ -6,7 +6,7 @@ import * as React from 'react'
 import { useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 import { getAppModeLabel } from '@/app/components/app-sidebar/app-info/app-mode-labels'
-import { deployedRows, deploymentStatus, environmentName, formatDate, releaseLabel, webappUrl } from '../api-utils'
+import { webappUrl } from '../api-utils'
 import { StatusBadge } from '../status-badge'
 import { useDeploymentsStore } from '../store'
 import { useSourceApps } from '../use-source-apps'
@@ -76,6 +76,15 @@ const AccessOverviewRow: FC<AccessOverviewRowProps> = ({ label, enabled, hint })
   )
 }
 
+function overviewDeploymentStatus(status?: string) {
+  const normalized = status?.toLowerCase() ?? ''
+  if (normalized.includes('deploying') || normalized.includes('pending'))
+    return 'deploying'
+  if (normalized.includes('fail') || normalized.includes('error'))
+    return 'deploy_failed'
+  return 'ready'
+}
+
 const OverviewTab: FC<OverviewTabProps> = ({ instanceId, onSwitchTab }) => {
   const { t } = useTranslation('deployments')
   const { t: tCommon } = useTranslation()
@@ -83,16 +92,17 @@ const OverviewTab: FC<OverviewTabProps> = ({ instanceId, onSwitchTab }) => {
   const openDeployDrawer = useDeploymentsStore(state => state.openDeployDrawer)
   const { appMap } = useSourceApps()
   const app = appMap.get(instanceId)
-
+  const overview = appData?.overview
+  const overviewApp = overview?.app
   const deployments = useMemo(
-    () => deployedRows(appData?.environmentDeployments.environmentDeployments),
-    [appData?.environmentDeployments.environmentDeployments],
+    () => overview?.deployments?.filter(row => row.environmentId && row.status?.toLowerCase() !== 'undeployed') ?? [],
+    [overview?.deployments],
   )
 
   if (!app)
     return null
 
-  const appModeLabel = getAppModeLabel(app.mode, tCommon)
+  const appModeLabel = getAppModeLabel(overviewApp?.mode ?? app.mode, tCommon)
   const webappRow = appData?.accessConfig.webapp?.rows?.find(row => row.url)
   const webappAccessUrl = webappUrl(webappRow?.url)
   const cliUrl = appData?.accessConfig.cli?.url
@@ -102,8 +112,8 @@ const OverviewTab: FC<OverviewTabProps> = ({ instanceId, onSwitchTab }) => {
     <div className="flex flex-col gap-5 p-6">
       <Section title={t('overview.basicInfo')}>
         <div className="flex flex-col divide-y divide-divider-subtle">
-          <InfoRow label={t('overview.name')} value={app.name} />
-          <InfoRow label={t('overview.description')} value={app.description ?? t('overview.emptyValue')} />
+          <InfoRow label={t('overview.name')} value={overviewApp?.name ?? app.name} />
+          <InfoRow label={t('overview.description')} value={overviewApp?.description ?? app.description ?? t('overview.emptyValue')} />
           <InfoRow label={t('overview.sourceApp')} value={app.name} />
           <InfoRow label={t('overview.appMode')} value={appModeLabel} />
         </div>
@@ -131,15 +141,13 @@ const OverviewTab: FC<OverviewTabProps> = ({ instanceId, onSwitchTab }) => {
           : (
               <div className="flex flex-col divide-y divide-divider-subtle">
                 {deployments.map((row) => {
-                  const status = deploymentStatus(row)
+                  const status = overviewDeploymentStatus(row.status)
                   return (
-                    <div key={row.environment?.id} className="flex items-center justify-between gap-3 py-2">
+                    <div key={row.environmentId} className="flex items-center justify-between gap-3 py-2">
                       <div className="flex min-w-0 flex-col">
-                        <span className="system-sm-medium text-text-primary">{environmentName(row.environment)}</span>
+                        <span className="system-sm-medium text-text-primary">{row.environmentName || row.environmentId}</span>
                         <span className="system-xs-regular text-text-tertiary">
-                          {releaseLabel(row.observedRuntime?.release || row.pendingDeployment?.release)}
-                          {' · '}
-                          {formatDate(row.instance?.lastDeployedAt || row.instance?.lastReadyAt)}
+                          {row.releaseDisplayId || row.releaseId || t('overview.emptyValue')}
                         </span>
                       </div>
                       <StatusBadge status={status} />
@@ -162,18 +170,18 @@ const OverviewTab: FC<OverviewTabProps> = ({ instanceId, onSwitchTab }) => {
         <div className="flex flex-col divide-y divide-divider-subtle">
           <AccessOverviewRow
             label={t('overview.webapp')}
-            enabled={appData?.accessConfig.webapp?.enabled ?? false}
+            enabled={overview?.access?.webapp?.enabled ?? false}
             hint={webappAccessUrl || t('overview.notConfigured')}
           />
           <AccessOverviewRow
             label={t('overview.cli')}
-            enabled={appData?.accessConfig.cli?.enabled ?? false}
+            enabled={overview?.access?.cli?.enabled ?? false}
             hint={cliUrl ?? t('overview.notConfigured')}
           />
           <AccessOverviewRow
             label={t('overview.api')}
-            enabled={appData?.accessConfig.developerApi?.enabled ?? false}
-            hint={appData?.accessConfig.developerApi?.enabled
+            enabled={overview?.access?.api?.enabled ?? false}
+            hint={overview?.access?.api?.enabled
               ? t('overview.apiKeysCount', { count: apiKeysCount })
               : t('overview.notConfigured')}
           />
