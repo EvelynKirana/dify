@@ -154,7 +154,6 @@ const mockSnippet: SnippetDetail = {
   id: 'snippet-1',
   name: 'Social Media Repurposer',
   description: 'Turn one blog post into multiple social media variations.',
-  author: 'Dify',
   updatedAt: '2026-03-25 10:00',
   usage: '12',
   icon: '🤖',

@@ -22,7 +22,7 @@ const SnippetDetailCard: FC<SnippetDetailCardProps> = ({
   const { data: membersData } = useMembers()
   const { data: workflow } = useSnippetPublishedWorkflow(snippet.id)
 
-  const authorName = useMemo(() => {
+  const creatorName = useMemo(() => {
     const member = membersData?.accounts?.find(member => member.id === snippet.created_by)
     return member?.name || t('unknownUser')
   }, [membersData?.accounts, snippet.created_by, t])
@@ -90,7 +90,7 @@ const SnippetDetailCard: FC<SnippetDetailCardProps> = ({
         )}
       </div>
       <div className="pt-3 system-xs-regular text-text-tertiary">
-        {authorName}
+        {creatorName}
       </div>
     </div>
   )

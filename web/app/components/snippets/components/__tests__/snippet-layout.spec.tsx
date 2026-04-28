@@ -66,7 +66,6 @@ const createSnippet = (overrides: Partial<SnippetDetail> = {}): SnippetDetail =>
   id: 'snippet-1',
   name: 'Snippet Title',
   description: 'Snippet description',
-  author: 'tester',
   updatedAt: '2026-04-15',
   usage: '42',
   icon: 'emoji',

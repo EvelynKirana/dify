@@ -70,7 +70,6 @@ const toSnippetListItem = (snippet: SnippetSummary): SnippetListItemUIModel => {
     id: snippet.id,
     name: snippet.name,
     description: snippet.description,
-    author: '',
     updatedAt: formatTimestamp(snippet.updated_at),
     usage: String(snippet.use_count ?? 0),
     icon: getSnippetIcon(snippet.icon_info),

@@ -8,7 +8,6 @@ export type SnippetListItem = {
   id: string
   name: string
   description: string
-  author: string
   updatedAt: string
   usage: string
   icon: string
@@ -21,7 +20,6 @@ export type SnippetDetail = {
   id: string
   name: string
   description: string
-  author: string
   updatedAt: string
   usage: string
   icon: string
