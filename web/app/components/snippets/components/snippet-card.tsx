@@ -50,7 +50,7 @@ const SnippetCard = ({ snippet }: Props) => {
             background={snippet.icon_info.icon_background}
             imageUrl={snippet.icon_info.icon_url}
           />
-          <div className="w-0 grow py-[1px]">
+          <div className="w-0 grow py-px">
             <div className="truncate text-sm leading-5 font-semibold text-text-secondary" title={snippet.name}>
               {snippet.name}
             </div>
