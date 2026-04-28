@@ -10,6 +10,7 @@ import type {
 import type {
   CommonNodeType,
   NodeDefault,
+  OnNodeAdd,
   OnSelectBlock,
   ToolWithProvider,
 } from '../types'
@@ -65,6 +66,7 @@ export type NodeSelectorProps = {
   ignoreNodeIds?: string[]
   forceEnableStartTab?: boolean // Force enabling Start tab regardless of existing trigger/user input nodes (e.g., when changing Start node type).
   allowUserInputSelection?: boolean // Override user-input availability; default logic blocks it when triggers exist.
+  snippetInsertPayload?: Parameters<OnNodeAdd>[1]
 }
 const NodeSelector: FC<NodeSelectorProps> = ({
   open: openFromProps,
@@ -90,6 +92,7 @@ const NodeSelector: FC<NodeSelectorProps> = ({
   ignoreNodeIds = [],
   forceEnableStartTab = false,
   allowUserInputSelection,
+  snippetInsertPayload,
 }) => {
   const { t } = useTranslation()
   const nodes = useNodes()
@@ -335,7 +338,14 @@ const NodeSelector: FC<NodeSelectorProps> = ({
             noTools={noTools}
             onTagsChange={setTags}
             forceShowStartContent={forceShowStartContent}
-            snippetsElem={<Snippets loading={snippetsLoading} searchText={searchText} />}
+            snippetsElem={(
+              <Snippets
+                loading={snippetsLoading}
+                searchText={searchText}
+                insertPayload={snippetInsertPayload}
+                onInserted={() => handleOpenChange(false)}
+              />
+            )}
           />
         </div>
       </PopoverContent>
