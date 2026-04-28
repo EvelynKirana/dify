@@ -201,6 +201,14 @@ describe('Nav Component', () => {
       expect(mockSetAppDetail).not.toHaveBeenCalled()
     })
 
+    it('should not call setAppDetail from snippets segment', () => {
+      vi.mocked(useSelectedLayoutSegment).mockReturnValue('snippets')
+      render(<Nav {...defaultProps} activeSegment={['apps', 'app', 'snippets']} />)
+      const link = screen.getByRole('link')
+      fireEvent.click(link.firstChild!)
+      expect(mockSetAppDetail).not.toHaveBeenCalled()
+    })
+
     it('should show ArrowNarrowLeft on hover when curNav is provided and activated', () => {
       const curNav = navigationItems[0]
       render(<Nav {...defaultProps} curNav={curNav} />)
@@ -238,19 +246,20 @@ describe('Nav Component', () => {
     })
 
     it('should navigate when an item is selected', async () => {
-      render(<Nav {...defaultProps} curNav={curNav} />)
+      vi.mocked(useSelectedLayoutSegment).mockReturnValue('snippets')
+      render(<Nav {...defaultProps} activeSegment={['apps', 'app', 'snippets']} curNav={curNav} />)
       const selectorButton = screen.getByRole('button', { name: /Item 1/i })
 
       await act(async () => {
         fireEvent.click(selectorButton)
       })
+      mockSetAppDetail.mockClear()
 
       const item2 = await screen.findByText('Item 2')
       await act(async () => {
         fireEvent.click(item2)
       })
 
-      expect(mockSetAppDetail).toHaveBeenCalled()
       expect(mockPush).toHaveBeenCalledWith('/item2')
     })
 

@@ -136,21 +136,20 @@ export const useNodesSyncDraft = (snippetId: string) => {
   }, [getDraftSyncPayload, getNodesReadOnly, snippetId, workflowStore])
 
   const performSync = useCallback(async (
+    draftPayload: Omit<SnippetDraftSyncPayload, 'hash'> | null,
     notRefreshWhenSyncError?: boolean,
     callback?: SyncDraftCallback,
   ) => {
-    const draftPayload = getDraftSyncPayload()
     if (!draftPayload)
       return
 
     await syncDraft(draftPayload, notRefreshWhenSyncError, callback)
-  }, [getDraftSyncPayload, syncDraft])
+  }, [syncDraft])
 
   const performInputFieldsSync = useCallback(async (
-    inputFields: SnippetInputField[],
+    draftPayload: Omit<SnippetDraftSyncPayload, 'hash'> | null,
     callback?: SyncInputFieldsDraftCallback,
   ) => {
-    const draftPayload = getDraftSyncPayload(inputFields)
     if (!draftPayload)
       return
 
@@ -165,10 +164,29 @@ export const useNodesSyncDraft = (snippetId: string) => {
         callback?.onRefresh?.(refreshedInputFields)
       },
     )
-  }, [getDraftSyncPayload, syncDraft])
+  }, [syncDraft])
 
-  const doSyncWorkflowDraft = useSerialAsyncCallback(performSync, getNodesReadOnly)
-  const syncInputFieldsDraft = useSerialAsyncCallback(performInputFieldsSync)
+  const syncWorkflowDraftWithPayload = useSerialAsyncCallback(performSync, getNodesReadOnly)
+  const syncInputFieldsDraftWithPayload = useSerialAsyncCallback(performInputFieldsSync)
+
+  const doSyncWorkflowDraft = useCallback((
+    notRefreshWhenSyncError?: boolean,
+    callback?: SyncDraftCallback,
+  ) => {
+    if (getNodesReadOnly())
+      return Promise.resolve()
+
+    const draftPayload = getDraftSyncPayload()
+    return syncWorkflowDraftWithPayload(draftPayload, notRefreshWhenSyncError, callback)
+  }, [getDraftSyncPayload, getNodesReadOnly, syncWorkflowDraftWithPayload])
+
+  const syncInputFieldsDraft = useCallback((
+    inputFields: SnippetInputField[],
+    callback?: SyncInputFieldsDraftCallback,
+  ) => {
+    const draftPayload = getDraftSyncPayload(inputFields)
+    return syncInputFieldsDraftWithPayload(draftPayload, callback)
+  }, [getDraftSyncPayload, syncInputFieldsDraftWithPayload])
 
   return {
     doSyncWorkflowDraft,
