@@ -1,5 +1,6 @@
 'use client'
 import type { FC } from 'react'
+import type { DeployedToSummary, ReleaseHistoryRow } from '@/contract/console/deployments'
 import { cn } from '@langgenius/dify-ui/cn'
 import {
   DropdownMenu,
@@ -10,6 +11,18 @@ import {
 import { Tooltip, TooltipContent, TooltipTrigger } from '@langgenius/dify-ui/tooltip'
 import { useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
+import {
+  activeRelease,
+  deployedRows,
+  deploymentId,
+  deploymentStatus,
+  environmentId,
+  environmentName,
+  formatDate,
+  releaseCommit,
+  releaseLabel,
+  targetRelease,
+} from '../api-utils'
 import { useDeploymentsStore } from '../store'
 
 const GRID_TEMPLATE = 'grid-cols-[0.9fr_1fr_0.8fr_1.5fr_auto]'
@@ -28,20 +41,47 @@ const RELEASE_DEPLOYMENT_STYLES: Record<ReleaseDeploymentState, string> = {
   failed: 'border-util-colors-warning-warning-200 bg-util-colors-warning-warning-50 text-util-colors-warning-warning-700',
 }
 
-type DeployReleaseMenuProps = {
-  releaseId: string
-  instanceId: string
+function releaseDeploymentState(status?: string): ReleaseDeploymentState {
+  const normalized = status?.toLowerCase() ?? ''
+  if (normalized.includes('deploying') || normalized.includes('pending'))
+    return 'deploying'
+  if (normalized.includes('fail') || normalized.includes('error'))
+    return 'failed'
+  return 'active'
 }
 
-const DeployReleaseMenu: FC<DeployReleaseMenuProps> = ({ releaseId, instanceId }) => {
+function fromDeployedTo(item: DeployedToSummary): ReleaseDeployment | undefined {
+  if (!item.environmentId)
+    return undefined
+
+  return {
+    environmentId: item.environmentId,
+    environmentName: item.environmentName || item.environmentId,
+    state: releaseDeploymentState(item.instanceStatus),
+  }
+}
+
+function dedupeReleaseDeployments(items: ReleaseDeployment[]) {
+  return items.filter((item, index) => {
+    const key = `${item.environmentId}-${item.state}`
+    return items.findIndex(candidate => `${candidate.environmentId}-${candidate.state}` === key) === index
+  })
+}
+
+type DeployReleaseMenuProps = {
+  appId: string
+  releaseId: string
+}
+
+const DeployReleaseMenu: FC<DeployReleaseMenuProps> = ({ appId, releaseId }) => {
   const { t } = useTranslation('deployments')
-  const environments = useDeploymentsStore(state => state.environments)
-  const deployments = useDeploymentsStore(state => state.deployments)
+  const appData = useDeploymentsStore(state => state.appData[appId])
   const openDeployDrawer = useDeploymentsStore(state => state.openDeployDrawer)
   const openRollbackModal = useDeploymentsStore(state => state.openRollbackModal)
   const [open, setOpen] = useState(false)
 
-  const instanceDeployments = deployments.filter(d => d.instanceId === instanceId)
+  const environments = appData?.candidates.environmentOptions?.filter(env => env.id) ?? []
+  const deploymentRows = deployedRows(appData?.environmentDeployments.environmentDeployments)
 
   return (
     <DropdownMenu modal={false} open={open} onOpenChange={setOpen}>
@@ -58,80 +98,44 @@ const DeployReleaseMenu: FC<DeployReleaseMenuProps> = ({ releaseId, instanceId }
       {open && (
         <DropdownMenuContent placement="bottom-end" sideOffset={4} popupClassName="w-[220px]">
           {environments.map((env) => {
-            const deployment = instanceDeployments.find(d => d.environmentId === env.id)
-            const isCurrent = deployment?.activeReleaseId === releaseId
-            const isEnvironmentDeploying = deployment?.status === 'deploying'
+            const envId = env.id!
+            const row = deploymentRows.find(item => environmentId(item.environment) === envId)
+            const isCurrent = activeRelease(row)?.id === releaseId
+            const isEnvironmentDeploying = row ? deploymentStatus(row) === 'deploying' : false
+            const disabled = Boolean(env.disabled || isCurrent || isEnvironmentDeploying)
             return (
               <DropdownMenuItem
-                key={env.id}
+                key={envId}
                 className="gap-2 px-3"
-                disabled={isCurrent || isEnvironmentDeploying}
+                disabled={disabled}
                 onClick={() => {
                   setOpen(false)
-                  if (isCurrent || isEnvironmentDeploying)
+                  if (disabled)
                     return
-                  if (deployment) {
+                  if (row) {
                     openRollbackModal({
-                      deploymentId: deployment.id,
+                      appId,
+                      environmentId: envId,
+                      deploymentId: deploymentId(row),
                       targetReleaseId: releaseId,
                     })
                     return
                   }
-                  openDeployDrawer({ instanceId, environmentId: env.id, releaseId })
+                  openDeployDrawer({ appId, environmentId: envId, releaseId })
                 }}
               >
                 <span className="system-sm-regular text-text-secondary">
                   {isEnvironmentDeploying
-                    ? t('versions.deployingTo', { name: env.name })
+                    ? t('versions.deployingTo', { name: environmentName(env) })
                     : isCurrent
-                      ? t('versions.currentOn', { name: env.name })
-                      : deployment
-                        ? t('versions.promoteTo', { name: env.name })
-                        : t('versions.deployTo', { name: env.name })}
+                      ? t('versions.currentOn', { name: environmentName(env) })
+                      : row
+                        ? t('versions.promoteTo', { name: environmentName(env) })
+                        : t('versions.deployTo', { name: environmentName(env) })}
                 </span>
               </DropdownMenuItem>
             )
           })}
-        </DropdownMenuContent>
-      )}
-    </DropdownMenu>
-  )
-}
-
-type ReleaseMoreMenuProps = {
-  previewVisible: boolean
-  onTogglePreview: () => void
-}
-
-const ReleaseMoreMenu: FC<ReleaseMoreMenuProps> = ({ previewVisible, onTogglePreview }) => {
-  const { t } = useTranslation('deployments')
-  const [open, setOpen] = useState(false)
-
-  return (
-    <DropdownMenu modal={false} open={open} onOpenChange={setOpen}>
-      <DropdownMenuTrigger
-        aria-label={t('versions.moreActions')}
-        className={cn(
-          open ? 'bg-state-base-hover text-text-secondary' : 'text-text-tertiary',
-          'flex h-7 w-7 items-center justify-center rounded-md hover:bg-state-base-hover hover:text-text-secondary',
-        )}
-      >
-        <span className="i-ri-more-line h-4 w-4" />
-      </DropdownMenuTrigger>
-      {open && (
-        <DropdownMenuContent placement="bottom-end" sideOffset={4} popupClassName="w-[180px]">
-          <DropdownMenuItem
-            className="gap-2 px-3"
-            onClick={() => {
-              setOpen(false)
-              onTogglePreview()
-            }}
-          >
-            <span className="i-ri-file-code-line h-4 w-4 text-text-tertiary" />
-            <span className="system-sm-regular text-text-secondary">
-              {previewVisible ? t('versions.hideYaml') : t('versions.viewYaml')}
-            </span>
-          </DropdownMenuItem>
         </DropdownMenuContent>
       )}
     </DropdownMenu>
@@ -174,71 +178,55 @@ type VersionsTabProps = {
   instanceId: string
 }
 
-const VersionsTab: FC<VersionsTabProps> = ({ instanceId }) => {
+const VersionsTab: FC<VersionsTabProps> = ({ instanceId: appId }) => {
   const { t } = useTranslation('deployments')
-  const instances = useDeploymentsStore(state => state.instances)
-  const releases = useDeploymentsStore(state => state.releases)
-  const deployments = useDeploymentsStore(state => state.deployments)
-  const environments = useDeploymentsStore(state => state.environments)
-
-  const instance = instances.find(i => i.id === instanceId)
-
-  const instanceDeployments = useMemo(
-    () => deployments.filter(d => d.instanceId === instanceId),
-    [deployments, instanceId],
+  const appData = useDeploymentsStore(state => state.appData[appId])
+  const releaseRows = useMemo(
+    () => appData?.releaseHistory.data?.filter(row => row.release?.id) ?? [],
+    [appData?.releaseHistory.data],
+  )
+  const deploymentRows = useMemo(
+    () => deployedRows(appData?.environmentDeployments.environmentDeployments),
+    [appData?.environmentDeployments.environmentDeployments],
   )
 
-  const appReleases = useMemo(() => {
-    if (!instance)
+  const getReleaseDeployments = (row: ReleaseHistoryRow) => {
+    const releaseId = row.release?.id
+    if (!releaseId)
       return []
-    const deployedReleaseIds = new Set<string>()
-    instanceDeployments.forEach((deployment) => {
-      deployedReleaseIds.add(deployment.activeReleaseId)
-      if (deployment.targetReleaseId)
-        deployedReleaseIds.add(deployment.targetReleaseId)
-      if (deployment.failedReleaseId)
-        deployedReleaseIds.add(deployment.failedReleaseId)
-    })
-    return releases.filter(r => r.appId === instance.appId || deployedReleaseIds.has(r.id))
-  }, [releases, instance, instanceDeployments])
 
-  const [previewId, setPreviewId] = useState<string | null>(null)
-
-  if (!instance)
-    return null
-
-  const envMap = new Map(environments.map(env => [env.id, env]))
-
-  const getReleaseDeployments = (releaseId: string) => {
-    return instanceDeployments.flatMap((deployment) => {
-      const env = envMap.get(deployment.environmentId)
-      if (!env)
+    const historyItems = row.deployedTo?.map(fromDeployedTo).filter((item): item is ReleaseDeployment => !!item) ?? []
+    const runtimeItems = deploymentRows.flatMap((deployment) => {
+      const envId = environmentId(deployment.environment)
+      if (!envId)
         return []
 
       const items: ReleaseDeployment[] = []
-      if (deployment.activeReleaseId === releaseId) {
+      if (activeRelease(deployment)?.id === releaseId) {
         items.push({
-          environmentId: deployment.environmentId,
-          environmentName: env.name,
+          environmentId: envId,
+          environmentName: environmentName(deployment.environment),
           state: 'active',
         })
       }
-      if (deployment.status === 'deploying' && deployment.targetReleaseId === releaseId) {
+      if (targetRelease(deployment)?.id === releaseId) {
         items.push({
-          environmentId: deployment.environmentId,
-          environmentName: env.name,
+          environmentId: envId,
+          environmentName: environmentName(deployment.environment),
           state: 'deploying',
         })
       }
-      if (deployment.status === 'deploy_failed' && deployment.failedReleaseId === releaseId) {
+      if (deployment.instance?.lastError?.releaseId === releaseId) {
         items.push({
-          environmentId: deployment.environmentId,
-          environmentName: env.name,
+          environmentId: envId,
+          environmentName: environmentName(deployment.environment),
           state: 'failed',
         })
       }
       return items
     })
+
+    return dedupeReleaseDeployments([...historyItems, ...runtimeItems])
   }
 
   return (
@@ -249,13 +237,13 @@ const VersionsTab: FC<VersionsTabProps> = ({ instanceId }) => {
           {' '}
           <span className="system-sm-regular text-text-tertiary">
             (
-            {appReleases.length}
+            {releaseRows.length}
             )
           </span>
         </div>
       </div>
 
-      {appReleases.length === 0
+      {releaseRows.length === 0
         ? (
             <div className="rounded-xl border border-dashed border-components-panel-border bg-components-panel-bg-blur px-4 py-12 text-center system-sm-regular text-text-tertiary">
               {t('versions.empty')}
@@ -275,9 +263,9 @@ const VersionsTab: FC<VersionsTabProps> = ({ instanceId }) => {
                 <div className="text-right">{t('versions.col.action')}</div>
               </div>
 
-              {appReleases.map((release) => {
-                const releaseDeployments = getReleaseDeployments(release.id)
-                const isPreview = previewId === release.id
+              {releaseRows.map((row) => {
+                const release = row.release!
+                const releaseDeployments = getReleaseDeployments(row)
                 return (
                   <div key={release.id} className="border-b border-divider-subtle last:border-b-0">
                     <div className="flex flex-col gap-3 px-4 py-3 lg:hidden">
@@ -290,26 +278,22 @@ const VersionsTab: FC<VersionsTabProps> = ({ instanceId }) => {
                             <TooltipTrigger
                               render={(
                                 <span className="mt-1 inline-flex max-w-full cursor-default truncate font-mono system-sm-medium text-text-primary">
-                                  {release.id}
+                                  {releaseLabel(release)}
                                 </span>
                               )}
                             />
                             <TooltipContent>
-                              {t('versions.commitTooltip', { commit: release.gateCommitId })}
+                              {t('versions.commitTooltip', { commit: releaseCommit(release) })}
                             </TooltipContent>
                           </Tooltip>
                           <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 system-xs-regular text-text-tertiary">
-                            <span>{release.createdAt}</span>
+                            <span>{formatDate(release.createdAt)}</span>
                             <span aria-hidden>·</span>
-                            <span>{release.operator}</span>
+                            <span>{row.createdBy?.displayName ?? '—'}</span>
                           </div>
                         </div>
                         <div className="flex shrink-0 justify-end gap-1">
-                          <DeployReleaseMenu releaseId={release.id} instanceId={instanceId} />
-                          <ReleaseMoreMenu
-                            previewVisible={isPreview}
-                            onTogglePreview={() => setPreviewId(prev => (prev === release.id ? null : release.id))}
-                          />
+                          <DeployReleaseMenu releaseId={release.id!} appId={appId} />
                         </div>
                       </div>
                       <div>
@@ -338,17 +322,17 @@ const VersionsTab: FC<VersionsTabProps> = ({ instanceId }) => {
                           <TooltipTrigger
                             render={(
                               <span className="inline-flex cursor-default font-mono system-sm-medium text-text-primary">
-                                {release.id}
+                                {releaseLabel(release)}
                               </span>
                             )}
                           />
                           <TooltipContent>
-                            {t('versions.commitTooltip', { commit: release.gateCommitId })}
+                            {t('versions.commitTooltip', { commit: releaseCommit(release) })}
                           </TooltipContent>
                         </Tooltip>
                       </div>
-                      <div className="system-sm-regular text-text-secondary">{release.createdAt}</div>
-                      <div className="system-sm-regular text-text-secondary">{release.operator}</div>
+                      <div className="system-sm-regular text-text-secondary">{formatDate(release.createdAt)}</div>
+                      <div className="system-sm-regular text-text-secondary">{row.createdBy?.displayName ?? '—'}</div>
                       <div className="flex flex-wrap gap-1">
                         {releaseDeployments.length === 0
                           ? <span className="system-sm-regular text-text-quaternary">—</span>
@@ -360,20 +344,9 @@ const VersionsTab: FC<VersionsTabProps> = ({ instanceId }) => {
                             ))}
                       </div>
                       <div className="flex justify-end gap-1">
-                        <DeployReleaseMenu releaseId={release.id} instanceId={instanceId} />
-                        <ReleaseMoreMenu
-                          previewVisible={isPreview}
-                          onTogglePreview={() => setPreviewId(prev => (prev === release.id ? null : release.id))}
-                        />
+                        <DeployReleaseMenu releaseId={release.id!} appId={appId} />
                       </div>
                     </div>
-                    {isPreview && (
-                      <div className="border-t border-divider-subtle bg-background-default-subtle">
-                        <pre className="overflow-auto px-4 py-3 font-mono text-[12.5px] leading-5 text-text-secondary">
-                          {release.yaml}
-                        </pre>
-                      </div>
-                    )}
                   </div>
                 )
               })}

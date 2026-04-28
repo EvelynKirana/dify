@@ -11,6 +11,14 @@ import {
 } from '@langgenius/dify-ui/alert-dialog'
 import * as React from 'react'
 import { useTranslation } from 'react-i18next'
+import {
+  activeRelease,
+  deployedRows,
+  environmentId,
+  environmentName,
+  releaseCommit,
+  releaseLabel,
+} from './api-utils'
 import { useDeploymentsStore } from './store'
 import { useSourceApps } from './use-source-apps'
 
@@ -26,25 +34,26 @@ const InfoRow: FC<{ label: string, value: string }> = ({ label, value }) => {
 const RollbackModal: FC = () => {
   const { t } = useTranslation('deployments')
   const modal = useDeploymentsStore(state => state.rollbackModal)
-  const deployments = useDeploymentsStore(state => state.deployments)
-  const instances = useDeploymentsStore(state => state.instances)
-  const releases = useDeploymentsStore(state => state.releases)
-  const environments = useDeploymentsStore(state => state.environments)
+  const appData = useDeploymentsStore(state => modal.appId ? state.appData[modal.appId] : undefined)
   const closeRollbackModal = useDeploymentsStore(state => state.closeRollbackModal)
   const rollbackDeployment = useDeploymentsStore(state => state.rollbackDeployment)
   const { appMap } = useSourceApps()
 
-  const deployment = deployments.find(d => d.id === modal.deploymentId)
-  const targetRelease = releases.find(r => r.id === modal.targetReleaseId)
-  const currentRelease = releases.find(r => r.id === deployment?.activeReleaseId)
-  const environment = environments.find(env => env.id === deployment?.environmentId)
-  const instance = instances.find(i => i.id === deployment?.instanceId)
-  const app = instance ? appMap.get(instance.appId) : undefined
+  const currentRow = deployedRows(appData?.environmentDeployments.environmentDeployments)
+    .find(row => environmentId(row.environment) === modal.environmentId)
+  const targetRelease = [
+    ...(appData?.candidates.releases ?? []),
+    ...(appData?.releaseHistory.data?.map(row => row.release).filter(release => !!release) ?? []),
+  ].find(release => release?.id === modal.targetReleaseId)
+  const currentRelease = activeRelease(currentRow)
+  const environment = currentRow?.environment
+    ?? appData?.candidates.environmentOptions?.find(env => env.id === modal.environmentId)
+  const app = modal.appId ? appMap.get(modal.appId) : undefined
 
   const confirm = () => {
-    if (!modal.deploymentId || !modal.targetReleaseId)
+    if (!modal.appId || !modal.environmentId || !modal.targetReleaseId)
       return
-    rollbackDeployment(modal.deploymentId, modal.targetReleaseId)
+    rollbackDeployment(modal.appId, modal.environmentId, modal.targetReleaseId)
   }
 
   return (
@@ -55,23 +64,23 @@ const RollbackModal: FC = () => {
       <AlertDialogContent className="w-[520px]">
         <div className="flex flex-col gap-3 px-6 pt-6 pb-2">
           <AlertDialogTitle className="title-2xl-semi-bold text-text-primary">
-            {t('rollback.title', { release: targetRelease?.id ?? '-' })}
+            {t('rollback.title', { release: releaseLabel(targetRelease) })}
           </AlertDialogTitle>
           <AlertDialogDescription className="system-md-regular text-text-tertiary">
             {t('rollback.description')}
           </AlertDialogDescription>
 
           <div className="mt-2 flex flex-col gap-2 rounded-lg border border-components-panel-border bg-components-panel-bg-blur p-3">
-            <InfoRow label={t('rollback.instance')} value={instance?.name ?? '-'} />
+            <InfoRow label={t('rollback.instance')} value={app?.name ?? '-'} />
             <InfoRow label={t('rollback.sourceApp')} value={app?.name ?? '-'} />
-            <InfoRow label={t('rollback.environment')} value={environment?.name ?? '-'} />
+            <InfoRow label={t('rollback.environment')} value={environmentName(environment)} />
             <InfoRow
               label={t('rollback.currentRelease')}
-              value={currentRelease ? `${currentRelease.id} / ${currentRelease.gateCommitId}` : '-'}
+              value={currentRelease ? `${releaseLabel(currentRelease)} / ${releaseCommit(currentRelease)}` : '-'}
             />
             <InfoRow
               label={t('rollback.rollbackTo')}
-              value={targetRelease ? `${targetRelease.id} / ${targetRelease.gateCommitId}` : '-'}
+              value={targetRelease ? `${releaseLabel(targetRelease)} / ${releaseCommit(targetRelease)}` : '-'}
             />
           </div>
 

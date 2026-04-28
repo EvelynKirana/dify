@@ -4,6 +4,7 @@ import type { App } from '@/types/app'
 import { useEffect, useMemo } from 'react'
 import { useAppList } from '@/service/use-apps'
 import { useDeploymentsStore } from './store'
+import { useDeploymentData } from './use-deployment-data'
 
 const MAX_SOURCE_APPS = 100
 
@@ -46,12 +47,14 @@ export function useSourceApps(options: UseSourceAppsOptions = {}) {
       seedInstancesFromApps(apps)
   }, [apps, seedInstancesFromApps])
 
+  const deploymentData = useDeploymentData(apps, { enabled: enabled && apps.length > 0 })
+
   return {
     apps,
     appMap,
-    isLoading,
-    isFetching,
-    isError,
+    isLoading: isLoading || deploymentData.isLoading,
+    isFetching: isFetching || deploymentData.isFetching,
+    isError: isError || deploymentData.isError,
     isEmpty: !isLoading && apps.length === 0,
   }
 }

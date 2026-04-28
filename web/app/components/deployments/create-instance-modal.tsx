@@ -207,7 +207,7 @@ const CreateInstanceForm: FC<{ onClose: () => void }> = ({ onClose }) => {
       description: description.trim() || undefined,
     })
     if (thenDeploy) {
-      openDeployDrawer({ instanceId })
+      openDeployDrawer({ appId: instanceId })
       return
     }
     router.push(`/deployments/${instanceId}/overview`)

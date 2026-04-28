@@ -17,28 +17,31 @@ const DeploymentsNav = () => {
   const params = useParams<{ instanceId?: string }>()
   const instanceId = params?.instanceId
 
-  const instances = useDeploymentsStore(state => state.instances)
+  const sourceApps = useDeploymentsStore(state => state.sourceApps)
   const openCreateInstanceModal = useDeploymentsStore(state => state.openCreateInstanceModal)
 
   const { appMap } = useSourceApps({ enabled: isActive })
+  const apps = useMemo(
+    () => sourceApps.length > 0 ? sourceApps : [...appMap.values()],
+    [appMap, sourceApps],
+  )
 
   const navigationItems = useMemo<NavItem[]>(() => {
     if (!isActive)
       return []
-    return instances.map((instance) => {
-      const app = appMap.get(instance.appId)
+    return apps.map((app) => {
       return {
-        id: instance.id,
-        name: instance.name,
-        link: `/deployments/${instance.id}/overview`,
-        icon_type: (app?.iconType ?? null) as AppIconType | null,
-        icon: app?.icon ?? '',
-        icon_background: app?.iconBackground ?? null,
-        icon_url: app?.iconUrl ?? null,
-        mode: app?.mode as unknown as AppModeEnum | undefined,
+        id: app.id,
+        name: app.name,
+        link: `/deployments/${app.id}/overview`,
+        icon_type: (app.iconType ?? null) as AppIconType | null,
+        icon: app.icon ?? '',
+        icon_background: app.iconBackground ?? null,
+        icon_url: app.iconUrl ?? null,
+        mode: app.mode as unknown as AppModeEnum | undefined,
       }
     })
-  }, [instances, appMap, isActive])
+  }, [apps, isActive])
 
   const curNav = useMemo(() => {
     if (!instanceId)

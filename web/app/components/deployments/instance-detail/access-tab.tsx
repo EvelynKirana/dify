@@ -1,6 +1,7 @@
 'use client'
 import type { FC, ReactNode } from 'react'
-import type { AccessPermissionKind, EnvAccessPermission, Environment } from '../types'
+import type { AccessPermissionKind } from '../types'
+import type { ConsoleEnvironmentSummary, DeveloperAPIKeySummary } from '@/contract/console/deployments'
 import { cn } from '@langgenius/dify-ui/cn'
 import {
   DropdownMenu,
@@ -12,6 +13,13 @@ import { Switch } from '@langgenius/dify-ui/switch'
 import { toast } from '@langgenius/dify-ui/toast'
 import { useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
+import {
+  accessModeToPermissionKey,
+  deployedRows,
+  environmentName,
+  permissionKeyToAccessMode,
+  webappUrl,
+} from '../api-utils'
 import { useDeploymentsStore } from '../store'
 
 type SectionProps = {
@@ -87,22 +95,18 @@ const CopyPill: FC<CopyPillProps> = ({ label, value, prefix, className }) => {
 }
 
 type ApiKeyRowProps = {
-  label: string
-  envName: string
-  value: string
+  apiKey: DeveloperAPIKeySummary
   onRevoke: () => void
 }
 
-const ApiKeyRow: FC<ApiKeyRowProps> = ({ label, envName, value, onRevoke }) => {
+const ApiKeyRow: FC<ApiKeyRowProps> = ({ apiKey, onRevoke }) => {
   const { t } = useTranslation('deployments')
-  const [visible, setVisible] = useState(false)
   const [copied, setCopied] = useState(false)
-
-  const displayValue = visible ? value : `${value.slice(0, 6)}${'•'.repeat(14)}${value.slice(-4)}`
+  const displayValue = apiKey.maskedPrefix || apiKey.id || '—'
 
   const handleCopy = async () => {
     try {
-      await navigator.clipboard.writeText(value)
+      await navigator.clipboard.writeText(displayValue)
       setCopied(true)
       toast.success(t('access.copyToast'))
       window.setTimeout(() => setCopied(false), 1500)
@@ -115,23 +119,15 @@ const ApiKeyRow: FC<ApiKeyRowProps> = ({ label, envName, value, onRevoke }) => {
   return (
     <div className="flex items-center gap-3 py-1.5">
       <div className="flex min-w-[140px] flex-col">
-        <span className="system-sm-medium text-text-primary">{label}</span>
+        <span className="system-sm-medium text-text-primary">{apiKey.name || apiKey.id}</span>
         <span className="system-xs-regular text-text-tertiary">
-          {t('access.api.envPrefix', { env: envName })}
+          {t('access.api.envPrefix', { env: apiKey.environmentName || apiKey.environmentId })}
         </span>
       </div>
       <div className="flex min-w-0 flex-1 items-center gap-1 rounded-lg border-[0.5px] border-components-input-border-active bg-components-input-bg-normal pr-1 pl-2">
         <div className="min-w-0 flex-1 truncate font-mono text-[13px] font-medium text-text-secondary">
           {displayValue}
         </div>
-        <button
-          type="button"
-          onClick={() => setVisible(prev => !prev)}
-          aria-label={visible ? t('access.hide') : t('access.show')}
-          className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md text-text-tertiary hover:bg-state-base-hover hover:text-text-secondary"
-        >
-          <span className={cn(visible ? 'i-ri-eye-off-line' : 'i-ri-eye-line', 'h-3.5 w-3.5')} />
-        </button>
         <button
           type="button"
           onClick={handleCopy}
@@ -156,11 +152,10 @@ const ApiKeyRow: FC<ApiKeyRowProps> = ({ label, envName, value, onRevoke }) => {
 const permissionIcon: Record<AccessPermissionKind, string> = {
   organization: 'i-ri-team-line',
   specific: 'i-ri-lock-line',
-  external: 'i-ri-user-line',
   anyone: 'i-ri-global-line',
 }
 
-const permissionOrder: AccessPermissionKind[] = ['organization', 'specific', 'external', 'anyone']
+const permissionOrder: AccessPermissionKind[] = ['organization', 'specific', 'anyone']
 
 type PermissionPickerProps = {
   value: AccessPermissionKind
@@ -246,14 +241,15 @@ const EndpointRow: FC<EndpointRowProps> = ({ envName, label, value, openLabel })
 )
 
 type ApiKeyGenerateMenuProps = {
-  environments: Environment[]
+  environments: ConsoleEnvironmentSummary[]
   onGenerate: (environmentId: string) => void
 }
 
 const ApiKeyGenerateMenu: FC<ApiKeyGenerateMenuProps> = ({ environments, onGenerate }) => {
   const { t } = useTranslation('deployments')
   const [open, setOpen] = useState(false)
-  const disabled = environments.length === 0
+  const selectableEnvironments = environments.filter(env => env.id)
+  const disabled = selectableEnvironments.length === 0
 
   return (
     <DropdownMenu modal={false} open={open} onOpenChange={setOpen}>
@@ -272,17 +268,17 @@ const ApiKeyGenerateMenu: FC<ApiKeyGenerateMenuProps> = ({ environments, onGener
       </DropdownMenuTrigger>
       {open && !disabled && (
         <DropdownMenuContent placement="bottom-end" sideOffset={4} popupClassName="w-[220px]">
-          {environments.map(env => (
+          {selectableEnvironments.map(env => (
             <DropdownMenuItem
               key={env.id}
               className="gap-2 px-3"
               onClick={() => {
                 setOpen(false)
-                onGenerate(env.id)
+                onGenerate(env.id!)
               }}
             >
               <span className="system-sm-regular text-text-secondary">
-                {t('access.api.newKeyForEnv', { env: env.name })}
+                {t('access.api.newKeyForEnv', { env: environmentName(env) })}
               </span>
             </DropdownMenuItem>
           ))}
@@ -303,61 +299,52 @@ function getUrlOrigin(url?: string) {
   }
 }
 
+function uniqueEnvironments(environments: (ConsoleEnvironmentSummary | undefined)[]) {
+  return environments.filter((environment, index): environment is ConsoleEnvironmentSummary => {
+    if (!environment?.id)
+      return false
+    return environments.findIndex(candidate => candidate?.id === environment.id) === index
+  })
+}
+
 type AccessTabProps = {
   instanceId: string
 }
 
-const AccessTab: FC<AccessTabProps> = ({ instanceId }) => {
+const AccessTab: FC<AccessTabProps> = ({ instanceId: appId }) => {
   const { t } = useTranslation('deployments')
-  const instances = useDeploymentsStore(state => state.instances)
-  const environments = useDeploymentsStore(state => state.environments)
-  const deployments = useDeploymentsStore(state => state.deployments)
-  const apiKeys = useDeploymentsStore(state => state.apiKeys)
-  const access = useDeploymentsStore(state => state.access)
+  const appData = useDeploymentsStore(state => state.appData[appId])
+  const createdApiToken = useDeploymentsStore(state => state.createdApiToken)
+  const clearCreatedApiToken = useDeploymentsStore(state => state.clearCreatedApiToken)
   const generateApiKey = useDeploymentsStore(state => state.generateApiKey)
   const revokeApiKey = useDeploymentsStore(state => state.revokeApiKey)
-  const toggleAccessMethod = useDeploymentsStore(state => state.toggleAccessMethod)
-  const setEnvAccessPermission = useDeploymentsStore(state => state.setEnvAccessPermission)
+  const toggleAccessChannel = useDeploymentsStore(state => state.toggleAccessChannel)
+  const setEnvironmentAccessPolicy = useDeploymentsStore(state => state.setEnvironmentAccessPolicy)
 
-  const instance = instances.find(i => i.id === instanceId)
-  const instanceAccess = access.find(a => a.instanceId === instanceId)
-
-  const instanceDeployments = useMemo(
-    () => deployments.filter(d => d.instanceId === instanceId),
-    [deployments, instanceId],
+  const accessConfig = appData?.accessConfig
+  const deploymentRows = useMemo(
+    () => deployedRows(appData?.environmentDeployments.environmentDeployments),
+    [appData?.environmentDeployments.environmentDeployments],
   )
-
-  const envMap = useMemo(
-    () => new Map(environments.map(env => [env.id, env])),
-    [environments],
+  const policies = useMemo(
+    () => accessConfig?.userAccess?.environmentPolicies ?? [],
+    [accessConfig?.userAccess?.environmentPolicies],
   )
-
-  const instanceKeys = useMemo(
-    () => apiKeys.filter(k => k.instanceId === instanceId),
-    [apiKeys, instanceId],
-  )
-
   const deployedEnvs = useMemo(
-    () => instanceDeployments
-      .map(deployment => envMap.get(deployment.environmentId))
-      .filter((env): env is Environment => !!env),
-    [envMap, instanceDeployments],
+    () => uniqueEnvironments([
+      ...deploymentRows.map(row => row.environment),
+      ...policies.map(policy => policy.environment),
+      ...(accessConfig?.webapp?.rows?.map(row => row.environment) ?? []),
+    ]),
+    [accessConfig?.webapp?.rows, deploymentRows, policies],
   )
-
-  const permissionByEnv = useMemo(() => {
-    const map = new Map<string, EnvAccessPermission>()
-    instanceAccess?.envPermissions.forEach((p) => {
-      map.set(p.environmentId, p)
-    })
-    return map
-  }, [instanceAccess])
-
-  if (!instance || !instanceAccess)
-    return null
-
-  const apiEnabled = instanceAccess.enabled.api
-  const runEnabled = instanceAccess.enabled.runAccess
-  const cliDomain = getUrlOrigin(instanceAccess.mcpUrl)
+  const webappRows = accessConfig?.webapp?.rows?.filter(row => row.url) ?? []
+  const apiKeys = accessConfig?.developerApi?.apiKeys ?? []
+  const apiEnabled = accessConfig?.developerApi?.enabled ?? false
+  const runEnabled = accessConfig?.webapp?.enabled ?? false
+  const visibleCreatedApiToken = createdApiToken?.appId === appId ? createdApiToken : undefined
+  const webappChannelVersion = policies.find(policy => policy.effectivePolicy?.channel === 'webapp')?.effectivePolicy?.version ?? 0
+  const cliDomain = getUrlOrigin(accessConfig?.cli?.url)
   const cliDocsUrl = cliDomain ? `${cliDomain}/cli` : undefined
 
   return (
@@ -375,8 +362,8 @@ const AccessTab: FC<AccessTabProps> = ({ instanceId }) => {
           : (
               <div className="flex flex-col gap-3">
                 {deployedEnvs.map((env) => {
-                  const current = permissionByEnv.get(env.id)
-                  const kind = current?.kind ?? 'organization'
+                  const policy = policies.find(item => item.environment?.id === env.id)?.effectivePolicy
+                  const kind = accessModeToPermissionKey(policy?.accessMode)
                   return (
                     <div
                       key={env.id}
@@ -384,11 +371,18 @@ const AccessTab: FC<AccessTabProps> = ({ instanceId }) => {
                     >
                       <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5">
                         <span className="min-w-[140px] system-xs-regular text-text-tertiary">
-                          {env.name}
+                          {environmentName(env)}
                         </span>
                         <PermissionPicker
                           value={kind}
-                          onChange={next => setEnvAccessPermission(instanceId, env.id, next)}
+                          onChange={next => setEnvironmentAccessPolicy(
+                            appId,
+                            env.id!,
+                            policy?.channel ?? 'webapp',
+                            true,
+                            permissionKeyToAccessMode(next),
+                            policy?.version ?? 0,
+                          )}
                         />
                       </div>
                       {kind === 'specific' && (
@@ -409,7 +403,7 @@ const AccessTab: FC<AccessTabProps> = ({ instanceId }) => {
         action={(
           <Switch
             checked={runEnabled}
-            onCheckedChange={v => toggleAccessMethod(instanceId, 'runAccess', v)}
+            onCheckedChange={v => toggleAccessChannel(appId, 'webapp', v, webappChannelVersion)}
           />
         )}
       >
@@ -429,18 +423,22 @@ const AccessTab: FC<AccessTabProps> = ({ instanceId }) => {
                     <div className="system-xs-regular text-text-tertiary">
                       {t('access.runAccess.webappDesc')}
                     </div>
-                    {instanceAccess.webappUrl && deployedEnvs.length > 0
+                    {webappRows.length > 0
                       ? (
                           <div className="flex flex-col gap-2">
-                            {deployedEnvs.map(env => (
-                              <EndpointRow
-                                key={`webapp-${env.id}`}
-                                envName={env.name}
-                                label={t('access.runAccess.urlLabel')}
-                                value={instanceAccess.webappUrl!}
-                                openLabel={t('access.runAccess.openWebapp')}
-                              />
-                            ))}
+                            {webappRows.map((row) => {
+                              const endpointUrl = webappUrl(row.url)
+
+                              return (
+                                <EndpointRow
+                                  key={`webapp-${row.environment?.id ?? row.url}`}
+                                  envName={environmentName(row.environment)}
+                                  label={t('access.runAccess.urlLabel')}
+                                  value={endpointUrl}
+                                  openLabel={t('access.runAccess.openWebapp')}
+                                />
+                              )
+                            })}
                           </div>
                         )
                       : (
@@ -511,7 +509,7 @@ const AccessTab: FC<AccessTabProps> = ({ instanceId }) => {
         action={(
           <Switch
             checked={apiEnabled}
-            onCheckedChange={v => toggleAccessMethod(instanceId, 'api', v)}
+            onCheckedChange={v => toggleAccessChannel(appId, 'api', v, 0)}
           />
         )}
       >
@@ -529,10 +527,36 @@ const AccessTab: FC<AccessTabProps> = ({ instanceId }) => {
                   </div>
                   <ApiKeyGenerateMenu
                     environments={deployedEnvs}
-                    onGenerate={environmentId => generateApiKey(instanceId, environmentId)}
+                    onGenerate={environmentId => generateApiKey(appId, environmentId)}
                   />
                 </div>
-                {instanceKeys.length === 0
+                {visibleCreatedApiToken && (
+                  <div className="flex flex-col gap-2 rounded-lg border border-components-panel-border bg-components-panel-bg-blur p-3">
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="flex min-w-0 flex-col">
+                        <span className="system-sm-medium text-text-primary">
+                          {t('access.api.newTokenTitle')}
+                        </span>
+                        <span className="system-xs-regular text-text-tertiary">
+                          {t('access.api.newTokenDescription')}
+                        </span>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={clearCreatedApiToken}
+                        aria-label={t('access.api.dismissToken')}
+                        className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md text-text-tertiary hover:bg-state-base-hover hover:text-text-secondary"
+                      >
+                        <span className="i-ri-close-line h-3.5 w-3.5" />
+                      </button>
+                    </div>
+                    <CopyPill
+                      label={t('access.api.newTokenLabel')}
+                      value={visibleCreatedApiToken.token}
+                    />
+                  </div>
+                )}
+                {apiKeys.length === 0
                   ? (
                       <div className="rounded-lg border border-dashed border-components-panel-border bg-components-panel-bg-blur px-4 py-6 text-center system-sm-regular text-text-tertiary">
                         {deployedEnvs.length === 0
@@ -542,15 +566,14 @@ const AccessTab: FC<AccessTabProps> = ({ instanceId }) => {
                     )
                   : (
                       <div className="flex flex-col divide-y divide-divider-subtle">
-                        {instanceKeys.map((k) => {
-                          const env = envMap.get(k.environmentId)
+                        {apiKeys.map((apiKey) => {
+                          if (!apiKey.id || !apiKey.environmentId)
+                            return null
                           return (
                             <ApiKeyRow
-                              key={k.id}
-                              label={k.label}
-                              envName={env?.name ?? k.environmentId}
-                              value={k.value}
-                              onRevoke={() => revokeApiKey(k.id)}
+                              key={apiKey.id}
+                              apiKey={apiKey}
+                              onRevoke={() => revokeApiKey(appId, apiKey.environmentId!, apiKey.id!)}
                             />
                           )
                         })}

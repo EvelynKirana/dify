@@ -19,6 +19,7 @@ import { getKeyboardKeyCodeBySystem } from '@/app/components/workflow/utils'
 import useBreakpoints, { MediaType } from '@/hooks/use-breakpoints'
 import useDocumentTitle from '@/hooks/use-document-title'
 import { useRouter, useSelectedLayoutSegment } from '@/next/navigation'
+import { deployedRows, deploymentStatus } from '../api-utils'
 import DeployDrawer from '../deploy-drawer'
 import RollbackModal from '../rollback-modal'
 import { useDeploymentsStore } from '../store'
@@ -219,19 +220,18 @@ const InstanceDetail: FC<InstanceDetailProps> = ({ instanceId, children }) => {
   const selectedSegment = useSelectedLayoutSegment()
   const selectedTab = selectedSegment ?? undefined
   const activeTab: InstanceDetailTabKey = isInstanceDetailTabKey(selectedTab) ? selectedTab : 'overview'
-  const instances = useDeploymentsStore(state => state.instances)
-  const deployments = useDeploymentsStore(state => state.deployments)
+  const sourceApps = useDeploymentsStore(state => state.sourceApps)
+  const appData = useDeploymentsStore(state => state.appData)
   const { appMap, isLoading: isLoadingApps } = useSourceApps()
   useDocumentTitle(t('documentTitle.detail'))
 
-  const instance = useMemo(() => instances.find(i => i.id === instanceId), [instances, instanceId])
   const app = useMemo(
-    () => instance ? appMap.get(instance.appId) : undefined,
-    [instance, appMap],
+    () => sourceApps.find(item => item.id === instanceId) ?? appMap.get(instanceId),
+    [sourceApps, instanceId, appMap],
   )
-  const instanceDeployments = useMemo(
-    () => instance ? deployments.filter(d => d.instanceId === instance.id) : [],
-    [deployments, instance],
+  const appDeployments = useMemo(
+    () => deployedRows(appData[instanceId]?.environmentDeployments.environmentDeployments),
+    [appData, instanceId],
   )
 
   if (isLoadingApps && !app) {
@@ -242,7 +242,7 @@ const InstanceDetail: FC<InstanceDetailProps> = ({ instanceId, children }) => {
     )
   }
 
-  if (!instance) {
+  if (!app) {
     return (
       <div className="flex h-full flex-col items-center justify-center gap-3 bg-background-body">
         <div className="title-xl-semi-bold text-text-primary">{t('detail.notFound')}</div>
@@ -254,8 +254,8 @@ const InstanceDetail: FC<InstanceDetailProps> = ({ instanceId, children }) => {
     )
   }
 
-  const deployingCount = instanceDeployments.filter(d => d.status === 'deploying').length
-  const failedCount = instanceDeployments.filter(d => d.status === 'deploy_failed').length
+  const deployingCount = appDeployments.filter(row => deploymentStatus(row) === 'deploying').length
+  const failedCount = appDeployments.filter(row => deploymentStatus(row) === 'deploy_failed').length
   const appModeLabel = app ? getAppModeLabel(app.mode, tCommon) : t('detail.sourceAppDeleted')
 
   return (
@@ -263,8 +263,8 @@ const InstanceDetail: FC<InstanceDetailProps> = ({ instanceId, children }) => {
       <div className="relative flex h-full overflow-hidden rounded-t-2xl shadow-[0_0_5px_rgba(0,0,0,0.05),0_0_2px_-1px_rgba(0,0,0,0.03)]">
         <DeploymentSidebar
           instanceId={instanceId}
-          instanceName={instance.name}
-          instanceDescription={instance.description}
+          instanceName={app.name}
+          instanceDescription={app.description}
           appModeLabel={appModeLabel}
           app={app}
         />
@@ -279,7 +279,7 @@ const InstanceDetail: FC<InstanceDetailProps> = ({ instanceId, children }) => {
                 <div className="system-xs-regular text-text-tertiary">{t(`tabs.${activeTab}.description`)}</div>
               </div>
               <div className="flex items-center gap-2 system-xs-regular text-text-tertiary">
-                <span>{t('detail.envCount', { count: instanceDeployments.length })}</span>
+                <span>{t('detail.envCount', { count: appDeployments.length })}</span>
                 {deployingCount > 0 && (
                   <>
                     <span>·</span>

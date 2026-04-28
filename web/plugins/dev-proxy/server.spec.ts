@@ -109,6 +109,32 @@ describe('dev proxy server', () => {
     ])
   })
 
+  // Scenario: a local HTTP Dify API expects the non-prefixed local cookie name.
+  it('should keep local cookie names for HTTP upstream targets', async () => {
+    // Arrange
+    const fetchImpl = vi.fn<typeof fetch>().mockResolvedValue(new Response('ok'))
+    const app = createDevProxyApp({
+      consoleApiTarget: 'http://127.0.0.1:5001',
+      publicApiTarget: 'http://127.0.0.1:5001',
+      enterpriseApiTarget: 'http://127.0.0.1:8082',
+      fetchImpl,
+    })
+
+    // Act
+    await app.request('http://127.0.0.1:5010/console/api/account/profile', {
+      headers: {
+        Cookie: 'access_token=abc; refresh_token=def',
+      },
+    })
+
+    // Assert
+    const requestHeaders = fetchImpl.mock.calls[0]?.[1]?.headers
+    if (!(requestHeaders instanceof Headers))
+      throw new Error('Expected proxy request headers to be Headers')
+
+    expect(requestHeaders.get('cookie')).toBe('access_token=abc; refresh_token=def')
+  })
+
   // Scenario: Enterprise dashboard routes should use the Enterprise target before generic API routes.
   it('should proxy enterprise api routes to the enterprise target', async () => {
     // Arrange

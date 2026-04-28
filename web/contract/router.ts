@@ -3,6 +3,26 @@ import { accountAvatarContract } from './console/account'
 import { appDeleteContract, workflowOnlineUsersContract } from './console/apps'
 import { bindPartnerStackContract, invoicesContract } from './console/billing'
 import {
+  accessConfigContract,
+  cancelDeploymentContract,
+  createDeploymentContract,
+  createEnvironmentAPITokenContract,
+  createReleaseContract,
+  deleteEnvironmentAPITokenContract,
+  deploymentCandidatesContract,
+  deploymentOverviewContract,
+  deploymentPlanContract,
+  environmentAccessPolicyContract,
+  environmentAPITokensContract,
+  environmentDeploymentsContract,
+  patchAccessChannelContract,
+  releaseHistoryContract,
+  rollbackEnvironmentContract,
+  searchAccessSubjectsContract,
+  undeployEnvironmentContract,
+  updateEnvironmentAccessPolicyContract,
+} from './console/deployments'
+import {
   exploreAppDetailContract,
   exploreAppsContract,
   exploreBannersContract,
@@ -90,6 +110,26 @@ export const consoleRouterContract = {
   billing: {
     invoices: invoicesContract,
     bindPartnerStack: bindPartnerStackContract,
+  },
+  deployments: {
+    overview: deploymentOverviewContract,
+    environmentDeployments: environmentDeploymentsContract,
+    candidates: deploymentCandidatesContract,
+    deploymentPlan: deploymentPlanContract,
+    releaseHistory: releaseHistoryContract,
+    accessConfig: accessConfigContract,
+    environmentAccessPolicy: environmentAccessPolicyContract,
+    updateEnvironmentAccessPolicy: updateEnvironmentAccessPolicyContract,
+    searchAccessSubjects: searchAccessSubjectsContract,
+    patchAccessChannel: patchAccessChannelContract,
+    createRelease: createReleaseContract,
+    createDeployment: createDeploymentContract,
+    cancelDeployment: cancelDeploymentContract,
+    undeployEnvironment: undeployEnvironmentContract,
+    rollbackEnvironment: rollbackEnvironmentContract,
+    environmentAPITokens: environmentAPITokensContract,
+    createEnvironmentAPIToken: createEnvironmentAPITokenContract,
+    deleteEnvironmentAPIToken: deleteEnvironmentAPITokenContract,
   },
   workflowDraft: {
     environmentVariables: workflowDraftEnvironmentVariablesContract,

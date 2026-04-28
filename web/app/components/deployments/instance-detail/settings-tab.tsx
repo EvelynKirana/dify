@@ -1,38 +1,40 @@
 'use client'
 import type { FC } from 'react'
-import type { Instance } from '../types'
+import type { AppInfo } from '../types'
 import { Button } from '@langgenius/dify-ui/button'
 import { toast } from '@langgenius/dify-ui/toast'
 import * as React from 'react'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useRouter } from '@/next/navigation'
+import { deployedRows } from '../api-utils'
 import { useDeploymentsStore } from '../store'
+import { useSourceApps } from '../use-source-apps'
 
 type SettingsTabProps = {
   instanceId: string
 }
 
 type SettingsFormProps = {
-  instance: Instance
+  app: AppInfo
   hasDeployments: boolean
 }
 
-const SettingsForm: FC<SettingsFormProps> = ({ instance, hasDeployments }) => {
+const SettingsForm: FC<SettingsFormProps> = ({ app, hasDeployments }) => {
   const { t } = useTranslation('deployments')
   const router = useRouter()
   const updateInstance = useDeploymentsStore(state => state.updateInstance)
   const deleteInstance = useDeploymentsStore(state => state.deleteInstance)
 
-  const [name, setName] = useState(instance.name)
-  const [description, setDescription] = useState(instance.description ?? '')
+  const [name, setName] = useState(app.name)
+  const [description, setDescription] = useState(app.description ?? '')
 
-  const dirty = name !== instance.name || description !== (instance.description ?? '')
+  const dirty = name !== app.name || description !== (app.description ?? '')
 
   const handleSave = () => {
     if (!name.trim())
       return
-    updateInstance(instance.id, {
+    updateInstance(app.id, {
       name: name.trim(),
       description: description.trim() || undefined,
     })
@@ -40,8 +42,8 @@ const SettingsForm: FC<SettingsFormProps> = ({ instance, hasDeployments }) => {
   }
 
   const handleReset = () => {
-    setName(instance.name)
-    setDescription(instance.description ?? '')
+    setName(app.name)
+    setDescription(app.description ?? '')
   }
 
   const handleDelete = () => {
@@ -49,7 +51,7 @@ const SettingsForm: FC<SettingsFormProps> = ({ instance, hasDeployments }) => {
       toast.error(t('settings.undeployFirst'))
       return
     }
-    deleteInstance(instance.id)
+    deleteInstance(app.id)
     router.push('/deployments')
   }
 
@@ -116,18 +118,18 @@ const SettingsForm: FC<SettingsFormProps> = ({ instance, hasDeployments }) => {
 }
 
 const SettingsTab: FC<SettingsTabProps> = ({ instanceId }) => {
-  const instances = useDeploymentsStore(state => state.instances)
-  const deployments = useDeploymentsStore(state => state.deployments)
+  const sourceApps = useDeploymentsStore(state => state.sourceApps)
+  const appData = useDeploymentsStore(state => state.appData[instanceId])
+  const { appMap } = useSourceApps()
+  const app = sourceApps.find(item => item.id === instanceId) ?? appMap.get(instanceId)
 
-  const instance = instances.find(i => i.id === instanceId)
-
-  if (!instance)
+  if (!app)
     return null
 
-  const hasDeployments = deployments.some(d => d.instanceId === instanceId)
-  const formKey = `${instance.id}-${instance.name}-${instance.description ?? ''}`
+  const hasDeployments = deployedRows(appData?.environmentDeployments.environmentDeployments).length > 0
+  const formKey = `${app.id}-${app.name}-${app.description ?? ''}`
 
-  return <SettingsForm key={formKey} instance={instance} hasDeployments={hasDeployments} />
+  return <SettingsForm key={formKey} app={app} hasDeployments={hasDeployments} />
 }
 
 export default SettingsTab

@@ -1,6 +1,6 @@
 'use client'
 import type { FC } from 'react'
-import type { Deployment, Environment, Release } from '../types'
+import type { EnvironmentDeploymentRow } from '@/contract/console/deployments'
 import { Button } from '@langgenius/dify-ui/button'
 import { cn } from '@langgenius/dify-ui/cn'
 import {
@@ -12,7 +12,21 @@ import {
 import * as React from 'react'
 import { useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { mockCredentials } from '../mock-data'
+import {
+  activeRelease,
+  deployedRows,
+  deploymentId,
+  deploymentStatus,
+  environmentBackend,
+  environmentHealth,
+  environmentId,
+  environmentMode,
+  environmentName,
+  formatDate,
+  releaseCommit,
+  releaseLabel,
+  targetRelease,
+} from '../api-utils'
 import { HealthBadge, ModeBadge } from '../status-badge'
 import { useDeploymentsStore } from '../store'
 
@@ -48,103 +62,85 @@ const InfoRow: FC<InfoRowProps> = ({ label, value, mono, suffix }) => (
 )
 
 type DeploymentPanelProps = {
-  deployment: Deployment
-  env: Environment
-  release?: Release
-  targetRelease?: Release
-  failedRelease?: Release
+  row: EnvironmentDeploymentRow
 }
 
-const DeploymentPanel: FC<DeploymentPanelProps> = ({ deployment, env, release, targetRelease, failedRelease }) => {
+const DeploymentPanel: FC<DeploymentPanelProps> = ({ row }) => {
   const { t } = useTranslation('deployments')
-  const credentialMap = useMemo(
-    () => new Map(mockCredentials.map(c => [c.id, c])),
-    [],
-  )
-
-  const modelCreds = deployment.credentials.filter(c => c.kind === 'model')
-  const pluginCreds = deployment.credentials.filter(c => c.kind === 'plugin')
+  const observed = activeRelease(row)
+  const pending = targetRelease(row)
+  const env = row.environment
+  const observedBindings = row.observedRuntime?.bindings
+  const pendingBindings = row.pendingDeployment?.bindings
+  const credentials = [...observedBindings?.credentials ?? [], ...pendingBindings?.credentials ?? []]
+  const envVars = [...observedBindings?.envVars ?? [], ...pendingBindings?.envVars ?? []]
 
   return (
     <div className="border-t border-divider-subtle bg-background-default-subtle px-6 py-4">
       <div className="mb-3 flex items-center gap-2">
         <span className="system-sm-semibold text-text-primary">
-          {env.name}
+          {environmentName(env)}
           {' · '}
-          {deployment.activeReleaseId}
+          {releaseLabel(observed || pending)}
         </span>
-        <ModeBadge mode={env.mode} />
-        <HealthBadge health={env.health} />
+        <ModeBadge mode={environmentMode(env)} />
+        <HealthBadge health={environmentHealth(env)} />
       </div>
       <div className="grid grid-cols-1 gap-x-8 gap-y-4 md:grid-cols-2">
         <InfoBlock title={t('deployTab.panel.instanceInfo')}>
-          <InfoRow label={t('deployTab.panel.deploymentId')} value={deployment.id} mono />
-          <InfoRow label={t('deployTab.panel.replicas')} value={deployment.replicas != null ? String(deployment.replicas) : '—'} />
-          <InfoRow label={t('deployTab.panel.runtimeMode')} value={t(env.mode === 'isolated' ? 'mode.isolated' : 'mode.shared')} suffix={` / ${env.backend.toUpperCase()}`} />
-          <InfoRow label={t('deployTab.panel.runtimeNote')} value={deployment.runtimeNote ?? '—'} />
+          <InfoRow label={t('deployTab.panel.deploymentId')} value={deploymentId(row) || '—'} mono />
+          <InfoRow label={t('deployTab.panel.replicas')} value={row.instance?.replicas != null ? String(row.instance.replicas) : '—'} />
+          <InfoRow label={t('deployTab.panel.runtimeMode')} value={t(environmentMode(env) === 'isolated' ? 'mode.isolated' : 'mode.shared')} suffix={` / ${environmentBackend(env).toUpperCase()}`} />
+          <InfoRow label={t('deployTab.panel.runtimeNote')} value={row.instance?.status ?? '—'} />
         </InfoBlock>
 
         <InfoBlock title={t('deployTab.panel.releaseInfo')}>
-          <InfoRow label={t('deployTab.panel.release')} value={release?.id ?? deployment.activeReleaseId} mono />
-          <InfoRow label={t('deployTab.panel.commit')} value={release?.gateCommitId ?? '—'} mono />
-          <InfoRow label={t('deployTab.panel.createdAt')} value={release?.createdAt ?? '—'} />
-          {targetRelease && (
-            <InfoRow label={t('deployTab.panel.targetRelease')} value={`${targetRelease.id} / ${targetRelease.gateCommitId}`} mono />
+          <InfoRow label={t('deployTab.panel.release')} value={releaseLabel(observed || pending)} mono />
+          <InfoRow label={t('deployTab.panel.commit')} value={releaseCommit(observed || pending)} mono />
+          <InfoRow label={t('deployTab.panel.createdAt')} value={formatDate((observed || pending)?.createdAt)} />
+          {pending && (
+            <InfoRow label={t('deployTab.panel.targetRelease')} value={`${releaseLabel(pending)} / ${releaseCommit(pending)}`} mono />
           )}
-          {failedRelease && (
-            <InfoRow label={t('deployTab.panel.failedRelease')} value={`${failedRelease.id} / ${failedRelease.gateCommitId}`} mono />
+          {row.instance?.lastError?.releaseId && (
+            <InfoRow label={t('deployTab.panel.failedRelease')} value={row.instance.lastError.releaseId} mono />
           )}
         </InfoBlock>
 
         <InfoBlock title={t('deployTab.panel.endpoints')}>
-          <InfoRow label={t('deployTab.panel.run')} value={`/${env.namespace}/run`} mono />
-          <InfoRow label={t('deployTab.panel.health')} value={`/${env.namespace}/readyz`} mono />
+          <InfoRow label={t('deployTab.panel.run')} value={row.observedRuntime?.endpoints?.run ?? '—'} mono />
+          <InfoRow label={t('deployTab.panel.health')} value={row.observedRuntime?.endpoints?.health ?? '—'} mono />
         </InfoBlock>
 
-        {modelCreds.length > 0 && (
+        {credentials.length > 0 && (
           <InfoBlock title={t('deployTab.panel.modelCreds')}>
-            {modelCreds.map(c => (
+            {credentials.map(c => (
               <InfoRow
-                key={`model-${c.provider}`}
-                label={c.provider}
-                value={credentialMap.get(c.credentialId ?? '')?.name ?? '—'}
+                key={`${c.slot}-${c.displayName}-${c.maskedValue}`}
+                label={c.slot ?? '—'}
+                value={c.displayName || c.maskedValue || '—'}
                 mono
               />
             ))}
           </InfoBlock>
         )}
 
-        {pluginCreds.length > 0 && (
-          <InfoBlock title={t('deployTab.panel.pluginCreds')}>
-            {pluginCreds.map(c => (
-              <InfoRow
-                key={`plugin-${c.provider}`}
-                label={c.provider}
-                value={credentialMap.get(c.credentialId ?? '')?.name ?? '—'}
-                mono
-              />
-            ))}
-          </InfoBlock>
-        )}
-
-        {deployment.envVariables.length > 0 && (
+        {envVars.length > 0 && (
           <InfoBlock title={t('deployTab.panel.envVars')}>
-            {deployment.envVariables.map(v => (
+            {envVars.map(v => (
               <InfoRow
-                key={v.key}
-                label={v.key}
-                value={v.type === 'secret' ? '••••••' : v.value}
+                key={`${v.slot}-${v.displayName}`}
+                label={v.slot ?? '—'}
+                value={v.maskedValue || v.displayName || '—'}
                 mono
-                suffix={` (${v.type})`}
               />
             ))}
           </InfoBlock>
         )}
       </div>
 
-      {deployment.status === 'deploy_failed' && deployment.errorMessage && (
+      {row.instance?.lastError?.message && (
         <div className="mt-4 rounded-lg border border-util-colors-red-red-200 bg-util-colors-red-red-50 px-3 py-2 system-xs-regular text-util-colors-red-red-700">
-          {deployment.errorMessage}
+          {row.instance.lastError.message}
         </div>
       )}
     </div>
@@ -152,22 +148,23 @@ const DeploymentPanel: FC<DeploymentPanelProps> = ({ deployment, env, release, t
 }
 
 type DeploymentStatusSummaryProps = {
-  deployment: Deployment
+  row: EnvironmentDeploymentRow
 }
 
-const DeploymentStatusSummary: FC<DeploymentStatusSummaryProps> = ({ deployment }) => {
+const DeploymentStatusSummary: FC<DeploymentStatusSummaryProps> = ({ row }) => {
   const { t } = useTranslation('deployments')
+  const status = deploymentStatus(row)
 
-  if (deployment.status === 'deploying') {
+  if (status === 'deploying') {
     return (
       <span className="inline-flex items-center gap-1.5 system-sm-medium text-util-colors-blue-blue-700">
         <span className="i-ri-loader-4-line h-3.5 w-3.5 animate-spin" />
-        {t('deployTab.status.deployingRelease', { release: deployment.targetReleaseId ?? deployment.activeReleaseId })}
+        {t('deployTab.status.deployingRelease', { release: releaseLabel(targetRelease(row) || activeRelease(row)) })}
       </span>
     )
   }
 
-  if (deployment.status === 'deploy_failed') {
+  if (status === 'deploy_failed') {
     return (
       <span className="inline-flex items-center gap-1.5 system-sm-medium text-util-colors-warning-warning-700">
         <span className="i-ri-alert-line h-3.5 w-3.5" />
@@ -184,106 +181,26 @@ const DeploymentStatusSummary: FC<DeploymentStatusSummaryProps> = ({ deployment 
   )
 }
 
-type RowPrimaryActionProps = {
-  deployment: Deployment
-  onPromote: () => void
-  onViewProgress: () => void
-  onViewLogs: () => void
-}
-
-const RowPrimaryAction: FC<RowPrimaryActionProps> = ({ deployment, onPromote, onViewProgress, onViewLogs }) => {
-  const { t } = useTranslation('deployments')
-
-  if (deployment.status === 'deploying') {
-    return (
-      <Button size="small" variant="secondary" onClick={onViewProgress}>
-        {t('deployTab.viewProgress')}
-      </Button>
-    )
-  }
-
-  if (deployment.status === 'deploy_failed') {
-    return (
-      <Button size="small" variant="secondary" onClick={onViewLogs}>
-        {t('deployTab.viewLogs')}
-      </Button>
-    )
-  }
-
-  return (
-    <Button size="small" variant="secondary" onClick={onPromote}>
-      {t('deployTab.deployOtherVersion')}
-    </Button>
-  )
-}
-
-type DeploymentMenuProps = {
-  deployment: Deployment
-  onUndeploy: () => void
-}
-
-const DeploymentMenu: FC<DeploymentMenuProps> = ({ deployment, onUndeploy }) => {
-  const { t } = useTranslation('deployments')
-  const [menuOpen, setMenuOpen] = useState(false)
-  const itemLabel = deployment.status === 'deploying'
-    ? t('deployTab.cancelDeployment')
-    : t('deployTab.undeploy')
-
-  return (
-    <DropdownMenu modal={false} open={menuOpen} onOpenChange={setMenuOpen}>
-      <DropdownMenuTrigger
-        aria-label={t('deployTab.moreActions')}
-        className="flex h-7 w-7 items-center justify-center rounded-md text-text-tertiary hover:bg-state-base-hover hover:text-text-secondary"
-      >
-        <span className="i-ri-more-line h-4 w-4" />
-      </DropdownMenuTrigger>
-      {menuOpen && (
-        <DropdownMenuContent placement="bottom-end" sideOffset={4} popupClassName="w-[200px]">
-          <DropdownMenuItem
-            className="gap-2 px-3"
-            onClick={() => {
-              setMenuOpen(false)
-              onUndeploy()
-            }}
-          >
-            <span className="system-sm-regular text-text-destructive">
-              {itemLabel}
-            </span>
-          </DropdownMenuItem>
-        </DropdownMenuContent>
-      )}
-    </DropdownMenu>
-  )
-}
-
 type DeployTabProps = {
   instanceId: string
 }
 
-const DeployTab: FC<DeployTabProps> = ({ instanceId }) => {
+const DeployTab: FC<DeployTabProps> = ({ instanceId: appId }) => {
   const { t } = useTranslation('deployments')
-  const environments = useDeploymentsStore(state => state.environments)
-  const deployments = useDeploymentsStore(state => state.deployments)
+  const appData = useDeploymentsStore(state => state.appData[appId])
   const openDeployDrawer = useDeploymentsStore(state => state.openDeployDrawer)
   const undeployDeployment = useDeploymentsStore(state => state.undeployDeployment)
-  const releases = useDeploymentsStore(state => state.releases)
 
-  const instanceDeployments = useMemo(
-    () => deployments.filter(d => d.instanceId === instanceId),
-    [deployments, instanceId],
+  const rows = useMemo(
+    () => deployedRows(appData?.environmentDeployments.environmentDeployments),
+    [appData?.environmentDeployments.environmentDeployments],
   )
 
-  const envMap = useMemo(
-    () => new Map(environments.map(env => [env.id, env])),
-    [environments],
-  )
-
-  const [expanded, setExpanded] = useState<string | null>(() => instanceDeployments[0]?.id ?? null)
-
+  const deployedEnvIds = new Set(rows.map(row => environmentId(row.environment)))
+  const availableEnvs = appData?.candidates.environmentOptions?.filter(env => env.id && !deployedEnvIds.has(env.id)) ?? []
+  const [expanded, setExpanded] = useState<string | null>(() => rows[0] ? environmentId(rows[0].environment) : null)
   const toggle = (id: string) => setExpanded(prev => (prev === id ? null : id))
-
   const [deployMenuOpen, setDeployMenuOpen] = useState(false)
-  const availableEnvs = environments.filter(env => !instanceDeployments.some(d => d.environmentId === env.id))
 
   return (
     <div className="flex flex-col gap-4 p-6">
@@ -293,7 +210,7 @@ const DeployTab: FC<DeployTabProps> = ({ instanceId }) => {
           {' '}
           <span className="system-sm-regular text-text-tertiary">
             (
-            {instanceDeployments.length}
+            {rows.length}
             )
           </span>
         </div>
@@ -315,7 +232,7 @@ const DeployTab: FC<DeployTabProps> = ({ instanceId }) => {
                 className="gap-2 px-3"
                 onClick={() => {
                   setDeployMenuOpen(false)
-                  openDeployDrawer({ instanceId })
+                  openDeployDrawer({ appId })
                 }}
               >
                 <span className="system-sm-regular text-text-secondary">{t('deployTab.deployToNewEnv')}</span>
@@ -329,11 +246,11 @@ const DeployTab: FC<DeployTabProps> = ({ instanceId }) => {
                       className="gap-2 px-3"
                       onClick={() => {
                         setDeployMenuOpen(false)
-                        openDeployDrawer({ instanceId, environmentId: env.id })
+                        openDeployDrawer({ appId, environmentId: env.id })
                       }}
                     >
                       <span className="system-sm-regular text-text-secondary">
-                        {t('deployTab.deployToEnv', { name: env.name })}
+                        {t('deployTab.deployToEnv', { name: environmentName(env) })}
                       </span>
                     </DropdownMenuItem>
                   ))}
@@ -344,7 +261,7 @@ const DeployTab: FC<DeployTabProps> = ({ instanceId }) => {
         </DropdownMenu>
       </div>
 
-      {instanceDeployments.length === 0
+      {rows.length === 0
         ? (
             <div className="rounded-xl border border-dashed border-components-panel-border bg-components-panel-bg-blur px-4 py-12 text-center system-sm-regular text-text-tertiary">
               {t('deployTab.empty')}
@@ -362,26 +279,34 @@ const DeployTab: FC<DeployTabProps> = ({ instanceId }) => {
                 <div>{t('deployTab.col.status')}</div>
                 <div />
               </div>
-              {instanceDeployments.map((deployment) => {
-                const env = envMap.get(deployment.environmentId)
-                if (!env)
-                  return null
-                const isExpanded = expanded === deployment.id
-                const release = releases.find(r => r.id === deployment.activeReleaseId)
-                const targetRelease = deployment.targetReleaseId ? releases.find(r => r.id === deployment.targetReleaseId) : undefined
-                const failedRelease = deployment.failedReleaseId ? releases.find(r => r.id === deployment.failedReleaseId) : undefined
+              {rows.map((row) => {
+                const envId = environmentId(row.environment)
+                const isExpanded = expanded === envId
+                const status = deploymentStatus(row)
+                const release = activeRelease(row) || targetRelease(row)
                 const actions = (
                   <div className="flex shrink-0 items-center gap-1" onClick={e => e.stopPropagation()}>
-                    <RowPrimaryAction
-                      deployment={deployment}
-                      onPromote={() => openDeployDrawer({ instanceId, environmentId: deployment.environmentId })}
-                      onViewProgress={() => setExpanded(deployment.id)}
-                      onViewLogs={() => setExpanded(deployment.id)}
-                    />
-                    <DeploymentMenu
-                      deployment={deployment}
-                      onUndeploy={() => undeployDeployment(deployment.id)}
-                    />
+                    <Button size="small" variant="secondary" onClick={() => openDeployDrawer({ appId, environmentId: envId })}>
+                      {status === 'ready' ? t('deployTab.deployOtherVersion') : t('deployTab.viewProgress')}
+                    </Button>
+                    <DropdownMenu modal={false}>
+                      <DropdownMenuTrigger
+                        aria-label={t('deployTab.moreActions')}
+                        className="flex h-7 w-7 items-center justify-center rounded-md text-text-tertiary hover:bg-state-base-hover hover:text-text-secondary"
+                      >
+                        <span className="i-ri-more-line h-4 w-4" />
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent placement="bottom-end" sideOffset={4} popupClassName="w-[200px]">
+                        <DropdownMenuItem
+                          className="gap-2 px-3"
+                          onClick={() => undeployDeployment(appId, envId, deploymentId(row), status === 'deploying')}
+                        >
+                          <span className="system-sm-regular text-text-destructive">
+                            {status === 'deploying' ? t('deployTab.cancelDeployment') : t('deployTab.undeploy')}
+                          </span>
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
                   </div>
                 )
                 const chevron = (
@@ -393,10 +318,10 @@ const DeployTab: FC<DeployTabProps> = ({ instanceId }) => {
                   />
                 )
                 return (
-                  <div key={deployment.id} className="border-b border-divider-subtle last:border-b-0">
+                  <div key={envId} className="border-b border-divider-subtle last:border-b-0">
                     <button
                       type="button"
-                      onClick={() => toggle(deployment.id)}
+                      onClick={() => toggle(envId)}
                       className={cn(
                         'flex w-full flex-col gap-2 px-4 py-3 text-left hover:bg-state-base-hover',
                         'lg:grid lg:items-center lg:gap-4',
@@ -405,11 +330,11 @@ const DeployTab: FC<DeployTabProps> = ({ instanceId }) => {
                     >
                       <div className="flex items-start justify-between gap-3 lg:block">
                         <div className="flex min-w-0 flex-col gap-0.5">
-                          <span className="truncate system-sm-semibold text-text-primary">{env.name}</span>
+                          <span className="truncate system-sm-semibold text-text-primary">{environmentName(row.environment)}</span>
                           <div className="flex items-center gap-1.5 system-xs-regular text-text-tertiary">
-                            <span className="uppercase">{env.backend}</span>
+                            <span className="uppercase">{environmentBackend(row.environment)}</span>
                             <span>·</span>
-                            <span>{t(env.mode === 'isolated' ? 'mode.isolated' : 'mode.shared')}</span>
+                            <span>{t(environmentMode(row.environment) === 'isolated' ? 'mode.isolated' : 'mode.shared')}</span>
                           </div>
                         </div>
                         <div className="flex shrink-0 items-center gap-1 lg:hidden">
@@ -419,13 +344,11 @@ const DeployTab: FC<DeployTabProps> = ({ instanceId }) => {
                       </div>
                       <div className="flex flex-wrap items-center gap-x-3 gap-y-1 lg:contents">
                         <div className="flex items-center gap-2">
-                          <span className="font-mono system-sm-medium text-text-primary">{deployment.activeReleaseId}</span>
-                          {release && (
-                            <span className="font-mono system-xs-regular text-text-tertiary">{release.gateCommitId}</span>
-                          )}
+                          <span className="font-mono system-sm-medium text-text-primary">{releaseLabel(release)}</span>
+                          <span className="font-mono system-xs-regular text-text-tertiary">{releaseCommit(release)}</span>
                         </div>
                         <div>
-                          <DeploymentStatusSummary deployment={deployment} />
+                          <DeploymentStatusSummary row={row} />
                         </div>
                       </div>
                       <div className="hidden items-center justify-end gap-1 lg:flex">
@@ -433,15 +356,7 @@ const DeployTab: FC<DeployTabProps> = ({ instanceId }) => {
                         {chevron}
                       </div>
                     </button>
-                    {isExpanded && (
-                      <DeploymentPanel
-                        deployment={deployment}
-                        env={env}
-                        release={release}
-                        targetRelease={targetRelease}
-                        failedRelease={failedRelease}
-                      />
-                    )}
+                    {isExpanded && <DeploymentPanel row={row} />}
                   </div>
                 )
               })}

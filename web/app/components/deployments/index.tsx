@@ -1,6 +1,7 @@
 'use client'
 import type { FC } from 'react'
-import type { AppInfo, Deployment, DeployStatus, Environment, Instance } from './types'
+import type { AppInfo } from './types'
+import type { DeploymentAppData } from '@/service/deployments'
 import type { AppModeEnum } from '@/types/app'
 import { cn } from '@langgenius/dify-ui/cn'
 import {
@@ -21,6 +22,7 @@ import AppIcon from '@/app/components/base/app-icon'
 import Input from '@/app/components/base/input'
 import { useFormatTimeFromNow } from '@/hooks/use-format-time-from-now'
 import { useRouter } from '@/next/navigation'
+import { deployedRows, deploymentStatus, environmentId, environmentName, releaseLabel } from './api-utils'
 import CreateInstanceModal from './create-instance-modal'
 import DeployDrawer from './deploy-drawer'
 import RollbackModal from './rollback-modal'
@@ -94,13 +96,11 @@ const NewInstanceCard: FC<NewInstanceCardProps> = ({ onOpen }) => {
 }
 
 type InstanceCardProps = {
-  instance: Instance
   app: AppInfo
-  deployments: Deployment[]
-  environments: Environment[]
+  appData?: DeploymentAppData
 }
 
-const InstanceCard: FC<InstanceCardProps> = ({ instance, app, deployments, environments }) => {
+const InstanceCard: FC<InstanceCardProps> = ({ app, appData }) => {
   const { t } = useTranslation('deployments')
   const router = useRouter()
   const { formatTimeFromNow } = useFormatTimeFromNow()
@@ -108,7 +108,7 @@ const InstanceCard: FC<InstanceCardProps> = ({ instance, app, deployments, envir
   const openDeployDrawer = useDeploymentsStore(state => state.openDeployDrawer)
   const deleteInstance = useDeploymentsStore(state => state.deleteInstance)
 
-  const navigateToDetail = () => router.push(`/deployments/${instance.id}/overview`)
+  const navigateToDetail = () => router.push(`/deployments/${app.id}/overview`)
 
   const handleMenuAction = (e: React.MouseEvent<HTMLElement>, action: () => void) => {
     e.stopPropagation()
@@ -117,17 +117,20 @@ const InstanceCard: FC<InstanceCardProps> = ({ instance, app, deployments, envir
     action()
   }
 
+  const deployments = useMemo(
+    () => deployedRows(appData?.environmentDeployments.environmentDeployments),
+    [appData?.environmentDeployments.environmentDeployments],
+  )
   const envCount = deployments.length
-  const failedCount = deployments.filter(d => d.status === 'deploy_failed').length
-  const deployingCount = deployments.filter(d => d.status === 'deploying').length
-  const readyCount = deployments.filter(d => d.status === 'ready').length
-  const envMap = useMemo(() => new Map(environments.map(env => [env.id, env])), [environments])
+  const failedCount = deployments.filter(row => deploymentStatus(row) === 'deploy_failed').length
+  const deployingCount = deployments.filter(row => deploymentStatus(row) === 'deploying').length
+  const readyCount = deployments.filter(row => deploymentStatus(row) === 'ready').length
 
   const lastDeployedAt = useMemo(() => {
     if (deployments.length === 0)
       return null
-    return deployments.reduce((latest, d) => {
-      const t = new Date(d.createdAt).getTime()
+    return deployments.reduce((latest, row) => {
+      const t = new Date(row.instance?.lastDeployedAt || row.instance?.lastReadyAt || '').getTime()
       return t > latest ? t : latest
     }, 0)
   }, [deployments])
@@ -154,7 +157,7 @@ const InstanceCard: FC<InstanceCardProps> = ({ instance, app, deployments, envir
   if ((primaryStatus === 'failed' || primaryStatus === 'deploying') && readyCount > 0)
     secondaryParts.push(t('card.ready', { count: readyCount }))
 
-  const statusLabel = (status: DeployStatus) => {
+  const statusLabel = (status: ReturnType<typeof deploymentStatus>) => {
     if (status === 'deploy_failed')
       return t('status.deployFailed')
     return t(`status.${status}`)
@@ -166,16 +169,16 @@ const InstanceCard: FC<InstanceCardProps> = ({ instance, app, deployments, envir
         <div className="flex min-w-[220px] flex-col gap-1">
           <div className="system-xs-medium text-text-secondary">{t('overview.deploymentStatus')}</div>
           {deployments.map((deployment) => {
-            const env = envMap.get(deployment.environmentId)
+            const status = deploymentStatus(deployment)
             return (
-              <div key={deployment.id} className="flex min-w-0 items-center justify-between gap-3">
+              <div key={environmentId(deployment.environment)} className="flex min-w-0 items-center justify-between gap-3">
                 <span className="min-w-0 truncate text-text-tertiary">
-                  {env?.name ?? deployment.environmentId}
+                  {environmentName(deployment.environment)}
                 </span>
                 <span className="shrink-0 text-text-secondary">
-                  {statusLabel(deployment.status)}
+                  {statusLabel(status)}
                   {' · '}
-                  {deployment.activeReleaseId}
+                  {releaseLabel(deployment.observedRuntime?.release || deployment.pendingDeployment?.release)}
                 </span>
               </div>
             )
@@ -226,7 +229,7 @@ const InstanceCard: FC<InstanceCardProps> = ({ instance, app, deployments, envir
         </div>
         <div className="w-0 grow py-px">
           <div className="flex items-center text-sm leading-5 font-semibold text-text-secondary">
-            <div className="truncate" title={instance.name}>{instance.name}</div>
+            <div className="truncate" title={app.name}>{app.name}</div>
           </div>
           <div className="truncate text-[10px] leading-[18px] font-medium text-text-tertiary" title={appModeLabel}>
             {appModeLabel}
@@ -299,7 +302,7 @@ const InstanceCard: FC<InstanceCardProps> = ({ instance, app, deployments, envir
               <DropdownMenuContent placement="bottom-end" sideOffset={4} popupClassName="w-[216px]">
                 <DropdownMenuItem
                   className="gap-2 px-3"
-                  onClick={e => handleMenuAction(e, () => openDeployDrawer({ instanceId: instance.id }))}
+                  onClick={e => handleMenuAction(e, () => openDeployDrawer({ appId: app.id }))}
                 >
                   <span className="system-sm-regular text-text-secondary">{t('card.menu.deploy')}</span>
                 </DropdownMenuItem>
@@ -312,7 +315,7 @@ const InstanceCard: FC<InstanceCardProps> = ({ instance, app, deployments, envir
                 <DropdownMenuSeparator />
                 <DropdownMenuItem
                   className="gap-2 px-3"
-                  onClick={e => handleMenuAction(e, () => deleteInstance(instance.id))}
+                  onClick={e => handleMenuAction(e, () => deleteInstance(app.id))}
                 >
                   <span className="system-sm-regular text-text-destructive">{t('card.menu.delete')}</span>
                 </DropdownMenuItem>
@@ -391,9 +394,8 @@ const EnvironmentFilter: FC<EnvironmentFilterProps> = ({ value, options, onChang
 
 const DeploymentsMain: FC = () => {
   const { t } = useTranslation('deployments')
-  const instances = useDeploymentsStore(state => state.instances)
-  const environments = useDeploymentsStore(state => state.environments)
-  const deployments = useDeploymentsStore(state => state.deployments)
+  const sourceApps = useDeploymentsStore(state => state.sourceApps)
+  const appData = useDeploymentsStore(state => state.appData)
   const openCreateInstanceModal = useDeploymentsStore(state => state.openCreateInstanceModal)
 
   const [envFilter, setEnvFilter] = useQueryState(
@@ -416,15 +418,28 @@ const DeploymentsMain: FC = () => {
   }
 
   const { appMap } = useSourceApps()
-  const deploymentsByInstance = useMemo(() => {
-    const map = new Map<string, Deployment[]>()
-    deployments.forEach((d) => {
-      const list = map.get(d.instanceId) ?? []
-      list.push(d)
-      map.set(d.instanceId, list)
+  const apps = useMemo(
+    () => sourceApps.length > 0 ? sourceApps : [...appMap.values()],
+    [appMap, sourceApps],
+  )
+  const appDataList = useMemo(() => Object.values(appData), [appData])
+
+  const environments = useMemo(() => {
+    const map = new Map<string, string>()
+    appDataList.forEach((data) => {
+      data.candidates.environmentOptions?.forEach((env) => {
+        const id = environmentId(env)
+        if (id)
+          map.set(id, environmentName(env))
+      })
+      data.environmentDeployments.environmentDeployments?.forEach((row) => {
+        const id = environmentId(row.environment)
+        if (id)
+          map.set(id, environmentName(row.environment))
+      })
     })
-    return map
-  }, [deployments])
+    return [...map.entries()].map(([id, name]) => ({ id, name }))
+  }, [appDataList])
 
   const envIdSet = useMemo(() => new Set(environments.map(e => e.id)), [environments])
   const activeFilter = envFilter === 'all' || envFilter === 'not-deployed' || envIdSet.has(envFilter)
@@ -453,23 +468,21 @@ const DeploymentsMain: FC = () => {
 
   const visibleInstances = useMemo(() => {
     const byEnv = activeFilter === 'all'
-      ? instances
+      ? apps
       : activeFilter === 'not-deployed'
-        ? instances.filter(i => (deploymentsByInstance.get(i.id)?.length ?? 0) === 0)
-        : instances.filter(i => (deploymentsByInstance.get(i.id) ?? []).some(d => d.environmentId === activeFilter))
+        ? apps.filter(app => deployedRows(appData[app.id]?.environmentDeployments.environmentDeployments).length === 0)
+        : apps.filter(app => deployedRows(appData[app.id]?.environmentDeployments.environmentDeployments).some(row => environmentId(row.environment) === activeFilter))
 
     const q = keywords.trim().toLowerCase()
     if (!q)
       return byEnv
-    return byEnv.filter((i) => {
-      const app = appMap.get(i.appId)
+    return byEnv.filter((app) => {
       return (
-        i.name.toLowerCase().includes(q)
-        || (i.description ?? '').toLowerCase().includes(q)
-        || (app?.name.toLowerCase().includes(q) ?? false)
+        app.name.toLowerCase().includes(q)
+        || (app.description ?? '').toLowerCase().includes(q)
       )
     })
-  }, [instances, deploymentsByInstance, activeFilter, keywords, appMap])
+  }, [apps, activeFilter, keywords, appData])
 
   return (
     <>
@@ -494,17 +507,12 @@ const DeploymentsMain: FC = () => {
         </div>
         <div className="relative grid grow grid-cols-1 content-start gap-4 px-12 pt-2 2k:grid-cols-6 sm:grid-cols-1 md:grid-cols-2 xl:grid-cols-4 2xl:grid-cols-5">
           <NewInstanceCard onOpen={openCreateInstanceModal} />
-          {visibleInstances.map((instance) => {
-            const app = appMap.get(instance.appId)
-            if (!app)
-              return null
+          {visibleInstances.map((app) => {
             return (
               <InstanceCard
-                key={instance.id}
-                instance={instance}
+                key={app.id}
                 app={app}
-                deployments={deploymentsByInstance.get(instance.id) ?? []}
-                environments={environments}
+                appData={appData[app.id]}
               />
             )
           })}

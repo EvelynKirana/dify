@@ -113,7 +113,9 @@ const createProxyRequestHeaders = (request: Request, targetUrl: URL) => {
   if (headers.has('origin'))
     headers.set('origin', targetUrl.origin)
 
-  const rewrittenCookieHeader = rewriteCookieHeaderForUpstream(headers.get('cookie') || undefined)
+  const rewrittenCookieHeader = rewriteCookieHeaderForUpstream(headers.get('cookie') || undefined, {
+    useHostPrefix: targetUrl.protocol === 'https:',
+  })
   if (rewrittenCookieHeader)
     headers.set('cookie', rewrittenCookieHeader)
 

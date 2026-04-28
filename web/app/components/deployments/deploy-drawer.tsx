@@ -1,51 +1,109 @@
 'use client'
 import type { FC } from 'react'
-import type { CredentialBinding, Deployment, Environment, EnvVariable, Instance, Release } from './types'
+import type { BindingsProto, ConsoleReleaseSummary, DeploymentSlot, EnvironmentOption } from '@/contract/console/deployments'
 import { Button } from '@langgenius/dify-ui/button'
 import { cn } from '@langgenius/dify-ui/cn'
 import { Dialog, DialogCloseButton, DialogContent, DialogDescription, DialogTitle } from '@langgenius/dify-ui/dialog'
 import { Select, SelectContent, SelectItem, SelectItemIndicator, SelectItemText, SelectTrigger } from '@langgenius/dify-ui/select'
+import { skipToken, useQuery } from '@tanstack/react-query'
 import * as React from 'react'
 import { useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import Input from '@/app/components/base/input'
-import { mockCredentials } from './mock-data'
+import { consoleQuery } from '@/service/client'
+import { environmentHealth, environmentMode, environmentName, releaseCommit, releaseLabel } from './api-utils'
 import { HealthBadge, ModeBadge } from './status-badge'
 import { useDeploymentsStore } from './store'
 
-type RequiredBindings = {
-  model: string[]
-  plugin: string[]
-  envVars: { key: string, type: 'string' | 'secret' }[]
+type CredentialRequirement = {
+  slot: string
+  label: string
+  required: boolean
+  selectedCredentialId?: string
+  options: { id: string, label: string }[]
 }
 
-function deriveRequiredBindings(appId: string): RequiredBindings {
-  switch (appId) {
-    case 'app-payments-workflow':
-      return {
-        model: ['OpenAI', 'DeepSeek'],
-        plugin: ['Gmail', 'Notion'],
-        envVars: [
-          { key: 'kn', type: 'string' },
-          { key: 'dbkey', type: 'secret' },
-        ],
-      }
-    case 'app-customer-support':
-      return {
-        model: ['OpenAI'],
-        plugin: ['Gmail'],
-        envVars: [
-          { key: 'dbkey', type: 'secret' },
-          { key: 'keyno', type: 'string' },
-        ],
-      }
-    default:
-      return {
-        model: ['OpenAI'],
-        plugin: [],
-        envVars: [],
-      }
+type EnvVarRequirement = {
+  key: string
+  label: string
+  required: boolean
+  selectedEnvVarId?: string
+  type: 'string' | 'secret'
+  options: { id: string, label: string }[]
+}
+
+type RequiredBindings = {
+  model: CredentialRequirement[]
+  plugin: CredentialRequirement[]
+  envVars: EnvVarRequirement[]
+}
+
+function isModelSlot(kind?: string) {
+  return kind?.toLowerCase().includes('model')
+}
+
+function isEnvVarSlot(kind?: string) {
+  const normalized = kind?.toLowerCase() ?? ''
+  return normalized.includes('env')
+}
+
+function isSecretValue(type?: string) {
+  return type?.toLowerCase().includes('secret') ?? false
+}
+
+function deriveRequiredBindings(slots: DeploymentSlot[] | undefined): RequiredBindings {
+  const required: RequiredBindings = {
+    model: [],
+    plugin: [],
+    envVars: [],
   }
+
+  slots?.forEach((slot) => {
+    const slotName = slot.slot || slot.label
+    if (!slotName)
+      return
+
+    if (isEnvVarSlot(slot.kind)) {
+      required.envVars.push({
+        key: slotName,
+        label: slot.label || slotName,
+        required: slot.required ?? true,
+        selectedEnvVarId: slot.selectedEnvVarId,
+        type: isSecretValue(slot.envVarOptions?.[0]?.valueType) ? 'secret' : 'string',
+        options: slot.envVarOptions
+          ?.filter(option => option.id)
+          .map(option => ({
+            id: option.id!,
+            label: `${option.name || option.id}${option.maskedValue ? ` · ${option.maskedValue}` : ''}`,
+          })) ?? [],
+      })
+      return
+    }
+
+    const target = isModelSlot(slot.kind) ? required.model : required.plugin
+    target.push({
+      slot: slotName,
+      label: slot.label || slotName,
+      required: slot.required ?? true,
+      selectedCredentialId: slot.selectedCredentialId,
+      options: slot.credentialOptions
+        ?.filter(option => option.id)
+        .map(option => ({
+          id: option.id!,
+          label: option.displayName || option.provider || option.id!,
+        })) ?? [],
+    })
+  })
+
+  return required
+}
+
+function credentialValue(values: Record<string, string>, item: CredentialRequirement) {
+  return values[item.slot] || item.selectedCredentialId || item.options[0]?.id || ''
+}
+
+function envVarValue(values: Record<string, string>, item: EnvVarRequirement) {
+  return values[item.key] || item.selectedEnvVarId || item.options[0]?.id || ''
 }
 
 type FieldProps = {
@@ -121,24 +179,24 @@ const LabeledSelect: FC<LabeledSelectProps> = ({ label, ...rest }) => (
   </div>
 )
 
-type EnvironmentRowProps = { env: Environment }
+type EnvironmentRowProps = { env: EnvironmentOption }
 
 const EnvironmentRow: FC<EnvironmentRowProps> = ({ env }) => (
   <div className="flex items-center justify-between rounded-lg border border-components-panel-border bg-components-panel-bg-blur px-3 py-2">
     <div className="flex items-center gap-2">
-      <span className="system-sm-semibold text-text-primary">{env.name}</span>
-      <ModeBadge mode={env.mode} />
-      <HealthBadge health={env.health} />
+      <span className="system-sm-semibold text-text-primary">{environmentName(env)}</span>
+      <ModeBadge mode={environmentMode(env)} />
+      <HealthBadge health={environmentHealth(env)} />
     </div>
-    <span className="system-xs-regular text-text-tertiary uppercase">{env.backend}</span>
+    <span className="system-xs-regular text-text-tertiary uppercase">{env.type ?? 'env'}</span>
   </div>
 )
 
 type DeployFormProps = {
-  instance: Instance
-  environments: Environment[]
-  releases: Release[]
-  deployments: Deployment[]
+  appId: string
+  environments: EnvironmentOption[]
+  releases: ConsoleReleaseSummary[]
+  defaultReleaseId?: string
   lockedEnvId?: string
   presetReleaseId?: string
   onCancel: () => void
@@ -146,84 +204,56 @@ type DeployFormProps = {
     environmentId: string
     releaseId?: string
     releaseNote?: string
-    credentials: CredentialBinding[]
-    envVariables: EnvVariable[]
+    bindings?: BindingsProto
   }) => void
 }
 
 const DeployForm: FC<DeployFormProps> = ({
-  instance,
+  appId,
   environments,
   releases,
-  deployments,
+  defaultReleaseId,
   lockedEnvId,
   presetReleaseId,
   onCancel,
   onSubmit,
 }) => {
   const { t } = useTranslation('deployments')
-  const bindingProfileId = instance.bindingProfileId ?? instance.appId
-  const required = useMemo(() => deriveRequiredBindings(bindingProfileId), [bindingProfileId])
-
-  const credentialsByProvider = useMemo(() => {
-    const map = new Map<string, typeof mockCredentials>()
-    mockCredentials.forEach((c) => {
-      const list = map.get(c.provider) ?? []
-      list.push(c)
-      map.set(c.provider, list)
-    })
-    return map
-  }, [])
-
   const presetRelease = useMemo(
     () => presetReleaseId ? releases.find(r => r.id === presetReleaseId) : undefined,
     [releases, presetReleaseId],
   )
   const isPromote = Boolean(presetRelease)
 
-  const existingDeployment = useMemo(
-    () => lockedEnvId
-      ? deployments.find(d => d.instanceId === instance.id && d.environmentId === lockedEnvId)
-      : undefined,
-    [deployments, instance.id, lockedEnvId],
-  )
-
   const [selectedEnvId, setSelectedEnvId] = useState<string>(
     () => lockedEnvId ?? environments[0]?.id ?? '',
   )
+  const selectedEnvironmentId = selectedEnvId || lockedEnvId || environments[0]?.id || ''
+  const planReleaseId = presetRelease?.id ?? defaultReleaseId ?? releases[0]?.id
+  const deploymentPlan = useQuery(consoleQuery.deployments.deploymentPlan.queryOptions({
+    input: selectedEnvironmentId && planReleaseId
+      ? {
+          params: {
+            appId,
+            environmentId: selectedEnvironmentId,
+            releaseId: planReleaseId,
+          },
+        }
+      : skipToken,
+  }))
+  const required = useMemo(() => deriveRequiredBindings(deploymentPlan.data?.slots), [deploymentPlan.data?.slots])
   const [releaseNote, setReleaseNote] = useState<string>('')
-  const [modelCredentials, setModelCredentials] = useState<Record<string, string>>(() => {
-    const model: Record<string, string> = {}
-    required.model.forEach((provider) => {
-      const existing = existingDeployment?.credentials.find(c => c.kind === 'model' && c.provider === provider)
-      const first = credentialsByProvider.get(provider)?.[0]
-      model[provider] = existing?.credentialId ?? first?.id ?? ''
-    })
-    return model
-  })
-  const [pluginCredentials, setPluginCredentials] = useState<Record<string, string>>(() => {
-    const plugin: Record<string, string> = {}
-    required.plugin.forEach((provider) => {
-      const existing = existingDeployment?.credentials.find(c => c.kind === 'plugin' && c.provider === provider)
-      const first = credentialsByProvider.get(provider)?.[0]
-      plugin[provider] = existing?.credentialId ?? first?.id ?? ''
-    })
-    return plugin
-  })
-  const [envValues, setEnvValues] = useState<Record<string, string>>(() => {
-    const env: Record<string, string> = {}
-    required.envVars.forEach((v) => {
-      const existing = existingDeployment?.envVariables.find(e => e.key === v.key)
-      env[v.key] = existing?.value ?? ''
-    })
-    return env
-  })
+  const [modelCredentials, setModelCredentials] = useState<Record<string, string>>({})
+  const [pluginCredentials, setPluginCredentials] = useState<Record<string, string>>({})
+  const [envValues, setEnvValues] = useState<Record<string, string>>({})
 
   const canDeploy = Boolean(
-    selectedEnvId
-    && required.model.every(p => modelCredentials[p])
-    && required.plugin.every(p => pluginCredentials[p])
-    && required.envVars.every(v => envValues[v.key]?.length),
+    selectedEnvironmentId
+    && deploymentPlan.data?.canDeploy !== false
+    && !deploymentPlan.isFetching
+    && required.model.every(item => !item.required || credentialValue(modelCredentials, item))
+    && required.plugin.every(item => !item.required || credentialValue(pluginCredentials, item))
+    && required.envVars.every(item => !item.required || envVarValue(envValues, item)),
   )
 
   const lockedEnv = lockedEnvId ? environments.find(e => e.id === lockedEnvId) : undefined
@@ -231,29 +261,25 @@ const DeployForm: FC<DeployFormProps> = ({
   const handleDeploy = () => {
     if (!canDeploy)
       return
-    const credentials: CredentialBinding[] = [
-      ...required.model.map<CredentialBinding>(provider => ({
-        provider,
-        kind: 'model',
-        credentialId: modelCredentials[provider],
+    const bindings: BindingsProto = {
+      models: required.model.map(item => ({
+        slot: item.slot,
+        credentialId: credentialValue(modelCredentials, item),
       })),
-      ...required.plugin.map<CredentialBinding>(provider => ({
-        provider,
-        kind: 'plugin',
-        credentialId: pluginCredentials[provider],
+      plugins: required.plugin.map(item => ({
+        slot: item.slot,
+        credentialId: credentialValue(pluginCredentials, item),
       })),
-    ]
-    const envVariables: EnvVariable[] = required.envVars.map<EnvVariable>(v => ({
-      key: v.key,
-      value: envValues[v.key] ?? '',
-      type: v.type,
-    }))
+      envVars: required.envVars.map(item => ({
+        slot: item.key,
+        envVarId: envVarValue(envValues, item),
+      })),
+    }
     onSubmit({
-      environmentId: selectedEnvId,
+      environmentId: selectedEnvironmentId,
       releaseId: presetRelease?.id,
       releaseNote: isPromote ? undefined : releaseNote,
-      credentials,
-      envVariables,
+      bindings,
     })
   }
 
@@ -274,9 +300,9 @@ const DeployForm: FC<DeployFormProps> = ({
               <div className="flex flex-col gap-1">
                 <div className="flex items-center justify-between rounded-lg border border-components-panel-border bg-components-panel-bg-blur px-3 py-2">
                   <div className="flex min-w-0 items-center gap-2">
-                    <span className="shrink-0 font-mono system-sm-semibold text-text-primary">{presetRelease.id}</span>
+                    <span className="shrink-0 font-mono system-sm-semibold text-text-primary">{releaseLabel(presetRelease)}</span>
                     <span className="shrink-0 system-xs-regular text-text-tertiary">·</span>
-                    <span className="shrink-0 font-mono system-xs-regular text-text-tertiary">{presetRelease.gateCommitId}</span>
+                    <span className="shrink-0 font-mono system-xs-regular text-text-tertiary">{releaseCommit(presetRelease)}</span>
                     {presetRelease.description && (
                       <>
                         <span className="shrink-0 system-xs-regular text-text-tertiary">·</span>
@@ -314,11 +340,11 @@ const DeployForm: FC<DeployFormProps> = ({
           ? <EnvironmentRow env={lockedEnv} />
           : (
               <DeploymentSelect
-                value={selectedEnvId}
+                value={selectedEnvironmentId}
                 onChange={setSelectedEnvId}
-                options={environments.map(env => ({
-                  value: env.id,
-                  label: `${env.name} · ${t(env.mode === 'isolated' ? 'mode.isolated' : 'mode.shared')} · ${env.backend.toUpperCase()}`,
+                options={environments.filter(env => env.id).map(env => ({
+                  value: env.id!,
+                  label: `${environmentName(env)} · ${t(environmentMode(env) === 'isolated' ? 'mode.isolated' : 'mode.shared')} · ${(env.type ?? 'env').toUpperCase()}`,
                 }))}
                 placeholder={t('deployDrawer.selectEnv')}
               />
@@ -331,19 +357,18 @@ const DeployForm: FC<DeployFormProps> = ({
           {required.model.length > 0 && (
             <Field label={t('deployDrawer.modelCreds')}>
               <div className="flex flex-col gap-2">
-                {required.model.map((provider) => {
-                  const providerCreds = credentialsByProvider.get(provider) ?? []
+                {required.model.map((item) => {
                   return (
                     <LabeledSelect
-                      key={provider}
-                      label={provider}
-                      value={modelCredentials[provider] ?? ''}
-                      onChange={v => setModelCredentials(prev => ({ ...prev, [provider]: v }))}
-                      options={providerCreds.map(c => ({
-                        value: c.id,
-                        label: `${c.name}${c.validated ? '' : t('deployDrawer.needsValidation')}`,
+                      key={item.slot}
+                      label={item.label}
+                      value={credentialValue(modelCredentials, item)}
+                      onChange={v => setModelCredentials(prev => ({ ...prev, [item.slot]: v }))}
+                      options={item.options.map(option => ({
+                        value: option.id,
+                        label: option.label,
                       }))}
-                      placeholder={t('deployDrawer.selectProviderKey', { provider })}
+                      placeholder={t('deployDrawer.selectProviderKey', { provider: item.label })}
                     />
                   )
                 })}
@@ -354,16 +379,15 @@ const DeployForm: FC<DeployFormProps> = ({
           {required.plugin.length > 0 && (
             <Field label={t('deployDrawer.pluginCreds')}>
               <div className="flex flex-col gap-2">
-                {required.plugin.map((provider) => {
-                  const providerCreds = credentialsByProvider.get(provider) ?? []
+                {required.plugin.map((item) => {
                   return (
                     <LabeledSelect
-                      key={provider}
-                      label={provider}
-                      value={pluginCredentials[provider] ?? ''}
-                      onChange={v => setPluginCredentials(prev => ({ ...prev, [provider]: v }))}
-                      options={providerCreds.map(c => ({ value: c.id, label: c.name }))}
-                      placeholder={t('deployDrawer.selectProviderCred', { provider })}
+                      key={item.slot}
+                      label={item.label}
+                      value={credentialValue(pluginCredentials, item)}
+                      onChange={v => setPluginCredentials(prev => ({ ...prev, [item.slot]: v }))}
+                      options={item.options.map(option => ({ value: option.id, label: option.label }))}
+                      placeholder={t('deployDrawer.selectProviderCred', { provider: item.label })}
                     />
                   )
                 })}
@@ -378,18 +402,14 @@ const DeployForm: FC<DeployFormProps> = ({
           <div className="flex flex-col gap-2">
             {required.envVars.map(v => (
               <div key={v.key} className="flex items-center gap-2">
-                <span className="w-16 shrink-0 system-xs-medium text-text-secondary">{v.key}</span>
-                <div className="flex h-8 min-w-0 flex-1 items-center rounded-lg border-[0.5px] border-components-input-border-active bg-components-input-bg-normal px-2">
-                  <input
-                    type={v.type === 'secret' ? 'password' : 'text'}
-                    value={envValues[v.key] ?? ''}
-                    placeholder={v.type === 'secret' ? t('deployDrawer.secretPlaceholder') : t('deployDrawer.valuePlaceholder')}
-                    onChange={e => setEnvValues(prev => ({ ...prev, [v.key]: e.target.value }))}
-                    className={cn('min-w-0 flex-1 bg-transparent text-[13px] text-text-secondary outline-hidden placeholder:text-text-quaternary')}
+                <span className="w-20 shrink-0 system-xs-medium text-text-secondary">{v.label}</span>
+                <div className="min-w-0 flex-1">
+                  <DeploymentSelect
+                    value={envVarValue(envValues, v)}
+                    onChange={next => setEnvValues(prev => ({ ...prev, [v.key]: next }))}
+                    options={v.options.map(option => ({ value: option.id, label: option.label }))}
+                    placeholder={t('deployDrawer.defaultSelect')}
                   />
-                  <span className="shrink-0 rounded-md border border-divider-subtle px-1.5 text-[10px] font-medium text-text-tertiary uppercase">
-                    {v.type}
-                  </span>
                 </div>
               </div>
             ))}
@@ -412,16 +432,15 @@ const DeployForm: FC<DeployFormProps> = ({
 const DeployDrawer: FC = () => {
   const { t } = useTranslation('deployments')
   const drawer = useDeploymentsStore(state => state.deployDrawer)
-  const environments = useDeploymentsStore(state => state.environments)
-  const instances = useDeploymentsStore(state => state.instances)
-  const releases = useDeploymentsStore(state => state.releases)
-  const deployments = useDeploymentsStore(state => state.deployments)
+  const appData = useDeploymentsStore(state => drawer.appId ? state.appData[drawer.appId] : undefined)
   const closeDeployDrawer = useDeploymentsStore(state => state.closeDeployDrawer)
   const startDeploy = useDeploymentsStore(state => state.startDeploy)
 
   const open = drawer.open
-  const instance = instances.find(i => i.id === drawer.instanceId)
-  const formKey = `${drawer.instanceId ?? 'none'}-${drawer.environmentId ?? 'any'}-${drawer.releaseId ?? 'new'}-${open ? '1' : '0'}`
+  const environments = appData?.candidates.environmentOptions ?? []
+  const releases = appData?.candidates.releases ?? []
+  const defaultReleaseId = appData?.candidates.defaultReleaseId
+  const formKey = `${drawer.appId ?? 'none'}-${drawer.environmentId ?? 'any'}-${drawer.releaseId ?? 'new'}-${open ? '1' : '0'}`
 
   return (
     <Dialog
@@ -430,26 +449,25 @@ const DeployDrawer: FC = () => {
     >
       <DialogContent className="w-[560px] max-w-[90vw]">
         <DialogCloseButton />
-        {!instance
+        {!drawer.appId
           ? <div className="p-4 text-text-tertiary">{t('deployDrawer.notFound')}</div>
           : (
               <DeployForm
                 key={formKey}
-                instance={instance}
+                appId={drawer.appId}
                 environments={environments}
                 releases={releases}
-                deployments={deployments}
+                defaultReleaseId={defaultReleaseId}
                 lockedEnvId={drawer.environmentId}
                 presetReleaseId={drawer.releaseId}
                 onCancel={closeDeployDrawer}
-                onSubmit={({ environmentId, releaseId, releaseNote, credentials, envVariables }) =>
+                onSubmit={({ environmentId, releaseId, releaseNote, bindings }) =>
                   startDeploy({
-                    instanceId: instance.id,
+                    appId: drawer.appId!,
                     environmentId,
                     releaseId,
                     releaseNote,
-                    credentials,
-                    envVariables,
+                    bindings,
                   })}
               />
             )}
