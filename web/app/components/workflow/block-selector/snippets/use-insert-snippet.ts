@@ -5,6 +5,7 @@ import { useCallback } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useStoreApi } from 'reactflow'
 import { consoleQuery } from '@/service/client'
+import { useIncrementSnippetUseCountMutation } from '@/service/use-snippets'
 import { CUSTOM_EDGE, ITERATION_CHILDREN_Z_INDEX, LOOP_CHILDREN_Z_INDEX, NODE_WIDTH_X_OFFSET, X_OFFSET } from '../../constants'
 import { useNodesSyncDraft, useWorkflowHistory, WorkflowHistoryEvent } from '../../hooks'
 import { BlockEnum } from '../../types'
@@ -278,6 +279,7 @@ export const useInsertSnippet = () => {
   const store = useStoreApi()
   const { handleSyncWorkflowDraft } = useNodesSyncDraft()
   const { saveStateToHistory } = useWorkflowHistory()
+  const { mutate: incrementSnippetUseCount } = useIncrementSnippetUseCountMutation()
 
   const handleInsertSnippet = useCallback(async (snippetId: string, insertPayload?: SnippetInsertPayload) => {
     try {
@@ -389,13 +391,16 @@ export const useInsertSnippet = () => {
         nodeId: remappedGraph.nodes[0]?.id,
       })
       handleSyncWorkflowDraft()
+      incrementSnippetUseCount({
+        params: { snippetId },
+      })
       return true
     }
     catch (error) {
       toast.error(error instanceof Error ? error.message : t('createFailed', { ns: 'snippet' }))
       return false
     }
-  }, [handleSyncWorkflowDraft, queryClient, saveStateToHistory, store, t])
+  }, [handleSyncWorkflowDraft, incrementSnippetUseCount, queryClient, saveStateToHistory, store, t])
 
   return {
     handleInsertSnippet,

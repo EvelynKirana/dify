@@ -29,6 +29,7 @@ const mockToastError = vi.fn()
 const mockGetNodes = vi.fn()
 const mockSetNodes = vi.fn()
 const mockSetEdges = vi.fn()
+const mockIncrementSnippetUseCount = vi.fn()
 let mockEdges: unknown[] = [{ id: 'existing-edge', source: 'old', target: 'old-2' }]
 
 vi.mock('@tanstack/react-query', () => ({
@@ -64,6 +65,12 @@ vi.mock('@langgenius/dify-ui/toast', () => ({
   toast: {
     error: (...args: unknown[]) => mockToastError(...args),
   },
+}))
+
+vi.mock('@/service/use-snippets', () => ({
+  useIncrementSnippetUseCountMutation: () => ({
+    mutate: mockIncrementSnippetUseCount,
+  }),
 }))
 
 describe('useInsertSnippet', () => {
@@ -136,6 +143,9 @@ describe('useInsertSnippet', () => {
         nodeId: nextNodes[1]!.id,
       })
       expect(mockHandleSyncWorkflowDraft).toHaveBeenCalledTimes(1)
+      expect(mockIncrementSnippetUseCount).toHaveBeenCalledWith({
+        params: { snippetId: 'snippet-1' },
+      })
     })
 
     it('should connect inserted snippet nodes to the requested edge position', async () => {
@@ -238,6 +248,9 @@ describe('useInsertSnippet', () => {
           targetHandle: 'target',
         }),
       ]))
+      expect(mockIncrementSnippetUseCount).toHaveBeenCalledWith({
+        params: { snippetId: 'snippet-1' },
+      })
     })
 
     it('should show error toast when fetching snippet workflow fails', async () => {
@@ -250,6 +263,7 @@ describe('useInsertSnippet', () => {
       })
 
       expect(mockToastError).toHaveBeenCalledWith('insert failed')
+      expect(mockIncrementSnippetUseCount).not.toHaveBeenCalled()
     })
   })
 })

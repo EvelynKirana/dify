@@ -201,6 +201,20 @@ export const useDeleteSnippetMutation = () => {
   })
 }
 
+export const useIncrementSnippetUseCountMutation = () => {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    ...consoleQuery.snippets.incrementUseCount.mutationOptions({
+      onSuccess: () => {
+        queryClient.invalidateQueries({
+          queryKey: consoleQuery.snippets.key(),
+        })
+      },
+    }),
+  })
+}
+
 export const useExportSnippetMutation = () => {
   return useMutation<string, Error, { snippetId: string, include?: boolean }>({
     mutationFn: ({ snippetId, include = false }) => {
