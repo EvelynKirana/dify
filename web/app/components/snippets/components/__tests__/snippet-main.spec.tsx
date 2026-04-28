@@ -23,6 +23,7 @@ const mockHandleRun = vi.fn()
 const mockHandleStartWorkflowRun = vi.fn()
 const mockHandleStopRun = vi.fn()
 const mockHandleWorkflowStartRunInWorkflow = vi.fn()
+const mockHandleCheckBeforePublish = vi.fn()
 const mockInspectVarsCrud = {
   hasNodeInspectVars: vi.fn(),
   hasSetInspectVar: vi.fn(),
@@ -78,6 +79,12 @@ vi.mock('@/app/components/snippets/hooks/use-configs-map', () => ({
 vi.mock('@/app/components/workflow/hooks/use-fetch-workflow-inspect-vars', () => ({
   useSetWorkflowVarsWithValue: () => ({
     fetchInspectVars: mockFetchInspectVars,
+  }),
+}))
+
+vi.mock('@/app/components/workflow/hooks/use-checklist', () => ({
+  useChecklistBeforePublish: () => ({
+    handleCheckBeforePublish: mockHandleCheckBeforePublish,
   }),
 }))
 
@@ -208,6 +215,7 @@ describe('SnippetMain', () => {
     vi.clearAllMocks()
     mockSyncInputFieldsDraft.mockResolvedValue(undefined)
     mockPublishSnippetMutateAsync.mockResolvedValue({ created_at: 1_744_000_000 })
+    mockHandleCheckBeforePublish.mockResolvedValue(true)
     capturedHooksStore = undefined
     snippetDetailStoreState = {
       editingField: null,

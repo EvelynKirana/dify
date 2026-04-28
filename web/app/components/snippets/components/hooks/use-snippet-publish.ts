@@ -5,6 +5,7 @@ import { useKeyPress } from 'ahooks'
 import { useCallback } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useShallow } from 'zustand/react/shallow'
+import { useChecklistBeforePublish } from '@/app/components/workflow/hooks/use-checklist'
 import { useWorkflowStore } from '@/app/components/workflow/store'
 import { getKeyboardKeyCodeBySystem } from '@/app/components/workflow/utils'
 import { consoleQuery } from '@/service/client'
@@ -22,6 +23,7 @@ export const useSnippetPublish = ({
   const workflowStore = useWorkflowStore()
   const queryClient = useQueryClient()
   const publishSnippetMutation = usePublishSnippetWorkflowMutation(snippetId)
+  const { handleCheckBeforePublish } = useChecklistBeforePublish()
   const {
     isPublishMenuOpen,
     setPublishMenuOpen,
@@ -32,6 +34,10 @@ export const useSnippetPublish = ({
 
   const handlePublish = useCallback(async () => {
     try {
+      const canPublish = await handleCheckBeforePublish()
+      if (!canPublish)
+        return
+
       const publishedWorkflow = await publishSnippetMutation.mutateAsync({
         params: { snippetId },
       })
@@ -50,7 +56,7 @@ export const useSnippetPublish = ({
     catch (error) {
       toast.error(error instanceof Error ? error.message : t('publishFailed'))
     }
-  }, [publishSnippetMutation, queryClient, setPublishMenuOpen, snippetId, t, workflowStore])
+  }, [handleCheckBeforePublish, publishSnippetMutation, queryClient, setPublishMenuOpen, snippetId, t, workflowStore])
 
   useKeyPress(`${getKeyboardKeyCodeBySystem('ctrl')}.shift.p`, (event) => {
     if (publishSnippetMutation.isPending)
