@@ -22,8 +22,9 @@ export type Snippet = {
   icon_info: SnippetIconInfo
   input_fields: SnippetInputField[]
   created_at: number
+  created_by: string
   updated_at: number
-  author: string
+  updated_by: string
 }
 
 export type SnippetListItem = Omit<Snippet, 'version' | 'input_fields'>

@@ -6,7 +6,6 @@ const createSnippet = (overrides: Partial<PublishedSnippetListItem> = {}): Publi
   id: 'snippet-1',
   name: 'Customer Review',
   description: 'Snippet description',
-  author: 'Evan',
   type: 'group',
   is_published: true,
   use_count: 3,
@@ -17,7 +16,9 @@ const createSnippet = (overrides: Partial<PublishedSnippetListItem> = {}): Publi
     icon_url: '',
   },
   created_at: 1,
+  created_by: 'user-1',
   updated_at: 2,
+  updated_by: 'user-1',
   ...overrides,
 })
 
@@ -38,10 +39,9 @@ describe('SnippetListItem', () => {
       )
 
       expect(screen.getByText('Customer Review')).toBeInTheDocument()
-      expect(screen.queryByText('Evan')).not.toBeInTheDocument()
     })
 
-    it('should render author when hovered', () => {
+    it('should not render metadata when hovered', () => {
       render(
         <SnippetListItem
           snippet={createSnippet()}
@@ -51,7 +51,7 @@ describe('SnippetListItem', () => {
         />,
       )
 
-      expect(screen.getByText('Evan')).toBeInTheDocument()
+      expect(screen.getByText('Customer Review')).toBeInTheDocument()
     })
   })
 

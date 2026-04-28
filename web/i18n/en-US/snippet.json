@@ -7,6 +7,7 @@
   "deleteConfirmTitle": "Delete Snippet?",
   "deleteFailed": "Failed to delete snippet",
   "deleted": "Snippet deleted",
+  "draft": "Draft",
   "editDialogTitle": "Edit Snippet Info",
   "editDone": "Snippet info updated",
   "editFailed": "Failed to update snippet info",
@@ -32,6 +33,8 @@
   "sectionOrchestrate": "Orchestrate",
   "testRunButton": "Test run",
   "typeLabel": "Snippet",
+  "unknownUser": "User",
+  "updatedBy": "{{name}} updated {{time}}",
   "usageCount": "Used {{count}} times",
   "variableInspect": "Variable Inspect"
 }

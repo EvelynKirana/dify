@@ -36,14 +36,9 @@ const SnippetListItem = ({
         background={snippet.icon_info.icon_background}
         imageUrl={snippet.icon_info.icon_url}
       />
-      <div className="system-sm-medium min-w-0 text-text-secondary">
+      <div className="min-w-0 system-sm-medium text-text-secondary">
         {snippet.name}
       </div>
-      {isHovered && snippet.author && (
-        <div className="system-xs-regular ml-auto text-text-tertiary">
-          {snippet.author}
-        </div>
-      )}
     </div>
   )
 }
