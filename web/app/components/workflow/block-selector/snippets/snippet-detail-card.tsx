@@ -1,7 +1,9 @@
 import type { FC } from 'react'
 import type { SnippetListItem } from '@/types/snippet'
 import { useMemo } from 'react'
+import { useTranslation } from 'react-i18next'
 import AppIcon from '@/app/components/base/app-icon'
+import { useMembers } from '@/service/use-common'
 import { useSnippetPublishedWorkflow } from '@/service/use-snippet-workflows'
 import BlockIcon from '../../block-icon'
 import { BlockEnum } from '../../types'
@@ -15,8 +17,15 @@ type SnippetDetailCardProps = {
 const SnippetDetailCard: FC<SnippetDetailCardProps> = ({
   snippet,
 }) => {
-  const { author, description, icon_info, name } = snippet
+  const { description, icon_info, name } = snippet
+  const { t } = useTranslation('snippet')
+  const { data: membersData } = useMembers()
   const { data: workflow } = useSnippetPublishedWorkflow(snippet.id)
+
+  const creatorName = useMemo(() => {
+    const member = membersData?.accounts?.find(member => member.id === snippet.created_by)
+    return member?.name || t('unknownUser')
+  }, [membersData?.accounts, snippet.created_by, t])
 
   const blockTypes = useMemo(() => {
     const graph = workflow?.graph
@@ -51,7 +60,7 @@ const SnippetDetailCard: FC<SnippetDetailCardProps> = ({
   }, [workflow?.graph])
 
   return (
-    <div className="w-[224px] rounded-xl border-[0.5px] border-components-panel-border bg-components-panel-bg-blur px-3 pb-4 pt-3 shadow-lg backdrop-blur-[5px]">
+    <div className="w-[224px] rounded-xl border-[0.5px] border-components-panel-border bg-components-panel-bg-blur px-3 pt-3 pb-4 shadow-lg backdrop-blur-[5px]">
       <div className="flex flex-col gap-2">
         <div className="flex flex-col gap-2">
           <AppIcon
@@ -61,10 +70,10 @@ const SnippetDetailCard: FC<SnippetDetailCardProps> = ({
             background={icon_info.icon_background}
             imageUrl={icon_info.icon_url}
           />
-          <div className="text-text-primary system-md-medium">{name}</div>
+          <div className="system-md-medium text-text-primary">{name}</div>
         </div>
         {!!description && (
-          <div className="w-[200px] text-text-secondary system-xs-regular">
+          <div className="w-[200px] system-xs-regular text-text-secondary">
             {description}
           </div>
         )}
@@ -80,11 +89,9 @@ const SnippetDetailCard: FC<SnippetDetailCardProps> = ({
           </div>
         )}
       </div>
-      {!!author && (
-        <div className="pt-3 text-text-tertiary system-xs-regular">
-          {author}
-        </div>
-      )}
+      <div className="pt-3 system-xs-regular text-text-tertiary">
+        {creatorName}
+      </div>
     </div>
   )
 }

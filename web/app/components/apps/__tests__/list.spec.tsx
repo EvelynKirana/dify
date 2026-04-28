@@ -160,8 +160,9 @@ const defaultSnippetData = {
           icon_url: '',
         },
         created_at: 1704067200,
-        updated_at: '2024-01-02 10:00',
-        author: '',
+        created_by: 'user-1',
+        updated_at: 1704153600,
+        updated_by: 'user-2',
       },
     ],
     total: 1,
@@ -321,8 +322,9 @@ describe('List', () => {
           icon_url: '',
         },
         created_at: 1704067200,
-        updated_at: '2024-01-02 10:00',
-        author: '',
+        created_by: 'user-1',
+        updated_at: 1704153600,
+        updated_by: 'user-2',
       },
     ]
     defaultSnippetData.pages[0]!.total = 1
@@ -678,8 +680,8 @@ describe('List', () => {
     })
 
     it('should reuse the shared empty state when no snippets are available', () => {
-      defaultSnippetData.pages[0].data = []
-      defaultSnippetData.pages[0].total = 0
+      defaultSnippetData.pages[0]!.data = []
+      defaultSnippetData.pages[0]!.total = 0
 
       renderList({ pageType: 'snippets' })
 

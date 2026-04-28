@@ -74,7 +74,6 @@ describe('Snippets', () => {
               id: 'snippet-1',
               name: 'Customer Review',
               description: 'Snippet description',
-              author: 'Evan',
               type: 'group',
               is_published: true,
               version: '1.0.0',
@@ -87,7 +86,9 @@ describe('Snippets', () => {
               },
               input_fields: [],
               created_at: 1,
+              created_by: 'user-1',
               updated_at: 2,
+              updated_by: 'user-1',
             }],
           }],
         },
@@ -127,7 +128,6 @@ describe('Snippets', () => {
               id: 'snippet-1',
               name: 'Customer Review',
               description: 'Snippet description',
-              author: 'Evan',
               type: 'group',
               is_published: true,
               version: '1.0.0',
@@ -140,7 +140,9 @@ describe('Snippets', () => {
               },
               input_fields: [],
               created_at: 1,
+              created_by: 'user-1',
               updated_at: 2,
+              updated_by: 'user-1',
             }],
           }],
         },
@@ -155,7 +157,7 @@ describe('Snippets', () => {
 
       fireEvent.click(screen.getByText('Customer Review'))
 
-      expect(mockHandleInsertSnippet).toHaveBeenCalledWith('snippet-1')
+      expect(mockHandleInsertSnippet).toHaveBeenCalledWith('snippet-1', undefined)
     })
   })
 })

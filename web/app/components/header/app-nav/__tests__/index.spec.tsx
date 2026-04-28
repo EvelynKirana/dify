@@ -2,13 +2,16 @@ import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { useStore as useAppStore } from '@/app/components/app/store'
 import { useAppContext } from '@/context/app-context'
-import { useParams } from '@/next/navigation'
+import { useParams, usePathname, useRouter } from '@/next/navigation'
 import { useInfiniteAppList } from '@/service/use-apps'
+import { useCreateSnippetMutation, useInfiniteSnippetList, useSnippetApiDetail } from '@/service/use-snippets'
 import { AppModeEnum } from '@/types/app'
 import AppNav from '../index'
 
 vi.mock('@/next/navigation', () => ({
   useParams: vi.fn(),
+  usePathname: vi.fn(),
+  useRouter: vi.fn(),
 }))
 
 vi.mock('react-i18next', () => ({
@@ -27,6 +30,19 @@ vi.mock('@/app/components/app/store', () => ({
 
 vi.mock('@/service/use-apps', () => ({
   useInfiniteAppList: vi.fn(),
+}))
+
+vi.mock('@/service/use-snippets', () => ({
+  useCreateSnippetMutation: vi.fn(),
+  useInfiniteSnippetList: vi.fn(),
+  useSnippetApiDetail: vi.fn(),
+}))
+
+vi.mock('@langgenius/dify-ui/toast', () => ({
+  toast: {
+    error: vi.fn(),
+    success: vi.fn(),
+  },
 }))
 
 vi.mock('@/app/components/app/create-app-dialog', () => ({
@@ -83,17 +99,67 @@ vi.mock('@/app/components/app/create-from-dsl-modal', () => ({
       : null,
 }))
 
+vi.mock('@/app/components/workflow/create-snippet-dialog', () => ({
+  default: ({
+    isOpen,
+    onClose,
+    onConfirm,
+  }: {
+    isOpen: boolean
+    onClose: () => void
+    onConfirm: (payload: {
+      name: string
+      description: string
+      icon: { type: 'emoji', icon: string, background: string }
+    }) => void
+  }) =>
+    isOpen
+      ? (
+          <button
+            type="button"
+            data-testid="create-snippet-dialog"
+            onClick={() => {
+              onConfirm({
+                name: 'Created Snippet',
+                description: '',
+                icon: {
+                  type: 'emoji',
+                  icon: '🤖',
+                  background: '#fff',
+                },
+              })
+              onClose()
+            }}
+          >
+            Create Snippet
+          </button>
+        )
+      : null,
+}))
+
 vi.mock('../../nav', () => ({
   default: ({
+    createText,
+    curNav,
+    isApp,
+    link,
     onCreate,
     onLoadMore,
     navigationItems,
   }: {
+    createText: string
+    curNav?: { id: string, name: string }
+    isApp?: boolean
+    link: string
     onCreate: (state: string) => void
     onLoadMore?: () => void
     navigationItems?: Array<{ id: string, name: string, link: string }>
   }) => (
     <div data-testid="nav">
+      <div data-testid="nav-link">{link}</div>
+      <div data-testid="nav-is-app">{String(isApp)}</div>
+      <div data-testid="nav-create-text">{createText}</div>
+      <div data-testid="nav-current">{curNav ? `${curNav.id}:${curNav.name}` : ''}</div>
       <ul data-testid="nav-items">
         {(navigationItems ?? []).map(item => (
           <li key={item.id}>{`${item.name} -> ${item.link}`}</li>
@@ -127,10 +193,52 @@ const mockAppData = [
   },
 ]
 
+const mockSnippetData = [
+  {
+    id: 'snippet-1',
+    name: 'Snippet 1',
+    description: '',
+    icon_info: {
+      icon_type: 'emoji',
+      icon: '🧩',
+      icon_background: '#fff',
+      icon_url: null,
+    },
+    is_published: true,
+    use_count: 0,
+    created_at: 1,
+    created_by: 'user-1',
+    updated_at: 1,
+    updated_by: 'user-1',
+  },
+  {
+    id: 'snippet-2',
+    name: 'Snippet 2',
+    description: '',
+    icon_info: {
+      icon_type: 'emoji',
+      icon: '⚙️',
+      icon_background: '#000',
+      icon_url: null,
+    },
+    is_published: true,
+    use_count: 1,
+    created_at: 1,
+    created_by: 'user-1',
+    updated_at: 1,
+    updated_by: 'user-1',
+  },
+]
+
 const mockUseParams = vi.mocked(useParams)
+const mockUsePathname = vi.mocked(usePathname)
+const mockUseRouter = vi.mocked(useRouter)
 const mockUseAppContext = vi.mocked(useAppContext)
 const mockUseAppStore = vi.mocked(useAppStore)
 const mockUseInfiniteAppList = vi.mocked(useInfiniteAppList)
+const mockUseInfiniteSnippetList = vi.mocked(useInfiniteSnippetList)
+const mockUseSnippetApiDetail = vi.mocked(useSnippetApiDetail)
+const mockUseCreateSnippetMutation = vi.mocked(useCreateSnippetMutation)
 let mockAppDetail: { id: string, name: string } | null = null
 
 const setupDefaultMocks = (options?: {
@@ -144,6 +252,8 @@ const setupDefaultMocks = (options?: {
   const fetchNextPage = options?.fetchNextPage ?? vi.fn()
 
   mockUseParams.mockReturnValue({ appId: 'app-1' } as ReturnType<typeof useParams>)
+  mockUsePathname.mockReturnValue('/app/app-1/workflow')
+  mockUseRouter.mockReturnValue({ push: vi.fn() } as unknown as ReturnType<typeof useRouter>)
   mockUseAppContext.mockReturnValue({ isCurrentWorkspaceEditor: options?.isEditor ?? false } as ReturnType<typeof useAppContext>)
   mockUseAppStore.mockImplementation((selector: unknown) => (selector as (state: { appDetail: { id: string, name: string } | null }) => unknown)({ appDetail: mockAppDetail }))
   mockUseInfiniteAppList.mockReturnValue({
@@ -153,8 +263,49 @@ const setupDefaultMocks = (options?: {
     isFetchingNextPage: false,
     refetch,
   } as ReturnType<typeof useInfiniteAppList>)
+  mockUseInfiniteSnippetList.mockReturnValue({
+    data: undefined,
+    fetchNextPage: vi.fn(),
+    hasNextPage: false,
+    isFetchingNextPage: false,
+  } as unknown as ReturnType<typeof useInfiniteSnippetList>)
+  mockUseSnippetApiDetail.mockReturnValue({
+    data: undefined,
+  } as ReturnType<typeof useSnippetApiDetail>)
+  mockUseCreateSnippetMutation.mockReturnValue({
+    isPending: false,
+    mutate: vi.fn(),
+  } as unknown as ReturnType<typeof useCreateSnippetMutation>)
 
   return { refetch, fetchNextPage }
+}
+
+const setupSnippetMocks = (options?: {
+  fetchNextPage?: () => void
+  hasNextPage?: boolean
+  mutate?: ReturnType<typeof vi.fn>
+}) => {
+  const fetchNextPage = options?.fetchNextPage ?? vi.fn()
+  const mutate = options?.mutate ?? vi.fn()
+
+  setupDefaultMocks({ isEditor: true })
+  mockUseParams.mockReturnValue({ snippetId: 'snippet-1' } as ReturnType<typeof useParams>)
+  mockUsePathname.mockReturnValue('/snippets/snippet-1/orchestrate')
+  mockUseInfiniteSnippetList.mockReturnValue({
+    data: { pages: [{ data: mockSnippetData }] },
+    fetchNextPage,
+    hasNextPage: options?.hasNextPage ?? false,
+    isFetchingNextPage: false,
+  } as unknown as ReturnType<typeof useInfiniteSnippetList>)
+  mockUseSnippetApiDetail.mockReturnValue({
+    data: mockSnippetData[0],
+  } as ReturnType<typeof useSnippetApiDetail>)
+  mockUseCreateSnippetMutation.mockReturnValue({
+    isPending: false,
+    mutate,
+  } as unknown as ReturnType<typeof useCreateSnippetMutation>)
+
+  return { fetchNextPage, mutate }
 }
 
 describe('AppNav', () => {
@@ -337,5 +488,68 @@ describe('AppNav', () => {
     await waitFor(() => {
       expect(screen.getByText('App 1 -> /app/app-1/configuration')).toBeInTheDocument()
     })
+  })
+
+  it('should switch the main nav to snippet list and render snippet items on snippet detail routes', () => {
+    setupSnippetMocks()
+
+    render(<AppNav />)
+
+    expect(screen.getByTestId('nav-link')).toHaveTextContent('/snippets')
+    expect(screen.getByTestId('nav-is-app')).toHaveTextContent('false')
+    expect(screen.getByTestId('nav-current')).toHaveTextContent('snippet-1:Snippet 1')
+    expect(screen.getByTestId('nav-create-text')).toHaveTextContent('createFromBlank')
+    expect(screen.getByText('Snippet 1 -> /snippets/snippet-1/orchestrate')).toBeInTheDocument()
+    expect(screen.getByText('Snippet 2 -> /snippets/snippet-2/orchestrate')).toBeInTheDocument()
+  })
+
+  it('should not show stale snippet detail as the current nav while switching snippets', () => {
+    setupSnippetMocks()
+    mockUseParams.mockReturnValue({ snippetId: 'snippet-2' } as ReturnType<typeof useParams>)
+    mockUseSnippetApiDetail.mockReturnValue({
+      data: mockSnippetData[0],
+    } as ReturnType<typeof useSnippetApiDetail>)
+
+    render(<AppNav />)
+
+    expect(screen.getByTestId('nav-current')).toBeEmptyDOMElement()
+  })
+
+  it('should load more snippets from the snippet selector when more data is available', async () => {
+    const user = userEvent.setup()
+    const { fetchNextPage } = setupSnippetMocks({ hasNextPage: true })
+
+    render(<AppNav />)
+
+    await user.click(screen.getByTestId('load-more'))
+    expect(fetchNextPage).toHaveBeenCalledTimes(1)
+  })
+
+  it('should open the create snippet dialog from snippet nav create action', async () => {
+    const user = userEvent.setup()
+    const mutate = vi.fn()
+    setupSnippetMocks({ mutate })
+
+    render(<AppNav />)
+
+    await user.click(screen.getByTestId('create-blank'))
+    expect(screen.getByTestId('create-snippet-dialog')).toBeInTheDocument()
+
+    await user.click(screen.getByTestId('create-snippet-dialog'))
+    expect(mutate).toHaveBeenCalledWith({
+      body: {
+        name: 'Created Snippet',
+        description: undefined,
+        icon_info: {
+          icon: '🤖',
+          icon_type: 'emoji',
+          icon_background: '#fff',
+          icon_url: undefined,
+        },
+      },
+    }, expect.objectContaining({
+      onSuccess: expect.any(Function),
+      onError: expect.any(Function),
+    }))
   })
 })

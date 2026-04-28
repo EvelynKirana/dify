@@ -79,7 +79,6 @@ const mockSnippetDetail: SnippetDetailPayload = {
     id: 'snippet-1',
     name: 'Tone Rewriter',
     description: 'A static snippet mock.',
-    author: 'Evan',
     updatedAt: '2024-03-24',
     usage: '19',
     icon: '🪄',

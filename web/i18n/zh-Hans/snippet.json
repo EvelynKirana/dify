@@ -7,6 +7,7 @@
   "deleteConfirmTitle": "删除 Snippet？",
   "deleteFailed": "删除 Snippet 失败",
   "deleted": "Snippet 已删除",
+  "draft": "草稿",
   "editDialogTitle": "编辑 Snippet 信息",
   "editDone": "Snippet 信息已更新",
   "editFailed": "更新 Snippet 信息失败",
@@ -32,6 +33,8 @@
   "sectionOrchestrate": "编排",
   "testRunButton": "测试运行",
   "typeLabel": "Snippet",
+  "unknownUser": "用户",
+  "updatedBy": "{{name}} 更新于 {{time}}",
   "usageCount": "已使用 {{count}} 次",
   "variableInspect": "变量查看"
 }

@@ -2,7 +2,7 @@
 
 import type { WorkflowProps } from '@/app/components/workflow'
 import type { Shape as HooksStoreShape } from '@/app/components/workflow/hooks-store'
-import type { SnippetDetailPayload } from '@/models/snippet'
+import type { SnippetDetailPayload, SnippetDetailUIModel, SnippetInputField } from '@/models/snippet'
 import {
   useEffect,
   useMemo,
@@ -27,6 +27,69 @@ type SnippetMainProps = {
   payload: SnippetDetailPayload
   snippetId: string
 } & Pick<WorkflowProps, 'nodes' | 'edges' | 'viewport'>
+
+type SnippetMainContentProps = {
+  snippetId: string
+  fields: SnippetInputField[]
+  uiMeta: SnippetDetailUIModel
+  editingField: SnippetInputField | null
+  isEditorOpen: boolean
+  isInputPanelOpen: boolean
+  onToggleInputPanel: () => void
+  onCloseInputPanel: () => void
+  onOpenEditor: (field?: SnippetInputField | null) => void
+  onCloseEditor: () => void
+  onSubmitField: (field: SnippetInputField) => void
+  onRemoveField: (index: number) => void
+  onSortChange: (fields: SnippetInputField[]) => void
+}
+
+const SnippetMainContent = ({
+  snippetId,
+  fields,
+  uiMeta,
+  editingField,
+  isEditorOpen,
+  isInputPanelOpen,
+  onToggleInputPanel,
+  onCloseInputPanel,
+  onOpenEditor,
+  onCloseEditor,
+  onSubmitField,
+  onRemoveField,
+  onSortChange,
+}: SnippetMainContentProps) => {
+  const {
+    handlePublish,
+    isPublishMenuOpen,
+    isPublishing,
+    setPublishMenuOpen,
+  } = useSnippetPublish({
+    snippetId,
+  })
+
+  return (
+    <SnippetChildren
+      snippetId={snippetId}
+      fields={fields}
+      uiMeta={uiMeta}
+      editingField={editingField}
+      isEditorOpen={isEditorOpen}
+      isInputPanelOpen={isInputPanelOpen}
+      isPublishMenuOpen={isPublishMenuOpen}
+      isPublishing={isPublishing}
+      onToggleInputPanel={onToggleInputPanel}
+      onPublishMenuOpenChange={setPublishMenuOpen}
+      onCloseInputPanel={onCloseInputPanel}
+      onPublish={handlePublish}
+      onOpenEditor={onOpenEditor}
+      onCloseEditor={onCloseEditor}
+      onSubmitField={onSubmitField}
+      onRemoveField={onRemoveField}
+      onSortChange={onSortChange}
+    />
+  )
+}
 
 const SnippetMain = ({
   payload,
@@ -107,14 +170,6 @@ const SnippetMain = ({
     handleSubmitField,
     handleToggleInputPanel,
   } = useSnippetInputFieldActions({
-    snippetId,
-  })
-  const {
-    handlePublish,
-    isPublishMenuOpen,
-    isPublishing,
-    setPublishMenuOpen,
-  } = useSnippetPublish({
     snippetId,
   })
   const {
@@ -200,19 +255,15 @@ const SnippetMain = ({
       viewport={viewport ?? graph.viewport}
       hooksStore={hooksStore as unknown as Partial<HooksStoreShape>}
     >
-      <SnippetChildren
+      <SnippetMainContent
         snippetId={snippetId}
         fields={fields}
         uiMeta={uiMeta}
         editingField={editingField}
         isEditorOpen={isEditorOpen}
         isInputPanelOpen={isInputPanelOpen}
-        isPublishMenuOpen={isPublishMenuOpen}
-        isPublishing={isPublishing}
         onToggleInputPanel={handleToggleInputPanel}
-        onPublishMenuOpenChange={setPublishMenuOpen}
         onCloseInputPanel={handleCloseInputPanel}
-        onPublish={handlePublish}
         onOpenEditor={openEditor}
         onCloseEditor={closeEditor}
         onSubmitField={handleSubmitField}

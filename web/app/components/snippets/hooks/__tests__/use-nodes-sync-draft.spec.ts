@@ -10,6 +10,8 @@ const mockPostWithKeepalive = vi.fn()
 const mockSyncDraftWorkflow = vi.fn()
 const mockSetDraftUpdatedAt = vi.fn()
 const mockSetSyncWorkflowDraftHash = vi.fn()
+let deferSerialCallbacks = false
+let queuedSerialCallbacks: Array<() => Promise<void> | void> = []
 
 let reactFlowState: {
   getNodes: typeof mockGetNodes
@@ -36,6 +38,11 @@ vi.mock('@/app/components/workflow/hooks/use-serial-async-callback', () => ({
     (...args: unknown[]) => {
       if (checkFn?.())
         return
+
+      if (deferSerialCallbacks) {
+        queuedSerialCallbacks.push(() => fn(...args))
+        return Promise.resolve()
+      }
 
       return fn(...args)
     },
@@ -77,6 +84,8 @@ const createInputField = (variable: string): SnippetInputField => ({
 describe('snippet/use-nodes-sync-draft', () => {
   beforeEach(() => {
     vi.clearAllMocks()
+    deferSerialCallbacks = false
+    queuedSerialCallbacks = []
     reactFlowState = {
       getNodes: mockGetNodes,
       edges: [{ id: 'edge-1', source: 'node-1', target: 'node-2', data: { stable: true } }],
@@ -105,6 +114,38 @@ describe('snippet/use-nodes-sync-draft', () => {
 
     await act(async () => {
       await result.current.doSyncWorkflowDraft()
+    })
+
+    expect(mockSyncDraftWorkflow).toHaveBeenCalledWith({
+      params: { snippetId: 'snippet-1' },
+      body: {
+        graph: {
+          nodes: [{ id: 'node-1', position: { x: 0, y: 0 }, data: { title: 'Start' } }],
+          edges: [{ id: 'edge-1', source: 'node-1', target: 'node-2', data: { stable: true } }],
+          viewport: { x: 12, y: 24, zoom: 1.5 },
+        },
+        input_fields: [createInputField('topic')],
+        hash: 'draft-hash',
+      },
+    })
+  })
+
+  it('should snapshot graph before queued draft sync executes', async () => {
+    deferSerialCallbacks = true
+    const { result } = renderHook(() => useNodesSyncDraft('snippet-1'))
+
+    await act(async () => {
+      await result.current.doSyncWorkflowDraft()
+    })
+
+    mockGetNodes.mockReturnValue([
+      { id: 'late-node', position: { x: 9, y: 9 }, data: { title: 'Late' } },
+    ])
+    reactFlowState.edges = [{ id: 'late-edge', source: 'late-node', target: 'late-target', data: { stable: false } }]
+    reactFlowState.transform = [99, 88, 0.5]
+
+    await act(async () => {
+      await Promise.all(queuedSerialCallbacks.map(run => run()))
     })
 
     expect(mockSyncDraftWorkflow).toHaveBeenCalledWith({

@@ -1,3 +1,4 @@
+import type { OnNodeAdd } from '../../types'
 import { cn } from '@langgenius/dify-ui/cn'
 import {
   ScrollAreaContent,
@@ -14,6 +15,7 @@ import {
 import { useInfiniteScroll } from 'ahooks'
 import {
   memo,
+  useCallback,
   useDeferredValue,
   useMemo,
   useRef,
@@ -31,6 +33,8 @@ import { useInsertSnippet } from './use-insert-snippet'
 type SnippetsProps = {
   loading?: boolean
   searchText: string
+  insertPayload?: Parameters<OnNodeAdd>[1]
+  onInserted?: () => void
 }
 
 const LoadingSkeleton = () => {
@@ -60,6 +64,8 @@ const LoadingSkeleton = () => {
 const Snippets = ({
   loading = false,
   searchText,
+  insertPayload,
+  onInserted,
 }: SnippetsProps) => {
   const {
     createSnippetMutation,
@@ -95,6 +101,11 @@ const Snippets = ({
   }, [data?.pages])
 
   const isNoMore = hasNextPage === false
+  const handleSnippetClick = useCallback(async (snippetId: string) => {
+    const inserted = await handleInsertSnippet(snippetId, insertPayload)
+    if (inserted)
+      onInserted?.()
+  }, [handleInsertSnippet, insertPayload, onInserted])
 
   useInfiniteScroll(
     async () => {
@@ -129,7 +140,7 @@ const Snippets = ({
                       <SnippetListItem
                         snippet={item}
                         isHovered={hoveredSnippetId === item.id}
-                        onClick={() => handleInsertSnippet(item.id)}
+                        onClick={() => handleSnippetClick(item.id)}
                         onMouseEnter={() => setHoveredSnippetId(item.id)}
                         onMouseLeave={() => setHoveredSnippetId(current => current === item.id ? null : current)}
                       />
@@ -146,7 +157,6 @@ const Snippets = ({
                         />
                         <TooltipContent
                           placement="left-start"
-                          variant="plain"
                           className="bg-transparent! p-0!"
                         >
                           <SnippetDetailCard snippet={item} />

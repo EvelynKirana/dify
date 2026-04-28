@@ -7,6 +7,7 @@ const mockSetPublishMenuOpen = vi.fn()
 const mockUseKeyPress = vi.fn()
 const mockSetPublishedAt = vi.fn()
 const mockSetQueryData = vi.fn()
+const mockHandleCheckBeforePublish = vi.fn<() => Promise<boolean>>()
 
 let isPublishMenuOpen = false
 let isPending = false
@@ -44,6 +45,12 @@ vi.mock('@/app/components/workflow/store', () => ({
   }),
 }))
 
+vi.mock('@/app/components/workflow/hooks/use-checklist', () => ({
+  useChecklistBeforePublish: () => ({
+    handleCheckBeforePublish: mockHandleCheckBeforePublish,
+  }),
+}))
+
 vi.mock('../../../store', () => ({
   useSnippetDetailStore: (selector: (state: {
     isPublishMenuOpen: boolean
@@ -60,6 +67,7 @@ describe('useSnippetPublish', () => {
     isPublishMenuOpen = false
     isPending = false
     shortcutHandler = undefined
+    mockHandleCheckBeforePublish.mockResolvedValue(true)
     mockMutateAsync.mockResolvedValue({ created_at: 1_712_345_678 })
     mockUseKeyPress.mockImplementation((_key, handler) => {
       shortcutHandler = handler
@@ -76,15 +84,37 @@ describe('useSnippetPublish', () => {
         await result.current.handlePublish()
       })
 
+      expect(mockHandleCheckBeforePublish).toHaveBeenCalledTimes(1)
       expect(mockMutateAsync).toHaveBeenCalledWith({
         params: { snippetId: 'snippet-1' },
       })
       expect(mockSetQueryData).toHaveBeenCalledTimes(1)
-      const updateSnippetDetail = mockSetQueryData.mock.calls[0]![1] as (old: { is_published: boolean }) => { is_published: boolean }
+      const setQueryDataCall = mockSetQueryData.mock.calls[0]
+      expect(setQueryDataCall).toBeDefined()
+      const updateSnippetDetail = setQueryDataCall![1] as (old: { is_published: boolean }) => { is_published: boolean }
       expect(updateSnippetDetail({ is_published: false })).toEqual({ is_published: true })
       expect(mockSetPublishedAt).toHaveBeenCalledWith(1_712_345_678)
       expect(mockSetPublishMenuOpen).toHaveBeenCalledWith(false)
       expect(toast.success).toHaveBeenCalledWith('snippet.publishSuccess')
+    })
+
+    it('should not publish the snippet when checklist validation fails', async () => {
+      mockHandleCheckBeforePublish.mockResolvedValue(false)
+
+      const { result } = renderHook(() => useSnippetPublish({
+        snippetId: 'snippet-1',
+      }))
+
+      await act(async () => {
+        await result.current.handlePublish()
+      })
+
+      expect(mockHandleCheckBeforePublish).toHaveBeenCalledTimes(1)
+      expect(mockMutateAsync).not.toHaveBeenCalled()
+      expect(mockSetQueryData).not.toHaveBeenCalled()
+      expect(mockSetPublishedAt).not.toHaveBeenCalled()
+      expect(mockSetPublishMenuOpen).not.toHaveBeenCalled()
+      expect(toast.success).not.toHaveBeenCalled()
     })
 
     it('should surface publish errors through toast feedback', async () => {

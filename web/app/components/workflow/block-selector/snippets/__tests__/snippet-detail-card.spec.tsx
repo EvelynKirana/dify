@@ -8,11 +8,20 @@ vi.mock('@/service/use-snippet-workflows', () => ({
   useSnippetPublishedWorkflow: (...args: unknown[]) => mockUseSnippetPublishedWorkflow(...args),
 }))
 
+vi.mock('@/service/use-common', () => ({
+  useMembers: () => ({
+    data: {
+      accounts: [
+        { id: 'user-1', name: 'Evan', email: 'evan@example.com', avatar: '', avatar_url: null, role: 'editor', last_login_at: '', created_at: '', status: 'active' },
+      ],
+    },
+  }),
+}))
+
 const createSnippet = (overrides: Partial<PublishedSnippetListItem> = {}): PublishedSnippetListItem => ({
   id: 'snippet-1',
   name: 'Customer Review',
   description: 'Snippet description',
-  author: 'Evan',
   type: 'group',
   is_published: true,
   use_count: 3,
@@ -23,7 +32,9 @@ const createSnippet = (overrides: Partial<PublishedSnippetListItem> = {}): Publi
     icon_url: '',
   },
   created_at: 1,
+  created_by: 'user-1',
   updated_at: 2,
+  updated_by: 'user-1',
   ...overrides,
 })
 

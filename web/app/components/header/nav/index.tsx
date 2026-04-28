@@ -5,7 +5,6 @@ import { cn } from '@langgenius/dify-ui/cn'
 import * as React from 'react'
 import { useState } from 'react'
 import { useStore as useAppStore } from '@/app/components/app/store'
-import { ArrowNarrowLeft } from '@/app/components/base/icons/src/vender/line/arrows'
 import Link from '@/next/link'
 import { useSelectedLayoutSegment } from '@/next/navigation'
 import NavSelector from './nav-selector'
@@ -51,6 +50,8 @@ const Nav = ({
             // Don't clear state if opening in new tab/window
             if (e.metaKey || e.ctrlKey || e.shiftKey || e.button !== 0)
               return
+            if (segment === 'snippets')
+              return
             setAppDetail()
           }}
           className={cn('flex h-7 cursor-pointer items-center rounded-[10px] px-2.5', isActivated ? 'text-components-main-nav-nav-button-text-active' : 'text-components-main-nav-nav-button-text', curNav && isActivated && 'hover:bg-components-main-nav-nav-button-bg-active-hover')}
@@ -60,7 +61,7 @@ const Nav = ({
           <div>
             {
               (hovered && curNav)
-                ? <ArrowNarrowLeft className="h-4 w-4" />
+                ? <span className="i-custom-vender-line-arrows-arrow-narrow-left h-4 w-4" />
                 : isActivated
                   ? activeIcon
                   : icon

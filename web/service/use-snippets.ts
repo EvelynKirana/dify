@@ -70,7 +70,6 @@ const toSnippetListItem = (snippet: SnippetSummary): SnippetListItemUIModel => {
     id: snippet.id,
     name: snippet.name,
     description: snippet.description,
-    author: '',
     updatedAt: formatTimestamp(snippet.updated_at),
     usage: String(snippet.use_count ?? 0),
     icon: getSnippetIcon(snippet.icon_info),
@@ -192,6 +191,20 @@ export const useDeleteSnippetMutation = () => {
 
   return useMutation({
     ...consoleQuery.snippets.delete.mutationOptions({
+      onSuccess: () => {
+        queryClient.invalidateQueries({
+          queryKey: consoleQuery.snippets.key(),
+        })
+      },
+    }),
+  })
+}
+
+export const useIncrementSnippetUseCountMutation = () => {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    ...consoleQuery.snippets.incrementUseCount.mutationOptions({
       onSuccess: () => {
         queryClient.invalidateQueries({
           queryKey: consoleQuery.snippets.key(),
