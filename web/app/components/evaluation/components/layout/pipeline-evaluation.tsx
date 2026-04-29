@@ -27,8 +27,8 @@ const PipelineEvaluation = ({
   }, [ensureResource, resourceId, resourceType])
 
   return (
-    <div className="flex h-full min-h-0 flex-col bg-background-default xl:flex-row">
-      <div className="flex min-h-0 flex-col border-b border-divider-subtle bg-background-default xl:w-[450px] xl:shrink-0 xl:border-r xl:border-b-0">
+    <div className="flex h-full min-h-0 flex-col overflow-y-auto bg-background-default xl:flex-row xl:overflow-hidden">
+      <div className="flex shrink-0 flex-col border-b border-divider-subtle bg-background-default xl:min-h-0 xl:w-[450px] xl:border-r xl:border-b-0">
         <div className="px-6 pt-4 pb-2">
           <SectionHeader
             title={t('title')}
@@ -76,7 +76,7 @@ const PipelineEvaluation = ({
 
         <div className="border-t border-divider-subtle" />
 
-        <div className="min-h-0 flex-1 px-6 py-4">
+        <div className="px-6 py-4 xl:min-h-0 xl:flex-1">
           <HistoryTab
             resourceType={resourceType}
             resourceId={resourceId}
@@ -84,7 +84,7 @@ const PipelineEvaluation = ({
         </div>
       </div>
 
-      <div className="min-h-0 flex-1 bg-background-default">
+      <div className="shrink-0 bg-background-default xl:min-h-0 xl:flex-1">
         <PipelineResultsPanel
           resourceType={resourceType}
           resourceId={resourceId}
