@@ -11,8 +11,9 @@ import { useInputFieldsActions } from '../batch-test-panel/input-fields/use-inpu
 
 const PIPELINE_INPUT_FIELDS: InputField[] = [
   { name: 'query', type: 'string' },
-  { name: 'Expect Results', type: 'string' },
+  { name: 'expect_results', type: 'string' },
 ]
+const PIPELINE_TEMPLATE_CONTENT = 'query,expect_results\n'
 
 const PipelineBatchActions = ({
   resourceType,
@@ -29,6 +30,7 @@ const PipelineBatchActions = ({
     isInputFieldsLoading: false,
     isPanelReady: isConfigReady,
     isRunnable,
+    templateContent: PIPELINE_TEMPLATE_CONTENT,
     templateFileName: EVALUATION_TEMPLATE_FILE_NAMES[resourceType],
   })
 

@@ -284,13 +284,6 @@ export const evaluationNodeInfoContract = base
   }>())
   .output(type<EvaluationNodeInfoResponse>())
 
-export const availableEvaluationMetricsContract = base
-  .route({
-    path: '/evaluation/available-metrics',
-    method: 'GET',
-  })
-  .output(type<EvaluationMetricsListResponse>())
-
 export const availableEvaluationWorkflowsContract = base
   .route({
     path: '/workspaces/current/available-evaluation-workflows',

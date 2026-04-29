@@ -6,7 +6,7 @@ import ConditionsSection from '../components/conditions-section'
 import { useEvaluationStore } from '../store'
 
 const mockUpload = vi.hoisted(() => vi.fn())
-const mockUseAvailableEvaluationMetrics = vi.hoisted(() => vi.fn())
+const mockUseDatasetEvaluationMetrics = vi.hoisted(() => vi.fn())
 const mockUseDefaultEvaluationMetrics = vi.hoisted(() => vi.fn())
 const mockUseEvaluationConfig = vi.hoisted(() => vi.fn())
 const mockUseSaveEvaluationConfigMutation = vi.hoisted(() => vi.fn())
@@ -51,7 +51,7 @@ vi.mock('@/service/base', () => ({
 
 vi.mock('@/service/use-evaluation', () => ({
   useEvaluationConfig: (...args: unknown[]) => mockUseEvaluationConfig(...args),
-  useAvailableEvaluationMetrics: (...args: unknown[]) => mockUseAvailableEvaluationMetrics(...args),
+  useDatasetEvaluationMetrics: (...args: unknown[]) => mockUseDatasetEvaluationMetrics(...args),
   useDefaultEvaluationMetrics: (...args: unknown[]) => mockUseDefaultEvaluationMetrics(...args),
   useSaveEvaluationConfigMutation: (...args: unknown[]) => mockUseSaveEvaluationConfigMutation(...args),
   useStartEvaluationRunMutation: (...args: unknown[]) => mockUseStartEvaluationRunMutation(...args),
@@ -119,7 +119,7 @@ describe('Evaluation', () => {
       data: null,
     })
 
-    mockUseAvailableEvaluationMetrics.mockReturnValue({
+    mockUseDatasetEvaluationMetrics.mockReturnValue({
       data: {
         metrics: ['answer-correctness', 'faithfulness', 'context-precision', 'context-recall', 'context-relevance'],
       },
@@ -582,6 +582,7 @@ describe('Evaluation', () => {
   it('should render the pipeline-specific layout without auto-selecting a judge model', () => {
     renderWithQueryClient(<Evaluation resourceType="datasets" resourceId="dataset-1" />)
 
+    expect(mockUseDatasetEvaluationMetrics).toHaveBeenCalledWith('dataset-1')
     expect(screen.getByTestId('evaluation-model-selector')).toHaveTextContent('empty')
     expect(screen.getByText('evaluation.history.columns.time')).toBeInTheDocument()
     expect(screen.getByText('Context Precision')).toBeInTheDocument()
@@ -621,6 +622,33 @@ describe('Evaluation', () => {
     expect(screen.getByRole('button', { name: 'evaluation.pipeline.uploadAndRun' })).toBeEnabled()
   })
 
+  it('should download the fixed pipeline template columns', () => {
+    const createElement = document.createElement.bind(document)
+    let downloadLink: HTMLAnchorElement | undefined
+    const createElementSpy = vi.spyOn(document, 'createElement').mockImplementation((tagName, options) => {
+      const element = createElement(tagName, options)
+
+      if (tagName === 'a') {
+        downloadLink = element as HTMLAnchorElement
+        vi.spyOn(downloadLink, 'click').mockImplementation(() => {})
+      }
+
+      return element
+    })
+
+    renderWithQueryClient(<Evaluation resourceType="datasets" resourceId="dataset-template" />)
+
+    fireEvent.click(screen.getByRole('button', { name: 'select-model' }))
+    fireEvent.click(screen.getByRole('button', { name: /Context Precision/i }))
+    fireEvent.click(screen.getByRole('button', { name: 'evaluation.batch.downloadTemplate' }))
+
+    expect(downloadLink?.download).toBe('pipeline-evaluation-template.csv')
+    expect(decodeURIComponent(downloadLink?.href ?? '')).toContain('query,expect_results\n')
+    expect(decodeURIComponent(downloadLink?.href ?? '')).not.toContain('expected_output')
+
+    createElementSpy.mockRestore()
+  })
+
   it('should upload and start a pipeline evaluation run', async () => {
     const startRun = vi.fn()
     mockUseStartEvaluationRunMutation.mockReturnValue({
@@ -639,14 +667,14 @@ describe('Evaluation', () => {
     fireEvent.click(screen.getByRole('button', { name: 'evaluation.pipeline.uploadAndRun' }))
 
     expect(screen.getAllByText('query').length).toBeGreaterThan(0)
-    expect(screen.getAllByText('Expect Results').length).toBeGreaterThan(0)
+    expect(screen.getAllByText('expect_results').length).toBeGreaterThan(0)
 
     const fileInput = document.querySelector<HTMLInputElement>('input[type="file"][accept=".csv"]')
     expect(fileInput).toBeInTheDocument()
 
     fireEvent.change(fileInput!, {
       target: {
-        files: [new File(['query,Expect Results'], 'pipeline-evaluation.csv', { type: 'text/csv' })],
+        files: [new File(['query,expect_results'], 'pipeline-evaluation.csv', { type: 'text/csv' })],
       },
     })
 

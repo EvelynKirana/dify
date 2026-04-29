@@ -7,7 +7,7 @@ import { useEffect, useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 import { BlockEnum } from '@/app/components/workflow/types'
 import { useDatasetDetailContextWithSelector } from '@/context/dataset-detail'
-import { useAvailableEvaluationMetrics } from '@/service/use-evaluation'
+import { useDatasetEvaluationMetrics } from '@/service/use-evaluation'
 import { usePublishedPipelineInfo } from '@/service/use-pipeline'
 import { useEvaluationResource, useEvaluationStore } from '../../store'
 import { buildMetricOption } from '../metric-selector/utils'
@@ -49,7 +49,7 @@ const PipelineMetricsSection = ({
   const addBuiltinMetric = useEvaluationStore(state => state.addBuiltinMetric)
   const removeMetric = useEvaluationStore(state => state.removeMetric)
   const updateMetricThreshold = useEvaluationStore(state => state.updateMetricThreshold)
-  const { data: availableMetricsData } = useAvailableEvaluationMetrics()
+  const { data: datasetMetricsData } = useDatasetEvaluationMetrics(resourceId)
   const { data: publishedPipeline } = usePublishedPipelineInfo(pipelineId || '')
   const resource = useEvaluationResource(resourceType, resourceId)
   const knowledgeIndexNodeInfoList = useMemo(
@@ -63,12 +63,12 @@ const PipelineMetricsSection = ({
   ), [resource.metrics])
   const availableBuiltinMetrics = useMemo(() => {
     const metricIds = new Set([
-      ...(availableMetricsData?.metrics ?? []),
+      ...(datasetMetricsData?.metrics ?? []),
       ...builtinMetricMap.keys(),
     ])
 
     return Array.from(metricIds).map(metricId => buildMetricOption(metricId))
-  }, [availableMetricsData?.metrics, builtinMetricMap])
+  }, [datasetMetricsData?.metrics, builtinMetricMap])
 
   useEffect(() => {
     if (!knowledgeIndexNodeInfoList.length)
