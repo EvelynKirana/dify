@@ -1,13 +1,13 @@
 'use client'
 
-import type { NavItem } from '../nav/nav-selector'
+import type { NavItem } from '@/app/components/header/nav/nav-selector'
 import type { AppIconType, AppModeEnum } from '@/types/app'
 import { useCallback, useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
-import { useDeploymentsStore } from '@/app/components/deployments/store'
-import { useSourceApps } from '@/app/components/deployments/use-source-apps'
+import Nav from '@/app/components/header/nav'
 import { useParams, useRouter, useSelectedLayoutSegment } from '@/next/navigation'
-import Nav from '../nav'
+import { useSourceApps } from '../hooks/use-source-apps'
+import { useDeploymentsStore } from '../store'
 
 const DeploymentsNav = () => {
   const { t } = useTranslation()

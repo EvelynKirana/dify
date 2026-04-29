@@ -1,4 +1,4 @@
-import AccessTab from '@/app/components/deployments/instance-detail/access-tab'
+import AccessTab from '@/features/deployments/detail/access-tab'
 
 type PageProps = {
   params: Promise<{ instanceId: string }>

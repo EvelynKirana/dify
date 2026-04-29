@@ -11,6 +11,7 @@ import {
 import { Tooltip, TooltipContent, TooltipTrigger } from '@langgenius/dify-ui/tooltip'
 import { useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
+import { useDeploymentsStore } from '../store'
 import {
   activeRelease,
   deployedRows,
@@ -22,8 +23,7 @@ import {
   releaseCommit,
   releaseLabel,
   targetRelease,
-} from '../api-utils'
-import { useDeploymentsStore } from '../store'
+} from '../utils'
 
 const GRID_TEMPLATE = 'grid-cols-[0.9fr_1fr_0.8fr_1.5fr_auto]'
 

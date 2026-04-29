@@ -1,4 +1,4 @@
-import DeployTab from '@/app/components/deployments/instance-detail/deploy-tab'
+import DeployTab from '@/features/deployments/detail/deploy-tab'
 
 type PageProps = {
   params: Promise<{ instanceId: string }>

@@ -1,6 +1,6 @@
 'use client'
 import type { FC } from 'react'
-import type { AppInfo, AppMode } from './types'
+import type { AppInfo, AppMode } from '../types'
 import type { App, AppModeEnum } from '@/types/app'
 import { Button } from '@langgenius/dify-ui/button'
 import { cn } from '@langgenius/dify-ui/cn'
@@ -14,7 +14,7 @@ import AppIcon from '@/app/components/base/app-icon'
 import Input from '@/app/components/base/input'
 import { useRouter } from '@/next/navigation'
 import { useAppList } from '@/service/use-apps'
-import { useDeploymentsStore } from './store'
+import { useDeploymentsStore } from '../store'
 
 const MAX_STUDIO_SOURCE_APPS = 100
 

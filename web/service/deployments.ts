@@ -7,9 +7,11 @@ import type {
   ListEnvironmentDeploymentsReply,
   ListReleaseHistoryReply,
 } from '@/contract/console/deployments'
+import { queryOptions } from '@tanstack/react-query'
 import { consoleClient } from './client'
 
 const DEPLOYMENT_PAGE_SIZE = 100
+const DEPLOYMENT_APP_DATA_STALE_TIME = 30 * 1000
 
 export type DeploymentAppData = {
   appId: string
@@ -67,6 +69,13 @@ export const fetchDeploymentAppData = async (appId: string): Promise<DeploymentA
     accessConfig,
   }
 }
+
+export const deploymentAppDataQueryOptions = (appId: string) =>
+  queryOptions<DeploymentAppData>({
+    queryKey: ['console', 'deployments', 'app-data', appId],
+    queryFn: () => fetchDeploymentAppData(appId),
+    staleTime: DEPLOYMENT_APP_DATA_STALE_TIME,
+  })
 
 export const createDeployment = async ({
   appId,

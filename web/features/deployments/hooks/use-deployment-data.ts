@@ -1,10 +1,10 @@
 'use client'
 
-import type { AppInfo } from './types'
+import type { AppInfo } from '../types'
 import { useQueries } from '@tanstack/react-query'
 import { useEffect, useRef } from 'react'
-import { fetchDeploymentAppData } from '@/service/deployments'
-import { useDeploymentsStore } from './store'
+import { deploymentAppDataQueryOptions } from '@/service/deployments'
+import { useDeploymentsStore } from '../store'
 
 type UseDeploymentDataOptions = {
   enabled?: boolean
@@ -16,10 +16,8 @@ export function useDeploymentData(apps: AppInfo[], options: UseDeploymentDataOpt
 
   const queries = useQueries({
     queries: apps.map(app => ({
-      queryKey: ['deployments', 'app-data', app.id],
-      queryFn: () => fetchDeploymentAppData(app.id),
+      ...deploymentAppDataQueryOptions(app.id),
       enabled: enabled && Boolean(app.id),
-      staleTime: 30 * 1000,
     })),
   })
 

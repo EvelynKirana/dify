@@ -1,7 +1,7 @@
 'use client'
 import * as React from 'react'
 import { useTranslation } from 'react-i18next'
-import DeploymentsMain from '@/app/components/deployments'
+import DeploymentsMain from '@/features/deployments/list'
 import useDocumentTitle from '@/hooks/use-document-title'
 
 const DeploymentsPage = () => {

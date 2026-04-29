@@ -1,4 +1,4 @@
-import VersionsTab from '@/app/components/deployments/instance-detail/versions-tab'
+import VersionsTab from '@/features/deployments/detail/versions-tab'
 
 type PageProps = {
   params: Promise<{ instanceId: string }>

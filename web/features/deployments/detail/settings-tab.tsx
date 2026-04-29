@@ -4,9 +4,9 @@ import type { AppInfo } from '../types'
 import { Button } from '@langgenius/dify-ui/button'
 import * as React from 'react'
 import { useTranslation } from 'react-i18next'
-import { deployedRows } from '../api-utils'
+import { useSourceApps } from '../hooks/use-source-apps'
 import { useDeploymentsStore } from '../store'
-import { useSourceApps } from '../use-source-apps'
+import { deployedRows } from '../utils'
 
 type SettingsTabProps = {
   instanceId: string

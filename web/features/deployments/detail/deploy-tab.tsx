@@ -12,6 +12,8 @@ import {
 import * as React from 'react'
 import { useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
+import { HealthBadge, ModeBadge } from '../components/status-badge'
+import { useDeploymentsStore } from '../store'
 import {
   activeRelease,
   deployedRows,
@@ -26,9 +28,7 @@ import {
   releaseCommit,
   releaseLabel,
   targetRelease,
-} from '../api-utils'
-import { HealthBadge, ModeBadge } from '../status-badge'
-import { useDeploymentsStore } from '../store'
+} from '../utils'
 
 const GRID_TEMPLATE = 'lg:grid-cols-[1.2fr_0.8fr_1fr_auto]'
 

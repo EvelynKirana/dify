@@ -11,6 +11,8 @@ import {
 } from '@langgenius/dify-ui/alert-dialog'
 import * as React from 'react'
 import { useTranslation } from 'react-i18next'
+import { useSourceApps } from '../hooks/use-source-apps'
+import { useDeploymentsStore } from '../store'
 import {
   activeRelease,
   deployedRows,
@@ -18,9 +20,7 @@ import {
   environmentName,
   releaseCommit,
   releaseLabel,
-} from './api-utils'
-import { useDeploymentsStore } from './store'
-import { useSourceApps } from './use-source-apps'
+} from '../utils'
 
 const InfoRow: FC<{ label: string, value: string }> = ({ label, value }) => {
   return (

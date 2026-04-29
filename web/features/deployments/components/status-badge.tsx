@@ -1,6 +1,6 @@
 'use client'
 import type { FC } from 'react'
-import type { DeployStatus, EnvironmentHealth, EnvironmentMode } from './types'
+import type { DeployStatus, EnvironmentHealth, EnvironmentMode } from '../types'
 import { cn } from '@langgenius/dify-ui/cn'
 import * as React from 'react'
 import { useTranslation } from 'react-i18next'

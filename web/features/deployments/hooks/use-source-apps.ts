@@ -1,10 +1,10 @@
 'use client'
-import type { AppInfo, AppMode } from './types'
+import type { AppInfo, AppMode } from '../types'
 import type { AppDeploymentSummary, ConsoleAppSummary, EnvironmentOption } from '@/contract/console/deployments'
 import { useQuery } from '@tanstack/react-query'
 import { useEffect, useMemo } from 'react'
 import { consoleQuery } from '@/service/client'
-import { useDeploymentsStore } from './store'
+import { useDeploymentsStore } from '../store'
 
 const MAX_SOURCE_APPS = 100
 

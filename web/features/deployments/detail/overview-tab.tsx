@@ -6,10 +6,10 @@ import * as React from 'react'
 import { useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 import { getAppModeLabel } from '@/app/components/app-sidebar/app-info/app-mode-labels'
-import { webappUrl } from '../api-utils'
-import { StatusBadge } from '../status-badge'
+import { StatusBadge } from '../components/status-badge'
+import { useSourceApps } from '../hooks/use-source-apps'
 import { useDeploymentsStore } from '../store'
-import { useSourceApps } from '../use-source-apps'
+import { webappUrl } from '../utils'
 
 type OverviewTabProps = {
   instanceId: string

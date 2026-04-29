@@ -25,14 +25,14 @@ import { useDebounce } from 'ahooks'
 import { useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { consoleQuery } from '@/service/client'
+import { useDeploymentsStore } from '../store'
 import {
   accessModeToPermissionKey,
   deployedRows,
   environmentName,
   permissionKeyToAccessMode,
   webappUrl,
-} from '../api-utils'
-import { useDeploymentsStore } from '../store'
+} from '../utils'
 
 type SectionProps = {
   title: string

@@ -1,4 +1,4 @@
-import SettingsTab from '@/app/components/deployments/instance-detail/settings-tab'
+import SettingsTab from '@/features/deployments/detail/settings-tab'
 
 type PageProps = {
   params: Promise<{ instanceId: string }>

@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react'
-import InstanceDetail from '@/app/components/deployments/instance-detail'
+import InstanceDetail from '@/features/deployments/detail'
 
 type LayoutProps = {
   children: ReactNode

@@ -1,9 +1,9 @@
 'use client'
 import type { FC } from 'react'
-import type { InstanceDetailTabKey } from '@/app/components/deployments/instance-detail/tabs'
+import type { InstanceDetailTabKey } from '@/features/deployments/detail/tabs'
 import * as React from 'react'
 import { use } from 'react'
-import OverviewTab from '@/app/components/deployments/instance-detail/overview-tab'
+import OverviewTab from '@/features/deployments/detail/overview-tab'
 import { useRouter } from '@/next/navigation'
 
 type PageProps = {

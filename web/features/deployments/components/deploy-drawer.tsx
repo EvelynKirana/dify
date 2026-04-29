@@ -11,9 +11,9 @@ import { useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import Input from '@/app/components/base/input'
 import { consoleQuery } from '@/service/client'
-import { environmentHealth, environmentMode, environmentName, releaseCommit, releaseLabel } from './api-utils'
+import { useDeploymentsStore } from '../store'
+import { environmentHealth, environmentMode, environmentName, releaseCommit, releaseLabel } from '../utils'
 import { HealthBadge, ModeBadge } from './status-badge'
-import { useDeploymentsStore } from './store'
 
 type CredentialRequirement = {
   slot: string
