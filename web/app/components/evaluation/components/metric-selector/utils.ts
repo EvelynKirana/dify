@@ -49,9 +49,9 @@ export const getDefaultMetricNodeInfoMap = (defaultMetrics: EvaluationDefaultMet
 }
 
 export const getMetricVisual = (metricId: string): { icon: string, tone: MetricVisualTone } => {
-  if (['context-precision', 'context-recall'].includes(metricId)) {
+  if (['context_precision', 'context_recall'].includes(metricId)) {
     return {
-      icon: metricId === 'context-recall' ? 'i-ri-arrow-go-back-line' : 'i-ri-focus-2-line',
+      icon: metricId === 'context_recall' ? 'i-ri-arrow-go-back-line' : 'i-ri-focus-2-line',
       tone: 'green',
     }
   }
@@ -59,13 +59,13 @@ export const getMetricVisual = (metricId: string): { icon: string, tone: MetricV
   if (metricId === 'faithfulness')
     return { icon: 'i-ri-anchor-line', tone: 'indigo' }
 
-  if (metricId === 'tool-correctness')
+  if (metricId === 'tool_correctness')
     return { icon: 'i-ri-tools-line', tone: 'indigo' }
 
-  if (metricId === 'task-completion')
+  if (metricId === 'task_completion')
     return { icon: 'i-ri-task-line', tone: 'indigo' }
 
-  if (metricId === 'argument-correctness')
+  if (metricId === 'argument_correctness')
     return { icon: 'i-ri-scales-3-line', tone: 'indigo' }
 
   return { icon: 'i-ri-checkbox-circle-line', tone: 'indigo' }
