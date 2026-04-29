@@ -18,6 +18,7 @@ type UseSourceAppsOptions = {
 export function useSourceApps(options: UseSourceAppsOptions = {}) {
   const { enabled = true, environmentId, keyword, notDeployed } = options
   const instancesById = useDeploymentsStore(state => state.instancesById)
+  const listRefreshToken = useDeploymentsStore(state => state.listRefreshToken)
 
   const query = useMemo(() => ({
     pageNumber: 1,
@@ -27,12 +28,20 @@ export function useSourceApps(options: UseSourceAppsOptions = {}) {
     ...(keyword?.trim() ? { query: keyword.trim() } : {}),
   }), [environmentId, keyword, notDeployed])
 
-  const listQuery = useQuery(consoleQuery.deployments.list.queryOptions({
+  const listQueryOptions = consoleQuery.deployments.list.queryOptions({
     input: { query },
-    queryFn: () => useDeploymentsStore.getState().fetchSourceApps(query),
     enabled,
     staleTime: 30 * 1000,
-  }))
+  })
+
+  const listQuery = useQuery({
+    ...listQueryOptions,
+    queryKey: [
+      ...consoleQuery.deployments.list.queryKey({ input: { query } }),
+      listRefreshToken,
+    ],
+    queryFn: () => useDeploymentsStore.getState().fetchSourceApps(query),
+  })
 
   const appIds = useMemo(() => {
     return (listQuery.data?.data ?? [])

@@ -12,8 +12,7 @@ import type {
   ListReleaseHistoryReply,
 } from '@/contract/console/deployments'
 import { queryOptions } from '@tanstack/react-query'
-import { getQueryClient } from '@/context/get-query-client'
-import { consoleClient, consoleQuery } from '@/service/client'
+import { consoleClient } from '@/service/client'
 
 const DEPLOYMENT_PAGE_SIZE = 100
 const DEPLOYMENT_APP_DATA_STALE_TIME = 30 * 1000
@@ -136,10 +135,7 @@ export const deploymentAppDataQueryOptions = (appId: string) =>
   })
 
 export const refreshDeploymentAppData = async (appId: string): Promise<DeploymentAppData> => {
-  return getQueryClient().fetchQuery({
-    ...deploymentAppDataQueryOptions(appId),
-    staleTime: 0,
-  })
+  return fetchDeploymentAppData(appId)
 }
 
 const wait = (delay: number) => new Promise(resolve => setTimeout(resolve, delay))
@@ -162,12 +158,6 @@ export const refreshDeploymentAppDataWhenReady = async (appId: string): Promise<
   throw lastError
 }
 
-export const refreshDeploymentLists = async () => {
-  await getQueryClient().invalidateQueries({
-    queryKey: consoleQuery.deployments.list.key(),
-  })
-}
-
 export const waitForAppInstanceInDeploymentList = async (appInstanceId: string): Promise<ListAppDeploymentsReply | undefined> => {
   let lastError: unknown
 
@@ -187,8 +177,6 @@ export const waitForAppInstanceInDeploymentList = async (appInstanceId: string):
       lastError = error
     }
   }
-
-  await refreshDeploymentLists()
 
   if (lastError)
     throw lastError

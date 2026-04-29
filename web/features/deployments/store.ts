@@ -15,7 +15,6 @@ import {
   patchDeveloperAPI,
   refreshDeploymentAppData,
   refreshDeploymentAppDataWhenReady,
-  refreshDeploymentLists,
   toAppInfoFromOverview,
   toAppInfoFromSummary,
   undeployEnvironment,
@@ -63,6 +62,7 @@ export type CreateInstanceResult = {
 type DeploymentsState = {
   instancesById: Record<string, AppInfo>
   appData: Record<string, DeploymentAppData>
+  listRefreshToken: number
   createdApiToken?: CreatedApiToken
 
   deployDrawer: {
@@ -91,6 +91,7 @@ type DeploymentsState = {
 
   upsertInstances: (apps: AppInfo[]) => void
   applyAppData: (data: DeploymentAppData) => void
+  bumpDeploymentListRefresh: () => void
   fetchSourceApps: (query: ListAppDeploymentsQuery) => Promise<ListAppDeploymentsReply>
   fetchAppData: (appId: string) => Promise<DeploymentAppData>
   refreshAppData: (appId: string) => Promise<void>
@@ -123,6 +124,7 @@ type DeploymentsState = {
 export const useDeploymentsStore = create<DeploymentsState>((set, get) => ({
   instancesById: {},
   appData: {},
+  listRefreshToken: 0,
   createdApiToken: undefined,
 
   deployDrawer: { open: false },
@@ -162,6 +164,10 @@ export const useDeploymentsStore = create<DeploymentsState>((set, get) => ({
       ...state.appData,
       [data.appId]: data,
     },
+  })),
+
+  bumpDeploymentListRefresh: () => set(state => ({
+    listRefreshToken: state.listRefreshToken + 1,
   })),
 
   fetchSourceApps: async (query) => {
@@ -210,7 +216,7 @@ export const useDeploymentsStore = create<DeploymentsState>((set, get) => ({
         get().upsertInstances(apps)
       }),
     ])
-    await refreshDeploymentLists()
+    get().bumpDeploymentListRefresh()
     return {
       appInstanceId: response.appInstanceId,
       initialRelease: response.initialRelease,
@@ -223,7 +229,7 @@ export const useDeploymentsStore = create<DeploymentsState>((set, get) => ({
       description: patch.description,
     })
     await get().refreshAppData(appId)
-    await refreshDeploymentLists()
+    get().bumpDeploymentListRefresh()
     set(state => ({
       instancesById: {
         ...state.instancesById,
@@ -250,27 +256,27 @@ export const useDeploymentsStore = create<DeploymentsState>((set, get) => ({
         appData,
       }
     })
-    await refreshDeploymentLists()
+    get().bumpDeploymentListRefresh()
   },
 
   startDeploy: async ({ appId, environmentId, releaseId, releaseNote }) => {
     set({ deployDrawer: { open: false } })
     await createDeployment({ appId, environmentId, releaseId, releaseNote })
     await get().refreshAppData(appId)
-    await refreshDeploymentLists()
+    get().bumpDeploymentListRefresh()
   },
 
   retryDeploy: async (appId, environmentId, targetReleaseId) => {
     await createDeployment({ appId, environmentId, releaseId: targetReleaseId })
     await get().refreshAppData(appId)
-    await refreshDeploymentLists()
+    get().bumpDeploymentListRefresh()
   },
 
   rollbackDeployment: async (appId, environmentId, targetReleaseId) => {
     set({ rollbackModal: { open: false } })
     await createDeployment({ appId, environmentId, releaseId: targetReleaseId })
     await get().refreshAppData(appId)
-    await refreshDeploymentLists()
+    get().bumpDeploymentListRefresh()
   },
 
   undeployDeployment: async (appId, _environmentId, runtimeInstanceId, isDeploying) => {
@@ -281,7 +287,7 @@ export const useDeploymentsStore = create<DeploymentsState>((set, get) => ({
     else
       await undeployEnvironment(appId, runtimeInstanceId)
     await get().refreshAppData(appId)
-    await refreshDeploymentLists()
+    get().bumpDeploymentListRefresh()
   },
 
   generateApiKey: async (appId, environmentId) => {
