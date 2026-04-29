@@ -622,6 +622,33 @@ describe('Evaluation', () => {
     expect(screen.getByRole('button', { name: 'evaluation.pipeline.uploadAndRun' })).toBeEnabled()
   })
 
+  it('should download the fixed pipeline template columns', () => {
+    const createElement = document.createElement.bind(document)
+    let downloadLink: HTMLAnchorElement | undefined
+    const createElementSpy = vi.spyOn(document, 'createElement').mockImplementation((tagName, options) => {
+      const element = createElement(tagName, options)
+
+      if (tagName === 'a') {
+        downloadLink = element as HTMLAnchorElement
+        vi.spyOn(downloadLink, 'click').mockImplementation(() => {})
+      }
+
+      return element
+    })
+
+    renderWithQueryClient(<Evaluation resourceType="datasets" resourceId="dataset-template" />)
+
+    fireEvent.click(screen.getByRole('button', { name: 'select-model' }))
+    fireEvent.click(screen.getByRole('button', { name: /Context Precision/i }))
+    fireEvent.click(screen.getByRole('button', { name: 'evaluation.batch.downloadTemplate' }))
+
+    expect(downloadLink?.download).toBe('pipeline-evaluation-template.csv')
+    expect(decodeURIComponent(downloadLink?.href ?? '')).toContain('query,expect_results\n')
+    expect(decodeURIComponent(downloadLink?.href ?? '')).not.toContain('expected_output')
+
+    createElementSpy.mockRestore()
+  })
+
   it('should upload and start a pipeline evaluation run', async () => {
     const startRun = vi.fn()
     mockUseStartEvaluationRunMutation.mockReturnValue({
@@ -640,14 +667,14 @@ describe('Evaluation', () => {
     fireEvent.click(screen.getByRole('button', { name: 'evaluation.pipeline.uploadAndRun' }))
 
     expect(screen.getAllByText('query').length).toBeGreaterThan(0)
-    expect(screen.getAllByText('Expect Results').length).toBeGreaterThan(0)
+    expect(screen.getAllByText('expect_results').length).toBeGreaterThan(0)
 
     const fileInput = document.querySelector<HTMLInputElement>('input[type="file"][accept=".csv"]')
     expect(fileInput).toBeInTheDocument()
 
     fireEvent.change(fileInput!, {
       target: {
-        files: [new File(['query,Expect Results'], 'pipeline-evaluation.csv', { type: 'text/csv' })],
+        files: [new File(['query,expect_results'], 'pipeline-evaluation.csv', { type: 'text/csv' })],
       },
     })
 
