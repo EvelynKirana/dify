@@ -6,6 +6,7 @@ import * as React from 'react'
 import { useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 import { getAppModeLabel } from '@/app/components/app-sidebar/app-info/app-mode-labels'
+import { useRouter } from '@/next/navigation'
 import { StatusBadge } from '../components/status-badge'
 import { useSourceApps } from '../hooks/use-source-apps'
 import { useDeploymentsStore } from '../store'
@@ -13,8 +14,9 @@ import { webappUrl } from '../utils'
 
 type OverviewTabProps = {
   instanceId: string
-  onSwitchTab?: (tab: 'deploy' | 'versions' | 'access' | 'settings') => void
 }
+
+type SwitchableTab = 'deploy' | 'versions' | 'access' | 'settings'
 
 type SectionProps = {
   title: string
@@ -85,9 +87,10 @@ function overviewDeploymentStatus(status?: string) {
   return 'ready'
 }
 
-const OverviewTab: FC<OverviewTabProps> = ({ instanceId, onSwitchTab }) => {
+const OverviewTab: FC<OverviewTabProps> = ({ instanceId }) => {
   const { t } = useTranslation('deployments')
   const { t: tCommon } = useTranslation()
+  const router = useRouter()
   const appData = useDeploymentsStore(state => state.appData[instanceId])
   const openDeployDrawer = useDeploymentsStore(state => state.openDeployDrawer)
   const { appMap } = useSourceApps()
@@ -101,6 +104,10 @@ const OverviewTab: FC<OverviewTabProps> = ({ instanceId, onSwitchTab }) => {
 
   if (!app)
     return null
+
+  const switchTab = (tab: SwitchableTab) => {
+    router.push(`/deployments/${instanceId}/${tab}`)
+  }
 
   const appModeLabel = getAppModeLabel(overviewApp?.mode ?? app.mode, tCommon)
   const webappRow = appData?.accessConfig.webapp?.rows?.find(row => row.url)
@@ -122,7 +129,7 @@ const OverviewTab: FC<OverviewTabProps> = ({ instanceId, onSwitchTab }) => {
       <Section
         title={t('overview.deploymentStatus')}
         action={(
-          <Button size="small" variant="secondary" onClick={() => onSwitchTab?.('deploy')}>
+          <Button size="small" variant="secondary" onClick={() => switchTab('deploy')}>
             {t('overview.viewDeployments')}
             <span className="i-ri-arrow-right-up-line h-3.5 w-3.5" />
           </Button>
@@ -161,7 +168,7 @@ const OverviewTab: FC<OverviewTabProps> = ({ instanceId, onSwitchTab }) => {
       <Section
         title={t('overview.accessStatus')}
         action={(
-          <Button size="small" variant="secondary" onClick={() => onSwitchTab?.('access')}>
+          <Button size="small" variant="secondary" onClick={() => switchTab('access')}>
             {t('overview.configureAccess')}
             <span className="i-ri-arrow-right-up-line h-3.5 w-3.5" />
           </Button>
