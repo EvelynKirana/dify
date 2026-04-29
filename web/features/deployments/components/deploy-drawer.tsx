@@ -19,13 +19,13 @@ const DeployDrawer: FC = () => {
   const open = drawer.open
   const { environmentOptions } = useSourceApps({ enabled: open })
 
-  const appDataQuery = useQuery({
+  useQuery({
     ...deploymentAppDataQueryOptions(drawerAppId ?? ''),
     queryFn: () => useDeploymentsStore.getState().fetchAppData(drawerAppId!),
     enabled: open && Boolean(drawerAppId) && !storedAppData,
   })
 
-  const appData = storedAppData ?? (appDataQuery.data?.appId === drawerAppId ? appDataQuery.data : undefined)
+  const appData = storedAppData
   const environments = environmentOptions
   const releases = appData?.releaseHistory.data?.map(row => row.release ?? row).filter(release => release.id) ?? []
   const defaultReleaseId = releases[0]?.id

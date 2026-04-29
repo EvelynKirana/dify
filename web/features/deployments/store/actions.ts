@@ -27,6 +27,10 @@ import {
   updateEnvironmentAccessPolicy,
   waitForAppInstanceInDeploymentList,
 } from '../data'
+import {
+  sourceAppsListKey,
+  toSourceAppsList,
+} from './source-apps'
 
 export type StartDeployParams = {
   appId: string
@@ -170,12 +174,22 @@ class DeploymentsActionImpl implements DeploymentsAction {
     }))
   }
 
+  #applySourceAppsList = (query: ListAppDeploymentsQuery, response: ListAppDeploymentsReply) => {
+    this.#set(state => ({
+      sourceAppLists: {
+        ...state.sourceAppLists,
+        [sourceAppsListKey(query)]: toSourceAppsList(response),
+      },
+    }))
+  }
+
   fetchSourceApps = async (query: ListAppDeploymentsQuery) => {
     const response = await listAppDeployments(query)
     const apps = response.data
       ?.map(toAppInfoFromSummary)
       .filter((app): app is AppInfo => Boolean(app)) ?? []
     this.upsertInstances(apps)
+    this.#applySourceAppsList(query, response)
     return response
   }
 
@@ -211,10 +225,16 @@ class DeploymentsActionImpl implements DeploymentsAction {
             this.upsertInstances([app])
         }),
       waitForAppInstanceInDeploymentList(response.appInstanceId).then((list) => {
+        const query = {
+          pageNumber: 1,
+          resultsPerPage: 100,
+        }
         const apps = list?.data
           ?.map(toAppInfoFromSummary)
           .filter((app): app is AppInfo => Boolean(app)) ?? []
         this.upsertInstances(apps)
+        if (list)
+          this.#applySourceAppsList(query, list)
       }),
     ])
     this.bumpDeploymentListRefresh()

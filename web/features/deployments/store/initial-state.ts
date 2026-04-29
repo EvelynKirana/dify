@@ -1,5 +1,6 @@
 import type { DeploymentAppData } from '../data'
 import type { AppInfo } from '../types'
+import type { SourceAppsList } from './source-apps'
 import type { APIToken } from '@/contract/console/deployments'
 
 export type CreatedApiToken = Pick<APIToken, 'id' | 'environmentId' | 'maskedPrefix' | 'name'> & {
@@ -10,6 +11,7 @@ export type CreatedApiToken = Pick<APIToken, 'id' | 'environmentId' | 'maskedPre
 export type DeploymentsState = {
   instancesById: Record<string, AppInfo>
   appData: Record<string, DeploymentAppData>
+  sourceAppLists: Record<string, SourceAppsList>
   listRefreshToken: number
   createdApiToken?: CreatedApiToken
 
@@ -32,6 +34,7 @@ export type DeploymentsState = {
 export const initialDeploymentsState: DeploymentsState = {
   instancesById: {},
   appData: {},
+  sourceAppLists: {},
   listRefreshToken: 0,
   createdApiToken: undefined,
 
