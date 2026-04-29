@@ -2,6 +2,7 @@ import type { TFunction } from 'i18next'
 import type { EvaluationMetric } from '../../types'
 import type { MetricSelectorSection } from './types'
 import { cn } from '@langgenius/dify-ui/cn'
+import { Tooltip, TooltipContent, TooltipTrigger } from '@langgenius/dify-ui/tooltip'
 import BlockIcon from '@/app/components/workflow/block-icon'
 import { getEvaluationNodeBlockType, getMetricVisual, getToneClasses } from './utils'
 
@@ -65,9 +66,24 @@ const SelectorMetricSection = ({
           </div>
         </button>
 
-        <button type="button" className="p-px text-text-quaternary">
-          <span aria-hidden="true" className="i-ri-question-line h-[14px] w-[14px]" />
-        </button>
+        {metric.description && (
+          <Tooltip>
+            <TooltipTrigger
+              render={(
+                <button
+                  type="button"
+                  className="p-px text-text-quaternary transition-colors hover:text-text-tertiary"
+                  aria-label={metric.label}
+                >
+                  <span aria-hidden="true" className="i-ri-question-line h-[14px] w-[14px]" />
+                </button>
+              )}
+            />
+            <TooltipContent className="max-w-[260px]">
+              {metric.description}
+            </TooltipContent>
+          </Tooltip>
+        )}
       </div>
 
       {isExpanded && (
