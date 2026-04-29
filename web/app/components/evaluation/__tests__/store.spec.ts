@@ -10,7 +10,7 @@ import { buildEvaluationConfigPayload, buildEvaluationRunRequest } from '../stor
 
 describe('evaluation store', () => {
   beforeEach(() => {
-    useEvaluationStore.setState({ resources: {} })
+    useEvaluationStore.setState({ resources: {}, initialResources: {} })
   })
 
   it('should configure a custom metric mapping to a valid state', () => {

@@ -6,6 +6,7 @@ import { useTranslation } from 'react-i18next'
 import { useDocLink } from '@/context/i18n'
 import { useEvaluationStore } from '../../store'
 import HistoryTab from '../batch-test-panel/history-tab'
+import EvaluationConfigActions from '../config-actions'
 import JudgeModelSelector from '../judge-model-selector'
 import PipelineBatchActions from '../pipeline/pipeline-batch-actions'
 import PipelineMetricsSection from '../pipeline/pipeline-metrics-section'
@@ -45,6 +46,7 @@ const PipelineEvaluation = ({
                 </a>
               </>
             )}
+            action={<EvaluationConfigActions resourceType={resourceType} resourceId={resourceId} />}
           />
         </div>
 

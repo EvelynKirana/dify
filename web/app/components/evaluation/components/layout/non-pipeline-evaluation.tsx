@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next'
 import { useDocLink } from '@/context/i18n'
 import BatchTestPanel from '../batch-test-panel'
 import ConditionsSection from '../conditions-section'
+import EvaluationConfigActions from '../config-actions'
 import JudgeModelSelector from '../judge-model-selector'
 import MetricSection from '../metric-section'
 import SectionHeader, { InlineSectionHeader } from '../section-header'
@@ -38,6 +39,7 @@ const NonPipelineEvaluation = ({
               </>
             )}
             descriptionClassName="max-w-[700px]"
+            action={<EvaluationConfigActions resourceType={resourceType} resourceId={resourceId} />}
           />
           <section className="max-w-[700px] py-4">
             <InlineSectionHeader title={t('judgeModel.title')} tooltip={t('judgeModel.description')} />

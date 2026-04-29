@@ -128,7 +128,7 @@ const renderWithQueryClient = (ui: ReactNode) => {
 
 describe('Evaluation', () => {
   beforeEach(() => {
-    useEvaluationStore.setState({ resources: {} })
+    useEvaluationStore.setState({ resources: {}, initialResources: {} })
     vi.clearAllMocks()
     mockUseEvaluationConfig.mockReturnValue({
       data: null,
@@ -249,6 +249,37 @@ describe('Evaluation', () => {
       onSuccess: expect.any(Function),
       onError: expect.any(Function),
     })
+  })
+
+  it('should reset unsaved non-pipeline config changes to the hydrated config', () => {
+    mockUseEvaluationConfig.mockReturnValue({
+      data: {
+        evaluation_model: 'gpt-4o-mini',
+        evaluation_model_provider: 'openai',
+        default_metrics: [],
+        customized_metrics: null,
+        judgment_config: null,
+      },
+    })
+
+    renderWithQueryClient(<Evaluation resourceType="apps" resourceId="app-reset" />)
+
+    const resetButton = screen.getByRole('button', { name: 'common.operation.reset' })
+    expect(resetButton).toBeDisabled()
+
+    fireEvent.click(screen.getByRole('button', { name: 'evaluation.metrics.add' }))
+    fireEvent.change(screen.getByPlaceholderText('evaluation.metrics.searchNodeOrMetrics'), {
+      target: { value: 'faith' },
+    })
+    fireEvent.click(screen.getByTestId('evaluation-metric-node-faithfulness-node-faithfulness'))
+
+    expect(useEvaluationStore.getState().resources['apps:app-reset']!.metrics).toHaveLength(1)
+    expect(resetButton).toBeEnabled()
+
+    fireEvent.click(resetButton)
+
+    expect(useEvaluationStore.getState().resources['apps:app-reset']!.metrics).toHaveLength(0)
+    expect(resetButton).toBeDisabled()
   })
 
   it('should hide the value row for empty operators', () => {

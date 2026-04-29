@@ -4,6 +4,7 @@ import type {
   EvaluationResourceType,
 } from './types'
 import type { EvaluationConfig, NodeInfo } from '@/types/evaluation'
+import { isEqual } from 'es-toolkit/predicate'
 import { create } from 'zustand'
 import { getEvaluationMockConfig } from './mock'
 import {
@@ -28,8 +29,11 @@ import { buildConditionMetricOptions } from './utils'
 
 type EvaluationStore = {
   resources: Record<string, EvaluationResourceState>
+  initialResources: Record<string, EvaluationResourceState>
   ensureResource: (resourceType: EvaluationResourceType, resourceId: string) => void
   hydrateResource: (resourceType: EvaluationResourceType, resourceId: string, config: EvaluationConfig) => void
+  resetResourceConfig: (resourceType: EvaluationResourceType, resourceId: string) => void
+  markResourceConfigSaved: (resourceType: EvaluationResourceType, resourceId: string) => void
   setJudgeModel: (resourceType: EvaluationResourceType, resourceId: string, judgeModelId: string) => void
   addBuiltinMetric: (resourceType: EvaluationResourceType, resourceId: string, optionId: string, nodeInfoList?: NodeInfo[]) => void
   updateMetricThreshold: (resourceType: EvaluationResourceType, resourceId: string, metricId: string, threshold: number) => void
@@ -88,8 +92,68 @@ type EvaluationStore = {
 
 const initialResourceCache: Record<string, EvaluationResourceState> = {}
 
+const cloneEvaluationResourceState = (resource: EvaluationResourceState): EvaluationResourceState => ({
+  ...resource,
+  metrics: resource.metrics.map(metric => ({
+    ...metric,
+    nodeInfoList: metric.nodeInfoList?.map(nodeInfo => ({ ...nodeInfo })),
+    customConfig: metric.customConfig
+      ? {
+          ...metric.customConfig,
+          mappings: metric.customConfig.mappings.map(mapping => ({ ...mapping })),
+          outputs: metric.customConfig.outputs.map(output => ({ ...output })),
+        }
+      : undefined,
+  })),
+  judgmentConfig: {
+    ...resource.judgmentConfig,
+    conditions: resource.judgmentConfig.conditions.map(condition => ({ ...condition })),
+  },
+  batchRecords: resource.batchRecords.map(record => ({ ...record })),
+})
+
+const preserveBatchState = (
+  configState: EvaluationResourceState,
+  currentResource: EvaluationResourceState | undefined,
+  resourceType: EvaluationResourceType,
+): EvaluationResourceState => {
+  const initialState = buildInitialState(resourceType)
+
+  return {
+    ...cloneEvaluationResourceState(configState),
+    activeBatchTab: currentResource?.activeBatchTab ?? initialState.activeBatchTab,
+    uploadedFileId: currentResource?.uploadedFileId ?? initialState.uploadedFileId,
+    uploadedFileName: currentResource?.uploadedFileName ?? initialState.uploadedFileName,
+    selectedRunId: currentResource?.selectedRunId ?? initialState.selectedRunId,
+    batchRecords: currentResource?.batchRecords.map(record => ({ ...record })) ?? initialState.batchRecords,
+  }
+}
+
+const createConfigSnapshot = (
+  resourceType: EvaluationResourceType,
+  resource: EvaluationResourceState,
+): EvaluationResourceState => {
+  const initialState = buildInitialState(resourceType)
+
+  return {
+    ...cloneEvaluationResourceState(resource),
+    activeBatchTab: initialState.activeBatchTab,
+    uploadedFileId: initialState.uploadedFileId,
+    uploadedFileName: initialState.uploadedFileName,
+    selectedRunId: initialState.selectedRunId,
+    batchRecords: initialState.batchRecords,
+  }
+}
+
+const pickConfigComparableState = (resource: EvaluationResourceState) => ({
+  judgeModelId: resource.judgeModelId,
+  metrics: resource.metrics,
+  judgmentConfig: resource.judgmentConfig,
+})
+
 export const useEvaluationStore = create<EvaluationStore>((set, get) => ({
   resources: {},
+  initialResources: {},
   ensureResource: (resourceType, resourceId) => {
     const resourceKey = buildResourceKey(resourceType, resourceId)
     if (get().resources[resourceKey])
@@ -103,17 +167,42 @@ export const useEvaluationStore = create<EvaluationStore>((set, get) => ({
     }))
   },
   hydrateResource: (resourceType, resourceId, config) => {
+    const resourceKey = buildResourceKey(resourceType, resourceId)
+    const configState = buildStateFromEvaluationConfig(resourceType, config)
+
     set(state => ({
       resources: {
         ...state.resources,
-        [buildResourceKey(resourceType, resourceId)]: {
-          ...buildStateFromEvaluationConfig(resourceType, config),
-          activeBatchTab: state.resources[buildResourceKey(resourceType, resourceId)]?.activeBatchTab ?? 'input-fields',
-          uploadedFileId: state.resources[buildResourceKey(resourceType, resourceId)]?.uploadedFileId ?? null,
-          uploadedFileName: state.resources[buildResourceKey(resourceType, resourceId)]?.uploadedFileName ?? null,
-          selectedRunId: state.resources[buildResourceKey(resourceType, resourceId)]?.selectedRunId ?? null,
-          batchRecords: state.resources[buildResourceKey(resourceType, resourceId)]?.batchRecords ?? [],
-        },
+        [resourceKey]: preserveBatchState(configState, state.resources[resourceKey], resourceType),
+      },
+      initialResources: {
+        ...state.initialResources,
+        [resourceKey]: createConfigSnapshot(resourceType, configState),
+      },
+    }))
+  },
+  resetResourceConfig: (resourceType, resourceId) => {
+    const resourceKey = buildResourceKey(resourceType, resourceId)
+
+    set(state => ({
+      resources: {
+        ...state.resources,
+        [resourceKey]: preserveBatchState(
+          state.initialResources[resourceKey] ?? buildInitialState(resourceType),
+          state.resources[resourceKey],
+          resourceType,
+        ),
+      },
+    }))
+  },
+  markResourceConfigSaved: (resourceType, resourceId) => {
+    const resourceKey = buildResourceKey(resourceType, resourceId)
+    const resource = get().resources[resourceKey] ?? buildInitialState(resourceType)
+
+    set(state => ({
+      initialResources: {
+        ...state.initialResources,
+        [resourceKey]: createConfigSnapshot(resourceType, resource),
       },
     }))
   },
@@ -434,6 +523,20 @@ export const useEvaluationStore = create<EvaluationStore>((set, get) => ({
 export const useEvaluationResource = (resourceType: EvaluationResourceType, resourceId: string) => {
   const resourceKey = buildResourceKey(resourceType, resourceId)
   return useEvaluationStore(state => state.resources[resourceKey] ?? (initialResourceCache[resourceKey] ??= buildInitialState(resourceType)))
+}
+
+export const useIsEvaluationConfigDirty = (resourceType: EvaluationResourceType, resourceId: string) => {
+  const resourceKey = buildResourceKey(resourceType, resourceId)
+
+  return useEvaluationStore((state) => {
+    const resource = state.resources[resourceKey] ?? (initialResourceCache[resourceKey] ??= buildInitialState(resourceType))
+    const initialResource = state.initialResources[resourceKey] ?? buildInitialState(resourceType)
+
+    return !isEqual(
+      pickConfigComparableState(resource),
+      pickConfigComparableState(initialResource),
+    )
+  })
 }
 
 export const getAllowedOperators = (
