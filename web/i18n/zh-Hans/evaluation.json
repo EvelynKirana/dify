@@ -104,7 +104,7 @@
   "metrics.groups.operations": "运行",
   "metrics.groups.other": "其他",
   "metrics.groups.quality": "质量",
-  "metrics.noNodesInWorkflow": "当前工作流中没有 LLM 节点",
+  "metrics.noNodesInWorkflow": "没有可选节点",
   "metrics.noResults": "没有匹配的指标。",
   "metrics.nodesAll": "全部节点",
   "metrics.nodesLabel": "节点范围",

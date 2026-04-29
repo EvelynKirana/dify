@@ -110,7 +110,7 @@
   "metrics.groups.operations": "Operations",
   "metrics.groups.other": "Other",
   "metrics.groups.quality": "Quality",
-  "metrics.noNodesInWorkflow": "No LLM nodes in this workflow",
+  "metrics.noNodesInWorkflow": "No selectable nodes",
   "metrics.noResults": "No metrics or nodes were found",
   "metrics.nodesAll": "All nodes",
   "metrics.nodesLabel": "Node Scope",

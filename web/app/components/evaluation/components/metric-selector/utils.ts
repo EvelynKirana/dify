@@ -1,6 +1,7 @@
 import type { ConditionMetricValueType, MetricOption } from '../../types'
 import type { MetricVisualTone } from './types'
 import type { EvaluationDefaultMetric, NodeInfo } from '@/types/evaluation'
+import { BlockEnum } from '@/app/components/workflow/types'
 import { getDefaultMetricDescription } from '../../default-metric-descriptions'
 
 const defaultConditionMetricValueType: ConditionMetricValueType = 'number'
@@ -70,17 +71,13 @@ export const getMetricVisual = (metricId: string): { icon: string, tone: MetricV
   return { icon: 'i-ri-checkbox-circle-line', tone: 'indigo' }
 }
 
-export const getNodeVisual = (nodeInfo: NodeInfo): { icon: string, tone: MetricVisualTone } => {
-  const normalizedType = nodeInfo.type.toLowerCase()
-  const normalizedTitle = nodeInfo.title.toLowerCase()
+const workflowBlockTypeSet = new Set<string>(Object.values(BlockEnum))
 
-  if (normalizedType.includes('retriev') || normalizedTitle.includes('retriev') || normalizedTitle.includes('knowledge'))
-    return { icon: 'i-ri-book-open-line', tone: 'green' }
+export const getEvaluationNodeBlockType = (nodeInfo: Pick<NodeInfo, 'type'>): BlockEnum => {
+  if (workflowBlockTypeSet.has(nodeInfo.type))
+    return nodeInfo.type as BlockEnum
 
-  if (normalizedType.includes('agent') || normalizedTitle.includes('agent'))
-    return { icon: 'i-ri-user-star-line', tone: 'indigo' }
-
-  return { icon: 'i-ri-ai-generate-2', tone: 'indigo' }
+  return BlockEnum.LLM
 }
 
 export const getToneClasses = (tone: MetricVisualTone) => {
