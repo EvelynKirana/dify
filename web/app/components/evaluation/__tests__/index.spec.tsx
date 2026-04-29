@@ -643,7 +643,7 @@ describe('Evaluation', () => {
     fireEvent.click(screen.getByRole('button', { name: 'evaluation.batch.downloadTemplate' }))
 
     expect(downloadLink?.download).toBe('pipeline-evaluation-template.csv')
-    expect(decodeURIComponent(downloadLink?.href ?? '')).toContain('query,expect_results\n')
+    expect(decodeURIComponent(downloadLink?.href ?? '')).toContain('query,expected_outputs\n')
     expect(decodeURIComponent(downloadLink?.href ?? '')).not.toContain('expected_output')
 
     createElementSpy.mockRestore()
@@ -667,14 +667,14 @@ describe('Evaluation', () => {
     fireEvent.click(screen.getByRole('button', { name: 'evaluation.pipeline.uploadAndRun' }))
 
     expect(screen.getAllByText('query').length).toBeGreaterThan(0)
-    expect(screen.getAllByText('expect_results').length).toBeGreaterThan(0)
+    expect(screen.getAllByText('expected_outputs').length).toBeGreaterThan(0)
 
     const fileInput = document.querySelector<HTMLInputElement>('input[type="file"][accept=".csv"]')
     expect(fileInput).toBeInTheDocument()
 
     fireEvent.change(fileInput!, {
       target: {
-        files: [new File(['query,expect_results'], 'pipeline-evaluation.csv', { type: 'text/csv' })],
+        files: [new File(['query,expected_outputs'], 'pipeline-evaluation.csv', { type: 'text/csv' })],
       },
     })
 
