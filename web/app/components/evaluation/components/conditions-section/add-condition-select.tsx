@@ -6,8 +6,8 @@ import {
   Select,
   SelectContent,
   SelectGroup,
-  SelectGroupLabel,
   SelectItem,
+  SelectLabel,
   SelectTrigger,
 } from '@langgenius/dify-ui/select'
 import { useState } from 'react'
@@ -46,7 +46,7 @@ const AddConditionSelect = ({
       <SelectContent placement="bottom-start" popupClassName="w-[320px]">
         {metricOptionGroups.map(group => (
           <SelectGroup key={group.label}>
-            <SelectGroupLabel className="px-3 pt-2 pb-1 system-xs-medium-uppercase text-text-tertiary">{group.label}</SelectGroupLabel>
+            <SelectLabel className="px-3 pt-2 pb-1 system-xs-medium-uppercase text-text-tertiary">{group.label}</SelectLabel>
             {group.options.map(option => (
               <SelectItem
                 key={option.id}

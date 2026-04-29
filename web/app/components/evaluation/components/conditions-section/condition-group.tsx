@@ -12,8 +12,8 @@ import {
   Select,
   SelectContent,
   SelectGroup,
-  SelectGroupLabel,
   SelectItem,
+  SelectLabel,
   SelectTrigger,
   SelectValue,
 } from '@langgenius/dify-ui/select'
@@ -110,7 +110,7 @@ const ConditionMetricSelect = ({
       <SelectContent popupClassName="w-[360px]">
         {groupedMetricOptions.map(group => (
           <SelectGroup key={group.label}>
-            <SelectGroupLabel className="px-3 pt-2 pb-1 system-xs-medium-uppercase text-text-tertiary">{group.label}</SelectGroupLabel>
+            <SelectLabel className="px-3 pt-2 pb-1 system-xs-medium-uppercase text-text-tertiary">{group.label}</SelectLabel>
             {group.options.map(option => (
               <SelectItem key={option.id} value={serializeVariableSelector(option.variableSelector)}>
                 <div className="flex min-w-0 flex-1 items-center gap-2">
