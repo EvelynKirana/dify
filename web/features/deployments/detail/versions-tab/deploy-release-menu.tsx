@@ -11,7 +11,7 @@ import {
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useSourceApps } from '../../hooks/use-source-apps'
-import { useDeploymentsStore } from '../../store'
+import { useDeploymentAppData, useDeploymentsStore } from '../../store'
 import {
   activeRelease,
   deployedRows,
@@ -28,7 +28,7 @@ type DeployReleaseMenuProps = {
 
 export const DeployReleaseMenu: FC<DeployReleaseMenuProps> = ({ appId, releaseId }) => {
   const { t } = useTranslation('deployments')
-  const appData = useDeploymentsStore(state => state.appData[appId])
+  const appData = useDeploymentAppData(appId)
   const openDeployDrawer = useDeploymentsStore(state => state.openDeployDrawer)
   const openRollbackModal = useDeploymentsStore(state => state.openRollbackModal)
   const [open, setOpen] = useState(false)

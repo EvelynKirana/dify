@@ -1,6 +1,6 @@
-import type { DeploymentAppData } from './data'
+import type { DeploymentAppData, ListAppDeploymentsQuery } from './data'
 import type { AppInfo } from './types'
-import type { AccessSubject, APIToken, ConsoleReleaseSummary } from '@/contract/console/deployments'
+import type { AccessSubject, APIToken, ConsoleReleaseSummary, ListAppDeploymentsReply } from '@/contract/console/deployments'
 import { create } from 'zustand'
 import {
   cancelDeployment,
@@ -9,11 +9,15 @@ import {
   createDeployment,
   deleteApiKey,
   deleteAppInstance,
+  fetchDeploymentAppData,
+  listAppDeployments,
   patchAccessChannel,
   patchDeveloperAPI,
   refreshDeploymentAppData,
   refreshDeploymentAppDataWhenReady,
   refreshDeploymentLists,
+  toAppInfoFromOverview,
+  toAppInfoFromSummary,
   undeployEnvironment,
   updateAppInstance,
   updateEnvironmentAccessPolicy,
@@ -57,7 +61,7 @@ export type CreateInstanceResult = {
 }
 
 type DeploymentsState = {
-  sourceApps: AppInfo[]
+  instancesById: Record<string, AppInfo>
   appData: Record<string, DeploymentAppData>
   createdApiToken?: CreatedApiToken
 
@@ -85,8 +89,10 @@ type DeploymentsState = {
   openCreateInstanceModal: () => void
   closeCreateInstanceModal: () => void
 
-  seedInstancesFromApps: (apps: AppInfo[]) => void
+  upsertInstances: (apps: AppInfo[]) => void
   applyAppData: (data: DeploymentAppData) => void
+  fetchSourceApps: (query: ListAppDeploymentsQuery) => Promise<ListAppDeploymentsReply>
+  fetchAppData: (appId: string) => Promise<DeploymentAppData>
   refreshAppData: (appId: string) => Promise<void>
 
   createInstance: (params: CreateInstanceParams) => Promise<CreateInstanceResult>
@@ -115,7 +121,7 @@ type DeploymentsState = {
 }
 
 export const useDeploymentsStore = create<DeploymentsState>((set, get) => ({
-  sourceApps: [],
+  instancesById: {},
   appData: {},
   createdApiToken: undefined,
 
@@ -141,8 +147,14 @@ export const useDeploymentsStore = create<DeploymentsState>((set, get) => ({
   openCreateInstanceModal: () => set({ createInstanceModal: { open: true } }),
   closeCreateInstanceModal: () => set({ createInstanceModal: { open: false } }),
 
-  seedInstancesFromApps: apps => set(() => ({
-    sourceApps: apps,
+  upsertInstances: apps => set(state => ({
+    instancesById: apps.reduce((next, app) => {
+      next[app.id] = {
+        ...next[app.id],
+        ...app,
+      }
+      return next
+    }, { ...state.instancesById }),
   })),
 
   applyAppData: data => set(state => ({
@@ -152,9 +164,30 @@ export const useDeploymentsStore = create<DeploymentsState>((set, get) => ({
     },
   })),
 
+  fetchSourceApps: async (query) => {
+    const response = await listAppDeployments(query)
+    const apps = response.data
+      ?.map(toAppInfoFromSummary)
+      .filter((app): app is AppInfo => Boolean(app)) ?? []
+    get().upsertInstances(apps)
+    return response
+  },
+
+  fetchAppData: async (appId) => {
+    const data = await fetchDeploymentAppData(appId)
+    get().applyAppData(data)
+    const app = toAppInfoFromOverview(data.overview.instance)
+    if (app)
+      get().upsertInstances([app])
+    return data
+  },
+
   refreshAppData: async (appId) => {
     const data = await refreshDeploymentAppData(appId)
     get().applyAppData(data)
+    const app = toAppInfoFromOverview(data.overview.instance)
+    if (app)
+      get().upsertInstances([app])
   },
 
   createInstance: async ({ sourceAppId, name, description }) => {
@@ -164,9 +197,20 @@ export const useDeploymentsStore = create<DeploymentsState>((set, get) => ({
     set({ createInstanceModal: { open: false } })
     await Promise.allSettled([
       refreshDeploymentAppDataWhenReady(response.appInstanceId)
-        .then(data => get().applyAppData(data)),
-      waitForAppInstanceInDeploymentList(response.appInstanceId),
+        .then((data) => {
+          get().applyAppData(data)
+          const app = toAppInfoFromOverview(data.overview.instance)
+          if (app)
+            get().upsertInstances([app])
+        }),
+      waitForAppInstanceInDeploymentList(response.appInstanceId).then((list) => {
+        const apps = list?.data
+          ?.map(toAppInfoFromSummary)
+          .filter((app): app is AppInfo => Boolean(app)) ?? []
+        get().upsertInstances(apps)
+      }),
     ])
+    await refreshDeploymentLists()
     return {
       appInstanceId: response.appInstanceId,
       initialRelease: response.initialRelease,
@@ -181,7 +225,16 @@ export const useDeploymentsStore = create<DeploymentsState>((set, get) => ({
     await get().refreshAppData(appId)
     await refreshDeploymentLists()
     set(state => ({
-      sourceApps: state.sourceApps.map(app => app.id === appId ? { ...app, ...patch } : app),
+      instancesById: {
+        ...state.instancesById,
+        [appId]: {
+          ...state.instancesById[appId],
+          id: appId,
+          name: patch.name,
+          mode: state.instancesById[appId]?.mode ?? 'workflow',
+          description: patch.description,
+        },
+      },
     }))
   },
 
@@ -191,8 +244,9 @@ export const useDeploymentsStore = create<DeploymentsState>((set, get) => ({
     await deleteAppInstance(appId)
     set((state) => {
       const { [appId]: _removed, ...appData } = state.appData
+      const { [appId]: _removedInstance, ...instancesById } = state.instancesById
       return {
-        sourceApps: state.sourceApps.filter(app => app.id !== appId),
+        instancesById,
         appData,
       }
     })
@@ -278,3 +332,11 @@ export const useDeploymentsStore = create<DeploymentsState>((set, get) => ({
     await get().refreshAppData(appId)
   },
 }))
+
+export const useDeploymentInstance = (appId?: string) => {
+  return useDeploymentsStore(state => appId ? state.instancesById[appId] : undefined)
+}
+
+export const useDeploymentAppData = (appId?: string) => {
+  return useDeploymentsStore(state => appId ? state.appData[appId] : undefined)
+}

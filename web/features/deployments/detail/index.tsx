@@ -1,9 +1,8 @@
 'use client'
 
 import type { FC, ReactNode } from 'react'
-import type { AppInfo, AppMode } from '../types'
+import type { AppInfo } from '../types'
 import type { InstanceDetailTabKey } from './tabs'
-import type { AppInstanceOverview } from '@/contract/console/deployments'
 import { Button } from '@langgenius/dify-ui/button'
 import { useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
@@ -14,26 +13,10 @@ import DeployDrawer from '../components/deploy-drawer'
 import RollbackModal from '../components/rollback-modal'
 import { useDeploymentData } from '../hooks/use-deployment-data'
 import { useSourceApps } from '../hooks/use-source-apps'
-import { useDeploymentsStore } from '../store'
+import { useDeploymentAppData, useDeploymentInstance } from '../store'
 import { deployedRows, deploymentStatus } from '../utils'
 import { DeploymentSidebar } from './deployment-sidebar'
 import { isInstanceDetailTabKey } from './tabs'
-
-function toAppInfoFromOverview(instance?: AppInstanceOverview): AppInfo | undefined {
-  if (!instance?.id)
-    return undefined
-
-  return {
-    id: instance.id,
-    name: instance.name ?? instance.id,
-    mode: (instance.mode || 'workflow') as AppMode,
-    iconType: 'emoji',
-    icon: instance.icon,
-    description: instance.description ?? undefined,
-    sourceAppId: instance.sourceAppId,
-    sourceAppName: instance.sourceAppName,
-  }
-}
 
 type InstanceDetailProps = {
   instanceId: string
@@ -47,19 +30,14 @@ const InstanceDetail: FC<InstanceDetailProps> = ({ instanceId, children }) => {
   const selectedSegment = useSelectedLayoutSegment()
   const selectedTab = selectedSegment ?? undefined
   const activeTab: InstanceDetailTabKey = isInstanceDetailTabKey(selectedTab) ? selectedTab : 'overview'
-  const sourceApps = useDeploymentsStore(state => state.sourceApps)
-  const appData = useDeploymentsStore(state => state.appData)
+  const storedApp = useDeploymentInstance(instanceId)
+  const appData = useDeploymentAppData(instanceId)
   const { appMap, isLoading: isLoadingApps } = useSourceApps()
   useDocumentTitle(t('documentTitle.detail'))
 
-  const appDataForInstance = appData[instanceId]
-  const appFromData = useMemo(
-    () => toAppInfoFromOverview(appDataForInstance?.overview.instance),
-    [appDataForInstance?.overview.instance],
-  )
   const app = useMemo(
-    () => sourceApps.find(item => item.id === instanceId) ?? appMap.get(instanceId) ?? appFromData,
-    [sourceApps, instanceId, appMap, appFromData],
+    () => storedApp ?? appMap.get(instanceId),
+    [storedApp, instanceId, appMap],
   )
   const detailApps = useMemo<AppInfo[]>(() => [
     app ?? {
@@ -70,8 +48,8 @@ const InstanceDetail: FC<InstanceDetailProps> = ({ instanceId, children }) => {
   ], [app, instanceId])
   const detailQuery = useDeploymentData(detailApps, { enabled: Boolean(instanceId) })
   const appDeployments = useMemo(
-    () => deployedRows(appData[instanceId]?.environmentDeployments.data),
-    [appData, instanceId],
+    () => deployedRows(appData?.environmentDeployments.data),
+    [appData?.environmentDeployments.data],
   )
 
   if (!app && (isLoadingApps || detailQuery.isLoading || detailQuery.isFetching)) {

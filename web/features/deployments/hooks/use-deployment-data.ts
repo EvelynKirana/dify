@@ -2,7 +2,6 @@
 
 import type { AppInfo } from '../types'
 import { useQueries } from '@tanstack/react-query'
-import { useEffect, useRef } from 'react'
 import { deploymentAppDataQueryOptions } from '../data'
 import { useDeploymentsStore } from '../store'
 
@@ -12,25 +11,14 @@ type UseDeploymentDataOptions = {
 
 export function useDeploymentData(apps: AppInfo[], options: UseDeploymentDataOptions = {}) {
   const { enabled = true } = options
-  const applyAppData = useDeploymentsStore(state => state.applyAppData)
 
   const queries = useQueries({
     queries: apps.map(app => ({
       ...deploymentAppDataQueryOptions(app.id),
+      queryFn: () => useDeploymentsStore.getState().fetchAppData(app.id),
       enabled: enabled && Boolean(app.id),
     })),
   })
-
-  const queriesRef = useRef(queries)
-  queriesRef.current = queries
-  const dataUpdatedAt = queries.map(query => query.dataUpdatedAt).join('|')
-
-  useEffect(() => {
-    queriesRef.current.forEach((query) => {
-      if (query.data)
-        applyAppData(query.data)
-    })
-  }, [applyAppData, dataUpdatedAt])
 
   return {
     isLoading: queries.some(query => query.isLoading),

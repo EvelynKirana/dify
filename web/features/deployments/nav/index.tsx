@@ -7,7 +7,7 @@ import { useTranslation } from 'react-i18next'
 import Nav from '@/app/components/header/nav'
 import { useParams, useRouter, useSelectedLayoutSegment } from '@/next/navigation'
 import { useSourceApps } from '../hooks/use-source-apps'
-import { useDeploymentsStore } from '../store'
+import { useDeploymentInstance, useDeploymentsStore } from '../store'
 
 const DeploymentsNav = () => {
   const { t } = useTranslation()
@@ -17,19 +17,18 @@ const DeploymentsNav = () => {
   const params = useParams<{ instanceId?: string }>()
   const instanceId = params?.instanceId
 
-  const sourceApps = useDeploymentsStore(state => state.sourceApps)
   const openCreateInstanceModal = useDeploymentsStore(state => state.openCreateInstanceModal)
+  const currentInstance = useDeploymentInstance(instanceId)
 
-  const { appMap } = useSourceApps({ enabled: isActive })
-  const apps = useMemo(
-    () => sourceApps.length > 0 ? sourceApps : [...appMap.values()],
-    [appMap, sourceApps],
-  )
+  const { apps } = useSourceApps({ enabled: isActive })
 
   const navigationItems = useMemo<NavItem[]>(() => {
     if (!isActive)
       return []
-    return apps.map((app) => {
+    const navApps = currentInstance && !apps.some(app => app.id === currentInstance.id)
+      ? [...apps, currentInstance]
+      : apps
+    return navApps.map((app) => {
       return {
         id: app.id,
         name: app.name,
@@ -41,7 +40,7 @@ const DeploymentsNav = () => {
         mode: app.mode as unknown as AppModeEnum | undefined,
       }
     })
-  }, [apps, isActive])
+  }, [apps, currentInstance, isActive])
 
   const curNav = useMemo(() => {
     if (!instanceId)

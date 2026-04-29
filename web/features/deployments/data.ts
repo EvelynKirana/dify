@@ -1,9 +1,13 @@
+import type { AppInfo, AppMode } from './types'
 import type {
   AccessSubject,
+  AppDeploymentSummary,
+  AppInstanceOverview,
   ConsoleReleaseSummary,
   CreateAppInstanceReply,
   GetAccessConfigReply,
   GetDeploymentOverviewReply,
+  ListAppDeploymentsReply,
   ListEnvironmentDeploymentsReply,
   ListReleaseHistoryReply,
 } from '@/contract/console/deployments'
@@ -41,7 +45,53 @@ export type UpdateInstanceParams = {
   description?: string
 }
 
+export type ListAppDeploymentsQuery = {
+  environmentId?: string
+  notDeployed?: boolean
+  query?: string
+  pageNumber?: number
+  resultsPerPage?: number
+}
+
+export function toAppInfoFromSummary(summary: AppDeploymentSummary): AppInfo | undefined {
+  if (!summary.id || !summary.name)
+    return undefined
+
+  return {
+    id: summary.id,
+    name: summary.name,
+    mode: (summary.mode || 'workflow') as AppMode,
+    iconType: 'emoji',
+    icon: summary.icon,
+    description: summary.description ?? undefined,
+    sourceAppId: summary.sourceAppId,
+    sourceAppName: summary.sourceAppName,
+  }
+}
+
+export function toAppInfoFromOverview(instance?: AppInstanceOverview): AppInfo | undefined {
+  if (!instance?.id)
+    return undefined
+
+  return {
+    id: instance.id,
+    name: instance.name ?? instance.id,
+    mode: (instance.mode || 'workflow') as AppMode,
+    iconType: 'emoji',
+    icon: instance.icon,
+    description: instance.description ?? undefined,
+    sourceAppId: instance.sourceAppId,
+    sourceAppName: instance.sourceAppName,
+  }
+}
+
 export const deploymentAppDataQueryKey = (appId: string) => ['console', 'deployments', 'app-data', appId] as const
+
+export const listAppDeployments = async (query: ListAppDeploymentsQuery): Promise<ListAppDeploymentsReply> => {
+  return consoleClient.deployments.list({
+    query,
+  })
+}
 
 export const fetchDeploymentAppData = async (appId: string): Promise<DeploymentAppData> => {
   const input = { params: { appInstanceId: appId } }
@@ -118,7 +168,7 @@ export const refreshDeploymentLists = async () => {
   })
 }
 
-export const waitForAppInstanceInDeploymentList = async (appInstanceId: string) => {
+export const waitForAppInstanceInDeploymentList = async (appInstanceId: string): Promise<ListAppDeploymentsReply | undefined> => {
   let lastError: unknown
 
   for (const delay of DEPLOYMENT_READINESS_RETRY_DELAYS) {
@@ -126,19 +176,12 @@ export const waitForAppInstanceInDeploymentList = async (appInstanceId: string) 
       await wait(delay)
 
     try {
-      const response = await getQueryClient().fetchQuery({
-        ...consoleQuery.deployments.list.queryOptions({
-          input: {
-            query: {
-              pageNumber: 1,
-              resultsPerPage: DEPLOYMENT_PAGE_SIZE,
-            },
-          },
-        }),
-        staleTime: 0,
+      const response = await listAppDeployments({
+        pageNumber: 1,
+        resultsPerPage: DEPLOYMENT_PAGE_SIZE,
       })
       if (response.data?.some(app => app.id === appInstanceId))
-        return
+        return response
     }
     catch (error) {
       lastError = error
@@ -149,6 +192,8 @@ export const waitForAppInstanceInDeploymentList = async (appInstanceId: string) 
 
   if (lastError)
     throw lastError
+
+  return undefined
 }
 
 export const createRelease = async (appId: string, releaseNote?: string): Promise<ConsoleReleaseSummary> => {

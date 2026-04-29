@@ -12,7 +12,7 @@ import {
 import * as React from 'react'
 import { useTranslation } from 'react-i18next'
 import { useSourceApps } from '../hooks/use-source-apps'
-import { useDeploymentsStore } from '../store'
+import { useDeploymentAppData, useDeploymentInstance, useDeploymentsStore } from '../store'
 import {
   activeRelease,
   deployedRows,
@@ -34,7 +34,8 @@ const InfoRow: FC<{ label: string, value: string }> = ({ label, value }) => {
 const RollbackModal: FC = () => {
   const { t } = useTranslation('deployments')
   const modal = useDeploymentsStore(state => state.rollbackModal)
-  const appData = useDeploymentsStore(state => modal.appId ? state.appData[modal.appId] : undefined)
+  const appData = useDeploymentAppData(modal.appId)
+  const storedApp = useDeploymentInstance(modal.appId)
   const closeRollbackModal = useDeploymentsStore(state => state.closeRollbackModal)
   const rollbackDeployment = useDeploymentsStore(state => state.rollbackDeployment)
   const { appMap, environmentOptions } = useSourceApps()
@@ -47,7 +48,7 @@ const RollbackModal: FC = () => {
   const currentRelease = activeRelease(currentRow)
   const environment = currentRow?.environment
     ?? environmentOptions.find(env => env.id === modal.environmentId)
-  const app = modal.appId ? appMap.get(modal.appId) : undefined
+  const app = storedApp ?? (modal.appId ? appMap.get(modal.appId) : undefined)
 
   const confirm = () => {
     if (!modal.appId || !modal.environmentId || !modal.targetReleaseId)

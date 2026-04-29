@@ -11,7 +11,7 @@ import {
 import { useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useSourceApps } from '../hooks/use-source-apps'
-import { useDeploymentsStore } from '../store'
+import { useDeploymentAppData, useDeploymentsStore } from '../store'
 import {
   activeRelease,
   deployedRows,
@@ -36,7 +36,7 @@ type DeployTabProps = {
 
 const DeployTab: FC<DeployTabProps> = ({ instanceId: appId }) => {
   const { t } = useTranslation('deployments')
-  const appData = useDeploymentsStore(state => state.appData[appId])
+  const appData = useDeploymentAppData(appId)
   const openDeployDrawer = useDeploymentsStore(state => state.openDeployDrawer)
   const undeployDeployment = useDeploymentsStore(state => state.undeployDeployment)
   const { environmentOptions } = useSourceApps()

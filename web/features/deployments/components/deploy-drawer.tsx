@@ -3,19 +3,17 @@
 import type { FC } from 'react'
 import { Dialog, DialogCloseButton, DialogContent } from '@langgenius/dify-ui/dialog'
 import { useQuery } from '@tanstack/react-query'
-import { useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
 import { deploymentAppDataQueryOptions } from '../data'
 import { useSourceApps } from '../hooks/use-source-apps'
-import { useDeploymentsStore } from '../store'
+import { useDeploymentAppData, useDeploymentsStore } from '../store'
 import { DeployForm } from './deploy-drawer/form'
 
 const DeployDrawer: FC = () => {
   const { t } = useTranslation('deployments')
   const drawer = useDeploymentsStore(state => state.deployDrawer)
   const drawerAppId = drawer.appId
-  const storedAppData = useDeploymentsStore(state => drawerAppId ? state.appData[drawerAppId] : undefined)
-  const applyAppData = useDeploymentsStore(state => state.applyAppData)
+  const storedAppData = useDeploymentAppData(drawerAppId)
   const closeDeployDrawer = useDeploymentsStore(state => state.closeDeployDrawer)
   const startDeploy = useDeploymentsStore(state => state.startDeploy)
   const open = drawer.open
@@ -23,12 +21,9 @@ const DeployDrawer: FC = () => {
 
   const appDataQuery = useQuery({
     ...deploymentAppDataQueryOptions(drawerAppId ?? ''),
+    queryFn: () => useDeploymentsStore.getState().fetchAppData(drawerAppId!),
     enabled: open && Boolean(drawerAppId) && !storedAppData,
   })
-  useEffect(() => {
-    if (appDataQuery.data)
-      applyAppData(appDataQuery.data)
-  }, [appDataQuery.data, applyAppData])
 
   const appData = storedAppData ?? (appDataQuery.data?.appId === drawerAppId ? appDataQuery.data : undefined)
   const environments = environmentOptions

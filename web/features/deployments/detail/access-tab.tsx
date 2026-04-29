@@ -5,7 +5,7 @@ import type {
   ConsoleEnvironmentSummary,
 } from '@/contract/console/deployments'
 import { useMemo } from 'react'
-import { useDeploymentsStore } from '../store'
+import { useDeploymentAppData, useDeploymentsStore } from '../store'
 import {
   deployedRows,
 } from '../utils'
@@ -27,7 +27,7 @@ type AccessTabProps = {
 }
 
 const AccessTab: FC<AccessTabProps> = ({ instanceId: appId }) => {
-  const appData = useDeploymentsStore(state => state.appData[appId])
+  const appData = useDeploymentAppData(appId)
   const createdApiToken = useDeploymentsStore(state => state.createdApiToken)
   const clearCreatedApiToken = useDeploymentsStore(state => state.clearCreatedApiToken)
   const generateApiKey = useDeploymentsStore(state => state.generateApiKey)

@@ -18,7 +18,6 @@ import { NewInstanceCard } from './new-instance-card'
 
 const DeploymentsMain: FC = () => {
   const { t } = useTranslation('deployments')
-  const appData = useDeploymentsStore(state => state.appData)
   const openCreateInstanceModal = useDeploymentsStore(state => state.openCreateInstanceModal)
 
   const [envFilter, setEnvFilter] = useQueryState(
@@ -122,7 +121,6 @@ const DeploymentsMain: FC = () => {
             <InstanceCard
               key={app.id}
               app={app}
-              appData={appData[app.id]}
               summary={summaries[app.id]}
             />
           ))}

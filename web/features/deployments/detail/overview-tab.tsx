@@ -9,7 +9,7 @@ import { getAppModeLabel } from '@/app/components/app-sidebar/app-info/app-mode-
 import { useRouter } from '@/next/navigation'
 import { StatusBadge } from '../components/status-badge'
 import { useSourceApps } from '../hooks/use-source-apps'
-import { useDeploymentsStore } from '../store'
+import { useDeploymentAppData, useDeploymentInstance, useDeploymentsStore } from '../store'
 import { releaseLabel, webappUrl } from '../utils'
 
 type OverviewTabProps = {
@@ -91,10 +91,11 @@ const OverviewTab: FC<OverviewTabProps> = ({ instanceId }) => {
   const { t } = useTranslation('deployments')
   const { t: tCommon } = useTranslation()
   const router = useRouter()
-  const appData = useDeploymentsStore(state => state.appData[instanceId])
+  const appData = useDeploymentAppData(instanceId)
   const openDeployDrawer = useDeploymentsStore(state => state.openDeployDrawer)
+  const storedApp = useDeploymentInstance(instanceId)
   const { appMap } = useSourceApps()
-  const app = appMap.get(instanceId)
+  const app = storedApp ?? appMap.get(instanceId)
   const overview = appData?.overview
   const overviewApp = overview?.instance
   const deployments = useMemo(

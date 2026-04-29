@@ -1,7 +1,6 @@
 'use client'
 
 import type { FC, MouseEvent } from 'react'
-import type { DeploymentAppData } from '../data'
 import type { AppInfo } from '../types'
 import type { AppDeploymentSummary } from '@/contract/console/deployments'
 import type { AppModeEnum } from '@/types/app'
@@ -20,20 +19,20 @@ import { AppTypeIcon } from '@/app/components/app/type-selector'
 import AppIcon from '@/app/components/base/app-icon'
 import { useFormatTimeFromNow } from '@/hooks/use-format-time-from-now'
 import { useRouter } from '@/next/navigation'
-import { useDeploymentsStore } from '../store'
+import { useDeploymentAppData, useDeploymentsStore } from '../store'
 import { deployedRows, deploymentStatus, environmentId, environmentName, releaseLabel } from '../utils'
 
 type InstanceCardProps = {
   app: AppInfo
-  appData?: DeploymentAppData
   summary?: AppDeploymentSummary
 }
 
-export const InstanceCard: FC<InstanceCardProps> = ({ app, appData, summary }) => {
+export const InstanceCard: FC<InstanceCardProps> = ({ app, summary }) => {
   const { t } = useTranslation('deployments')
   const router = useRouter()
   const { formatTimeFromNow } = useFormatTimeFromNow()
   const [menuOpen, setMenuOpen] = useState(false)
+  const appData = useDeploymentAppData(app.id)
   const openDeployDrawer = useDeploymentsStore(state => state.openDeployDrawer)
 
   const navigateToDetail = () => router.push(`/deployments/${app.id}/overview`)

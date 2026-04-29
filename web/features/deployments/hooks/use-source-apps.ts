@@ -1,28 +1,12 @@
 'use client'
-import type { AppInfo, AppMode } from '../types'
+import type { AppInfo } from '../types'
 import type { AppDeploymentSummary, EnvironmentOption } from '@/contract/console/deployments'
 import { useQuery } from '@tanstack/react-query'
-import { useEffect, useMemo } from 'react'
+import { useMemo } from 'react'
 import { consoleQuery } from '@/service/client'
 import { useDeploymentsStore } from '../store'
 
 const MAX_SOURCE_APPS = 100
-
-function toAppInfo(summary: AppDeploymentSummary): AppInfo | undefined {
-  if (!summary.id || !summary.name)
-    return undefined
-
-  return {
-    id: summary.id,
-    name: summary.name,
-    mode: (summary.mode || 'workflow') as AppMode,
-    iconType: 'emoji',
-    icon: summary.icon,
-    description: summary.description ?? undefined,
-    sourceAppId: summary.sourceAppId,
-    sourceAppName: summary.sourceAppName,
-  }
-}
 
 type UseSourceAppsOptions = {
   enabled?: boolean
@@ -33,7 +17,7 @@ type UseSourceAppsOptions = {
 
 export function useSourceApps(options: UseSourceAppsOptions = {}) {
   const { enabled = true, environmentId, keyword, notDeployed } = options
-  const seedInstancesFromApps = useDeploymentsStore(state => state.seedInstancesFromApps)
+  const instancesById = useDeploymentsStore(state => state.instancesById)
 
   const query = useMemo(() => ({
     pageNumber: 1,
@@ -45,15 +29,22 @@ export function useSourceApps(options: UseSourceAppsOptions = {}) {
 
   const listQuery = useQuery(consoleQuery.deployments.list.queryOptions({
     input: { query },
+    queryFn: () => useDeploymentsStore.getState().fetchSourceApps(query),
     enabled,
     staleTime: 30 * 1000,
   }))
 
-  const apps = useMemo<AppInfo[]>(() => {
+  const appIds = useMemo(() => {
     return (listQuery.data?.data ?? [])
-      .map(toAppInfo)
-      .filter((app): app is AppInfo => Boolean(app))
+      .map(summary => summary.id)
+      .filter((id): id is string => Boolean(id))
   }, [listQuery.data?.data])
+
+  const apps = useMemo<AppInfo[]>(() => {
+    return appIds
+      .map(id => instancesById[id])
+      .filter((app): app is AppInfo => Boolean(app))
+  }, [appIds, instancesById])
 
   const appMap = useMemo<Map<string, AppInfo>>(() => {
     return new Map(apps.map(a => [a.id, a]))
@@ -75,12 +66,6 @@ export function useSourceApps(options: UseSourceAppsOptions = {}) {
         name: filter.name,
       })) ?? []
   }, [listQuery.data?.filters])
-
-  useEffect(() => {
-    if (!enabled || listQuery.isLoading)
-      return
-    seedInstancesFromApps(apps)
-  }, [apps, enabled, listQuery.isLoading, seedInstancesFromApps])
 
   return {
     apps,

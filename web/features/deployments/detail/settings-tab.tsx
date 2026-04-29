@@ -20,7 +20,7 @@ import { useTranslation } from 'react-i18next'
 import { useRouter } from '@/next/navigation'
 import { consoleQuery } from '@/service/client'
 import { useSourceApps } from '../hooks/use-source-apps'
-import { useDeploymentsStore } from '../store'
+import { useDeploymentAppData, useDeploymentInstance, useDeploymentsStore } from '../store'
 import { deployedRows } from '../utils'
 
 type SettingsTabProps = {
@@ -177,12 +177,12 @@ const SettingsForm: FC<SettingsFormProps> = ({ app, settings, hasDeployments, on
 
 const SettingsTab: FC<SettingsTabProps> = ({ instanceId }) => {
   const router = useRouter()
-  const sourceApps = useDeploymentsStore(state => state.sourceApps)
-  const appData = useDeploymentsStore(state => state.appData[instanceId])
+  const storedApp = useDeploymentInstance(instanceId)
+  const appData = useDeploymentAppData(instanceId)
   const updateInstance = useDeploymentsStore(state => state.updateInstance)
   const deleteInstance = useDeploymentsStore(state => state.deleteInstance)
   const { appMap } = useSourceApps()
-  const app = sourceApps.find(item => item.id === instanceId) ?? appMap.get(instanceId)
+  const app = storedApp ?? appMap.get(instanceId)
   const settingsQuery = useQuery(consoleQuery.deployments.settings.queryOptions({
     input: {
       params: {
