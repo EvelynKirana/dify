@@ -1,8 +1,8 @@
 import type { CSSProperties, ReactNode } from 'react'
 import type { ModelAndParameter } from '../configuration/debug/types'
 import type { AppPublisherProps } from './index'
-import type { I18nKeysWithPrefix } from '@/types/i18n'
-import type { PublishWorkflowParams, WorkflowTypeConversionTarget } from '@/types/workflow'
+import type { WorkflowTypeSwitchConfig } from './use-workflow-type-switch'
+import type { PublishWorkflowParams } from '@/types/workflow'
 import { Button } from '@langgenius/dify-ui/button'
 import {
   Tooltip,
@@ -21,8 +21,6 @@ import PublishWithMultipleModel from './publish-with-multiple-model'
 import SuggestedAction from './suggested-action'
 import { ACCESS_MODE_MAP } from './utils'
 
-type WorkflowTypeSwitchLabelKey = I18nKeysWithPrefix<'workflow', 'common.'>
-
 type SummarySectionProps = Pick<AppPublisherProps, | 'debugWithMultipleModel'
   | 'draftUpdatedAt'
   | 'multipleModelConfigs'
@@ -37,12 +35,7 @@ type SummarySectionProps = Pick<AppPublisherProps, | 'debugWithMultipleModel'
     published: boolean
     publishShortcut: string[]
     upgradeHighlightStyle: CSSProperties
-    workflowTypeSwitchConfig?: {
-      targetType: WorkflowTypeConversionTarget
-      publishLabelKey: WorkflowTypeSwitchLabelKey
-      switchLabelKey: WorkflowTypeSwitchLabelKey
-      tipKey: WorkflowTypeSwitchLabelKey
-    }
+    workflowTypeSwitchConfig?: WorkflowTypeSwitchConfig
     workflowTypeSwitchDisabled: boolean
     workflowTypeSwitchDisabledReason?: string
   }
