@@ -5,6 +5,7 @@ import { useQuery } from '@tanstack/react-query'
 import { useMemo } from 'react'
 import { consoleQuery } from '@/service/client'
 import { useDeploymentsStore } from '../store'
+import { deploymentsSelectors } from '../store/selectors'
 
 const MAX_SOURCE_APPS = 100
 
@@ -17,8 +18,8 @@ type UseSourceAppsOptions = {
 
 export function useSourceApps(options: UseSourceAppsOptions = {}) {
   const { enabled = true, environmentId, keyword, notDeployed } = options
-  const instancesById = useDeploymentsStore(state => state.instancesById)
-  const listRefreshToken = useDeploymentsStore(state => state.listRefreshToken)
+  const instancesById = useDeploymentsStore(deploymentsSelectors.instancesById)
+  const listRefreshToken = useDeploymentsStore(deploymentsSelectors.listRefreshToken)
 
   const query = useMemo(() => ({
     pageNumber: 1,
