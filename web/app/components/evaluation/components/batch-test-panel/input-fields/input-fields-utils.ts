@@ -10,6 +10,8 @@ export type InputField = {
   type: string
 }
 
+export const EXPECTED_OUTPUT_FIELD_NAME = 'expected_output'
+
 export const getGraphNodes = (graph?: Record<string, unknown>) => {
   return Array.isArray(graph?.nodes) ? graph.nodes as Node[] : []
 }
@@ -63,7 +65,12 @@ const escapeCsvCell = (value: string) => {
 }
 
 export const buildTemplateCsvContent = (inputFields: InputField[]) => {
-  return `${inputFields.map(field => escapeCsvCell(field.name)).join(',')}\n`
+  const fieldNames = inputFields.map(field => field.name)
+  const templateFieldNames = fieldNames.includes(EXPECTED_OUTPUT_FIELD_NAME)
+    ? fieldNames
+    : [...fieldNames, EXPECTED_OUTPUT_FIELD_NAME]
+
+  return `${templateFieldNames.map(escapeCsvCell).join(',')}\n`
 }
 
 export const getFileExtension = (fileName: string) => {
