@@ -2,11 +2,11 @@ import type {
   ComparisonOperator,
   EvaluationResourceState,
   EvaluationResourceType,
+  MetricOption,
 } from './types'
 import type { EvaluationConfig, NodeInfo } from '@/types/evaluation'
 import { isEqual } from 'es-toolkit/predicate'
 import { create } from 'zustand'
-import { getEvaluationMockConfig } from './mock'
 import {
   buildConditionItem,
   buildInitialState,
@@ -20,6 +20,7 @@ import {
   isCustomMetricConfigured as isCustomMetricConfiguredFromUtils,
   isEvaluationRunnable as isEvaluationRunnableFromUtils,
   requiresConditionValue as requiresConditionValueFromUtils,
+  resolveMetricOption,
   syncCustomMetricMappings as syncCustomMetricMappingsFromUtils,
   syncJudgmentConfigWithMetrics,
   updateMetric,
@@ -35,7 +36,7 @@ type EvaluationStore = {
   resetResourceConfig: (resourceType: EvaluationResourceType, resourceId: string) => void
   markResourceConfigSaved: (resourceType: EvaluationResourceType, resourceId: string) => void
   setJudgeModel: (resourceType: EvaluationResourceType, resourceId: string, judgeModelId: string) => void
-  addBuiltinMetric: (resourceType: EvaluationResourceType, resourceId: string, optionId: string, nodeInfoList?: NodeInfo[]) => void
+  addBuiltinMetric: (resourceType: EvaluationResourceType, resourceId: string, optionId: string, nodeInfoList?: NodeInfo[], metricOption?: MetricOption) => void
   updateMetricThreshold: (resourceType: EvaluationResourceType, resourceId: string, metricId: string, threshold: number) => void
   addCustomMetric: (resourceType: EvaluationResourceType, resourceId: string) => void
   removeMetric: (resourceType: EvaluationResourceType, resourceId: string, metricId: string) => void
@@ -214,11 +215,8 @@ export const useEvaluationStore = create<EvaluationStore>((set, get) => ({
       })),
     }))
   },
-  addBuiltinMetric: (resourceType, resourceId, optionId, nodeInfoList = []) => {
-    const option = getEvaluationMockConfig(resourceType).builtinMetrics.find(metric => metric.id === optionId)
-    if (!option)
-      return
-
+  addBuiltinMetric: (resourceType, resourceId, optionId, nodeInfoList = [], metricOption) => {
+    const option = metricOption ?? resolveMetricOption(optionId)
     set((state) => {
       return {
         resources: updateResourceState(state.resources, resourceType, resourceId, (currentResource) => {

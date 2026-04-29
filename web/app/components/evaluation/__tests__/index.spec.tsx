@@ -404,6 +404,45 @@ describe('Evaluation', () => {
     expect(screen.getByText('evaluation.metrics.noNodesInWorkflow')).toBeInTheDocument()
   })
 
+  it('should add a node from a dynamically returned metric option', () => {
+    mockUseDefaultEvaluationMetrics.mockReturnValue({
+      data: {
+        default_metrics: [
+          {
+            metric: 'answer-correctness',
+            value_type: 'number',
+            node_info_list: [
+              { node_id: 'node-answer', title: 'Answer Node', type: 'llm' },
+            ],
+          },
+          {
+            metric: 'context-precision',
+            value_type: 'number',
+            node_info_list: [
+              { node_id: 'node-context', title: 'Context Node', type: 'knowledge-retrieval' },
+            ],
+          },
+        ],
+      },
+      isLoading: false,
+    })
+
+    renderWithQueryClient(<Evaluation resourceType="apps" resourceId="app-dynamic-metric" />)
+
+    fireEvent.click(screen.getByRole('button', { name: 'evaluation.metrics.add' }))
+    fireEvent.click(screen.getByTestId('evaluation-metric-node-context-precision-node-context'))
+
+    const metrics = useEvaluationStore.getState().resources['apps:app-dynamic-metric']!.metrics
+    expect(metrics).toHaveLength(1)
+    expect(metrics[0]).toMatchObject({
+      optionId: 'context-precision',
+      label: 'Context Precision',
+      nodeInfoList: [
+        { node_id: 'node-context', title: 'Context Node', type: 'knowledge-retrieval' },
+      ],
+    })
+  })
+
   it('should render the global empty state when no metrics are available', () => {
     mockUseDefaultEvaluationMetrics.mockReturnValue({
       data: {

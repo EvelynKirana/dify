@@ -5,13 +5,11 @@ import { useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useDefaultEvaluationMetrics } from '@/service/use-evaluation'
 import { getTranslatedMetricDescription } from '../../default-metric-descriptions'
-import { getEvaluationMockConfig } from '../../mock'
 import { useEvaluationResource, useEvaluationStore } from '../../store'
 import {
   buildMetricOption,
   dedupeNodeInfoList,
   getDefaultMetricNodeInfoMap,
-  normalizeMetricValueType,
 } from './utils'
 
 type UseMetricSelectorDataOptions = {
@@ -25,7 +23,7 @@ type UseMetricSelectorDataResult = {
   builtinMetricMap: BuiltinMetricMap
   filteredSections: MetricSelectorSection[]
   isRemoteLoading: boolean
-  toggleNodeSelection: (metricId: string, nodeInfo: NodeInfo) => void
+  toggleNodeSelection: (metric: MetricOption, nodeInfo: NodeInfo) => void
 }
 
 export const useMetricSelectorData = ({
@@ -35,7 +33,6 @@ export const useMetricSelectorData = ({
   resourceId,
 }: UseMetricSelectorDataOptions): UseMetricSelectorDataResult => {
   const { t } = useTranslation('evaluation')
-  const config = getEvaluationMockConfig(resourceType)
   const metrics = useEvaluationResource(resourceType, resourceId).metrics
   const addBuiltinMetric = useEvaluationStore(state => state.addBuiltinMetric)
   const removeMetric = useEvaluationStore(state => state.removeMetric)
@@ -53,25 +50,15 @@ export const useMetricSelectorData = ({
   const nodeInfoMap = useMemo(() => getDefaultMetricNodeInfoMap(defaultMetrics), [defaultMetrics])
 
   const resolvedMetrics = useMemo(() => {
-    const metricsMap = new Map(config.builtinMetrics.map(metric => [metric.id, metric] as const))
-
     return defaultMetrics
       .map((defaultMetric) => {
         if (!defaultMetric.metric)
           return null
 
-        const configMetric = metricsMap.get(defaultMetric.metric)
-        if (configMetric) {
-          return {
-            ...configMetric,
-            valueType: normalizeMetricValueType(defaultMetric.value_type),
-          }
-        }
-
         return buildMetricOption(defaultMetric.metric, defaultMetric.value_type)
       })
       .filter((metric): metric is MetricOption => !!metric)
-  }, [config.builtinMetrics, defaultMetrics])
+  }, [defaultMetrics])
 
   const filteredSections = useMemo(() => {
     const keyword = query.trim().toLowerCase()
@@ -120,7 +107,8 @@ export const useMetricSelectorData = ({
     }).filter((section): section is MetricSelectorSection => !!section)
   }, [nodeInfoMap, query, resolvedMetrics, t])
 
-  const toggleNodeSelection = (metricId: string, nodeInfo: NodeInfo) => {
+  const toggleNodeSelection = (metric: MetricOption, nodeInfo: NodeInfo) => {
+    const metricId = metric.id
     const addedMetric = builtinMetricMap.get(metricId)
     const currentSelectedNodes = addedMetric?.nodeInfoList ?? []
 
@@ -135,7 +123,7 @@ export const useMetricSelectorData = ({
       return
     }
 
-    addBuiltinMetric(resourceType, resourceId, metricId, nextSelectedNodes)
+    addBuiltinMetric(resourceType, resourceId, metricId, nextSelectedNodes, metric)
   }
 
   return {

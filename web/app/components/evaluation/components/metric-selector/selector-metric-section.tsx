@@ -13,7 +13,7 @@ type SelectorMetricSectionProps = {
   isShowingAllNodes: boolean
   onToggleExpanded: () => void
   onToggleShowAllNodes: () => void
-  onToggleNodeSelection: (metricId: string, nodeInfo: MetricSelectorSection['visibleNodes'][number]) => void
+  onToggleNodeSelection: (metric: MetricSelectorSection['metric'], nodeInfo: MetricSelectorSection['visibleNodes'][number]) => void
   t: TFunction<'evaluation'>
 }
 
@@ -93,7 +93,7 @@ const SelectorMetricSection = ({
                   'flex w-full items-center gap-1 rounded-md px-3 py-1.5 text-left transition-colors hover:bg-state-base-hover-alt',
                   isAdded && 'opacity-50',
                 )}
-                onClick={() => onToggleNodeSelection(metric.id, nodeInfo)}
+                onClick={() => onToggleNodeSelection(metric, nodeInfo)}
               >
                 <div className="flex min-w-0 flex-1 items-center gap-2.5 pr-1">
                   <BlockIcon
