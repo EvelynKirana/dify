@@ -134,10 +134,6 @@ export const deploymentAppDataQueryOptions = (appId: string) =>
     staleTime: DEPLOYMENT_APP_DATA_STALE_TIME,
   })
 
-export const refreshDeploymentAppData = async (appId: string): Promise<DeploymentAppData> => {
-  return fetchDeploymentAppData(appId)
-}
-
 const wait = (delay: number) => new Promise(resolve => setTimeout(resolve, delay))
 
 export const refreshDeploymentAppDataWhenReady = async (appId: string): Promise<DeploymentAppData> => {
@@ -148,7 +144,7 @@ export const refreshDeploymentAppDataWhenReady = async (appId: string): Promise<
       await wait(delay)
 
     try {
-      return await refreshDeploymentAppData(appId)
+      return await fetchDeploymentAppData(appId)
     }
     catch (error) {
       lastError = error

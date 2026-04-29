@@ -4,7 +4,6 @@ import type { FC } from 'react'
 import type { EnvironmentOption } from '@/contract/console/deployments'
 import { cn } from '@langgenius/dify-ui/cn'
 import { Select, SelectContent, SelectItem, SelectItemIndicator, SelectItemText, SelectTrigger } from '@langgenius/dify-ui/select'
-import { useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 import { environmentHealth, environmentMode, environmentName } from '../../utils'
 import { HealthBadge, ModeBadge } from '../status-badge'
@@ -36,10 +35,7 @@ type SelectProps = {
 
 export const DeploymentSelect: FC<SelectProps> = ({ value, onChange, options, placeholder }) => {
   const { t } = useTranslation('deployments')
-  const selectedOption = useMemo(
-    () => options.find(option => option.value === value),
-    [options, value],
-  )
+  const selectedOption = options.find(option => option.value === value)
 
   return (
     <Select
@@ -70,17 +66,6 @@ export const DeploymentSelect: FC<SelectProps> = ({ value, onChange, options, pl
     </Select>
   )
 }
-
-type LabeledSelectProps = SelectProps & { label: string }
-
-export const LabeledSelect: FC<LabeledSelectProps> = ({ label, ...rest }) => (
-  <div className="flex items-center gap-2">
-    <span className="w-20 shrink-0 system-xs-medium text-text-secondary">{label}</span>
-    <div className="min-w-0 flex-1">
-      <DeploymentSelect {...rest} />
-    </div>
-  </div>
-)
 
 type EnvironmentRowProps = { env: EnvironmentOption }
 

@@ -1,5 +1,4 @@
 'use client'
-import * as React from 'react'
 import { useTranslation } from 'react-i18next'
 import DeploymentsMain from '@/features/deployments/list'
 import useDocumentTitle from '@/hooks/use-document-title'
@@ -10,4 +9,4 @@ const DeploymentsPage = () => {
   return <DeploymentsMain />
 }
 
-export default React.memo(DeploymentsPage)
+export default DeploymentsPage

@@ -1,8 +1,7 @@
 'use client'
-import type { FC } from 'react'
+import type { FC, ReactNode } from 'react'
 import { Button } from '@langgenius/dify-ui/button'
 import { cn } from '@langgenius/dify-ui/cn'
-import * as React from 'react'
 import { useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 import { getAppModeLabel } from '@/app/components/app-sidebar/app-info/app-mode-labels'
@@ -20,8 +19,8 @@ type SwitchableTab = 'deploy' | 'versions' | 'access' | 'settings'
 
 type SectionProps = {
   title: string
-  action?: React.ReactNode
-  children: React.ReactNode
+  action?: ReactNode
+  children: ReactNode
 }
 
 const Section: FC<SectionProps> = ({ title, action, children }) => (
@@ -36,7 +35,7 @@ const Section: FC<SectionProps> = ({ title, action, children }) => (
 
 type InfoRowProps = {
   label: string
-  value: React.ReactNode
+  value: ReactNode
   mono?: boolean
 }
 

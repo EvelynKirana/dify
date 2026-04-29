@@ -90,10 +90,6 @@ const DeploymentsMain: FC = () => {
     ]
   }, [environments, t])
 
-  const visibleInstances = useMemo(() => {
-    return apps
-  }, [apps])
-
   return (
     <>
       <div className="relative flex h-0 shrink-0 grow flex-col overflow-y-auto bg-background-body">
@@ -117,7 +113,7 @@ const DeploymentsMain: FC = () => {
         </div>
         <div className="relative grid grow grid-cols-1 content-start gap-4 px-12 pt-2 2k:grid-cols-6 sm:grid-cols-1 md:grid-cols-2 xl:grid-cols-4 2xl:grid-cols-5">
           <NewInstanceCard onOpen={openCreateInstanceModal} />
-          {visibleInstances.map(app => (
+          {apps.map(app => (
             <InstanceCard
               key={app.id}
               app={app}

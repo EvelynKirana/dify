@@ -304,11 +304,8 @@ type EnvironmentPermissionRowProps = {
   onSetPolicy: (
     appId: string,
     environmentId: string,
-    channel: string,
-    enabled: boolean,
     accessMode: string,
     subjects: AccessSubject[],
-    expectedVersion: number,
   ) => Promise<void>
 }
 
@@ -363,11 +360,8 @@ export const EnvironmentPermissionRow: FC<EnvironmentPermissionRowProps> = ({
       await onSetPolicy(
         appId,
         environmentId,
-        'webapp',
-        true,
         permissionKeyToAccessMode(nextKind),
         nextKind === 'specific' ? policySubjects(nextSubjects) : [],
-        detailPolicy?.version ?? 0,
       )
       await policyQuery.refetch()
       setDraft({})

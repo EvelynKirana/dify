@@ -18,7 +18,6 @@ import {
   listAppDeployments,
   patchAccessChannel,
   patchDeveloperAPI,
-  refreshDeploymentAppData,
   refreshDeploymentAppDataWhenReady,
   toAppInfoFromOverview,
   toAppInfoFromSummary,
@@ -76,7 +75,6 @@ export type DeploymentsAction = {
 
   createInstance: (params: CreateInstanceParams) => Promise<CreateInstanceResult>
   updateInstance: (appId: string, patch: Pick<AppInfo, 'name' | 'description'>) => Promise<void>
-  switchSourceApp: (appId: string, nextAppId: string) => void
   deleteInstance: (appId: string) => Promise<void>
 
   startDeploy: (params: StartDeployParams) => Promise<void>
@@ -87,15 +85,12 @@ export type DeploymentsAction = {
   generateApiKey: (appId: string, environmentId: string) => Promise<void>
   revokeApiKey: (appId: string, environmentId: string, apiKeyId: string) => Promise<void>
   clearCreatedApiToken: () => void
-  toggleAccessChannel: (appId: string, channel: string, enabled: boolean, expectedVersion: number) => Promise<void>
+  toggleAccessChannel: (appId: string, channel: string, enabled: boolean) => Promise<void>
   setEnvironmentAccessPolicy: (
     appId: string,
     environmentId: string,
-    channel: string,
-    enabled: boolean,
     accessMode: string,
     subjects: AccessSubject[],
-    expectedVersion: number,
   ) => Promise<void>
 }
 
@@ -203,7 +198,7 @@ class DeploymentsActionImpl implements DeploymentsAction {
   }
 
   refreshAppData = async (appId: string) => {
-    const data = await refreshDeploymentAppData(appId)
+    const data = await fetchDeploymentAppData(appId)
     this.applyAppData(data)
     const app = toAppInfoFromOverview(data.overview.instance)
     if (app)
@@ -264,8 +259,6 @@ class DeploymentsActionImpl implements DeploymentsAction {
       },
     }))
   }
-
-  switchSourceApp = () => undefined
 
   deleteInstance = async (appId: string) => {
     await deleteAppInstance(appId)
@@ -359,8 +352,6 @@ class DeploymentsActionImpl implements DeploymentsAction {
   setEnvironmentAccessPolicy = async (
     appId: string,
     environmentId: string,
-    _channel: string,
-    _enabled: boolean,
     accessMode: string,
     subjects: AccessSubject[],
   ) => {

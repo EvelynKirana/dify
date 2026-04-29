@@ -36,8 +36,7 @@ function fromDeployedTo(item: DeployedToSummary): ReleaseDeployment | undefined 
 
 function dedupeReleaseDeployments(items: ReleaseDeployment[]) {
   return items.filter((item, index) => {
-    const key = `${item.environmentId}-${item.state}`
-    return items.findIndex(candidate => `${candidate.environmentId}-${candidate.state}` === key) === index
+    return items.findIndex(candidate => candidate.environmentId === item.environmentId) === index
   })
 }
 
@@ -63,5 +62,5 @@ export function getReleaseDeployments(row: ReleaseHistoryRow, deploymentRows: En
     return items
   })
 
-  return dedupeReleaseDeployments([...historyItems, ...runtimeItems])
+  return dedupeReleaseDeployments([...runtimeItems, ...historyItems])
 }

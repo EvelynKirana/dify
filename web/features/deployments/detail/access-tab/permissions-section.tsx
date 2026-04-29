@@ -13,11 +13,8 @@ type AccessPermissionsSectionProps = {
   onSetPolicy: (
     appId: string,
     environmentId: string,
-    channel: string,
-    enabled: boolean,
     accessMode: string,
     subjects: AccessSubject[],
-    expectedVersion: number,
   ) => Promise<void>
 }
 

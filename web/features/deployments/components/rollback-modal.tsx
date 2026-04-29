@@ -9,7 +9,6 @@ import {
   AlertDialogDescription,
   AlertDialogTitle,
 } from '@langgenius/dify-ui/alert-dialog'
-import * as React from 'react'
 import { useTranslation } from 'react-i18next'
 import { useSourceApps } from '../hooks/use-source-apps'
 import { useDeploymentAppData, useDeploymentInstance, useDeploymentsStore } from '../store'

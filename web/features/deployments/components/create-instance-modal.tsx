@@ -7,7 +7,6 @@ import { cn } from '@langgenius/dify-ui/cn'
 import { Dialog, DialogCloseButton, DialogContent, DialogDescription, DialogTitle } from '@langgenius/dify-ui/dialog'
 import { Popover, PopoverContent, PopoverTrigger } from '@langgenius/dify-ui/popover'
 import { toast } from '@langgenius/dify-ui/toast'
-import * as React from 'react'
 import { useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { AppTypeIcon } from '@/app/components/app/type-selector'
@@ -46,8 +45,6 @@ export const AppPicker: FC<AppPickerProps> = ({ apps, isLoading, value, onChange
   const triggerRef = useRef<HTMLButtonElement>(null)
   const [triggerWidth, setTriggerWidth] = useState<number | undefined>(undefined)
 
-  const selected = useMemo(() => apps.find(a => a.id === value), [apps, value])
-
   const filtered = useMemo(() => {
     const q = keywords.trim().toLowerCase()
     if (!q)
@@ -70,6 +67,8 @@ export const AppPicker: FC<AppPickerProps> = ({ apps, isLoading, value, onChange
       </div>
     )
   }
+
+  const selected = apps.find(a => a.id === value)
 
   if (apps.length === 0) {
     return (

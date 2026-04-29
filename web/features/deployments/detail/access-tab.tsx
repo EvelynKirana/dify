@@ -2,6 +2,7 @@
 
 import type { FC } from 'react'
 import type {
+  AccessPermission,
   ConsoleEnvironmentSummary,
 } from '@/contract/console/deployments'
 import { useMemo } from 'react'
@@ -14,6 +15,8 @@ import { AccessChannelsSection } from './access-tab/channels-section'
 import { DeveloperApiSection } from './access-tab/developer-api-section'
 import { AccessPermissionsSection } from './access-tab/permissions-section'
 import { getUrlOrigin } from './access-tab/url'
+
+const EMPTY_ACCESS_PERMISSIONS: AccessPermission[] = []
 
 function uniqueEnvironments(environments: (ConsoleEnvironmentSummary | undefined)[]) {
   return environments.filter((environment, index): environment is ConsoleEnvironmentSummary => {
@@ -41,10 +44,7 @@ const AccessTab: FC<AccessTabProps> = ({ instanceId: appId }) => {
     () => deployedRows(appData?.environmentDeployments.data),
     [appData?.environmentDeployments.data],
   )
-  const policies = useMemo(
-    () => accessConfig?.permissions ?? [],
-    [accessConfig?.permissions],
-  )
+  const policies = accessConfig?.permissions ?? EMPTY_ACCESS_PERMISSIONS
   const deployedEnvs = useMemo(
     () => uniqueEnvironments([
       ...deploymentRows.map(row => row.environment),
@@ -68,7 +68,6 @@ const AccessTab: FC<AccessTabProps> = ({ instanceId: appId }) => {
   const webappRows = accessConfig?.accessChannels?.webappRows?.filter(row => row.url) ?? []
   const runEnabled = accessConfig?.accessChannels?.enabled ?? false
   const visibleCreatedApiToken = createdApiToken?.appId === appId ? createdApiToken : undefined
-  const webappChannelVersion = 0
   const cliDomain = getUrlOrigin(accessConfig?.accessChannels?.cli?.url)
   const cliDocsUrl = cliDomain ? `${cliDomain}/cli` : undefined
 
@@ -85,14 +84,14 @@ const AccessTab: FC<AccessTabProps> = ({ instanceId: appId }) => {
         webappRows={webappRows}
         cliDomain={cliDomain}
         cliDocsUrl={cliDocsUrl}
-        onToggle={enabled => toggleAccessChannel(appId, 'webapp', enabled, webappChannelVersion)}
+        onToggle={enabled => toggleAccessChannel(appId, 'webapp', enabled)}
       />
       <DeveloperApiSection
         apiEnabled={apiEnabled}
         environments={deployedEnvs}
         apiKeys={apiKeys}
         createdToken={visibleCreatedApiToken?.token}
-        onToggle={enabled => toggleAccessChannel(appId, 'api', enabled, 0)}
+        onToggle={enabled => toggleAccessChannel(appId, 'api', enabled)}
         onGenerate={handleGenerateApiKey}
         onRevoke={handleRevokeApiKey}
         onClearCreatedToken={clearCreatedApiToken}
