@@ -33,6 +33,7 @@ const InputFieldsTab = ({
   return (
     <div className="space-y-5">
       <InputFieldsRequirements
+        resourceType={resourceType}
         inputFields={inputFields}
         isLoading={isInputFieldsLoading}
       />
@@ -54,7 +55,6 @@ const InputFieldsTab = ({
           isRunning={actions.isRunning}
           onUploadFile={actions.handleUploadFile}
           onClearUploadedFile={actions.handleClearUploadedFile}
-          onDownloadTemplate={actions.handleDownloadTemplate}
           onRun={actions.handleRun}
         />
       </div>

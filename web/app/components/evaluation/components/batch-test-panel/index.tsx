@@ -22,7 +22,7 @@ const BatchTestPanel = ({
   const resource = useEvaluationResource(resourceType, resourceId)
   const setBatchTab = useEvaluationStore(state => state.setBatchTab)
   const isRunnable = isEvaluationRunnable(resource)
-  const isPanelReady = !!resource.judgeModelId && resource.metrics.length > 0
+  const hasBatchConfig = !!resource.judgeModelId && resource.metrics.length > 0
 
   return (
     <div className="flex h-full min-h-0 flex-col bg-background-default">
@@ -31,12 +31,14 @@ const BatchTestPanel = ({
           <div className="system-xl-semibold text-text-primary">{t('batch.title')}</div>
           <div className="mt-1 system-sm-regular text-text-tertiary">{t('batch.description')}</div>
         </div>
-        <div className="mt-4 rounded-xl border border-divider-subtle bg-components-card-bg p-3">
-          <div className="flex items-start gap-3">
-            <span aria-hidden="true" className="mt-0.5 i-ri-alert-fill h-4 w-4 shrink-0 text-text-warning" />
-            <div className="system-xs-regular text-text-tertiary">{t('batch.noticeDescription')}</div>
+        {!hasBatchConfig && (
+          <div className="mt-4 rounded-xl border border-divider-subtle bg-components-card-bg p-3">
+            <div className="flex items-start gap-3">
+              <span aria-hidden="true" className="mt-0.5 i-ri-alert-fill h-4 w-4 shrink-0 text-text-warning" />
+              <div className="system-xs-regular text-text-tertiary">{t('batch.noticeDescription')}</div>
+            </div>
           </div>
-        </div>
+        )}
       </div>
       <div className="border-b border-divider-subtle px-6">
         <div className="flex gap-4">
@@ -56,12 +58,12 @@ const BatchTestPanel = ({
           ))}
         </div>
       </div>
-      <div className={cn('min-h-0 flex-1 overflow-y-auto px-6 py-4', !isPanelReady && 'opacity-50')}>
+      <div className={cn('min-h-0 flex-1 overflow-y-auto px-6 py-4', !hasBatchConfig && 'opacity-50')}>
         {resource.activeBatchTab === 'input-fields' && (
           <InputFieldsTab
             resourceType={resourceType}
             resourceId={resourceId}
-            isPanelReady={isPanelReady}
+            isPanelReady={hasBatchConfig}
             isRunnable={isRunnable}
           />
         )}

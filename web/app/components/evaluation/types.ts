@@ -89,10 +89,12 @@ export type JudgmentConfig = {
 
 export type ConditionMetricOption = {
   id: string
+  kind: MetricKind
   groupLabel: string
   itemLabel: string
   valueType: ConditionMetricValueType
   variableSelector: [string, string]
+  nodeInfo?: NodeInfo
 }
 
 export type ConditionMetricOptionGroup = {

@@ -3,7 +3,6 @@ import type { NodeInfo } from '@/types/evaluation'
 
 export type MetricSelectorProps = NonPipelineEvaluationResourceProps & {
   triggerClassName?: string
-  triggerStyle?: 'button' | 'text'
 }
 
 export type MetricVisualTone = 'indigo' | 'green'
