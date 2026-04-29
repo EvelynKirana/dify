@@ -33,6 +33,7 @@ const InputFieldsTab = ({
   return (
     <div className="space-y-5">
       <InputFieldsRequirements
+        resourceType={resourceType}
         inputFields={inputFields}
         isLoading={isInputFieldsLoading}
       />

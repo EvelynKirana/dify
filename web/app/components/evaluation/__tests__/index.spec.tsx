@@ -12,6 +12,7 @@ const mockUseEvaluationConfig = vi.hoisted(() => vi.fn())
 const mockUseSaveEvaluationConfigMutation = vi.hoisted(() => vi.fn())
 const mockUseStartEvaluationRunMutation = vi.hoisted(() => vi.fn())
 const mockUsePublishedPipelineInfo = vi.hoisted(() => vi.fn())
+const mockUseSnippetPublishedWorkflow = vi.hoisted(() => vi.fn())
 
 vi.mock('@/app/components/header/account-setting/model-provider-page/hooks', () => ({
   useModelList: () => ({
@@ -86,23 +87,7 @@ vi.mock('@/service/use-workflow', () => ({
 }))
 
 vi.mock('@/service/use-snippet-workflows', () => ({
-  useSnippetPublishedWorkflow: () => ({
-    data: {
-      graph: {
-        nodes: [{
-          id: 'start',
-          data: {
-            type: 'start',
-            variables: [{
-              variable: 'query',
-              type: 'text-input',
-            }],
-          },
-        }],
-      },
-    },
-    isLoading: false,
-  }),
+  useSnippetPublishedWorkflow: (...args: unknown[]) => mockUseSnippetPublishedWorkflow(...args),
 }))
 
 const renderWithQueryClient = (ui: ReactNode) => {
@@ -198,6 +183,24 @@ describe('Evaluation', () => {
           edges: [],
         },
       },
+    })
+    mockUseSnippetPublishedWorkflow.mockReturnValue({
+      data: {
+        graph: {
+          nodes: [{
+            id: 'start',
+            data: {
+              type: 'start',
+              variables: [{
+                variable: 'query',
+                type: 'text-input',
+              }],
+            },
+          }],
+        },
+        input_fields: [],
+      },
+      isLoading: false,
     })
     mockUpload.mockResolvedValue({
       id: 'uploaded-file-id',
@@ -303,6 +306,92 @@ describe('Evaluation', () => {
 
     expect(useEvaluationStore.getState().resources['apps:app-reset']!.metrics).toHaveLength(0)
     expect(resetButton).toBeDisabled()
+  })
+
+  it('should hide the batch config warning when judge model and metrics are configured', () => {
+    const resourceType = 'apps'
+    const resourceId = 'app-batch-configured'
+    const store = useEvaluationStore.getState()
+
+    act(() => {
+      store.ensureResource(resourceType, resourceId)
+      store.setJudgeModel(resourceType, resourceId, 'openai::gpt-4o-mini')
+      store.addBuiltinMetric(resourceType, resourceId, 'faithfulness', [
+        { node_id: 'node-faithfulness', title: 'Retriever Node', type: 'retriever' },
+      ])
+    })
+
+    renderWithQueryClient(<Evaluation resourceType={resourceType} resourceId={resourceId} />)
+
+    expect(screen.queryByText('evaluation.batch.noticeDescription')).not.toBeInTheDocument()
+  })
+
+  it('should use published snippet input fields for snippet batch templates', () => {
+    mockUseSnippetPublishedWorkflow.mockReturnValue({
+      data: {
+        graph: {
+          nodes: [{
+            id: 'start',
+            data: {
+              type: 'start',
+              variables: [{
+                variable: 'graph_only',
+                type: 'text-input',
+              }],
+            },
+          }],
+        },
+        input_fields: [
+          {
+            label: 'Snippet Topic',
+            variable: 'snippet_topic',
+            type: 'text-input',
+            required: true,
+          },
+          {
+            label: 'Need Summary',
+            variable: 'need_summary',
+            type: 'checkbox',
+            required: false,
+          },
+        ],
+      },
+      isLoading: false,
+    })
+
+    renderWithQueryClient(<Evaluation resourceType="snippets" resourceId="snippet-fields" />)
+
+    expect(mockUseSnippetPublishedWorkflow).toHaveBeenCalledWith('snippet-fields')
+    expect(screen.getByText('snippet_topic')).toBeInTheDocument()
+    expect(screen.getByText('need_summary')).toBeInTheDocument()
+    expect(screen.queryByText('graph_only')).not.toBeInTheDocument()
+  })
+
+  it('should show snippet-specific empty input fields copy', () => {
+    mockUseSnippetPublishedWorkflow.mockReturnValue({
+      data: {
+        graph: {
+          nodes: [{
+            id: 'start',
+            data: {
+              type: 'start',
+              variables: [{
+                variable: 'graph_only',
+                type: 'text-input',
+              }],
+            },
+          }],
+        },
+        input_fields: [],
+      },
+      isLoading: false,
+    })
+
+    renderWithQueryClient(<Evaluation resourceType="snippets" resourceId="snippet-empty-fields" />)
+
+    expect(screen.getByText('evaluation.batch.noSnippetInputFields')).toBeInTheDocument()
+    expect(screen.queryByText('evaluation.batch.noInputFields')).not.toBeInTheDocument()
+    expect(screen.queryByText('graph_only')).not.toBeInTheDocument()
   })
 
   it('should hide the value row for empty operators', () => {
