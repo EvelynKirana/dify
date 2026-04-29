@@ -55,7 +55,6 @@ const InputFieldsTab = ({
           isRunning={actions.isRunning}
           onUploadFile={actions.handleUploadFile}
           onClearUploadedFile={actions.handleClearUploadedFile}
-          onDownloadTemplate={actions.handleDownloadTemplate}
           onRun={actions.handleRun}
         />
       </div>

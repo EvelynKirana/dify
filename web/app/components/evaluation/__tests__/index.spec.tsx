@@ -641,7 +641,7 @@ describe('Evaluation', () => {
     expect(screen.getAllByText('query').length).toBeGreaterThan(0)
     expect(screen.getAllByText('Expect Results').length).toBeGreaterThan(0)
 
-    const fileInput = document.querySelector<HTMLInputElement>('input[type="file"][accept=".csv,.xlsx"]')
+    const fileInput = document.querySelector<HTMLInputElement>('input[type="file"][accept=".csv"]')
     expect(fileInput).toBeInTheDocument()
 
     fireEvent.change(fileInput!, {
