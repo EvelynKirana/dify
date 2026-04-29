@@ -1,9 +1,9 @@
 'use client'
 
 import type { FC } from 'react'
-import { useDebounceFn } from 'ahooks'
-import { parseAsString, useQueryState } from 'nuqs'
-import { useMemo, useState } from 'react'
+import { useDebounce } from 'ahooks'
+import { debounce, parseAsString, useQueryState } from 'nuqs'
+import { useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 import Input from '@/app/components/base/input'
 import CreateInstanceModal from '../components/create-instance-modal'
@@ -28,15 +28,13 @@ const DeploymentsMain: FC = () => {
     'keywords',
     parseAsString.withDefault('').withOptions({ history: 'push' }),
   )
-  const [keywordsInput, setKeywordsInput] = useState(keywords)
-
-  const { run: commitKeywords } = useDebounceFn((next: string) => {
-    void setKeywords(next.trim() ? next : null)
-  }, { wait: 300 })
+  const debouncedKeywords = useDebounce(keywords, { wait: 300 })
+  const queryKeywords = keywords.trim() ? debouncedKeywords : keywords
 
   const handleKeywordsChange = (next: string) => {
-    setKeywordsInput(next)
-    commitKeywords(next)
+    void setKeywords(next.trim() ? next : null, {
+      limitUrlUpdates: next.trim() ? debounce(300) : undefined,
+    })
   }
 
   const requestedEnvironmentId = envFilter !== 'all' && envFilter !== 'not-deployed'
@@ -49,7 +47,7 @@ const DeploymentsMain: FC = () => {
   } = useSourceApps({
     environmentId: requestedEnvironmentId,
     notDeployed: envFilter === 'not-deployed',
-    keyword: keywords.trim() || undefined,
+    keyword: queryKeywords.trim() || undefined,
   })
 
   const environments = useMemo(() => {
@@ -105,7 +103,7 @@ const DeploymentsMain: FC = () => {
               showClearIcon
               wrapperClassName="w-[200px]"
               placeholder={t('filter.searchPlaceholder')}
-              value={keywordsInput}
+              value={keywords}
               onChange={e => handleKeywordsChange(e.target.value)}
               onClear={() => handleKeywordsChange('')}
             />
