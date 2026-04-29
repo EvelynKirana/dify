@@ -29,7 +29,6 @@ const MetricSelector = ({
   const addCustomMetric = useEvaluationStore(state => state.addCustomMetric)
   const [open, setOpen] = useState(false)
   const [query, setQuery] = useState('')
-  const [nodeInfoMap, setNodeInfoMap] = useState<Record<string, Array<{ node_id: string, title: string, type: string }>>>({})
   const [collapsedMetricMap, setCollapsedMetricMap] = useState<Record<string, boolean>>({})
   const [expandedMetricNodesMap, setExpandedMetricNodesMap] = useState<Record<string, boolean>>({})
   const hasCustomMetric = resource.metrics.some(metric => metric.kind === 'custom-workflow')
@@ -44,8 +43,6 @@ const MetricSelector = ({
     query,
     resourceType,
     resourceId,
-    nodeInfoMap,
-    setNodeInfoMap,
   })
 
   const handleOpenChange = (nextOpen: boolean) => {
