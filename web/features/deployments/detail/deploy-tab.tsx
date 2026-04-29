@@ -1,5 +1,5 @@
 'use client'
-import type { FC } from 'react'
+import type { FC, KeyboardEvent } from 'react'
 import { Button } from '@langgenius/dify-ui/button'
 import { cn } from '@langgenius/dify-ui/cn'
 import {
@@ -154,7 +154,11 @@ const DeployTab: FC<DeployTabProps> = ({ instanceId: appId }) => {
                 const status = deploymentStatus(row)
                 const release = activeRelease(row)
                 const actions = (
-                  <div className="flex shrink-0 items-center gap-1" onClick={e => e.stopPropagation()}>
+                  <div
+                    className="flex shrink-0 items-center gap-1"
+                    onClick={e => e.stopPropagation()}
+                    onKeyDown={e => e.stopPropagation()}
+                  >
                     <Button size="small" variant="secondary" onClick={() => openDeployDrawer({ appId, environmentId: envId })}>
                       {isUndeployed
                         ? t('deployDrawer.deploy')
@@ -194,13 +198,29 @@ const DeployTab: FC<DeployTabProps> = ({ instanceId: appId }) => {
                     )}
                   />
                 )
+                const handleRowToggle = () => {
+                  if (!isUndeployed)
+                    toggle(envId)
+                }
+                const handleRowKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
+                  if (isUndeployed)
+                    return
+
+                  if (event.key === 'Enter' || event.key === ' ') {
+                    event.preventDefault()
+                    toggle(envId)
+                  }
+                }
                 return (
                   <div key={envId} className="border-b border-divider-subtle last:border-b-0">
-                    <button
-                      type="button"
-                      onClick={() => !isUndeployed && toggle(envId)}
+                    <div
+                      role={isUndeployed ? undefined : 'button'}
+                      tabIndex={isUndeployed ? undefined : 0}
+                      onClick={handleRowToggle}
+                      onKeyDown={handleRowKeyDown}
                       className={cn(
-                        'flex w-full flex-col gap-2 px-4 py-3 text-left hover:bg-state-base-hover',
+                        'flex w-full flex-col gap-2 px-4 py-3 text-left',
+                        !isUndeployed && 'cursor-pointer hover:bg-state-base-hover',
                         'lg:grid lg:items-center lg:gap-4',
                         GRID_TEMPLATE,
                       )}
@@ -232,7 +252,7 @@ const DeployTab: FC<DeployTabProps> = ({ instanceId: appId }) => {
                         {actions}
                         {chevron}
                       </div>
-                    </button>
+                    </div>
                     {isExpanded && <DeploymentPanel row={row} />}
                   </div>
                 )
