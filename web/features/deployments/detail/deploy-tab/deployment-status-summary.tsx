@@ -37,10 +37,11 @@ export const DeploymentStatusSummary: FC<DeploymentStatusSummaryProps> = ({ row 
   }
 
   if (status === 'deploy_failed') {
+    const hasRunningRelease = !!activeRelease(row)?.id
     return (
       <span className="inline-flex items-center gap-1.5 system-sm-medium text-util-colors-warning-warning-700">
         <span className="i-ri-alert-line h-3.5 w-3.5" />
-        {t('deployTab.status.runningWithFailed')}
+        {t(hasRunningRelease ? 'deployTab.status.runningWithFailed' : 'deployTab.status.deployFailed')}
       </span>
     )
   }

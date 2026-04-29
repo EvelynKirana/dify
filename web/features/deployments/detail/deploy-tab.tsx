@@ -160,7 +160,9 @@ const DeployTab: FC<DeployTabProps> = ({ instanceId: appId }) => {
                         ? t('deployDrawer.deploy')
                         : status === 'ready'
                           ? t('deployTab.deployOtherVersion')
-                          : t('deployTab.viewProgress')}
+                          : status === 'deploying'
+                            ? t('deployTab.viewProgress')
+                            : t('deployTab.viewError')}
                     </Button>
                     {!isUndeployed && (
                       <DropdownMenu modal={false}>
