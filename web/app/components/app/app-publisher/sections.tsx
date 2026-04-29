@@ -201,9 +201,9 @@ export const PublisherSummarySection = ({
               </Button>
               {workflowTypeSwitchConfig && (
                 <ActionTooltip disabled={workflowTypeSwitchDisabled} tooltip={workflowTypeSwitchDisabledReason}>
-                  <button
-                    type="button"
-                    className="flex h-8 w-full items-center justify-center gap-0.5 rounded-lg px-3 py-2 system-sm-medium text-text-tertiary hover:bg-state-base-hover disabled:cursor-not-allowed disabled:opacity-50"
+                  <Button
+                    variant="ghost"
+                    className="mt-1 w-full gap-0.5 px-3 text-text-tertiary"
                     onClick={() => void onWorkflowTypeSwitch()}
                     disabled={workflowTypeSwitchDisabled}
                   >
@@ -237,7 +237,7 @@ export const PublisherSummarySection = ({
                         {t(workflowTypeSwitchConfig.tipKey, { ns: 'workflow' })}
                       </TooltipContent>
                     </Tooltip>
-                  </button>
+                  </Button>
                 </ActionTooltip>
               )}
               {startNodeLimitExceeded && (
