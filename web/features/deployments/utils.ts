@@ -84,6 +84,9 @@ export const deploymentId = (row?: EnvironmentDeploymentRow) =>
 
 export const activeRelease = (row?: EnvironmentDeploymentRow) => row?.currentRelease
 
+export const isUndeployedDeploymentRow = (row?: EnvironmentDeploymentRow) =>
+  (row?.status?.toLowerCase() ?? '').includes('undeployed') || (!row?.id && !row?.currentRelease && !row?.detail)
+
 export const deploymentStatus = (row: EnvironmentDeploymentRow): DeploymentUiStatus => {
   const runtimeStatus = row.status?.toLowerCase() ?? ''
   if (runtimeStatus.includes('deploying') || runtimeStatus.includes('pending'))
@@ -94,7 +97,12 @@ export const deploymentStatus = (row: EnvironmentDeploymentRow): DeploymentUiSta
 }
 
 export const deployedRows = (rows?: EnvironmentDeploymentRow[]) =>
-  rows?.filter(row => row.environment?.id && (row.id || row.status || row.currentRelease || row.detail)) ?? []
+  rows?.filter((row) => {
+    const runtimeStatus = row.status?.toLowerCase() ?? ''
+    return row.environment?.id
+      && !isUndeployedDeploymentRow(row)
+      && (row.id || runtimeStatus || row.currentRelease || row.detail)
+  }) ?? []
 
 export const accessModeToPermissionKey = (mode?: string): AccessPermissionKind => {
   const normalized = mode?.toLowerCase() ?? ''

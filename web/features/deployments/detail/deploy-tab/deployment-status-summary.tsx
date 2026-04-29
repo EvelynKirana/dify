@@ -6,6 +6,7 @@ import { useTranslation } from 'react-i18next'
 import {
   activeRelease,
   deploymentStatus,
+  isUndeployedDeploymentRow,
   releaseLabel,
 } from '../../utils'
 
@@ -15,6 +16,15 @@ type DeploymentStatusSummaryProps = {
 
 export const DeploymentStatusSummary: FC<DeploymentStatusSummaryProps> = ({ row }) => {
   const { t } = useTranslation('deployments')
+  if (isUndeployedDeploymentRow(row)) {
+    return (
+      <span className="inline-flex items-center gap-1.5 system-sm-medium text-text-tertiary">
+        <span className="h-1.5 w-1.5 rounded-full bg-text-quaternary" />
+        {t('status.notDeployed')}
+      </span>
+    )
+  }
+
   const status = deploymentStatus(row)
 
   if (status === 'deploying') {

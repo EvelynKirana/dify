@@ -21,13 +21,14 @@ import {
   environmentId,
   environmentMode,
   environmentName,
+  isUndeployedDeploymentRow,
   releaseCommit,
   releaseLabel,
 } from '../utils'
 import { DeploymentPanel } from './deploy-tab/deployment-panel'
 import { DeploymentStatusSummary } from './deploy-tab/deployment-status-summary'
 
-const GRID_TEMPLATE = 'lg:grid-cols-[1.2fr_0.8fr_1fr_auto]'
+const GRID_TEMPLATE = 'lg:grid-cols-[minmax(180px,1fr)_minmax(140px,0.75fr)_minmax(180px,0.85fr)_240px]'
 
 type DeployTabProps = {
   instanceId: string
@@ -41,14 +42,32 @@ const DeployTab: FC<DeployTabProps> = ({ instanceId: appId }) => {
   const { environmentOptions } = useSourceApps()
 
   const rows = useMemo(
+    () => appData?.environmentDeployments.data?.filter(row => row.environment?.id) ?? [],
+    [appData?.environmentDeployments.data],
+  )
+  const deployedRuntimeRows = useMemo(
     () => deployedRows(appData?.environmentDeployments.data),
     [appData?.environmentDeployments.data],
   )
 
-  const deployedEnvIds = new Set(rows.map(row => environmentId(row.environment)))
+  const deployedEnvIds = new Set(deployedRuntimeRows.map(row => environmentId(row.environment)))
   const availableEnvs = environmentOptions.filter(env => env.id && !deployedEnvIds.has(env.id))
-  const [expanded, setExpanded] = useState<string | null>(() => rows[0] ? environmentId(rows[0].environment) : null)
-  const toggle = (id: string) => setExpanded(prev => (prev === id ? null : id))
+  const expandableEnvIds = useMemo(
+    () => rows.filter(row => !isUndeployedDeploymentRow(row)).map(row => environmentId(row.environment)),
+    [rows],
+  )
+  const [expanded, setExpanded] = useState<string | null>()
+  const activeExpanded = expanded === undefined
+    ? expandableEnvIds[0] ?? null
+    : expanded !== null && expandableEnvIds.includes(expanded)
+      ? expanded
+      : null
+  const toggle = (id: string) => {
+    setExpanded((prev) => {
+      const current = prev === undefined ? expandableEnvIds[0] ?? null : prev
+      return current === id ? null : id
+    })
+  }
   const [deployMenuOpen, setDeployMenuOpen] = useState(false)
 
   return (
@@ -126,39 +145,46 @@ const DeployTab: FC<DeployTabProps> = ({ instanceId: appId }) => {
                 <div>{t('deployTab.col.environment')}</div>
                 <div>{t('deployTab.col.currentRelease')}</div>
                 <div>{t('deployTab.col.status')}</div>
-                <div />
+                <div className="text-right">{t('deployTab.col.actions')}</div>
               </div>
               {rows.map((row) => {
                 const envId = environmentId(row.environment)
-                const isExpanded = expanded === envId
+                const isUndeployed = isUndeployedDeploymentRow(row)
+                const isExpanded = !isUndeployed && activeExpanded === envId
                 const status = deploymentStatus(row)
                 const release = activeRelease(row)
                 const actions = (
                   <div className="flex shrink-0 items-center gap-1" onClick={e => e.stopPropagation()}>
                     <Button size="small" variant="secondary" onClick={() => openDeployDrawer({ appId, environmentId: envId })}>
-                      {status === 'ready' ? t('deployTab.deployOtherVersion') : t('deployTab.viewProgress')}
+                      {isUndeployed
+                        ? t('deployDrawer.deploy')
+                        : status === 'ready'
+                          ? t('deployTab.deployOtherVersion')
+                          : t('deployTab.viewProgress')}
                     </Button>
-                    <DropdownMenu modal={false}>
-                      <DropdownMenuTrigger
-                        aria-label={t('deployTab.moreActions')}
-                        className="flex h-7 w-7 items-center justify-center rounded-md text-text-tertiary hover:bg-state-base-hover hover:text-text-secondary"
-                      >
-                        <span className="i-ri-more-line h-4 w-4" />
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent placement="bottom-end" sideOffset={4} popupClassName="w-[200px]">
-                        <DropdownMenuItem
-                          className="gap-2 px-3"
-                          onClick={() => undeployDeployment(appId, envId, deploymentId(row), status === 'deploying')}
+                    {!isUndeployed && (
+                      <DropdownMenu modal={false}>
+                        <DropdownMenuTrigger
+                          aria-label={t('deployTab.moreActions')}
+                          className="flex h-7 w-7 items-center justify-center rounded-md text-text-tertiary hover:bg-state-base-hover hover:text-text-secondary"
                         >
-                          <span className="system-sm-regular text-text-destructive">
-                            {status === 'deploying' ? t('deployTab.cancelDeployment') : t('deployTab.undeploy')}
-                          </span>
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
+                          <span className="i-ri-more-line h-4 w-4" />
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent placement="bottom-end" sideOffset={4} popupClassName="w-[200px]">
+                          <DropdownMenuItem
+                            className="gap-2 px-3"
+                            onClick={() => undeployDeployment(appId, envId, deploymentId(row), status === 'deploying')}
+                          >
+                            <span className="system-sm-regular text-text-destructive">
+                              {status === 'deploying' ? t('deployTab.cancelDeployment') : t('deployTab.undeploy')}
+                            </span>
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    )}
                   </div>
                 )
-                const chevron = (
+                const chevron = !isUndeployed && (
                   <span
                     className={cn(
                       'i-ri-arrow-down-s-line h-4 w-4 shrink-0 text-text-tertiary transition-transform',
@@ -170,14 +196,14 @@ const DeployTab: FC<DeployTabProps> = ({ instanceId: appId }) => {
                   <div key={envId} className="border-b border-divider-subtle last:border-b-0">
                     <button
                       type="button"
-                      onClick={() => toggle(envId)}
+                      onClick={() => !isUndeployed && toggle(envId)}
                       className={cn(
                         'flex w-full flex-col gap-2 px-4 py-3 text-left hover:bg-state-base-hover',
                         'lg:grid lg:items-center lg:gap-4',
                         GRID_TEMPLATE,
                       )}
                     >
-                      <div className="flex items-start justify-between gap-3 lg:block">
+                      <div className="flex min-w-0 items-start justify-between gap-3 lg:block">
                         <div className="flex min-w-0 flex-col gap-0.5">
                           <span className="truncate system-sm-semibold text-text-primary">{environmentName(row.environment)}</span>
                           <div className="flex items-center gap-1.5 system-xs-regular text-text-tertiary">
@@ -191,16 +217,16 @@ const DeployTab: FC<DeployTabProps> = ({ instanceId: appId }) => {
                           {chevron}
                         </div>
                       </div>
-                      <div className="flex flex-wrap items-center gap-x-3 gap-y-1 lg:contents">
-                        <div className="flex items-center gap-2">
-                          <span className="font-mono system-sm-medium text-text-primary">{releaseLabel(release)}</span>
-                          <span className="font-mono system-xs-regular text-text-tertiary">{releaseCommit(release)}</span>
-                        </div>
-                        <div>
-                          <DeploymentStatusSummary row={row} />
-                        </div>
+                      <div className="flex min-w-0 items-center gap-2">
+                        <span className="min-w-0 truncate font-mono system-sm-medium text-text-primary">{isUndeployed ? '—' : releaseLabel(release)}</span>
+                        {!isUndeployed && (
+                          <span className="shrink-0 font-mono system-xs-regular text-text-tertiary">{releaseCommit(release)}</span>
+                        )}
                       </div>
-                      <div className="hidden items-center justify-end gap-1 lg:flex">
+                      <div className="min-w-0">
+                        <DeploymentStatusSummary row={row} />
+                      </div>
+                      <div className="hidden min-w-0 items-center justify-end gap-1 lg:flex">
                         {actions}
                         {chevron}
                       </div>
