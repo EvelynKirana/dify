@@ -1,4 +1,4 @@
-import type { EvaluationResourceType } from '@/app/components/evaluation/types'
+import type { EvaluationResourceType, NonPipelineEvaluationResourceType } from '@/app/components/evaluation/types'
 import type { AvailableEvaluationWorkflowsResponse, EvaluationConfig } from '@/types/evaluation'
 import {
   keepPreviousData,
@@ -57,6 +57,23 @@ export const useEvaluationConfig = (
 export const useAvailableEvaluationMetrics = (enabled = true) => {
   return useQuery(consoleQuery.evaluation.availableMetrics.queryOptions({
     enabled,
+  }))
+}
+
+export const useDefaultEvaluationMetrics = (
+  resourceType: NonPipelineEvaluationResourceType,
+  resourceId: string,
+  enabled = true,
+) => {
+  return useQuery(consoleQuery.evaluation.defaultMetrics.queryOptions({
+    input: {
+      params: {
+        targetType: resourceType,
+        targetId: resourceId,
+      },
+    },
+    enabled: !!resourceId && enabled,
+    refetchOnWindowFocus: false,
   }))
 }
 

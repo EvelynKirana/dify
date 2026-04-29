@@ -7,8 +7,8 @@ import { useEvaluationStore } from '../store'
 
 const mockUpload = vi.hoisted(() => vi.fn())
 const mockUseAvailableEvaluationMetrics = vi.hoisted(() => vi.fn())
+const mockUseDefaultEvaluationMetrics = vi.hoisted(() => vi.fn())
 const mockUseEvaluationConfig = vi.hoisted(() => vi.fn())
-const mockUseEvaluationNodeInfoMutation = vi.hoisted(() => vi.fn())
 const mockUseSaveEvaluationConfigMutation = vi.hoisted(() => vi.fn())
 const mockUseStartEvaluationRunMutation = vi.hoisted(() => vi.fn())
 const mockUsePublishedPipelineInfo = vi.hoisted(() => vi.fn())
@@ -51,7 +51,7 @@ vi.mock('@/service/base', () => ({
 vi.mock('@/service/use-evaluation', () => ({
   useEvaluationConfig: (...args: unknown[]) => mockUseEvaluationConfig(...args),
   useAvailableEvaluationMetrics: (...args: unknown[]) => mockUseAvailableEvaluationMetrics(...args),
-  useEvaluationNodeInfoMutation: (...args: unknown[]) => mockUseEvaluationNodeInfoMutation(...args),
+  useDefaultEvaluationMetrics: (...args: unknown[]) => mockUseDefaultEvaluationMetrics(...args),
   useSaveEvaluationConfigMutation: (...args: unknown[]) => mockUseSaveEvaluationConfigMutation(...args),
   useStartEvaluationRunMutation: (...args: unknown[]) => mockUseStartEvaluationRunMutation(...args),
 }))
@@ -141,18 +141,41 @@ describe('Evaluation', () => {
       isLoading: false,
     })
 
-    mockUseEvaluationNodeInfoMutation.mockReturnValue({
-      isPending: false,
-      mutate: (_input: unknown, options?: { onSuccess?: (data: Record<string, Array<{ node_id: string, title: string, type: string }>>) => void }) => {
-        options?.onSuccess?.({
-          'answer-correctness': [
-            { node_id: 'node-answer', title: 'Answer Node', type: 'llm' },
-          ],
-          'faithfulness': [
-            { node_id: 'node-faithfulness', title: 'Retriever Node', type: 'retriever' },
-          ],
-        })
+    mockUseDefaultEvaluationMetrics.mockReturnValue({
+      data: {
+        default_metrics: [
+          {
+            metric: 'answer-correctness',
+            value_type: 'number',
+            node_info_list: [
+              { node_id: 'node-answer', title: 'Answer Node', type: 'llm' },
+            ],
+          },
+          {
+            metric: 'faithfulness',
+            value_type: 'number',
+            node_info_list: [
+              { node_id: 'node-faithfulness', title: 'Retriever Node', type: 'retriever' },
+            ],
+          },
+          {
+            metric: 'context-precision',
+            value_type: 'number',
+            node_info_list: [],
+          },
+          {
+            metric: 'context-recall',
+            value_type: 'number',
+            node_info_list: [],
+          },
+          {
+            metric: 'context-relevance',
+            value_type: 'number',
+            node_info_list: [],
+          },
+        ],
       },
+      isLoading: false,
     })
     mockUseSaveEvaluationConfigMutation.mockReturnValue({
       isPending: false,
@@ -361,20 +384,17 @@ describe('Evaluation', () => {
   })
 
   it('should render the metric no-node empty state', () => {
-    mockUseAvailableEvaluationMetrics.mockReturnValue({
+    mockUseDefaultEvaluationMetrics.mockReturnValue({
       data: {
-        metrics: ['context-precision'],
+        default_metrics: [
+          {
+            metric: 'context-precision',
+            value_type: 'number',
+            node_info_list: [],
+          },
+        ],
       },
       isLoading: false,
-    })
-
-    mockUseEvaluationNodeInfoMutation.mockReturnValue({
-      isPending: false,
-      mutate: (_input: unknown, options?: { onSuccess?: (data: Record<string, Array<{ node_id: string, title: string, type: string }>>) => void }) => {
-        options?.onSuccess?.({
-          'context-precision': [],
-        })
-      },
     })
 
     renderWithQueryClient(<Evaluation resourceType="apps" resourceId="app-3" />)
@@ -385,9 +405,9 @@ describe('Evaluation', () => {
   })
 
   it('should render the global empty state when no metrics are available', () => {
-    mockUseAvailableEvaluationMetrics.mockReturnValue({
+    mockUseDefaultEvaluationMetrics.mockReturnValue({
       data: {
-        metrics: [],
+        default_metrics: [],
       },
       isLoading: false,
     })
@@ -400,25 +420,22 @@ describe('Evaluation', () => {
   })
 
   it('should show more nodes when a metric has more than three nodes', () => {
-    mockUseAvailableEvaluationMetrics.mockReturnValue({
+    mockUseDefaultEvaluationMetrics.mockReturnValue({
       data: {
-        metrics: ['answer-correctness'],
+        default_metrics: [
+          {
+            metric: 'answer-correctness',
+            value_type: 'number',
+            node_info_list: [
+              { node_id: 'node-1', title: 'LLM 1', type: 'llm' },
+              { node_id: 'node-2', title: 'LLM 2', type: 'llm' },
+              { node_id: 'node-3', title: 'LLM 3', type: 'llm' },
+              { node_id: 'node-4', title: 'LLM 4', type: 'llm' },
+            ],
+          },
+        ],
       },
       isLoading: false,
-    })
-
-    mockUseEvaluationNodeInfoMutation.mockReturnValue({
-      isPending: false,
-      mutate: (_input: unknown, options?: { onSuccess?: (data: Record<string, Array<{ node_id: string, title: string, type: string }>>) => void }) => {
-        options?.onSuccess?.({
-          'answer-correctness': [
-            { node_id: 'node-1', title: 'LLM 1', type: 'llm' },
-            { node_id: 'node-2', title: 'LLM 2', type: 'llm' },
-            { node_id: 'node-3', title: 'LLM 3', type: 'llm' },
-            { node_id: 'node-4', title: 'LLM 4', type: 'llm' },
-          ],
-        })
-      },
     })
 
     renderWithQueryClient(<Evaluation resourceType="apps" resourceId="app-5" />)

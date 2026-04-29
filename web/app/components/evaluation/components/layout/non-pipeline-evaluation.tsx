@@ -1,6 +1,6 @@
 'use client'
 
-import type { EvaluationResourceProps } from '../../types'
+import type { NonPipelineEvaluationResourceProps } from '../../types'
 import { useTranslation } from 'react-i18next'
 import { useDocLink } from '@/context/i18n'
 import BatchTestPanel from '../batch-test-panel'
@@ -13,7 +13,7 @@ import SectionHeader, { InlineSectionHeader } from '../section-header'
 const NonPipelineEvaluation = ({
   resourceType,
   resourceId,
-}: EvaluationResourceProps) => {
+}: NonPipelineEvaluationResourceProps) => {
   const { t } = useTranslation('evaluation')
   const { t: tCommon } = useTranslation('common')
   const docLink = useDocLink()

@@ -1,10 +1,15 @@
-import type { MetricOption } from '../../types'
+import type { ConditionMetricValueType, MetricOption } from '../../types'
 import type { MetricVisualTone } from './types'
-import type { EvaluationTargetType, NodeInfo } from '@/types/evaluation'
+import type { EvaluationDefaultMetric, NodeInfo } from '@/types/evaluation'
 import { getDefaultMetricDescription } from '../../default-metric-descriptions'
 
-export const toEvaluationTargetType = (resourceType: 'apps' | 'snippets'): EvaluationTargetType => {
-  return resourceType === 'snippets' ? 'snippets' : 'apps'
+const defaultConditionMetricValueType: ConditionMetricValueType = 'number'
+
+export const normalizeMetricValueType = (valueType: string | undefined): ConditionMetricValueType => {
+  if (valueType === 'string' || valueType === 'number' || valueType === 'boolean')
+    return valueType
+
+  return defaultConditionMetricValueType
 }
 
 const humanizeMetricId = (metricId: string) => {
@@ -15,12 +20,32 @@ const humanizeMetricId = (metricId: string) => {
     .join(' ')
 }
 
-export const buildMetricOption = (metricId: string): MetricOption => ({
+export const buildMetricOption = (metricId: string, valueType?: string): MetricOption => ({
   id: metricId,
   label: humanizeMetricId(metricId),
   description: getDefaultMetricDescription(metricId),
-  valueType: 'number',
+  valueType: normalizeMetricValueType(valueType),
 })
+
+export const dedupeNodeInfoList = (nodeInfoList: NodeInfo[]) => {
+  return Array.from(new Map(nodeInfoList.map(nodeInfo => [nodeInfo.node_id, nodeInfo])).values())
+}
+
+export const getDefaultMetricNodeInfoMap = (defaultMetrics: EvaluationDefaultMetric[]) => {
+  const nodeInfoMap: Record<string, NodeInfo[]> = {}
+
+  defaultMetrics.forEach((defaultMetric) => {
+    if (!defaultMetric.metric)
+      return
+
+    nodeInfoMap[defaultMetric.metric] = dedupeNodeInfoList([
+      ...(nodeInfoMap[defaultMetric.metric] ?? []),
+      ...(defaultMetric.node_info_list ?? []),
+    ])
+  })
+
+  return nodeInfoMap
+}
 
 export const getMetricVisual = (metricId: string): { icon: string, tone: MetricVisualTone } => {
   if (['context-precision', 'context-recall'].includes(metricId)) {
@@ -70,8 +95,4 @@ export const getToneClasses = (tone: MetricVisualTone) => {
     soft: 'bg-util-colors-indigo-indigo-50 text-util-colors-indigo-indigo-500',
     solid: 'bg-util-colors-indigo-indigo-500 text-white',
   }
-}
-
-export const dedupeNodeInfoList = (nodeInfoList: NodeInfo[]) => {
-  return Array.from(new Map(nodeInfoList.map(nodeInfo => [nodeInfo.node_id, nodeInfo])).values())
 }

@@ -4,13 +4,11 @@ import MetricSection from '..'
 import { useEvaluationStore } from '../../../store'
 
 const mockUseAvailableEvaluationWorkflows = vi.hoisted(() => vi.fn())
-const mockUseAvailableEvaluationMetrics = vi.hoisted(() => vi.fn())
-const mockUseEvaluationNodeInfoMutation = vi.hoisted(() => vi.fn())
+const mockUseDefaultEvaluationMetrics = vi.hoisted(() => vi.fn())
 
 vi.mock('@/service/use-evaluation', () => ({
   useAvailableEvaluationWorkflows: (...args: unknown[]) => mockUseAvailableEvaluationWorkflows(...args),
-  useAvailableEvaluationMetrics: (...args: unknown[]) => mockUseAvailableEvaluationMetrics(...args),
-  useEvaluationNodeInfoMutation: (...args: unknown[]) => mockUseEvaluationNodeInfoMutation(...args),
+  useDefaultEvaluationMetrics: (...args: unknown[]) => mockUseDefaultEvaluationMetrics(...args),
 }))
 
 const resourceType = 'apps' as const
@@ -37,9 +35,17 @@ describe('MetricSection', () => {
     vi.clearAllMocks()
     useEvaluationStore.setState({ resources: {} })
 
-    mockUseAvailableEvaluationMetrics.mockReturnValue({
+    mockUseDefaultEvaluationMetrics.mockReturnValue({
       data: {
-        metrics: ['answer-correctness'],
+        default_metrics: [
+          {
+            metric: 'answer-correctness',
+            value_type: 'number',
+            node_info_list: [
+              { node_id: 'node-answer', title: 'Answer Node', type: 'llm' },
+            ],
+          },
+        ],
       },
       isLoading: false,
     })
@@ -53,17 +59,6 @@ describe('MetricSection', () => {
       isFetching: false,
       isFetchingNextPage: false,
       isLoading: false,
-    })
-
-    mockUseEvaluationNodeInfoMutation.mockReturnValue({
-      isPending: false,
-      mutate: (_input: unknown, options?: { onSuccess?: (data: Record<string, Array<{ node_id: string, title: string, type: string }>>) => void }) => {
-        options?.onSuccess?.({
-          'answer-correctness': [
-            { node_id: 'node-answer', title: 'Answer Node', type: 'llm' },
-          ],
-        })
-      },
     })
   })
 
@@ -138,16 +133,20 @@ describe('MetricSection', () => {
 
     it('should show only unselected nodes in the add-node dropdown and append the selected node', () => {
       // Arrange
-      mockUseEvaluationNodeInfoMutation.mockReturnValue({
-        isPending: false,
-        mutate: (_input: unknown, options?: { onSuccess?: (data: Record<string, Array<{ node_id: string, title: string, type: string }>>) => void }) => {
-          options?.onSuccess?.({
-            'answer-correctness': [
-              { node_id: 'node-1', title: 'LLM 1', type: 'llm' },
-              { node_id: 'node-2', title: 'LLM 2', type: 'llm' },
-            ],
-          })
+      mockUseDefaultEvaluationMetrics.mockReturnValue({
+        data: {
+          default_metrics: [
+            {
+              metric: 'answer-correctness',
+              value_type: 'number',
+              node_info_list: [
+                { node_id: 'node-1', title: 'LLM 1', type: 'llm' },
+                { node_id: 'node-2', title: 'LLM 2', type: 'llm' },
+              ],
+            },
+          ],
         },
+        isLoading: false,
       })
 
       act(() => {
@@ -171,16 +170,20 @@ describe('MetricSection', () => {
 
     it('should hide the add-node button when the builtin metric already targets all nodes', () => {
       // Arrange
-      mockUseEvaluationNodeInfoMutation.mockReturnValue({
-        isPending: false,
-        mutate: (_input: unknown, options?: { onSuccess?: (data: Record<string, Array<{ node_id: string, title: string, type: string }>>) => void }) => {
-          options?.onSuccess?.({
-            'answer-correctness': [
-              { node_id: 'node-1', title: 'LLM 1', type: 'llm' },
-              { node_id: 'node-2', title: 'LLM 2', type: 'llm' },
-            ],
-          })
+      mockUseDefaultEvaluationMetrics.mockReturnValue({
+        data: {
+          default_metrics: [
+            {
+              metric: 'answer-correctness',
+              value_type: 'number',
+              node_info_list: [
+                { node_id: 'node-1', title: 'LLM 1', type: 'llm' },
+                { node_id: 'node-2', title: 'LLM 2', type: 'llm' },
+              ],
+            },
+          ],
         },
+        isLoading: false,
       })
 
       act(() => {

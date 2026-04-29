@@ -1,9 +1,15 @@
 import type { NodeInfo } from '@/types/evaluation'
 
 export type EvaluationResourceType = 'apps' | 'datasets' | 'snippets'
+export type NonPipelineEvaluationResourceType = Exclude<EvaluationResourceType, 'datasets'>
 
 export type EvaluationResourceProps = {
   resourceType: EvaluationResourceType
+  resourceId: string
+}
+
+export type NonPipelineEvaluationResourceProps = {
+  resourceType: NonPipelineEvaluationResourceType
   resourceId: string
 }
 
