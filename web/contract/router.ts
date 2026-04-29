@@ -3,7 +3,6 @@ import { accountAvatarContract } from './console/account'
 import { appDeleteContract, appWorkflowTypeConvertContract, workflowOnlineUsersContract } from './console/apps'
 import { bindPartnerStackContract, invoicesContract } from './console/billing'
 import {
-  availableEvaluationMetricsContract,
   availableEvaluationWorkflowsContract,
   cancelDatasetEvaluationRunContract,
   cancelEvaluationRunContract,
@@ -148,7 +147,6 @@ export const consoleRouterContract = {
     metrics: evaluationMetricsContract,
     defaultMetrics: evaluationDefaultMetricsContract,
     nodeInfo: evaluationNodeInfoContract,
-    availableMetrics: availableEvaluationMetricsContract,
     availableWorkflows: availableEvaluationWorkflowsContract,
     associatedTargets: evaluationWorkflowAssociatedTargetsContract,
     file: evaluationFileContract,

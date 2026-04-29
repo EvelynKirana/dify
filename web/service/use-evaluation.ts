@@ -54,9 +54,17 @@ export const useEvaluationConfig = (
   return useQuery<EvaluationConfig>(getEvaluationConfigQueryOptions(resourceType, resourceId))
 }
 
-export const useAvailableEvaluationMetrics = (enabled = true) => {
-  return useQuery(consoleQuery.evaluation.availableMetrics.queryOptions({
-    enabled,
+export const useDatasetEvaluationMetrics = (datasetId: string, enabled = true) => {
+  return useQuery(consoleQuery.datasetEvaluation.metrics.queryOptions({
+    input: datasetId
+      ? {
+          params: {
+            datasetId,
+          },
+        }
+      : skipToken,
+    enabled: !!datasetId && enabled,
+    refetchOnWindowFocus: false,
   }))
 }
 

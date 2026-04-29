@@ -6,7 +6,7 @@ import ConditionsSection from '../components/conditions-section'
 import { useEvaluationStore } from '../store'
 
 const mockUpload = vi.hoisted(() => vi.fn())
-const mockUseAvailableEvaluationMetrics = vi.hoisted(() => vi.fn())
+const mockUseDatasetEvaluationMetrics = vi.hoisted(() => vi.fn())
 const mockUseDefaultEvaluationMetrics = vi.hoisted(() => vi.fn())
 const mockUseEvaluationConfig = vi.hoisted(() => vi.fn())
 const mockUseSaveEvaluationConfigMutation = vi.hoisted(() => vi.fn())
@@ -51,7 +51,7 @@ vi.mock('@/service/base', () => ({
 
 vi.mock('@/service/use-evaluation', () => ({
   useEvaluationConfig: (...args: unknown[]) => mockUseEvaluationConfig(...args),
-  useAvailableEvaluationMetrics: (...args: unknown[]) => mockUseAvailableEvaluationMetrics(...args),
+  useDatasetEvaluationMetrics: (...args: unknown[]) => mockUseDatasetEvaluationMetrics(...args),
   useDefaultEvaluationMetrics: (...args: unknown[]) => mockUseDefaultEvaluationMetrics(...args),
   useSaveEvaluationConfigMutation: (...args: unknown[]) => mockUseSaveEvaluationConfigMutation(...args),
   useStartEvaluationRunMutation: (...args: unknown[]) => mockUseStartEvaluationRunMutation(...args),
@@ -119,7 +119,7 @@ describe('Evaluation', () => {
       data: null,
     })
 
-    mockUseAvailableEvaluationMetrics.mockReturnValue({
+    mockUseDatasetEvaluationMetrics.mockReturnValue({
       data: {
         metrics: ['answer-correctness', 'faithfulness', 'context-precision', 'context-recall', 'context-relevance'],
       },
@@ -582,6 +582,7 @@ describe('Evaluation', () => {
   it('should render the pipeline-specific layout without auto-selecting a judge model', () => {
     renderWithQueryClient(<Evaluation resourceType="datasets" resourceId="dataset-1" />)
 
+    expect(mockUseDatasetEvaluationMetrics).toHaveBeenCalledWith('dataset-1')
     expect(screen.getByTestId('evaluation-model-selector')).toHaveTextContent('empty')
     expect(screen.getByText('evaluation.history.columns.time')).toBeInTheDocument()
     expect(screen.getByText('Context Precision')).toBeInTheDocument()
