@@ -58,7 +58,6 @@ const PipelineEvaluation = ({
                 <JudgeModelSelector
                   resourceType={resourceType}
                   resourceId={resourceId}
-                  autoSelectFirst={false}
                 />
               </div>
             </section>
