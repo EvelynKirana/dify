@@ -18,6 +18,7 @@ export type ConsoleEnvironmentSummary = {
   name?: string
   description?: string
   runtime?: string
+  backend?: string
   type?: string
   status?: string
   tags?: string[]
@@ -25,44 +26,19 @@ export type ConsoleEnvironmentSummary = {
 
 export type ConsoleReleaseSummary = {
   id?: string
-  displayId?: string
-  status?: string
-  description?: string
-  commitId?: string
-  createdAt?: Timestamp
   name?: string
-}
-
-export type LastErrorProto = {
-  phase?: string
-  code?: string
-  message?: string
-  releaseId?: string
-}
-
-export type ConsoleInstanceSummary = {
-  id?: string
-  replicas?: number
+  shortCommitId?: string
+  createdAt?: Timestamp
+  displayId?: string
+  commitId?: string
+  description?: string
   status?: string
-  desiredReleaseId?: string
-  desiredReleaseDisplayId?: string
-  observedReleaseId?: string
-  observedReleaseDisplayId?: string
-  currentDeploymentId?: string
-  lastDeployedAt?: Timestamp
-  lastReadyAt?: Timestamp
-  lastError?: LastErrorProto
 }
 
-export type ConsoleActions = {
-  canDeploy?: boolean
-  canDeployAnotherRelease?: boolean
-  canCancel?: boolean
-  canUndeploy?: boolean
-  canRollback?: boolean
-  canViewProgress?: boolean
-  canViewLogs?: boolean
-  disabledReason?: string
+export type ConsoleUser = {
+  id?: string
+  name?: string
+  displayName?: string
 }
 
 export type ConsoleWarning = {
@@ -75,54 +51,80 @@ export type DeploymentStatusCount = {
   count?: number
 }
 
+export type AppInstanceFilter = {
+  id?: string
+  name?: string
+  kind?: 'all' | 'environment' | 'not_deployed' | (string & {})
+}
+
 export type AppDeploymentSummary = {
-  app?: ConsoleAppSummary
-  statusCounts?: DeploymentStatusCount[]
-  deployed?: boolean
+  id?: string
+  name?: string
+  description?: string
+  icon?: string
+  mode?: string
+  sourceAppId?: string
+  sourceAppName?: string
+  statuses?: DeploymentStatusCount[]
   lastDeployedAt?: Timestamp | null
 }
 
+export type Pagination = {
+  total?: number
+  page?: number
+  limit?: number
+  totalCount?: number
+  perPage?: number
+  currentPage?: number
+  totalPages?: number
+}
+
 export type ListAppDeploymentsReply = {
+  filters?: AppInstanceFilter[]
   data?: AppDeploymentSummary[]
-  environmentOptions?: EnvironmentOption[]
   pagination?: Pagination
 }
 
+export type AppInstanceOverview = {
+  id?: string
+  name?: string
+  description?: string
+  sourceAppId?: string
+  sourceAppName?: string
+  mode?: string
+  icon?: string
+  createdAt?: Timestamp
+}
+
 export type DeploymentSummaryRow = {
-  environmentId?: string
-  environmentName?: string
-  releaseId?: string
-  releaseDisplayId?: string
+  environment?: ConsoleEnvironmentSummary
+  release?: ConsoleReleaseSummary
   status?: string
 }
 
-export type ChannelSummary = {
-  enabled?: boolean
-}
-
 export type AccessSummary = {
-  webapp?: ChannelSummary
-  cli?: ChannelSummary
-  api?: ChannelSummary
-  mcp?: ChannelSummary
+  accessChannelsEnabled?: boolean
+  webappUrl?: string
+  cliUrl?: string
+  developerApiEnabled?: boolean
+  apiKeyCount?: number
 }
 
 export type GetDeploymentOverviewReply = {
-  app?: ConsoleAppSummary
+  instance?: AppInstanceOverview
   deployments?: DeploymentSummaryRow[]
   access?: AccessSummary
   warnings?: ConsoleWarning[]
 }
 
 export type RuntimeBindingDisplay = {
+  kind?: string
+  label?: string
+  displayValue?: string
+  valueType?: string
   slot?: string
   displayName?: string
   maskedValue?: string
-}
-
-export type RuntimeBindings = {
-  credentials?: RuntimeBindingDisplay[]
-  envVars?: RuntimeBindingDisplay[]
 }
 
 export type RuntimeEndpoints = {
@@ -130,106 +132,40 @@ export type RuntimeEndpoints = {
   health?: string
 }
 
-export type ObservedRuntime = {
-  release?: ConsoleReleaseSummary
-  bindings?: RuntimeBindings
+export type RuntimeInstanceDetail = {
+  deploymentName?: string
+  replicas?: number
+  runtimeMode?: string
+  runtimeNote?: string
   endpoints?: RuntimeEndpoints
-}
-
-export type PendingDeployment = {
-  deploymentId?: string
-  release?: ConsoleReleaseSummary
-  bindings?: RuntimeBindings
+  bindings?: RuntimeBindingDisplay[]
 }
 
 export type EnvironmentDeploymentRow = {
+  id?: string
   environment?: ConsoleEnvironmentSummary
-  instance?: ConsoleInstanceSummary
-  observedRuntime?: ObservedRuntime
-  pendingDeployment?: PendingDeployment
-  actions?: ConsoleActions
-}
-
-export type Pagination = {
-  totalCount?: number
-  perPage?: number
-  currentPage?: number
-  totalPages?: number
+  status?: string
+  currentRelease?: ConsoleReleaseSummary
+  detail?: RuntimeInstanceDetail
 }
 
 export type ListEnvironmentDeploymentsReply = {
-  environmentDeployments?: EnvironmentDeploymentRow[]
+  data?: EnvironmentDeploymentRow[]
   pagination?: Pagination
 }
 
-export type EnvironmentOption = {
-  id?: string
-  name?: string
-  type?: string
-  status?: string
-  description?: string
-  tags?: string[]
+export type EnvironmentOption = ConsoleEnvironmentSummary & {
   disabled?: boolean
   disabledReason?: string
 }
 
-export type ListDeploymentCandidatesReply = {
-  defaultReleaseId?: string
-  releases?: ConsoleReleaseSummary[]
-  environmentOptions?: EnvironmentOption[]
-}
-
-export type CurrentInstanceState = {
-  instanceId?: string
-  status?: string
-  observedReleaseDisplayId?: string
-}
-
-export type ConsoleCredentialOption = {
-  id?: string
-  displayName?: string
-  pluginId?: string
-  provider?: string
-}
-
-export type ConsoleEnvVarOption = {
-  id?: string
-  name?: string
-  maskedValue?: string
-  valueType?: string
-  version?: number
-}
-
-export type DeploymentSlot = {
-  kind?: string
-  slot?: string
-  label?: string
-  required?: boolean
-  selectedCredentialId?: string
-  selectedEnvVarId?: string
-  credentialOptions?: ConsoleCredentialOption[]
-  envVarOptions?: ConsoleEnvVarOption[]
-  missing?: boolean
-  missingReason?: string
-}
-
-export type DeploymentBlocker = {
-  code?: string
-  message?: string
-}
-
-export type GetDeploymentPlanReply = {
+export type ReleaseRuntimePreviewReply = {
   release?: ConsoleReleaseSummary
-  environment?: ConsoleEnvironmentSummary
-  currentInstance?: CurrentInstanceState
-  slots?: DeploymentSlot[]
-  canDeploy?: boolean
-  blockers?: DeploymentBlocker[]
+  bindings?: RuntimeBindingDisplay[]
 }
 
-export type UserDisplay = {
-  id?: string
-  displayName?: string
+export type CreateReleaseReply = {
+  release?: ConsoleReleaseSummary
 }
 
 export type DeployedToSummary = {
@@ -238,17 +174,10 @@ export type DeployedToSummary = {
   instanceStatus?: string
 }
 
-export type ReleaseHistoryActions = {
-  canDeploy?: boolean
-  canViewDetail?: boolean
-  canDelete?: boolean
-}
-
-export type ReleaseHistoryRow = {
-  release?: ConsoleReleaseSummary
-  createdBy?: UserDisplay
+export type ReleaseHistoryRow = ConsoleReleaseSummary & {
+  createdBy?: ConsoleUser
   deployedTo?: DeployedToSummary[]
-  actions?: ReleaseHistoryActions
+  release?: ConsoleReleaseSummary
 }
 
 export type ListReleaseHistoryReply = {
@@ -256,59 +185,36 @@ export type ListReleaseHistoryReply = {
   pagination?: Pagination
 }
 
-export type EffectivePolicySummary = {
-  channel?: string
-  enabled?: boolean
-  accessMode?: string
-  label?: string
-  subjectCount?: number
-  version?: number
-}
-
-export type EnvironmentPolicySummary = {
+export type AccessPermission = {
   environment?: ConsoleEnvironmentSummary
-  effectivePolicy?: EffectivePolicySummary
-}
-
-export type UserAccessSummary = {
-  sharedChannels?: string[]
-  environmentPolicies?: EnvironmentPolicySummary[]
+  currentRelease?: ConsoleReleaseSummary
+  accessMode?: string
+  accessModeLabel?: string
+  hint?: string
 }
 
 export type WebAppAccessRow = {
   environment?: ConsoleEnvironmentSummary
   url?: string
-  publicCode?: string
-  canCopy?: boolean
-  canShowQrCode?: boolean
-  canRegenerate?: boolean
-  createNeeded?: boolean
 }
 
-export type WebAppAccessSummary = {
-  supported?: boolean
+export type AccessChannelsSummary = {
   enabled?: boolean
-  rows?: WebAppAccessRow[]
-}
-
-export type UnsupportedChannelSummary = {
-  supported?: boolean
-  statusLabel?: string
-}
-
-export type CliAccessSummary = {
-  supported?: boolean
-  enabled?: boolean
-  statusLabel?: string
-  url?: string
+  webappRows?: WebAppAccessRow[]
+  cli?: {
+    url?: string
+  }
 }
 
 export type DeveloperAPIKeySummary = {
   id?: string
+  name?: string
+  environment?: ConsoleEnvironmentSummary
   environmentId?: string
   environmentName?: string
-  name?: string
+  maskedKey?: string
   maskedPrefix?: string
+  token?: string
   createdAt?: Timestamp
 }
 
@@ -318,15 +224,14 @@ export type DeveloperAPISummary = {
 }
 
 export type GetAccessConfigReply = {
-  userAccess?: UserAccessSummary
-  webapp?: WebAppAccessSummary
-  mcp?: UnsupportedChannelSummary
-  cli?: CliAccessSummary
+  permissions?: AccessPermission[]
+  accessChannels?: AccessChannelsSummary
   developerApi?: DeveloperAPISummary
 }
 
 export type AccessSubjectDisplay = {
   id?: string
+  subjectId?: string
   subjectType?: string
   name?: string
   avatarUrl?: string
@@ -344,11 +249,11 @@ export type AccessPolicyOption = {
 
 export type AccessPolicyDetail = {
   id?: string
-  channel?: string
   enabled?: boolean
   accessMode?: string
   version?: number
   options?: AccessPolicyOption[]
+  subjects?: AccessSubjectDisplay[]
 }
 
 export type GetEnvironmentAccessPolicyReply = {
@@ -362,15 +267,10 @@ export type AccessSubject = {
 
 export type AccessPolicy = {
   id?: string
-  appId?: string
+  appInstanceId?: string
   environmentId?: string
-  scopeType?: string
-  channel?: string
-  enabled?: boolean
   accessMode?: string
   subjects?: AccessSubject[]
-  version?: number
-  subjectCount?: number
 }
 
 export type UpdateEnvironmentAccessPolicyReply = {
@@ -382,55 +282,17 @@ export type SearchAccessSubjectsReply = {
 }
 
 export type PatchAccessChannelReply = {
-  policy?: EffectivePolicySummary
+  enabled?: boolean
 }
 
-export type Release = {
-  id?: string
-  appId?: string
-  seq?: number
-  displayId?: string
-  status?: string
-  gateCommitId?: string
-  dslVersion?: string
-  description?: string
-  requiredPluginIds?: string[]
-  requiredModelSlots?: string[]
-  requiredEnvVarNames?: string[]
-  createdAt?: Timestamp
-  readyAt?: Timestamp
-  name?: string
-}
-
-export type CreateReleaseReply = {
-  release?: Release
-}
-
-export type CredentialBindingProto = {
-  slot?: string
-  credentialId?: string
-}
-
-export type EnvVarBindingProto = {
-  slot?: string
-  envVarId?: string
-}
-
-export type BindingsProto = {
-  models?: CredentialBindingProto[]
-  plugins?: CredentialBindingProto[]
-  envVars?: EnvVarBindingProto[]
-}
-
-export type CreateReleaseFromCurrentApp = {
-  releaseNote?: string
+export type PatchDeveloperAPIReply = {
+  enabled?: boolean
 }
 
 export type CreateDeploymentReply = {
-  instanceId?: string
+  runtimeInstanceId?: string
   deploymentId?: string
   status?: string
-  release?: Release
 }
 
 export type CancelDeploymentReply = {
@@ -439,26 +301,10 @@ export type CancelDeploymentReply = {
 
 export type UndeployEnvironmentReply = {
   deploymentId?: string
+  status?: string
 }
 
-export type RollbackEnvironmentReply = {
-  deploymentId?: string
-}
-
-export type APIToken = {
-  id?: string
-  appId?: string
-  environmentId?: string
-  name?: string
-  token?: string
-  maskedPrefix?: string
-  createdAt?: Timestamp
-  lastUsedAt?: Timestamp
-}
-
-export type ListEnvironmentAPITokensReply = {
-  data?: APIToken[]
-}
+export type APIToken = DeveloperAPIKeySummary
 
 export type CreateEnvironmentAPITokenReply = {
   apiToken?: APIToken
@@ -466,36 +312,69 @@ export type CreateEnvironmentAPITokenReply = {
 
 export type DeleteEnvironmentAPITokenReply = Record<string, never>
 
+export type CreateAppInstanceReply = {
+  appInstanceId?: string
+  initialRelease?: ConsoleReleaseSummary
+}
+
+export type GetAppInstanceSettingsReply = {
+  name?: string
+  description?: string
+  deleteGuard?: {
+    canDelete?: boolean
+    disabledReason?: string
+  }
+}
+
+export type UpdateAppInstanceReply = GetAppInstanceSettingsReply
+
+export type DeleteAppInstanceReply = Record<string, never>
+
 export const listAppDeploymentsContract = base
   .route({
-    path: '/enterprise/deployments',
+    path: '/enterprise/app-instances',
     method: 'GET',
   })
   .input(type<{
     query?: {
       environmentId?: string
-      keyword?: string
+      notDeployed?: boolean
+      query?: string
       pageNumber?: number
       resultsPerPage?: number
     }
   }>())
   .output(type<ListAppDeploymentsReply>())
 
+export const createAppInstanceContract = base
+  .route({
+    path: '/enterprise/app-instances',
+    method: 'POST',
+  })
+  .input(type<{
+    body: {
+      sourceAppId: string
+      name: string
+      description?: string
+    }
+  }>())
+  .output(type<CreateAppInstanceReply>())
+
 export const deploymentOverviewContract = base
   .route({
-    path: '/enterprise/apps/{appId}/deploy/overview',
+    path: '/enterprise/app-instances/{appInstanceId}/overview',
     method: 'GET',
   })
-  .input(type<{ params: { appId: string } }>())
+  .input(type<{ params: { appInstanceId: string } }>())
   .output(type<GetDeploymentOverviewReply>())
 
-export const environmentDeploymentsContract = base
+export const runtimeInstancesContract = base
   .route({
-    path: '/enterprise/apps/{appId}/deploy/environment-deployments',
+    path: '/enterprise/app-instances/{appInstanceId}/runtime-instances',
     method: 'GET',
   })
   .input(type<{
-    params: { appId: string }
+    params: { appInstanceId: string }
     query?: {
       pageNumber?: number
       resultsPerPage?: number
@@ -503,35 +382,40 @@ export const environmentDeploymentsContract = base
   }>())
   .output(type<ListEnvironmentDeploymentsReply>())
 
-export const deploymentCandidatesContract = base
+export const previewReleaseContract = base
   .route({
-    path: '/enterprise/apps/{appId}/deploy/deployment-candidates',
-    method: 'GET',
-  })
-  .input(type<{ params: { appId: string } }>())
-  .output(type<ListDeploymentCandidatesReply>())
-
-export const deploymentPlanContract = base
-  .route({
-    path: '/enterprise/apps/{appId}/environments/{environmentId}/releases/{releaseId}/deployment-plan',
-    method: 'GET',
+    path: '/enterprise/app-instances/{appInstanceId}/releases:preview',
+    method: 'POST',
   })
   .input(type<{
-    params: {
-      appId: string
-      environmentId: string
-      releaseId: string
+    params: { appInstanceId: string }
+    body: {
+      releaseId?: string
     }
   }>())
-  .output(type<GetDeploymentPlanReply>())
+  .output(type<ReleaseRuntimePreviewReply>())
+
+export const createReleaseContract = base
+  .route({
+    path: '/enterprise/app-instances/{appInstanceId}/releases',
+    method: 'POST',
+  })
+  .input(type<{
+    params: { appInstanceId: string }
+    body: {
+      description?: string
+      name: string
+    }
+  }>())
+  .output(type<CreateReleaseReply>())
 
 export const releaseHistoryContract = base
   .route({
-    path: '/enterprise/apps/{appId}/deploy/release-history',
+    path: '/enterprise/app-instances/{appInstanceId}/releases',
     method: 'GET',
   })
   .input(type<{
-    params: { appId: string }
+    params: { appInstanceId: string }
     query?: {
       pageNumber?: number
       resultsPerPage?: number
@@ -539,56 +423,93 @@ export const releaseHistoryContract = base
   }>())
   .output(type<ListReleaseHistoryReply>())
 
+export const createDeploymentContract = base
+  .route({
+    path: '/enterprise/app-instances/{appInstanceId}/deployments',
+    method: 'POST',
+  })
+  .input(type<{
+    params: {
+      appInstanceId: string
+    }
+    body: {
+      environmentId: string
+      releaseId: string
+    }
+  }>())
+  .output(type<CreateDeploymentReply>())
+
+export const cancelDeploymentContract = base
+  .route({
+    path: '/enterprise/app-instances/{appInstanceId}/runtime-instances/{runtimeInstanceId}/deployment:cancel',
+    method: 'POST',
+  })
+  .input(type<{
+    params: {
+      appInstanceId: string
+      runtimeInstanceId: string
+    }
+  }>())
+  .output(type<CancelDeploymentReply>())
+
+export const undeployEnvironmentContract = base
+  .route({
+    path: '/enterprise/app-instances/{appInstanceId}/runtime-instances/{runtimeInstanceId}:undeploy',
+    method: 'POST',
+  })
+  .input(type<{
+    params: {
+      appInstanceId: string
+      runtimeInstanceId: string
+    }
+  }>())
+  .output(type<UndeployEnvironmentReply>())
+
 export const accessConfigContract = base
   .route({
-    path: '/enterprise/apps/{appId}/deploy/access-config',
+    path: '/enterprise/app-instances/{appInstanceId}/access',
     method: 'GET',
   })
-  .input(type<{ params: { appId: string } }>())
+  .input(type<{ params: { appInstanceId: string } }>())
   .output(type<GetAccessConfigReply>())
 
 export const environmentAccessPolicyContract = base
   .route({
-    path: '/enterprise/apps/{appId}/environments/{environmentId}/deploy/access-policies/{channel}',
+    path: '/enterprise/app-instances/{appInstanceId}/environments/{environmentId}/access-policy',
     method: 'GET',
   })
   .input(type<{
     params: {
-      appId: string
+      appInstanceId: string
       environmentId: string
-      channel: string
     }
   }>())
   .output(type<GetEnvironmentAccessPolicyReply>())
 
 export const updateEnvironmentAccessPolicyContract = base
   .route({
-    path: '/enterprise/apps/{appId}/environments/{environmentId}/deploy/access-policies/{channel}',
+    path: '/enterprise/app-instances/{appInstanceId}/environments/{environmentId}/access-policy',
     method: 'PUT',
   })
   .input(type<{
     params: {
-      appId: string
+      appInstanceId: string
       environmentId: string
-      channel: string
     }
     body: {
-      channel: string
-      enabled: boolean
       accessMode: string
       subjects: AccessSubject[]
-      expectedVersion: number
     }
   }>())
   .output(type<UpdateEnvironmentAccessPolicyReply>())
 
 export const searchAccessSubjectsContract = base
   .route({
-    path: '/enterprise/apps/{appId}/deploy/access-subjects:search',
+    path: '/enterprise/app-instances/{appInstanceId}/access-subjects:search',
     method: 'GET',
   })
   .input(type<{
-    params: { appId: string }
+    params: { appInstanceId: string }
     query?: {
       keyword?: string
       subjectTypes?: string[]
@@ -598,130 +519,45 @@ export const searchAccessSubjectsContract = base
 
 export const patchAccessChannelContract = base
   .route({
-    path: '/enterprise/apps/{appId}/deploy/access-channels/{channel}',
+    path: '/enterprise/app-instances/{appInstanceId}/access-channels',
     method: 'PATCH',
   })
   .input(type<{
     params: {
-      appId: string
-      channel: string
+      appInstanceId: string
     }
     body: {
-      channel: string
       enabled: boolean
-      expectedVersion: number
     }
   }>())
   .output(type<PatchAccessChannelReply>())
 
-export const createReleaseContract = base
+export const patchDeveloperAPIContract = base
   .route({
-    path: '/enterprise/apps/{appId}/deploy/releases',
-    method: 'POST',
-  })
-  .input(type<{
-    params: { appId: string }
-    body: {
-      description?: string
-      name: string
-    }
-  }>())
-  .output(type<CreateReleaseReply>())
-
-export const createDeploymentContract = base
-  .route({
-    path: '/enterprise/apps/{appId}/environments/{environmentId}/deployments',
-    method: 'POST',
+    path: '/enterprise/app-instances/{appInstanceId}/developer-api',
+    method: 'PATCH',
   })
   .input(type<{
     params: {
-      appId: string
-      environmentId: string
+      appInstanceId: string
     }
     body: {
-      releaseId?: string
-      currentApp?: CreateReleaseFromCurrentApp
-      bindings?: BindingsProto
-      replicas?: number
-      idempotencyKey?: string
+      enabled: boolean
     }
   }>())
-  .output(type<CreateDeploymentReply>())
-
-export const cancelDeploymentContract = base
-  .route({
-    path: '/enterprise/apps/{appId}/environments/{environmentId}/deployments/{deploymentId}/cancel',
-    method: 'POST',
-  })
-  .input(type<{
-    params: {
-      appId: string
-      environmentId: string
-      deploymentId: string
-    }
-    body: {
-      idempotencyKey?: string
-    }
-  }>())
-  .output(type<CancelDeploymentReply>())
-
-export const undeployEnvironmentContract = base
-  .route({
-    path: '/enterprise/apps/{appId}/environments/{environmentId}/deployments:undeploy',
-    method: 'POST',
-  })
-  .input(type<{
-    params: {
-      appId: string
-      environmentId: string
-    }
-    body: {
-      idempotencyKey?: string
-    }
-  }>())
-  .output(type<UndeployEnvironmentReply>())
-
-export const rollbackEnvironmentContract = base
-  .route({
-    path: '/enterprise/apps/{appId}/environments/{environmentId}/deployments:rollback',
-    method: 'POST',
-  })
-  .input(type<{
-    params: {
-      appId: string
-      environmentId: string
-    }
-    body: {
-      targetReleaseId?: string
-      idempotencyKey?: string
-    }
-  }>())
-  .output(type<RollbackEnvironmentReply>())
-
-export const environmentAPITokensContract = base
-  .route({
-    path: '/enterprise/apps/{appId}/environments/{environmentId}/api-keys',
-    method: 'GET',
-  })
-  .input(type<{
-    params: {
-      appId: string
-      environmentId: string
-    }
-  }>())
-  .output(type<ListEnvironmentAPITokensReply>())
+  .output(type<PatchDeveloperAPIReply>())
 
 export const createEnvironmentAPITokenContract = base
   .route({
-    path: '/enterprise/apps/{appId}/environments/{environmentId}/api-keys',
+    path: '/enterprise/app-instances/{appInstanceId}/api-keys',
     method: 'POST',
   })
   .input(type<{
     params: {
-      appId: string
-      environmentId: string
+      appInstanceId: string
     }
     body: {
+      environmentId: string
       name: string
     }
   }>())
@@ -729,14 +565,43 @@ export const createEnvironmentAPITokenContract = base
 
 export const deleteEnvironmentAPITokenContract = base
   .route({
-    path: '/enterprise/apps/{appId}/environments/{environmentId}/api-keys/{apiKeyId}',
+    path: '/enterprise/app-instances/{appInstanceId}/api-keys/{apiKeyId}',
     method: 'DELETE',
   })
   .input(type<{
     params: {
-      appId: string
-      environmentId: string
+      appInstanceId: string
       apiKeyId: string
     }
   }>())
   .output(type<DeleteEnvironmentAPITokenReply>())
+
+export const appInstanceSettingsContract = base
+  .route({
+    path: '/enterprise/app-instances/{appInstanceId}/settings',
+    method: 'GET',
+  })
+  .input(type<{ params: { appInstanceId: string } }>())
+  .output(type<GetAppInstanceSettingsReply>())
+
+export const updateAppInstanceContract = base
+  .route({
+    path: '/enterprise/app-instances/{appInstanceId}',
+    method: 'PATCH',
+  })
+  .input(type<{
+    params: { appInstanceId: string }
+    body: {
+      name: string
+      description?: string
+    }
+  }>())
+  .output(type<UpdateAppInstanceReply>())
+
+export const deleteAppInstanceContract = base
+  .route({
+    path: '/enterprise/app-instances/{appInstanceId}',
+    method: 'DELETE',
+  })
+  .input(type<{ params: { appInstanceId: string } }>())
+  .output(type<DeleteAppInstanceReply>())

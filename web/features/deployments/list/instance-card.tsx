@@ -46,11 +46,11 @@ export const InstanceCard: FC<InstanceCardProps> = ({ app, appData, summary }) =
   }
 
   const deployments = useMemo(
-    () => deployedRows(appData?.environmentDeployments.environmentDeployments),
-    [appData?.environmentDeployments.environmentDeployments],
+    () => deployedRows(appData?.environmentDeployments.data),
+    [appData?.environmentDeployments.data],
   )
   const statusCount = (status: string) =>
-    summary?.statusCounts?.find(item => item.status === status)?.count ?? 0
+    summary?.statuses?.find(item => item.status === status)?.count ?? 0
   const hasSummary = Boolean(summary)
   const failedCount = hasSummary
     ? statusCount('failed') + statusCount('deploy_failed')
@@ -62,7 +62,7 @@ export const InstanceCard: FC<InstanceCardProps> = ({ app, appData, summary }) =
     ? statusCount('ready')
     : deployments.filter(row => deploymentStatus(row) === 'ready').length
   const envCount = hasSummary
-    ? (summary?.deployed ? failedCount + deployingCount + readyCount : 0)
+    ? failedCount + deployingCount + readyCount
     : deployments.length
 
   const lastDeployedAt = useMemo(() => {
@@ -71,7 +71,7 @@ export const InstanceCard: FC<InstanceCardProps> = ({ app, appData, summary }) =
     if (deployments.length === 0)
       return null
     return deployments.reduce((latest, row) => {
-      const t = new Date(row.instance?.lastDeployedAt || row.instance?.lastReadyAt || '').getTime()
+      const t = new Date(row.currentRelease?.createdAt || '').getTime()
       return t > latest ? t : latest
     }, 0)
   }, [deployments, summary?.lastDeployedAt])
@@ -113,7 +113,7 @@ export const InstanceCard: FC<InstanceCardProps> = ({ app, appData, summary }) =
     return status || 'unknown'
   }
 
-  const statusSummaryTooltip = summary?.statusCounts?.filter(item => item.count && item.status !== 'undeployed') ?? []
+  const statusSummaryTooltip = summary?.statuses?.filter(item => item.count && item.status !== 'undeployed') ?? []
   const statusTooltip = primaryStatus === 'none'
     ? t('card.tooltip.notDeployed')
     : deployments.length > 0
@@ -130,7 +130,7 @@ export const InstanceCard: FC<InstanceCardProps> = ({ app, appData, summary }) =
                   <span className="shrink-0 text-text-secondary">
                     {statusLabel(status)}
                     {' · '}
-                    {releaseLabel(deployment.observedRuntime?.release || deployment.pendingDeployment?.release)}
+                    {releaseLabel(deployment.currentRelease)}
                   </span>
                 </div>
               )
@@ -225,8 +225,8 @@ export const InstanceCard: FC<InstanceCardProps> = ({ app, appData, summary }) =
         </Tooltip>
         <div className="flex min-w-0 items-center gap-1.5 system-xs-regular text-text-tertiary">
           <span aria-hidden className="i-ri-apps-2-line h-3.5 w-3.5 shrink-0 text-text-quaternary" />
-          <span className="truncate" title={app.name}>
-            {t('card.fromApp', { name: app.name })}
+          <span className="truncate" title={app.sourceAppName ?? app.name}>
+            {t('card.fromApp', { name: app.sourceAppName ?? app.name })}
           </span>
         </div>
       </div>

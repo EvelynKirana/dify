@@ -41,7 +41,7 @@ const InstanceDetail: FC<InstanceDetailProps> = ({ instanceId, children }) => {
   const detailApps = useMemo(() => app ? [app] : [], [app])
   useDeploymentData(detailApps, { enabled: detailApps.length > 0 })
   const appDeployments = useMemo(
-    () => deployedRows(appData[instanceId]?.environmentDeployments.environmentDeployments),
+    () => deployedRows(appData[instanceId]?.environmentDeployments.data),
     [appData, instanceId],
   )
 

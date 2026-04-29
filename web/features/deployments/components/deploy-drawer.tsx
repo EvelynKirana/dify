@@ -6,6 +6,7 @@ import { useQuery } from '@tanstack/react-query'
 import { useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
 import { deploymentAppDataQueryOptions } from '../data'
+import { useSourceApps } from '../hooks/use-source-apps'
 import { useDeploymentsStore } from '../store'
 import { DeployForm } from './deploy-drawer/form'
 
@@ -17,8 +18,9 @@ const DeployDrawer: FC = () => {
   const applyAppData = useDeploymentsStore(state => state.applyAppData)
   const closeDeployDrawer = useDeploymentsStore(state => state.closeDeployDrawer)
   const startDeploy = useDeploymentsStore(state => state.startDeploy)
-
   const open = drawer.open
+  const { environmentOptions } = useSourceApps({ enabled: open })
+
   const appDataQuery = useQuery({
     ...deploymentAppDataQueryOptions(drawerAppId ?? ''),
     enabled: open && Boolean(drawerAppId) && !storedAppData,
@@ -29,9 +31,9 @@ const DeployDrawer: FC = () => {
   }, [appDataQuery.data, applyAppData])
 
   const appData = storedAppData ?? (appDataQuery.data?.appId === drawerAppId ? appDataQuery.data : undefined)
-  const environments = appData?.candidates.environmentOptions ?? []
-  const releases = appData?.candidates.releases ?? []
-  const defaultReleaseId = appData?.candidates.defaultReleaseId
+  const environments = environmentOptions
+  const releases = appData?.releaseHistory.data?.map(row => row.release ?? row).filter(release => release.id) ?? []
+  const defaultReleaseId = releases[0]?.id
   const formKey = `${drawer.appId ?? 'none'}-${drawer.environmentId ?? 'any'}-${drawer.releaseId ?? 'new'}-${open ? '1' : '0'}`
 
   return (
@@ -60,13 +62,12 @@ const DeployDrawer: FC = () => {
                     lockedEnvId={drawer.environmentId}
                     presetReleaseId={drawer.releaseId}
                     onCancel={closeDeployDrawer}
-                    onSubmit={({ environmentId, releaseId, releaseNote, bindings }) =>
+                    onSubmit={({ environmentId, releaseId, releaseNote }) =>
                       startDeploy({
                         appId: drawerAppId,
                         environmentId,
                         releaseId,
                         releaseNote,
-                        bindings,
                       })}
                   />
                 )}

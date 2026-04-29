@@ -18,4 +18,6 @@ export type AppInfo = {
   iconBackground?: string
   iconUrl?: string | null
   description?: string
+  sourceAppId?: string
+  sourceAppName?: string
 }

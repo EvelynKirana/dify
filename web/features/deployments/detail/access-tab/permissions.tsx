@@ -3,11 +3,11 @@
 import type { FC } from 'react'
 import type { AccessPermissionKind } from '../../types'
 import type {
+  AccessPermission,
   AccessPolicyDetail,
   AccessSubject,
   AccessSubjectDisplay,
   ConsoleEnvironmentSummary,
-  EffectivePolicySummary,
 } from '@/contract/console/deployments'
 import { cn } from '@langgenius/dify-ui/cn'
 import {
@@ -99,12 +99,14 @@ type SelectableAccessSubject = AccessSubjectDisplay & {
 }
 
 function normalizeSubject(subject: AccessSubjectDisplay): SelectableAccessSubject | undefined {
-  if (!subject.id || !subject.subjectType)
+  const id = subject.id ?? subject.subjectId
+  if (!id || !subject.subjectType)
     return undefined
 
   return {
     ...subject,
-    id: subject.id,
+    id,
+    subjectId: subject.subjectId ?? id,
     subjectType: subject.subjectType,
   }
 }
@@ -121,6 +123,11 @@ function policySubjects(subjects: SelectableAccessSubject[]): AccessSubject[] {
 }
 
 function selectedSubjectsFromPolicy(policy?: AccessPolicyDetail) {
+  if (policy?.subjects?.length) {
+    return policy.subjects
+      .map(normalizeSubject)
+      .filter((subject): subject is SelectableAccessSubject => Boolean(subject))
+  }
   const selectedOption = policy?.options?.find(option => option.selected)
     ?? policy?.options?.find(option => option.mode === policy?.accessMode)
   return [
@@ -186,7 +193,7 @@ const SubjectPicker: FC<SubjectPickerProps> = ({
   const subjectsQuery = useQuery(consoleQuery.deployments.searchAccessSubjects.queryOptions({
     input: open
       ? {
-          params: { appId },
+          params: { appInstanceId: appId },
           query: {
             keyword: debouncedKeyword.trim() || undefined,
             subjectTypes: ['account', 'group'],
@@ -293,7 +300,7 @@ const SubjectPicker: FC<SubjectPickerProps> = ({
 type EnvironmentPermissionRowProps = {
   appId: string
   environment: ConsoleEnvironmentSummary
-  summaryPolicy?: EffectivePolicySummary
+  summaryPolicy?: AccessPermission
   onSetPolicy: (
     appId: string,
     environmentId: string,
@@ -313,14 +320,12 @@ export const EnvironmentPermissionRow: FC<EnvironmentPermissionRowProps> = ({
 }) => {
   const { t } = useTranslation('deployments')
   const environmentId = environment.id
-  const channel = summaryPolicy?.channel ?? 'webapp'
   const policyQuery = useQuery(consoleQuery.deployments.environmentAccessPolicy.queryOptions({
     input: environmentId
       ? {
           params: {
-            appId,
+            appInstanceId: appId,
             environmentId,
-            channel,
           },
         }
       : skipToken,
@@ -330,7 +335,7 @@ export const EnvironmentPermissionRow: FC<EnvironmentPermissionRowProps> = ({
   const policyKind = accessModeToPermissionKey(detailPolicy?.accessMode ?? summaryPolicy?.accessMode)
   const policyFingerprint = [
     detailPolicy?.id ?? 'new',
-    detailPolicy?.version ?? summaryPolicy?.version ?? 0,
+    detailPolicy?.version ?? 0,
     detailPolicy?.accessMode ?? summaryPolicy?.accessMode ?? '',
   ].join(':')
   const policySelectedSubjects = useMemo(
@@ -358,11 +363,11 @@ export const EnvironmentPermissionRow: FC<EnvironmentPermissionRowProps> = ({
       await onSetPolicy(
         appId,
         environmentId,
-        detailPolicy?.channel ?? channel,
-        detailPolicy?.enabled ?? summaryPolicy?.enabled ?? true,
+        'webapp',
+        true,
         permissionKeyToAccessMode(nextKind),
         nextKind === 'specific' ? policySubjects(nextSubjects) : [],
-        detailPolicy?.version ?? summaryPolicy?.version ?? 0,
+        detailPolicy?.version ?? 0,
       )
       await policyQuery.refetch()
       setDraft({})

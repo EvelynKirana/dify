@@ -95,13 +95,14 @@ export const DeveloperApiSection: FC<DeveloperApiSectionProps> = ({
                 : (
                     <div className="flex flex-col divide-y divide-divider-subtle">
                       {apiKeys.map((apiKey) => {
-                        if (!apiKey.id || !apiKey.environmentId)
+                        const environmentId = apiKey.environmentId ?? apiKey.environment?.id
+                        if (!apiKey.id || !environmentId)
                           return null
                         return (
                           <ApiKeyRow
                             key={apiKey.id}
                             apiKey={apiKey}
-                            onRevoke={() => onRevoke(apiKey.environmentId!, apiKey.id!)}
+                            onRevoke={() => onRevoke(environmentId, apiKey.id!)}
                           />
                         )
                       })}

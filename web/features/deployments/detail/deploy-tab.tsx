@@ -10,6 +10,7 @@ import {
 } from '@langgenius/dify-ui/dropdown-menu'
 import { useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
+import { useSourceApps } from '../hooks/use-source-apps'
 import { useDeploymentsStore } from '../store'
 import {
   activeRelease,
@@ -22,7 +23,6 @@ import {
   environmentName,
   releaseCommit,
   releaseLabel,
-  targetRelease,
 } from '../utils'
 import { DeploymentPanel } from './deploy-tab/deployment-panel'
 import { DeploymentStatusSummary } from './deploy-tab/deployment-status-summary'
@@ -38,14 +38,15 @@ const DeployTab: FC<DeployTabProps> = ({ instanceId: appId }) => {
   const appData = useDeploymentsStore(state => state.appData[appId])
   const openDeployDrawer = useDeploymentsStore(state => state.openDeployDrawer)
   const undeployDeployment = useDeploymentsStore(state => state.undeployDeployment)
+  const { environmentOptions } = useSourceApps()
 
   const rows = useMemo(
-    () => deployedRows(appData?.environmentDeployments.environmentDeployments),
-    [appData?.environmentDeployments.environmentDeployments],
+    () => deployedRows(appData?.environmentDeployments.data),
+    [appData?.environmentDeployments.data],
   )
 
   const deployedEnvIds = new Set(rows.map(row => environmentId(row.environment)))
-  const availableEnvs = appData?.candidates.environmentOptions?.filter(env => env.id && !deployedEnvIds.has(env.id)) ?? []
+  const availableEnvs = environmentOptions.filter(env => env.id && !deployedEnvIds.has(env.id))
   const [expanded, setExpanded] = useState<string | null>(() => rows[0] ? environmentId(rows[0].environment) : null)
   const toggle = (id: string) => setExpanded(prev => (prev === id ? null : id))
   const [deployMenuOpen, setDeployMenuOpen] = useState(false)
@@ -131,7 +132,7 @@ const DeployTab: FC<DeployTabProps> = ({ instanceId: appId }) => {
                 const envId = environmentId(row.environment)
                 const isExpanded = expanded === envId
                 const status = deploymentStatus(row)
-                const release = activeRelease(row) || targetRelease(row)
+                const release = activeRelease(row)
                 const actions = (
                   <div className="flex shrink-0 items-center gap-1" onClick={e => e.stopPropagation()}>
                     <Button size="small" variant="secondary" onClick={() => openDeployDrawer({ appId, environmentId: envId })}>

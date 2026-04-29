@@ -10,7 +10,7 @@ import { useRouter } from '@/next/navigation'
 import { StatusBadge } from '../components/status-badge'
 import { useSourceApps } from '../hooks/use-source-apps'
 import { useDeploymentsStore } from '../store'
-import { webappUrl } from '../utils'
+import { releaseLabel, webappUrl } from '../utils'
 
 type OverviewTabProps = {
   instanceId: string
@@ -96,9 +96,9 @@ const OverviewTab: FC<OverviewTabProps> = ({ instanceId }) => {
   const { appMap } = useSourceApps()
   const app = appMap.get(instanceId)
   const overview = appData?.overview
-  const overviewApp = overview?.app
+  const overviewApp = overview?.instance
   const deployments = useMemo(
-    () => overview?.deployments?.filter(row => row.environmentId && row.status?.toLowerCase() !== 'undeployed') ?? [],
+    () => overview?.deployments?.filter(row => row.environment?.id && row.status?.toLowerCase() !== 'undeployed') ?? [],
     [overview?.deployments],
   )
 
@@ -110,10 +110,9 @@ const OverviewTab: FC<OverviewTabProps> = ({ instanceId }) => {
   }
 
   const appModeLabel = getAppModeLabel(overviewApp?.mode ?? app.mode, tCommon)
-  const webappRow = appData?.accessConfig.webapp?.rows?.find(row => row.url)
-  const webappAccessUrl = webappUrl(webappRow?.url)
-  const cliUrl = appData?.accessConfig.cli?.url
-  const apiKeysCount = appData?.accessConfig.developerApi?.apiKeys?.length ?? 0
+  const webappAccessUrl = webappUrl(overview?.access?.webappUrl)
+  const cliUrl = overview?.access?.cliUrl
+  const apiKeysCount = overview?.access?.apiKeyCount ?? appData?.accessConfig.developerApi?.apiKeys?.length ?? 0
 
   return (
     <div className="flex flex-col gap-5 p-6">
@@ -121,7 +120,7 @@ const OverviewTab: FC<OverviewTabProps> = ({ instanceId }) => {
         <div className="flex flex-col divide-y divide-divider-subtle">
           <InfoRow label={t('overview.name')} value={overviewApp?.name ?? app.name} />
           <InfoRow label={t('overview.description')} value={overviewApp?.description ?? app.description ?? t('overview.emptyValue')} />
-          <InfoRow label={t('overview.sourceApp')} value={app.name} />
+          <InfoRow label={t('overview.sourceApp')} value={overviewApp?.sourceAppName ?? app.sourceAppName ?? app.name} />
           <InfoRow label={t('overview.appMode')} value={appModeLabel} />
         </div>
       </Section>
@@ -150,11 +149,11 @@ const OverviewTab: FC<OverviewTabProps> = ({ instanceId }) => {
                 {deployments.map((row) => {
                   const status = overviewDeploymentStatus(row.status)
                   return (
-                    <div key={row.environmentId} className="flex items-center justify-between gap-3 py-2">
+                    <div key={row.environment?.id} className="flex items-center justify-between gap-3 py-2">
                       <div className="flex min-w-0 flex-col">
-                        <span className="system-sm-medium text-text-primary">{row.environmentName || row.environmentId}</span>
+                        <span className="system-sm-medium text-text-primary">{row.environment?.name || row.environment?.id}</span>
                         <span className="system-xs-regular text-text-tertiary">
-                          {row.releaseDisplayId || row.releaseId || t('overview.emptyValue')}
+                          {releaseLabel(row.release) || t('overview.emptyValue')}
                         </span>
                       </div>
                       <StatusBadge status={status} />
@@ -177,18 +176,18 @@ const OverviewTab: FC<OverviewTabProps> = ({ instanceId }) => {
         <div className="flex flex-col divide-y divide-divider-subtle">
           <AccessOverviewRow
             label={t('overview.webapp')}
-            enabled={overview?.access?.webapp?.enabled ?? false}
+            enabled={overview?.access?.accessChannelsEnabled ?? false}
             hint={webappAccessUrl || t('overview.notConfigured')}
           />
           <AccessOverviewRow
             label={t('overview.cli')}
-            enabled={overview?.access?.cli?.enabled ?? false}
+            enabled={overview?.access?.accessChannelsEnabled ?? false}
             hint={cliUrl ?? t('overview.notConfigured')}
           />
           <AccessOverviewRow
             label={t('overview.api')}
-            enabled={overview?.access?.api?.enabled ?? false}
-            hint={overview?.access?.api?.enabled
+            enabled={overview?.access?.developerApiEnabled ?? false}
+            hint={overview?.access?.developerApiEnabled
               ? t('overview.apiKeysCount', { count: apiKeysCount })
               : t('overview.notConfigured')}
           />

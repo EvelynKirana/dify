@@ -6,6 +6,7 @@ import { Button } from '@langgenius/dify-ui/button'
 import { cn } from '@langgenius/dify-ui/cn'
 import { Dialog, DialogCloseButton, DialogContent, DialogDescription, DialogTitle } from '@langgenius/dify-ui/dialog'
 import { Popover, PopoverContent, PopoverTrigger } from '@langgenius/dify-ui/popover'
+import { toast } from '@langgenius/dify-ui/toast'
 import * as React from 'react'
 import { useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
@@ -212,23 +213,37 @@ const CreateInstanceForm: FC<{ onClose: () => void }> = ({ onClose }) => {
   const [appId, setAppId] = useState<string>('')
   const [name, setName] = useState('')
   const [description, setDescription] = useState('')
+  const [isSubmitting, setIsSubmitting] = useState(false)
 
   const selectedApp = apps.find(a => a.id === appId)
-  const canCreate = Boolean(appId && name.trim())
+  const canCreate = Boolean(appId && name.trim() && !isSubmitting)
 
-  const handleCreate = (thenDeploy: boolean) => {
+  const handleCreate = async (thenDeploy: boolean) => {
     if (!canCreate)
       return
-    const instanceId = createInstance({
-      appId,
-      name: name.trim(),
-      description: description.trim() || undefined,
-    })
-    if (thenDeploy) {
-      openDeployDrawer({ appId: instanceId })
-      return
+
+    setIsSubmitting(true)
+    try {
+      const result = await createInstance({
+        sourceAppId: appId,
+        name: name.trim(),
+        description: description.trim() || undefined,
+      })
+      if (thenDeploy) {
+        openDeployDrawer({
+          appId: result.appInstanceId,
+          releaseId: result.initialRelease?.id,
+        })
+        return
+      }
+      router.push(`/deployments/${result.appInstanceId}/overview`)
     }
-    router.push(`/deployments/${instanceId}/overview`)
+    catch {
+      toast.error(t('createModal.createFailed'))
+    }
+    finally {
+      setIsSubmitting(false)
+    }
   }
 
   return (
@@ -283,10 +298,10 @@ const CreateInstanceForm: FC<{ onClose: () => void }> = ({ onClose }) => {
         <Button variant="secondary" onClick={onClose}>
           {t('createModal.cancel')}
         </Button>
-        <Button variant="secondary" disabled={!canCreate} onClick={() => handleCreate(false)}>
+        <Button variant="secondary" disabled={!canCreate} onClick={() => void handleCreate(false)}>
           {t('createModal.create')}
         </Button>
-        <Button variant="primary" disabled={!canCreate} onClick={() => handleCreate(true)}>
+        <Button variant="primary" disabled={!canCreate} onClick={() => void handleCreate(true)}>
           {t('createModal.createAndDeploy')}
         </Button>
       </div>

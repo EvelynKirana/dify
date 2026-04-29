@@ -1,7 +1,7 @@
 'use client'
 
 import type { FC } from 'react'
-import type { BindingsProto, ConsoleReleaseSummary, EnvironmentOption } from '@/contract/console/deployments'
+import type { ConsoleReleaseSummary, EnvironmentOption, RuntimeBindingDisplay } from '@/contract/console/deployments'
 import { Button } from '@langgenius/dify-ui/button'
 import { DialogDescription, DialogTitle } from '@langgenius/dify-ui/dialog'
 import { skipToken, useQuery } from '@tanstack/react-query'
@@ -9,25 +9,27 @@ import { useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import Input from '@/app/components/base/input'
 import { consoleQuery } from '@/service/client'
-import { environmentMode, environmentName, releaseCommit, releaseLabel } from '../../utils'
 import {
-  credentialValue,
-  deploymentBindings,
-  deriveRequiredBindings,
-  envVarValue,
-} from './bindings'
+  environmentMode,
+  environmentName,
+  isRuntimeEnvVarBinding,
+  isRuntimeModelBinding,
+  isRuntimePluginBinding,
+  releaseCommit,
+  releaseLabel,
+  runtimeBindingLabel,
+  runtimeBindingValue,
+} from '../../utils'
 import {
   DeploymentSelect,
   EnvironmentRow,
   Field,
-  LabeledSelect,
 } from './select'
 
 export type DeployFormSubmit = {
   environmentId: string
   releaseId?: string
   releaseNote?: string
-  bindings?: BindingsProto
 }
 
 type DeployFormProps = {
@@ -39,6 +41,55 @@ type DeployFormProps = {
   presetReleaseId?: string
   onCancel: () => void
   onSubmit: (params: DeployFormSubmit) => void
+}
+
+type DisabledBindingControlProps = {
+  label: string
+  placeholder: string
+}
+
+const DisabledBindingControl: FC<DisabledBindingControlProps> = ({ label, placeholder }) => (
+  <div className="flex items-center gap-2">
+    <span className="w-20 shrink-0 system-xs-medium text-text-secondary">{label}</span>
+    <button
+      type="button"
+      disabled
+      className="flex h-8 min-w-0 flex-1 cursor-not-allowed items-center justify-between rounded-lg border-[0.5px] border-components-input-border-active bg-components-input-bg-normal px-2 system-sm-medium text-text-quaternary opacity-60"
+    >
+      <span className="truncate">{placeholder}</span>
+      <span className="i-ri-arrow-down-s-line h-4 w-4 shrink-0 text-text-quaternary" />
+    </button>
+  </div>
+)
+
+type DisabledBindingGroupProps = {
+  label: string
+  placeholder: string
+  bindings: RuntimeBindingDisplay[]
+  isLoading: boolean
+}
+
+const DisabledBindingGroup: FC<DisabledBindingGroupProps> = ({ label, placeholder, bindings, isLoading }) => {
+  if (bindings.length === 0) {
+    return (
+      <DisabledBindingControl
+        label={label}
+        placeholder={isLoading ? placeholder : '—'}
+      />
+    )
+  }
+
+  return (
+    <div className="flex flex-col gap-2">
+      {bindings.map(binding => (
+        <DisabledBindingControl
+          key={`${binding.kind}-${runtimeBindingLabel(binding)}-${runtimeBindingValue(binding)}-${binding.valueType ?? ''}`}
+          label={runtimeBindingLabel(binding)}
+          placeholder={runtimeBindingValue(binding)}
+        />
+      ))}
+    </div>
+  )
 }
 
 export const DeployForm: FC<DeployFormProps> = ({
@@ -56,38 +107,31 @@ export const DeployForm: FC<DeployFormProps> = ({
     () => presetReleaseId ? releases.find(r => r.id === presetReleaseId) : undefined,
     [releases, presetReleaseId],
   )
-  const isPromote = Boolean(presetRelease)
+  const displayedRelease = presetRelease ?? (presetReleaseId ? { id: presetReleaseId } : undefined)
+  const isPromote = Boolean(presetReleaseId)
 
   const [selectedEnvId, setSelectedEnvId] = useState<string>(
     () => lockedEnvId ?? environments[0]?.id ?? '',
   )
   const selectedEnvironmentId = selectedEnvId || lockedEnvId || environments[0]?.id || ''
-  const planReleaseId = presetRelease?.id ?? defaultReleaseId ?? releases[0]?.id
-  const deploymentPlan = useQuery(consoleQuery.deployments.deploymentPlan.queryOptions({
-    input: selectedEnvironmentId && planReleaseId
+  const [releaseNote, setReleaseNote] = useState<string>('')
+  const canDeploy = Boolean(selectedEnvironmentId && (!isPromote || displayedRelease?.id || defaultReleaseId))
+  const previewReleaseId = isPromote ? displayedRelease?.id ?? defaultReleaseId : undefined
+  const releasePreview = useQuery(consoleQuery.deployments.previewRelease.queryOptions({
+    input: appId && (!isPromote || previewReleaseId)
       ? {
-          params: {
-            appId,
-            environmentId: selectedEnvironmentId,
-            releaseId: planReleaseId,
+          params: { appInstanceId: appId },
+          body: {
+            releaseId: previewReleaseId,
           },
         }
       : skipToken,
+    staleTime: 30 * 1000,
   }))
-  const required = useMemo(() => deriveRequiredBindings(deploymentPlan.data?.slots), [deploymentPlan.data?.slots])
-  const [releaseNote, setReleaseNote] = useState<string>('')
-  const [modelCredentials, setModelCredentials] = useState<Record<string, string>>({})
-  const [pluginCredentials, setPluginCredentials] = useState<Record<string, string>>({})
-  const [envValues, setEnvValues] = useState<Record<string, string>>({})
-
-  const canDeploy = Boolean(
-    selectedEnvironmentId
-    && deploymentPlan.data?.canDeploy !== false
-    && !deploymentPlan.isFetching
-    && required.model.every(item => !item.required || credentialValue(modelCredentials, item))
-    && required.plugin.every(item => !item.required || credentialValue(pluginCredentials, item))
-    && required.envVars.every(item => !item.required || envVarValue(envValues, item)),
-  )
+  const previewBindings = releasePreview.data?.bindings ?? []
+  const modelBindings = previewBindings.filter(isRuntimeModelBinding)
+  const pluginBindings = previewBindings.filter(isRuntimePluginBinding)
+  const envVarBindings = previewBindings.filter(isRuntimeEnvVarBinding)
 
   const lockedEnv = lockedEnvId ? environments.find(e => e.id === lockedEnvId) : undefined
 
@@ -97,9 +141,8 @@ export const DeployForm: FC<DeployFormProps> = ({
 
     onSubmit({
       environmentId: selectedEnvironmentId,
-      releaseId: presetRelease?.id,
+      releaseId: displayedRelease?.id ?? (isPromote ? defaultReleaseId : undefined),
       releaseNote: isPromote ? undefined : releaseNote,
-      bindings: deploymentBindings(required, modelCredentials, pluginCredentials, envValues),
     })
   }
 
@@ -115,22 +158,22 @@ export const DeployForm: FC<DeployFormProps> = ({
       </div>
 
       <Field label={isPromote ? t('deployDrawer.releaseLabel') : t('deployDrawer.noteLabel')}>
-        {isPromote && presetRelease
+        {isPromote && displayedRelease
           ? (
               <div className="flex flex-col gap-1">
                 <div className="flex items-center justify-between rounded-lg border border-components-panel-border bg-components-panel-bg-blur px-3 py-2">
                   <div className="flex min-w-0 items-center gap-2">
-                    <span className="shrink-0 font-mono system-sm-semibold text-text-primary">{releaseLabel(presetRelease)}</span>
+                    <span className="shrink-0 font-mono system-sm-semibold text-text-primary">{releaseLabel(displayedRelease)}</span>
                     <span className="shrink-0 system-xs-regular text-text-tertiary">·</span>
-                    <span className="shrink-0 font-mono system-xs-regular text-text-tertiary">{releaseCommit(presetRelease)}</span>
-                    {presetRelease.description && (
+                    <span className="shrink-0 font-mono system-xs-regular text-text-tertiary">{releaseCommit(displayedRelease)}</span>
+                    {displayedRelease.description && (
                       <>
                         <span className="shrink-0 system-xs-regular text-text-tertiary">·</span>
-                        <span className="truncate system-xs-regular text-text-secondary">{presetRelease.description}</span>
+                        <span className="truncate system-xs-regular text-text-secondary">{displayedRelease.description}</span>
                       </>
                     )}
                   </div>
-                  <span className="shrink-0 system-xs-regular text-text-quaternary">{presetRelease.createdAt}</span>
+                  <span className="shrink-0 system-xs-regular text-text-quaternary">{displayedRelease.createdAt}</span>
                 </div>
                 <span className="system-xs-regular text-text-tertiary">
                   {t('deployDrawer.existingReleaseHint')}
@@ -171,67 +214,36 @@ export const DeployForm: FC<DeployFormProps> = ({
             )}
       </Field>
 
-      {(required.model.length > 0 || required.plugin.length > 0) && (
-        <div className="flex flex-col gap-4">
+      <div className="flex flex-col gap-4">
+        <div className="flex items-center justify-between gap-3">
           <div className="system-xs-medium-uppercase text-text-tertiary">{t('deployDrawer.runtimeCredentials')}</div>
-          {required.model.length > 0 && (
-            <Field label={t('deployDrawer.modelCreds')}>
-              <div className="flex flex-col gap-2">
-                {required.model.map(item => (
-                  <LabeledSelect
-                    key={item.slot}
-                    label={item.label}
-                    value={credentialValue(modelCredentials, item)}
-                    onChange={v => setModelCredentials(prev => ({ ...prev, [item.slot]: v }))}
-                    options={item.options.map(option => ({
-                      value: option.id,
-                      label: option.label,
-                    }))}
-                    placeholder={t('deployDrawer.selectProviderKey', { provider: item.label })}
-                  />
-                ))}
-              </div>
-            </Field>
-          )}
-
-          {required.plugin.length > 0 && (
-            <Field label={t('deployDrawer.pluginCreds')}>
-              <div className="flex flex-col gap-2">
-                {required.plugin.map(item => (
-                  <LabeledSelect
-                    key={item.slot}
-                    label={item.label}
-                    value={credentialValue(pluginCredentials, item)}
-                    onChange={v => setPluginCredentials(prev => ({ ...prev, [item.slot]: v }))}
-                    options={item.options.map(option => ({ value: option.id, label: option.label }))}
-                    placeholder={t('deployDrawer.selectProviderCred', { provider: item.label })}
-                  />
-                ))}
-              </div>
-            </Field>
-          )}
+          <span className="system-xs-regular text-text-quaternary">{t('deployDrawer.bindingsDisabled')}</span>
         </div>
-      )}
-
-      {required.envVars.length > 0 && (
-        <Field label={t('deployDrawer.envVars')}>
-          <div className="flex flex-col gap-2">
-            {required.envVars.map(v => (
-              <div key={v.key} className="flex items-center gap-2">
-                <span className="w-20 shrink-0 system-xs-medium text-text-secondary">{v.label}</span>
-                <div className="min-w-0 flex-1">
-                  <DeploymentSelect
-                    value={envVarValue(envValues, v)}
-                    onChange={next => setEnvValues(prev => ({ ...prev, [v.key]: next }))}
-                    options={v.options.map(option => ({ value: option.id, label: option.label }))}
-                    placeholder={t('deployDrawer.defaultSelect')}
-                  />
-                </div>
-              </div>
-            ))}
-          </div>
+        <Field label={t('deployDrawer.modelCreds')}>
+          <DisabledBindingGroup
+            label={t('deployDrawer.modelCreds')}
+            placeholder={t('deployDrawer.defaultSelect')}
+            bindings={modelBindings}
+            isLoading={releasePreview.isFetching}
+          />
         </Field>
-      )}
+        <Field label={t('deployDrawer.pluginCreds')}>
+          <DisabledBindingGroup
+            label={t('deployDrawer.pluginCreds')}
+            placeholder={t('deployDrawer.defaultSelect')}
+            bindings={pluginBindings}
+            isLoading={releasePreview.isFetching}
+          />
+        </Field>
+        <Field label={t('deployDrawer.envVars')}>
+          <DisabledBindingGroup
+            label={t('deployDrawer.envVars')}
+            placeholder={t('deployDrawer.defaultSelect')}
+            bindings={envVarBindings}
+            isLoading={releasePreview.isFetching}
+          />
+        </Field>
+      </div>
 
       <div className="flex justify-end gap-2">
         <Button variant="secondary" onClick={onCancel}>

@@ -10,6 +10,7 @@ import {
 } from '@langgenius/dify-ui/dropdown-menu'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
+import { useSourceApps } from '../../hooks/use-source-apps'
 import { useDeploymentsStore } from '../../store'
 import {
   activeRelease,
@@ -31,9 +32,10 @@ export const DeployReleaseMenu: FC<DeployReleaseMenuProps> = ({ appId, releaseId
   const openDeployDrawer = useDeploymentsStore(state => state.openDeployDrawer)
   const openRollbackModal = useDeploymentsStore(state => state.openRollbackModal)
   const [open, setOpen] = useState(false)
+  const { environmentOptions } = useSourceApps({ enabled: open })
 
-  const environments = appData?.candidates.environmentOptions?.filter(env => env.id) ?? []
-  const deploymentRows = deployedRows(appData?.environmentDeployments.environmentDeployments)
+  const environments = environmentOptions.filter(env => env.id)
+  const deploymentRows = deployedRows(appData?.environmentDeployments.data)
 
   return (
     <DropdownMenu modal={false} open={open} onOpenChange={setOpen}>

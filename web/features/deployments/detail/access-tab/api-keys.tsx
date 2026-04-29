@@ -22,7 +22,8 @@ type ApiKeyRowProps = {
 export const ApiKeyRow: FC<ApiKeyRowProps> = ({ apiKey, onRevoke }) => {
   const { t } = useTranslation('deployments')
   const [copied, setCopied] = useState(false)
-  const displayValue = apiKey.maskedPrefix || apiKey.id || '—'
+  const displayValue = apiKey.maskedKey || apiKey.maskedPrefix || apiKey.id || '—'
+  const environmentLabel = apiKey.environment?.name || apiKey.environmentName || apiKey.environmentId || apiKey.environment?.id
 
   const handleCopy = async () => {
     try {
@@ -41,7 +42,7 @@ export const ApiKeyRow: FC<ApiKeyRowProps> = ({ apiKey, onRevoke }) => {
       <div className="flex min-w-[140px] flex-col">
         <span className="system-sm-medium text-text-primary">{apiKey.name || apiKey.id}</span>
         <span className="system-xs-regular text-text-tertiary">
-          {t('access.api.envPrefix', { env: apiKey.environmentName || apiKey.environmentId })}
+          {t('access.api.envPrefix', { env: environmentLabel })}
         </span>
       </div>
       <div className="flex min-w-0 flex-1 items-center gap-1 rounded-lg border-[0.5px] border-components-input-border-active bg-components-input-bg-normal pr-1 pl-2">

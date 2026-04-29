@@ -1,9 +1,9 @@
 import type {
   AccessSubject,
-  BindingsProto,
+  ConsoleReleaseSummary,
+  CreateAppInstanceReply,
   GetAccessConfigReply,
   GetDeploymentOverviewReply,
-  ListDeploymentCandidatesReply,
   ListEnvironmentDeploymentsReply,
   ListReleaseHistoryReply,
 } from '@/contract/console/deployments'
@@ -18,7 +18,6 @@ export type DeploymentAppData = {
   appId: string
   overview: GetDeploymentOverviewReply
   environmentDeployments: ListEnvironmentDeploymentsReply
-  candidates: ListDeploymentCandidatesReply
   releaseHistory: ListReleaseHistoryReply
   accessConfig: GetAccessConfigReply
 }
@@ -28,19 +27,26 @@ export type CreateDeploymentParams = {
   environmentId: string
   releaseId?: string
   releaseNote?: string
-  bindings?: BindingsProto
 }
 
-const idempotencyKey = (prefix: string) => `${prefix}-${globalThis.crypto?.randomUUID?.() ?? Date.now()}`
+export type CreateInstanceParams = {
+  sourceAppId: string
+  name: string
+  description?: string
+}
+
+export type UpdateInstanceParams = {
+  name: string
+  description?: string
+}
 
 export const deploymentAppDataQueryKey = (appId: string) => ['console', 'deployments', 'app-data', appId] as const
 
 export const fetchDeploymentAppData = async (appId: string): Promise<DeploymentAppData> => {
-  const input = { params: { appId } }
+  const input = { params: { appInstanceId: appId } }
   const [
     overview,
     environmentDeployments,
-    candidates,
     releaseHistory,
     accessConfig,
   ] = await Promise.all([
@@ -52,7 +58,6 @@ export const fetchDeploymentAppData = async (appId: string): Promise<DeploymentA
         resultsPerPage: DEPLOYMENT_PAGE_SIZE,
       },
     }),
-    consoleClient.deployments.candidates(input),
     consoleClient.deployments.releaseHistory({
       ...input,
       query: {
@@ -67,7 +72,6 @@ export const fetchDeploymentAppData = async (appId: string): Promise<DeploymentA
     appId,
     overview,
     environmentDeployments,
-    candidates,
     releaseHistory,
     accessConfig,
   }
@@ -87,63 +91,69 @@ export const refreshDeploymentAppData = async (appId: string): Promise<Deploymen
   })
 }
 
+export const createRelease = async (appId: string, releaseNote?: string): Promise<ConsoleReleaseSummary> => {
+  const trimmedReleaseNote = releaseNote?.trim()
+  const response = await consoleClient.deployments.createRelease({
+    params: {
+      appInstanceId: appId,
+    },
+    body: {
+      name: trimmedReleaseNote || 'Release',
+      description: trimmedReleaseNote || undefined,
+    },
+  })
+  if (!response.release)
+    throw new Error('Create release did not return a release.')
+  return response.release
+}
+
 export const createDeployment = async ({
   appId,
   environmentId,
   releaseId,
   releaseNote,
-  bindings,
 }: CreateDeploymentParams) => {
-  const trimmedReleaseNote = releaseNote?.trim()
+  let targetReleaseId = releaseId
+  await consoleClient.deployments.previewRelease({
+    params: {
+      appInstanceId: appId,
+    },
+    body: {
+      releaseId: targetReleaseId,
+    },
+  })
+  if (!targetReleaseId) {
+    const release = await createRelease(appId, releaseNote)
+    targetReleaseId = release.id
+  }
+  if (!targetReleaseId)
+    throw new Error('Failed to create a deployable release.')
+
   return consoleClient.deployments.createDeployment({
     params: {
-      appId,
-      environmentId,
+      appInstanceId: appId,
     },
     body: {
-      ...(releaseId
-        ? { releaseId }
-        : { currentApp: { releaseNote: trimmedReleaseNote || undefined } }),
-      bindings,
-      idempotencyKey: idempotencyKey('deploy'),
+      environmentId,
+      releaseId: targetReleaseId,
     },
   })
 }
 
-export const cancelDeployment = async (appId: string, environmentId: string, deploymentId: string) => {
+export const cancelDeployment = async (appId: string, runtimeInstanceId: string) => {
   return consoleClient.deployments.cancelDeployment({
     params: {
-      appId,
-      environmentId,
-      deploymentId,
-    },
-    body: {
-      idempotencyKey: idempotencyKey('cancel'),
+      appInstanceId: appId,
+      runtimeInstanceId,
     },
   })
 }
 
-export const undeployEnvironment = async (appId: string, environmentId: string) => {
+export const undeployEnvironment = async (appId: string, runtimeInstanceId: string) => {
   return consoleClient.deployments.undeployEnvironment({
     params: {
-      appId,
-      environmentId,
-    },
-    body: {
-      idempotencyKey: idempotencyKey('undeploy'),
-    },
-  })
-}
-
-export const rollbackEnvironment = async (appId: string, environmentId: string, targetReleaseId: string) => {
-  return consoleClient.deployments.rollbackEnvironment({
-    params: {
-      appId,
-      environmentId,
-    },
-    body: {
-      targetReleaseId,
-      idempotencyKey: idempotencyKey('rollback'),
+      appInstanceId: appId,
+      runtimeInstanceId,
     },
   })
 }
@@ -151,35 +161,42 @@ export const rollbackEnvironment = async (appId: string, environmentId: string, 
 export const createApiKey = async (appId: string, environmentId: string, name: string) => {
   return consoleClient.deployments.createEnvironmentAPIToken({
     params: {
-      appId,
-      environmentId,
+      appInstanceId: appId,
     },
     body: {
+      environmentId,
       name,
     },
   })
 }
 
-export const deleteApiKey = async (appId: string, environmentId: string, apiKeyId: string) => {
+export const deleteApiKey = async (appId: string, apiKeyId: string) => {
   return consoleClient.deployments.deleteEnvironmentAPIToken({
     params: {
-      appId,
-      environmentId,
+      appInstanceId: appId,
       apiKeyId,
     },
   })
 }
 
-export const patchAccessChannel = async (appId: string, channel: string, enabled: boolean, expectedVersion = 0) => {
+export const patchAccessChannel = async (appId: string, enabled: boolean) => {
   return consoleClient.deployments.patchAccessChannel({
     params: {
-      appId,
-      channel,
+      appInstanceId: appId,
     },
     body: {
-      channel,
       enabled,
-      expectedVersion,
+    },
+  })
+}
+
+export const patchDeveloperAPI = async (appId: string, enabled: boolean) => {
+  return consoleClient.deployments.patchDeveloperAPI({
+    params: {
+      appInstanceId: appId,
+    },
+    body: {
+      enabled,
     },
   })
 }
@@ -187,24 +204,54 @@ export const patchAccessChannel = async (appId: string, channel: string, enabled
 export const updateEnvironmentAccessPolicy = async (
   appId: string,
   environmentId: string,
-  channel: string,
-  enabled: boolean,
   accessMode: string,
   subjects: AccessSubject[] = [],
-  expectedVersion = 0,
 ) => {
   return consoleClient.deployments.updateEnvironmentAccessPolicy({
     params: {
-      appId,
+      appInstanceId: appId,
       environmentId,
-      channel,
     },
     body: {
-      channel,
-      enabled,
       accessMode,
       subjects,
-      expectedVersion,
+    },
+  })
+}
+
+export const createAppInstance = async ({
+  sourceAppId,
+  name,
+  description,
+}: CreateInstanceParams): Promise<CreateAppInstanceReply> => {
+  return consoleClient.deployments.createInstance({
+    body: {
+      sourceAppId,
+      name,
+      description,
+    },
+  })
+}
+
+export const updateAppInstance = async (
+  appId: string,
+  { name, description }: UpdateInstanceParams,
+) => {
+  return consoleClient.deployments.updateInstance({
+    params: {
+      appInstanceId: appId,
+    },
+    body: {
+      name,
+      description,
+    },
+  })
+}
+
+export const deleteAppInstance = async (appId: string) => {
+  return consoleClient.deployments.deleteInstance({
+    params: {
+      appInstanceId: appId,
     },
   })
 }

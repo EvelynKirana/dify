@@ -49,6 +49,7 @@ const DeploymentsMain: FC = () => {
     environmentOptions,
   } = useSourceApps({
     environmentId: requestedEnvironmentId,
+    notDeployed: envFilter === 'not-deployed',
     keyword: keywords.trim() || undefined,
   })
 
@@ -91,10 +92,8 @@ const DeploymentsMain: FC = () => {
   }, [environments, t])
 
   const visibleInstances = useMemo(() => {
-    return activeFilter === 'not-deployed'
-      ? apps.filter(app => summaries[app.id]?.deployed === false)
-      : apps
-  }, [apps, activeFilter, summaries])
+    return apps
+  }, [apps])
 
   return (
     <>

@@ -1,7 +1,7 @@
 'use client'
 
 import type { FC } from 'react'
-import type { AccessSubject, ConsoleEnvironmentSummary, EnvironmentPolicySummary } from '@/contract/console/deployments'
+import type { AccessPermission, AccessSubject, ConsoleEnvironmentSummary } from '@/contract/console/deployments'
 import { useTranslation } from 'react-i18next'
 import { Section } from './common'
 import { EnvironmentPermissionRow } from './permissions'
@@ -9,7 +9,7 @@ import { EnvironmentPermissionRow } from './permissions'
 type AccessPermissionsSectionProps = {
   appId: string
   environments: ConsoleEnvironmentSummary[]
-  policies: EnvironmentPolicySummary[]
+  policies: AccessPermission[]
   onSetPolicy: (
     appId: string,
     environmentId: string,
@@ -43,7 +43,7 @@ export const AccessPermissionsSection: FC<AccessPermissionsSectionProps> = ({
         : (
             <div className="flex flex-col gap-3">
               {environments.map((env) => {
-                const policy = policies.find(item => item.environment?.id === env.id)?.effectivePolicy
+                const policy = policies.find(item => item.environment?.id === env.id)
                 return (
                   <EnvironmentPermissionRow
                     key={env.id}

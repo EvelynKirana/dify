@@ -1,16 +1,19 @@
 import type { DeploymentAppData } from './data'
 import type { AppInfo } from './types'
-import type { AccessSubject, APIToken, BindingsProto } from '@/contract/console/deployments'
+import type { AccessSubject, APIToken, ConsoleReleaseSummary } from '@/contract/console/deployments'
 import { create } from 'zustand'
 import {
   cancelDeployment,
   createApiKey,
+  createAppInstance,
   createDeployment,
   deleteApiKey,
+  deleteAppInstance,
   patchAccessChannel,
+  patchDeveloperAPI,
   refreshDeploymentAppData,
-  rollbackEnvironment,
   undeployEnvironment,
+  updateAppInstance,
   updateEnvironmentAccessPolicy,
 } from './data'
 
@@ -19,7 +22,6 @@ export type StartDeployParams = {
   environmentId: string
   releaseId?: string
   releaseNote?: string
-  bindings?: BindingsProto
 }
 
 type OpenDeployDrawerParams = {
@@ -41,9 +43,14 @@ type CreatedApiToken = Pick<APIToken, 'id' | 'environmentId' | 'maskedPrefix' | 
 }
 
 export type CreateInstanceParams = {
-  appId: string
+  sourceAppId: string
   name: string
   description?: string
+}
+
+export type CreateInstanceResult = {
+  appInstanceId: string
+  initialRelease?: ConsoleReleaseSummary
 }
 
 type DeploymentsState = {
@@ -79,10 +86,10 @@ type DeploymentsState = {
   applyAppData: (data: DeploymentAppData) => void
   refreshAppData: (appId: string) => Promise<void>
 
-  createInstance: (params: CreateInstanceParams) => string
-  updateInstance: (appId: string, patch: Partial<Pick<AppInfo, 'name' | 'description'>>) => void
+  createInstance: (params: CreateInstanceParams) => Promise<CreateInstanceResult>
+  updateInstance: (appId: string, patch: Pick<AppInfo, 'name' | 'description'>) => Promise<void>
   switchSourceApp: (appId: string, nextAppId: string) => void
-  deleteInstance: (appId: string) => void
+  deleteInstance: (appId: string) => Promise<void>
 
   startDeploy: (params: StartDeployParams) => Promise<void>
   retryDeploy: (appId: string, environmentId: string, targetReleaseId: string) => Promise<void>
@@ -150,48 +157,76 @@ export const useDeploymentsStore = create<DeploymentsState>((set, get) => ({
     get().applyAppData(data)
   },
 
-  createInstance: ({ appId }) => {
+  createInstance: async ({ sourceAppId, name, description }) => {
+    const response = await createAppInstance({ sourceAppId, name, description })
+    if (!response.appInstanceId)
+      throw new Error('Create app instance did not return an appInstanceId.')
     set({ createInstanceModal: { open: false } })
-    return appId
+    return {
+      appInstanceId: response.appInstanceId,
+      initialRelease: response.initialRelease,
+    }
   },
 
-  updateInstance: () => undefined,
+  updateInstance: async (appId, patch) => {
+    await updateAppInstance(appId, {
+      name: patch.name,
+      description: patch.description,
+    })
+    await get().refreshAppData(appId)
+    set(state => ({
+      sourceApps: state.sourceApps.map(app => app.id === appId ? { ...app, ...patch } : app),
+    }))
+  },
 
   switchSourceApp: () => undefined,
 
-  deleteInstance: () => undefined,
+  deleteInstance: async (appId) => {
+    await deleteAppInstance(appId)
+    set((state) => {
+      const { [appId]: _removed, ...appData } = state.appData
+      return {
+        sourceApps: state.sourceApps.filter(app => app.id !== appId),
+        appData,
+      }
+    })
+  },
 
-  startDeploy: async ({ appId, environmentId, releaseId, releaseNote, bindings }) => {
+  startDeploy: async ({ appId, environmentId, releaseId, releaseNote }) => {
     set({ deployDrawer: { open: false } })
-    await createDeployment({ appId, environmentId, releaseId, releaseNote, bindings })
+    await createDeployment({ appId, environmentId, releaseId, releaseNote })
     await get().refreshAppData(appId)
   },
 
   retryDeploy: async (appId, environmentId, targetReleaseId) => {
-    await rollbackEnvironment(appId, environmentId, targetReleaseId)
+    await createDeployment({ appId, environmentId, releaseId: targetReleaseId })
     await get().refreshAppData(appId)
   },
 
   rollbackDeployment: async (appId, environmentId, targetReleaseId) => {
     set({ rollbackModal: { open: false } })
-    await rollbackEnvironment(appId, environmentId, targetReleaseId)
+    await createDeployment({ appId, environmentId, releaseId: targetReleaseId })
     await get().refreshAppData(appId)
   },
 
-  undeployDeployment: async (appId, environmentId, deploymentId, isDeploying) => {
-    if (isDeploying && deploymentId)
-      await cancelDeployment(appId, environmentId, deploymentId)
+  undeployDeployment: async (appId, _environmentId, runtimeInstanceId, isDeploying) => {
+    if (!runtimeInstanceId)
+      return
+    if (isDeploying)
+      await cancelDeployment(appId, runtimeInstanceId)
     else
-      await undeployEnvironment(appId, environmentId)
+      await undeployEnvironment(appId, runtimeInstanceId)
     await get().refreshAppData(appId)
   },
 
   generateApiKey: async (appId, environmentId) => {
     const appData = get().appData[appId]
-    const existingCount = appData?.accessConfig.developerApi?.apiKeys?.filter(key => key.environmentId === environmentId).length ?? 0
+    const existingCount = appData?.accessConfig.developerApi?.apiKeys?.filter(key =>
+      (key.environmentId ?? key.environment?.id) === environmentId,
+    ).length ?? 0
     const environmentName = appData
       ?.environmentDeployments
-      .environmentDeployments
+      .data
       ?.find(row => row.environment?.id === environmentId)
       ?.environment
       ?.name ?? 'env'
@@ -203,8 +238,8 @@ export const useDeploymentsStore = create<DeploymentsState>((set, get) => ({
         createdApiToken: {
           id: response.apiToken.id,
           appId,
-          environmentId,
-          maskedPrefix: response.apiToken.maskedPrefix,
+          environmentId: response.apiToken.environmentId ?? response.apiToken.environment?.id,
+          maskedPrefix: response.apiToken.maskedPrefix ?? response.apiToken.maskedKey,
           name: response.apiToken.name || label,
           token: response.apiToken.token,
         },
@@ -212,20 +247,23 @@ export const useDeploymentsStore = create<DeploymentsState>((set, get) => ({
     }
   },
 
-  revokeApiKey: async (appId, environmentId, apiKeyId) => {
-    await deleteApiKey(appId, environmentId, apiKeyId)
+  revokeApiKey: async (appId, _environmentId, apiKeyId) => {
+    await deleteApiKey(appId, apiKeyId)
     await get().refreshAppData(appId)
   },
 
   clearCreatedApiToken: () => set({ createdApiToken: undefined }),
 
-  toggleAccessChannel: async (appId, channel, enabled, expectedVersion) => {
-    await patchAccessChannel(appId, channel, enabled, expectedVersion)
+  toggleAccessChannel: async (appId, channel, enabled) => {
+    if (channel === 'api')
+      await patchDeveloperAPI(appId, enabled)
+    else
+      await patchAccessChannel(appId, enabled)
     await get().refreshAppData(appId)
   },
 
-  setEnvironmentAccessPolicy: async (appId, environmentId, channel, enabled, accessMode, subjects, expectedVersion) => {
-    await updateEnvironmentAccessPolicy(appId, environmentId, channel, enabled, accessMode, subjects, expectedVersion)
+  setEnvironmentAccessPolicy: async (appId, environmentId, _channel, _enabled, accessMode, subjects) => {
+    await updateEnvironmentAccessPolicy(appId, environmentId, accessMode, subjects)
     await get().refreshAppData(appId)
   },
 }))

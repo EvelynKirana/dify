@@ -2,17 +2,12 @@
 
 import type { FC } from 'react'
 import type {
-  APIToken,
   ConsoleEnvironmentSummary,
-  DeveloperAPIKeySummary,
 } from '@/contract/console/deployments'
-import { useQueries } from '@tanstack/react-query'
 import { useMemo } from 'react'
-import { consoleQuery } from '@/service/client'
 import { useDeploymentsStore } from '../store'
 import {
   deployedRows,
-  environmentName,
 } from '../utils'
 import { AccessChannelsSection } from './access-tab/channels-section'
 import { DeveloperApiSection } from './access-tab/developer-api-section'
@@ -42,68 +37,38 @@ const AccessTab: FC<AccessTabProps> = ({ instanceId: appId }) => {
 
   const accessConfig = appData?.accessConfig
   const deploymentRows = useMemo(
-    () => deployedRows(appData?.environmentDeployments.environmentDeployments),
-    [appData?.environmentDeployments.environmentDeployments],
+    () => deployedRows(appData?.environmentDeployments.data),
+    [appData?.environmentDeployments.data],
   )
   const policies = useMemo(
-    () => accessConfig?.userAccess?.environmentPolicies ?? [],
-    [accessConfig?.userAccess?.environmentPolicies],
+    () => accessConfig?.permissions ?? [],
+    [accessConfig?.permissions],
   )
   const deployedEnvs = useMemo(
     () => uniqueEnvironments([
       ...deploymentRows.map(row => row.environment),
       ...policies.map(policy => policy.environment),
-      ...(accessConfig?.webapp?.rows?.map(row => row.environment) ?? []),
+      ...(accessConfig?.accessChannels?.webappRows?.map(row => row.environment) ?? []),
     ]),
-    [accessConfig?.webapp?.rows, deploymentRows, policies],
+    [accessConfig?.accessChannels?.webappRows, deploymentRows, policies],
   )
   const apiEnabled = accessConfig?.developerApi?.enabled ?? false
-  const apiTokenEnvironments = useMemo(
-    () => deployedEnvs.filter((env): env is ConsoleEnvironmentSummary & { id: string } => Boolean(env.id)),
-    [deployedEnvs],
-  )
-  const apiTokenQueries = useQueries({
-    queries: apiTokenEnvironments.map(env => consoleQuery.deployments.environmentAPITokens.queryOptions({
-      input: {
-        params: {
-          appId,
-          environmentId: env.id,
-        },
-      },
-      enabled: apiEnabled,
-      staleTime: 30 * 1000,
-    })),
-  })
-  const apiTokenRows = apiTokenQueries.flatMap((query, index): DeveloperAPIKeySummary[] => {
-    const env = apiTokenEnvironments[index]
-    return query.data?.data?.map((token: APIToken) => ({
-      ...token,
-      environmentName: token.environmentId ? environmentName(env) : undefined,
-    })) ?? []
-  })
-  const apiKeys = apiTokenQueries.some(query => query.isSuccess)
-    ? apiTokenRows
-    : accessConfig?.developerApi?.apiKeys ?? []
-  const refetchApiTokens = async () => {
-    await Promise.all(apiTokenQueries.map(query => query.refetch()))
-  }
+  const apiKeys = accessConfig?.developerApi?.apiKeys ?? []
   const handleGenerateApiKey = (environmentId: string) => {
     void (async () => {
       await generateApiKey(appId, environmentId)
-      await refetchApiTokens()
     })()
   }
   const handleRevokeApiKey = (environmentId: string, apiKeyId: string) => {
     void (async () => {
       await revokeApiKey(appId, environmentId, apiKeyId)
-      await refetchApiTokens()
     })()
   }
-  const webappRows = accessConfig?.webapp?.rows?.filter(row => row.url) ?? []
-  const runEnabled = accessConfig?.webapp?.enabled ?? false
+  const webappRows = accessConfig?.accessChannels?.webappRows?.filter(row => row.url) ?? []
+  const runEnabled = accessConfig?.accessChannels?.enabled ?? false
   const visibleCreatedApiToken = createdApiToken?.appId === appId ? createdApiToken : undefined
-  const webappChannelVersion = policies.find(policy => policy.effectivePolicy?.channel === 'webapp')?.effectivePolicy?.version ?? 0
-  const cliDomain = getUrlOrigin(accessConfig?.cli?.url)
+  const webappChannelVersion = 0
+  const cliDomain = getUrlOrigin(accessConfig?.accessChannels?.cli?.url)
   const cliDocsUrl = cliDomain ? `${cliDomain}/cli` : undefined
 
   return (

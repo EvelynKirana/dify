@@ -1,9 +1,9 @@
 import type { DeployedToSummary, EnvironmentDeploymentRow, ReleaseHistoryRow } from '@/contract/console/deployments'
 import {
   activeRelease,
+  deploymentStatus,
   environmentId,
   environmentName,
-  targetRelease,
 } from '../../utils'
 
 export type ReleaseDeploymentState = 'active' | 'deploying' | 'failed'
@@ -42,7 +42,7 @@ function dedupeReleaseDeployments(items: ReleaseDeployment[]) {
 }
 
 export function getReleaseDeployments(row: ReleaseHistoryRow, deploymentRows: EnvironmentDeploymentRow[]) {
-  const releaseId = row.release?.id
+  const releaseId = (row.release ?? row).id
   if (!releaseId)
     return []
 
@@ -57,21 +57,7 @@ export function getReleaseDeployments(row: ReleaseHistoryRow, deploymentRows: En
       items.push({
         environmentId: envId,
         environmentName: environmentName(deployment.environment),
-        state: 'active',
-      })
-    }
-    if (targetRelease(deployment)?.id === releaseId) {
-      items.push({
-        environmentId: envId,
-        environmentName: environmentName(deployment.environment),
-        state: 'deploying',
-      })
-    }
-    if (deployment.instance?.lastError?.releaseId === releaseId) {
-      items.push({
-        environmentId: envId,
-        environmentName: environmentName(deployment.environment),
-        state: 'failed',
+        state: releaseDeploymentState(deploymentStatus(deployment)),
       })
     }
     return items

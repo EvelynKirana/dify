@@ -7,7 +7,6 @@ import {
   activeRelease,
   deploymentStatus,
   releaseLabel,
-  targetRelease,
 } from '../../utils'
 
 type DeploymentStatusSummaryProps = {
@@ -22,7 +21,7 @@ export const DeploymentStatusSummary: FC<DeploymentStatusSummaryProps> = ({ row 
     return (
       <span className="inline-flex items-center gap-1.5 system-sm-medium text-util-colors-blue-blue-700">
         <span className="i-ri-loader-4-line h-3.5 w-3.5 animate-spin" />
-        {t('deployTab.status.deployingRelease', { release: releaseLabel(targetRelease(row) || activeRelease(row)) })}
+        {t('deployTab.status.deployingRelease', { release: releaseLabel(activeRelease(row)) })}
       </span>
     )
   }

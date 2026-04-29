@@ -37,17 +37,16 @@ const RollbackModal: FC = () => {
   const appData = useDeploymentsStore(state => modal.appId ? state.appData[modal.appId] : undefined)
   const closeRollbackModal = useDeploymentsStore(state => state.closeRollbackModal)
   const rollbackDeployment = useDeploymentsStore(state => state.rollbackDeployment)
-  const { appMap } = useSourceApps()
+  const { appMap, environmentOptions } = useSourceApps()
 
-  const currentRow = deployedRows(appData?.environmentDeployments.environmentDeployments)
+  const currentRow = deployedRows(appData?.environmentDeployments.data)
     .find(row => environmentId(row.environment) === modal.environmentId)
   const targetRelease = [
-    ...(appData?.candidates.releases ?? []),
-    ...(appData?.releaseHistory.data?.map(row => row.release).filter(release => !!release) ?? []),
+    ...(appData?.releaseHistory.data?.map(row => row.release ?? row).filter(release => !!release?.id) ?? []),
   ].find(release => release?.id === modal.targetReleaseId)
   const currentRelease = activeRelease(currentRow)
   const environment = currentRow?.environment
-    ?? appData?.candidates.environmentOptions?.find(env => env.id === modal.environmentId)
+    ?? environmentOptions.find(env => env.id === modal.environmentId)
   const app = modal.appId ? appMap.get(modal.appId) : undefined
 
   const confirm = () => {

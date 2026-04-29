@@ -13,9 +13,13 @@ import {
   environmentMode,
   environmentName,
   formatDate,
+  isRuntimeEnvVarBinding,
+  isRuntimeModelBinding,
+  isRuntimePluginBinding,
   releaseCommit,
   releaseLabel,
-  targetRelease,
+  runtimeBindingLabel,
+  runtimeBindingValue,
 } from '../../utils'
 
 type InfoBlockProps = {
@@ -54,12 +58,12 @@ type DeploymentPanelProps = {
 export const DeploymentPanel: FC<DeploymentPanelProps> = ({ row }) => {
   const { t } = useTranslation('deployments')
   const observed = activeRelease(row)
-  const pending = targetRelease(row)
   const env = row.environment
-  const observedBindings = row.observedRuntime?.bindings
-  const pendingBindings = row.pendingDeployment?.bindings
-  const credentials = [...observedBindings?.credentials ?? [], ...pendingBindings?.credentials ?? []]
-  const envVars = [...observedBindings?.envVars ?? [], ...pendingBindings?.envVars ?? []]
+  const endpoints = row.detail?.endpoints
+  const detailBindings = row.detail?.bindings ?? []
+  const modelCredentials = detailBindings.filter(isRuntimeModelBinding)
+  const pluginCredentials = detailBindings.filter(isRuntimePluginBinding)
+  const envVars = detailBindings.filter(isRuntimeEnvVarBinding)
 
   return (
     <div className="border-t border-divider-subtle bg-background-default-subtle px-6 py-4">
@@ -67,7 +71,7 @@ export const DeploymentPanel: FC<DeploymentPanelProps> = ({ row }) => {
         <span className="system-sm-semibold text-text-primary">
           {environmentName(env)}
           {' · '}
-          {releaseLabel(observed || pending)}
+          {releaseLabel(observed)}
         </span>
         <ModeBadge mode={environmentMode(env)} />
         <HealthBadge health={environmentHealth(env)} />
@@ -75,35 +79,44 @@ export const DeploymentPanel: FC<DeploymentPanelProps> = ({ row }) => {
       <div className="grid grid-cols-1 gap-x-8 gap-y-4 md:grid-cols-2">
         <InfoBlock title={t('deployTab.panel.instanceInfo')}>
           <InfoRow label={t('deployTab.panel.deploymentId')} value={deploymentId(row) || '—'} mono />
-          <InfoRow label={t('deployTab.panel.replicas')} value={row.instance?.replicas != null ? String(row.instance.replicas) : '—'} />
-          <InfoRow label={t('deployTab.panel.runtimeMode')} value={t(environmentMode(env) === 'isolated' ? 'mode.isolated' : 'mode.shared')} suffix={` / ${environmentBackend(env).toUpperCase()}`} />
-          <InfoRow label={t('deployTab.panel.runtimeNote')} value={row.instance?.status ?? '—'} />
+          <InfoRow label={t('deployTab.panel.replicas')} value={row.detail?.replicas != null ? String(row.detail.replicas) : '—'} />
+          <InfoRow label={t('deployTab.panel.runtimeMode')} value={row.detail?.runtimeMode ?? t(environmentMode(env) === 'isolated' ? 'mode.isolated' : 'mode.shared')} suffix={` / ${environmentBackend(env).toUpperCase()}`} />
+          <InfoRow label={t('deployTab.panel.runtimeNote')} value={row.detail?.runtimeNote ?? row.status ?? '—'} />
         </InfoBlock>
 
         <InfoBlock title={t('deployTab.panel.releaseInfo')}>
-          <InfoRow label={t('deployTab.panel.release')} value={releaseLabel(observed || pending)} mono />
-          <InfoRow label={t('deployTab.panel.commit')} value={releaseCommit(observed || pending)} mono />
-          <InfoRow label={t('deployTab.panel.createdAt')} value={formatDate((observed || pending)?.createdAt)} />
-          {pending && (
-            <InfoRow label={t('deployTab.panel.targetRelease')} value={`${releaseLabel(pending)} / ${releaseCommit(pending)}`} mono />
-          )}
-          {row.instance?.lastError?.releaseId && (
-            <InfoRow label={t('deployTab.panel.failedRelease')} value={row.instance.lastError.releaseId} mono />
-          )}
+          <InfoRow label={t('deployTab.panel.release')} value={releaseLabel(observed)} mono />
+          <InfoRow label={t('deployTab.panel.commit')} value={releaseCommit(observed)} mono />
+          <InfoRow label={t('deployTab.panel.createdAt')} value={formatDate(observed?.createdAt)} />
+          <InfoRow label={t('deployTab.panel.targetRelease')} value="—" mono />
+          <InfoRow label={t('deployTab.panel.failedRelease')} value="—" mono />
         </InfoBlock>
 
         <InfoBlock title={t('deployTab.panel.endpoints')}>
-          <InfoRow label={t('deployTab.panel.run')} value={row.observedRuntime?.endpoints?.run ?? '—'} mono />
-          <InfoRow label={t('deployTab.panel.health')} value={row.observedRuntime?.endpoints?.health ?? '—'} mono />
+          <InfoRow label={t('deployTab.panel.run')} value={endpoints?.run ?? '—'} mono />
+          <InfoRow label={t('deployTab.panel.health')} value={endpoints?.health ?? '—'} mono />
         </InfoBlock>
 
-        {credentials.length > 0 && (
+        {modelCredentials.length > 0 && (
           <InfoBlock title={t('deployTab.panel.modelCreds')}>
-            {credentials.map(c => (
+            {modelCredentials.map(c => (
               <InfoRow
-                key={`${c.slot}-${c.displayName}-${c.maskedValue}`}
-                label={c.slot ?? '—'}
-                value={c.displayName || c.maskedValue || '—'}
+                key={`${c.kind}-${c.slot}-${c.label}-${c.displayName}-${c.displayValue}-${c.maskedValue}`}
+                label={runtimeBindingLabel(c)}
+                value={runtimeBindingValue(c)}
+                mono
+              />
+            ))}
+          </InfoBlock>
+        )}
+
+        {pluginCredentials.length > 0 && (
+          <InfoBlock title={t('deployTab.panel.pluginCreds')}>
+            {pluginCredentials.map(c => (
+              <InfoRow
+                key={`${c.kind}-${c.slot}-${c.label}-${c.displayName}-${c.displayValue}-${c.maskedValue}`}
+                label={runtimeBindingLabel(c)}
+                value={runtimeBindingValue(c)}
                 mono
               />
             ))}
@@ -114,9 +127,9 @@ export const DeploymentPanel: FC<DeploymentPanelProps> = ({ row }) => {
           <InfoBlock title={t('deployTab.panel.envVars')}>
             {envVars.map(v => (
               <InfoRow
-                key={`${v.slot}-${v.displayName}`}
-                label={v.slot ?? '—'}
-                value={v.maskedValue || v.displayName || '—'}
+                key={`${v.kind}-${v.slot}-${v.label}-${v.displayName}-${v.displayValue}`}
+                label={runtimeBindingLabel(v)}
+                value={runtimeBindingValue(v)}
                 mono
               />
             ))}
@@ -124,9 +137,9 @@ export const DeploymentPanel: FC<DeploymentPanelProps> = ({ row }) => {
         )}
       </div>
 
-      {row.instance?.lastError?.message && (
+      {row.status?.toLowerCase().includes('fail') && row.detail?.runtimeNote && (
         <div className="mt-4 rounded-lg border border-util-colors-red-red-200 bg-util-colors-red-red-50 px-3 py-2 system-xs-regular text-util-colors-red-red-700">
-          {row.instance.lastError.message}
+          {row.detail.runtimeNote}
         </div>
       )}
     </div>

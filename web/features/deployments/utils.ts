@@ -4,6 +4,7 @@ import type {
   ConsoleReleaseSummary,
   EnvironmentDeploymentRow,
   EnvironmentOption,
+  RuntimeBindingDisplay,
 } from '@/contract/console/deployments'
 import { PUBLIC_API_PREFIX } from '@/config'
 
@@ -25,7 +26,7 @@ export const environmentMode = (environment?: ConsoleEnvironmentSummary | Enviro
 }
 
 export const environmentBackend = (environment?: ConsoleEnvironmentSummary) => {
-  const runtime = environment?.runtime?.toLowerCase() ?? ''
+  const runtime = (environment?.backend || environment?.runtime)?.toLowerCase() ?? ''
   return runtime.includes('host') ? 'host' : 'k8s'
 }
 
@@ -36,9 +37,24 @@ export const environmentHealth = (environment?: ConsoleEnvironmentSummary | Envi
 
 export const releaseId = (release?: ConsoleReleaseSummary) => release?.id ?? ''
 
-export const releaseLabel = (release?: ConsoleReleaseSummary) => release?.displayId || release?.id || '—'
+export const releaseLabel = (release?: ConsoleReleaseSummary) => release?.name || release?.displayId || release?.id || '—'
 
-export const releaseCommit = (release?: ConsoleReleaseSummary) => release?.commitId || '—'
+export const releaseCommit = (release?: ConsoleReleaseSummary) => release?.shortCommitId || release?.commitId || '—'
+
+export const runtimeBindingLabel = (binding?: RuntimeBindingDisplay) =>
+  binding?.label || binding?.slot || binding?.kind || '—'
+
+export const runtimeBindingValue = (binding?: RuntimeBindingDisplay) =>
+  binding?.displayValue || binding?.maskedValue || binding?.displayName || '—'
+
+export const isRuntimeEnvVarBinding = (binding?: RuntimeBindingDisplay) =>
+  (binding?.kind?.toLowerCase() ?? '').includes('env')
+
+export const isRuntimeModelBinding = (binding?: RuntimeBindingDisplay) =>
+  (binding?.kind?.toLowerCase() ?? '').includes('model')
+
+export const isRuntimePluginBinding = (binding?: RuntimeBindingDisplay) =>
+  !isRuntimeEnvVarBinding(binding) && !isRuntimeModelBinding(binding)
 
 const absoluteUrlRegExp = /^[a-z][a-z\d+.-]*:\/\//i
 
@@ -64,30 +80,21 @@ export const webappUrl = (url?: string) => {
 }
 
 export const deploymentId = (row?: EnvironmentDeploymentRow) =>
-  row?.pendingDeployment?.deploymentId || row?.instance?.currentDeploymentId || ''
+  row?.id || ''
 
-export const activeRelease = (row?: EnvironmentDeploymentRow) => row?.observedRuntime?.release
-
-export const targetRelease = (row?: EnvironmentDeploymentRow) => row?.pendingDeployment?.release
-
-export const failedReleaseId = (row?: EnvironmentDeploymentRow) => row?.instance?.lastError?.releaseId
+export const activeRelease = (row?: EnvironmentDeploymentRow) => row?.currentRelease
 
 export const deploymentStatus = (row: EnvironmentDeploymentRow): DeploymentUiStatus => {
-  if (row.pendingDeployment)
+  const runtimeStatus = row.status?.toLowerCase() ?? ''
+  if (runtimeStatus.includes('deploying') || runtimeStatus.includes('pending'))
     return 'deploying'
-  if (row.instance?.lastError)
-    return 'deploy_failed'
-
-  const status = row.instance?.status?.toLowerCase() ?? ''
-  if (status.includes('deploying') || status.includes('pending'))
-    return 'deploying'
-  if (status.includes('fail') || status.includes('error'))
+  if (runtimeStatus.includes('fail') || runtimeStatus.includes('error'))
     return 'deploy_failed'
   return 'ready'
 }
 
 export const deployedRows = (rows?: EnvironmentDeploymentRow[]) =>
-  rows?.filter(row => row.environment?.id && (row.instance || row.observedRuntime || row.pendingDeployment)) ?? []
+  rows?.filter(row => row.environment?.id && (row.id || row.status || row.currentRelease || row.detail)) ?? []
 
 export const accessModeToPermissionKey = (mode?: string): AccessPermissionKind => {
   const normalized = mode?.toLowerCase() ?? ''
