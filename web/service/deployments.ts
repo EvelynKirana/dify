@@ -8,6 +8,7 @@ import type {
   ListReleaseHistoryReply,
 } from '@/contract/console/deployments'
 import { queryOptions } from '@tanstack/react-query'
+import { getQueryClient } from '@/context/get-query-client'
 import { consoleClient } from './client'
 
 const DEPLOYMENT_PAGE_SIZE = 100
@@ -31,6 +32,8 @@ export type CreateDeploymentParams = {
 }
 
 const idempotencyKey = (prefix: string) => `${prefix}-${globalThis.crypto?.randomUUID?.() ?? Date.now()}`
+
+export const deploymentAppDataQueryKey = (appId: string) => ['console', 'deployments', 'app-data', appId] as const
 
 export const fetchDeploymentAppData = async (appId: string): Promise<DeploymentAppData> => {
   const input = { params: { appId } }
@@ -72,10 +75,17 @@ export const fetchDeploymentAppData = async (appId: string): Promise<DeploymentA
 
 export const deploymentAppDataQueryOptions = (appId: string) =>
   queryOptions<DeploymentAppData>({
-    queryKey: ['console', 'deployments', 'app-data', appId],
+    queryKey: deploymentAppDataQueryKey(appId),
     queryFn: () => fetchDeploymentAppData(appId),
     staleTime: DEPLOYMENT_APP_DATA_STALE_TIME,
   })
+
+export const refreshDeploymentAppData = async (appId: string): Promise<DeploymentAppData> => {
+  return getQueryClient().fetchQuery({
+    ...deploymentAppDataQueryOptions(appId),
+    staleTime: 0,
+  })
+}
 
 export const createDeployment = async ({
   appId,

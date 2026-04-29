@@ -7,8 +7,8 @@ import {
   createApiKey,
   createDeployment,
   deleteApiKey,
-  fetchDeploymentAppData,
   patchAccessChannel,
+  refreshDeploymentAppData,
   rollbackEnvironment,
   undeployEnvironment,
   updateEnvironmentAccessPolicy,
@@ -146,7 +146,7 @@ export const useDeploymentsStore = create<DeploymentsState>((set, get) => ({
   })),
 
   refreshAppData: async (appId) => {
-    const data = await fetchDeploymentAppData(appId)
+    const data = await refreshDeploymentAppData(appId)
     get().applyAppData(data)
   },
 

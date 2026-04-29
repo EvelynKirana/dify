@@ -7,10 +7,11 @@ import { Dialog, DialogCloseButton, DialogContent, DialogDescription, DialogTitl
 import { Select, SelectContent, SelectItem, SelectItemIndicator, SelectItemText, SelectTrigger } from '@langgenius/dify-ui/select'
 import { skipToken, useQuery } from '@tanstack/react-query'
 import * as React from 'react'
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import Input from '@/app/components/base/input'
 import { consoleQuery } from '@/service/client'
+import { deploymentAppDataQueryOptions } from '@/service/deployments'
 import { useDeploymentsStore } from '../store'
 import { environmentHealth, environmentMode, environmentName, releaseCommit, releaseLabel } from '../utils'
 import { HealthBadge, ModeBadge } from './status-badge'
@@ -432,11 +433,23 @@ const DeployForm: FC<DeployFormProps> = ({
 const DeployDrawer: FC = () => {
   const { t } = useTranslation('deployments')
   const drawer = useDeploymentsStore(state => state.deployDrawer)
-  const appData = useDeploymentsStore(state => drawer.appId ? state.appData[drawer.appId] : undefined)
+  const drawerAppId = drawer.appId
+  const storedAppData = useDeploymentsStore(state => drawerAppId ? state.appData[drawerAppId] : undefined)
+  const applyAppData = useDeploymentsStore(state => state.applyAppData)
   const closeDeployDrawer = useDeploymentsStore(state => state.closeDeployDrawer)
   const startDeploy = useDeploymentsStore(state => state.startDeploy)
 
   const open = drawer.open
+  const appDataQuery = useQuery({
+    ...deploymentAppDataQueryOptions(drawerAppId ?? ''),
+    enabled: open && Boolean(drawerAppId) && !storedAppData,
+  })
+  useEffect(() => {
+    if (appDataQuery.data)
+      applyAppData(appDataQuery.data)
+  }, [appDataQuery.data, applyAppData])
+
+  const appData = storedAppData ?? (appDataQuery.data?.appId === drawerAppId ? appDataQuery.data : undefined)
   const environments = appData?.candidates.environmentOptions ?? []
   const releases = appData?.candidates.releases ?? []
   const defaultReleaseId = appData?.candidates.defaultReleaseId
@@ -449,28 +462,35 @@ const DeployDrawer: FC = () => {
     >
       <DialogContent className="w-[560px] max-w-[90vw]">
         <DialogCloseButton />
-        {!drawer.appId
+        {!drawerAppId
           ? <div className="p-4 text-text-tertiary">{t('deployDrawer.notFound')}</div>
-          : (
-              <DeployForm
-                key={formKey}
-                appId={drawer.appId}
-                environments={environments}
-                releases={releases}
-                defaultReleaseId={defaultReleaseId}
-                lockedEnvId={drawer.environmentId}
-                presetReleaseId={drawer.releaseId}
-                onCancel={closeDeployDrawer}
-                onSubmit={({ environmentId, releaseId, releaseNote, bindings }) =>
-                  startDeploy({
-                    appId: drawer.appId!,
-                    environmentId,
-                    releaseId,
-                    releaseNote,
-                    bindings,
-                  })}
-              />
-            )}
+          : !appData
+              ? (
+                  <div className="flex items-center gap-2 p-4 system-sm-regular text-text-tertiary">
+                    <span className="h-4 w-4 animate-spin rounded-full border-2 border-components-panel-border border-t-transparent" />
+                    {t('createModal.loadingApps')}
+                  </div>
+                )
+              : (
+                  <DeployForm
+                    key={formKey}
+                    appId={drawerAppId}
+                    environments={environments}
+                    releases={releases}
+                    defaultReleaseId={defaultReleaseId}
+                    lockedEnvId={drawer.environmentId}
+                    presetReleaseId={drawer.releaseId}
+                    onCancel={closeDeployDrawer}
+                    onSubmit={({ environmentId, releaseId, releaseNote, bindings }) =>
+                      startDeploy({
+                        appId: drawerAppId,
+                        environmentId,
+                        releaseId,
+                        releaseNote,
+                        bindings,
+                      })}
+                  />
+                )}
       </DialogContent>
     </Dialog>
   )
