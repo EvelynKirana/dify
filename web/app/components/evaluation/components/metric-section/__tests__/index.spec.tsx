@@ -131,6 +131,23 @@ describe('MetricSection', () => {
       expect(screen.getByText('Answer Node')).toBeInTheDocument()
     })
 
+    it('should remove the builtin metric when removing its last selected node', () => {
+      // Arrange
+      act(() => {
+        useEvaluationStore.getState().addBuiltinMetric(resourceType, resourceId, 'answer-correctness', [
+          { node_id: 'node-answer', title: 'Answer Node', type: 'llm' },
+        ])
+      })
+
+      // Act
+      renderMetricSection()
+      fireEvent.click(screen.getByRole('button', { name: 'Answer Node' }))
+
+      // Assert
+      expect(screen.queryByText('Answer Correctness')).not.toBeInTheDocument()
+      expect(useEvaluationStore.getState().resources[`${resourceType}:${resourceId}`]!.metrics).toHaveLength(0)
+    })
+
     it('should show only unselected nodes in the add-node dropdown and append the selected node', () => {
       // Arrange
       mockUseDefaultEvaluationMetrics.mockReturnValue({

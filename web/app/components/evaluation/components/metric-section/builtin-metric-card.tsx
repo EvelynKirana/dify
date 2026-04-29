@@ -39,6 +39,16 @@ const BuiltinMetricCard = ({
     ? availableNodeInfoList.filter(nodeInfo => !selectedNodeIdSet.has(nodeInfo.node_id))
     : []
   const shouldShowAddNode = selectableNodeInfoList.length > 0
+  const handleRemoveNode = (nodeId: string) => {
+    const nextSelectedNodeInfoList = selectedNodeInfoList.filter(item => item.node_id !== nodeId)
+
+    if (nextSelectedNodeInfoList.length === 0) {
+      removeMetric(resourceType, resourceId, metric.id)
+      return
+    }
+
+    updateBuiltinMetric(resourceType, resourceId, metric.optionId, nextSelectedNodeInfoList)
+  }
 
   return (
     <div className="group overflow-hidden rounded-xl border border-components-panel-border hover:bg-background-section">
@@ -92,12 +102,7 @@ const BuiltinMetricCard = ({
                       type="button"
                       className="flex h-4 w-4 items-center justify-center rounded-sm text-text-quaternary transition-colors hover:text-text-secondary"
                       aria-label={nodeInfo.title}
-                      onClick={() => updateBuiltinMetric(
-                        resourceType,
-                        resourceId,
-                        metric.optionId,
-                        selectedNodeInfoList.filter(item => item.node_id !== nodeInfo.node_id),
-                      )}
+                      onClick={() => handleRemoveNode(nodeInfo.node_id)}
                     >
                       <span aria-hidden="true" className="i-custom-vender-solid-general-x-circle h-3.5 w-3.5" />
                     </button>
