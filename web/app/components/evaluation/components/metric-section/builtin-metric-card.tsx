@@ -54,7 +54,7 @@ const BuiltinMetricCard = ({
             <span aria-hidden="true" className={cn(metricVisual.icon, 'h-3.5 w-3.5')} />
           </div>
           <div className="flex min-w-0 items-center gap-0.5">
-            <div className="truncate system-md-medium text-text-secondary">{metric.label}</div>
+            <div className="truncate system-md-medium text-text-secondary uppercase">{metric.label}</div>
             <span
               aria-hidden="true"
               className={cn('i-ri-arrow-down-s-line h-4 w-4 shrink-0 text-text-quaternary transition-transform', !isExpanded && '-rotate-90')}
