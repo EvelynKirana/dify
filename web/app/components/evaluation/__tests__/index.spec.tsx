@@ -366,7 +366,7 @@ describe('Evaluation', () => {
 
     render(<ConditionsSection resourceType={resourceType} resourceId={resourceId} />)
 
-    fireEvent.click(screen.getByRole('combobox', { name: 'evaluation.conditions.addCondition' }))
+    fireEvent.click(screen.getByRole('button', { name: 'evaluation.conditions.addCondition' }))
 
     expect(screen.getByText('Faithfulness')).toBeInTheDocument()
     expect(screen.getByText('Review Workflow')).toBeInTheDocument()
@@ -375,7 +375,7 @@ describe('Evaluation', () => {
     expect(screen.getByText('evaluation.conditions.valueTypes.number')).toBeInTheDocument()
     expect(screen.getByText('evaluation.conditions.valueTypes.string')).toBeInTheDocument()
 
-    fireEvent.click(screen.getByRole('option', { name: /reason/i }))
+    fireEvent.click(screen.getByRole('menuitem', { name: /reason/i }))
 
     const condition = useEvaluationStore.getState().resources['apps:app-conditions-dropdown'].judgmentConfig.conditions[0]
 
