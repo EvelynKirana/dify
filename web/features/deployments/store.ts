@@ -12,9 +12,12 @@ import {
   patchAccessChannel,
   patchDeveloperAPI,
   refreshDeploymentAppData,
+  refreshDeploymentAppDataWhenReady,
+  refreshDeploymentLists,
   undeployEnvironment,
   updateAppInstance,
   updateEnvironmentAccessPolicy,
+  waitForAppInstanceInDeploymentList,
 } from './data'
 
 export type StartDeployParams = {
@@ -138,11 +141,8 @@ export const useDeploymentsStore = create<DeploymentsState>((set, get) => ({
   openCreateInstanceModal: () => set({ createInstanceModal: { open: true } }),
   closeCreateInstanceModal: () => set({ createInstanceModal: { open: false } }),
 
-  seedInstancesFromApps: apps => set(state => ({
+  seedInstancesFromApps: apps => set(() => ({
     sourceApps: apps,
-    appData: Object.fromEntries(
-      Object.entries(state.appData).filter(([appId]) => apps.some(app => app.id === appId)),
-    ),
   })),
 
   applyAppData: data => set(state => ({
@@ -162,6 +162,11 @@ export const useDeploymentsStore = create<DeploymentsState>((set, get) => ({
     if (!response.appInstanceId)
       throw new Error('Create app instance did not return an appInstanceId.')
     set({ createInstanceModal: { open: false } })
+    await Promise.allSettled([
+      refreshDeploymentAppDataWhenReady(response.appInstanceId)
+        .then(data => get().applyAppData(data)),
+      waitForAppInstanceInDeploymentList(response.appInstanceId),
+    ])
     return {
       appInstanceId: response.appInstanceId,
       initialRelease: response.initialRelease,
@@ -174,6 +179,7 @@ export const useDeploymentsStore = create<DeploymentsState>((set, get) => ({
       description: patch.description,
     })
     await get().refreshAppData(appId)
+    await refreshDeploymentLists()
     set(state => ({
       sourceApps: state.sourceApps.map(app => app.id === appId ? { ...app, ...patch } : app),
     }))
@@ -190,23 +196,27 @@ export const useDeploymentsStore = create<DeploymentsState>((set, get) => ({
         appData,
       }
     })
+    await refreshDeploymentLists()
   },
 
   startDeploy: async ({ appId, environmentId, releaseId, releaseNote }) => {
     set({ deployDrawer: { open: false } })
     await createDeployment({ appId, environmentId, releaseId, releaseNote })
     await get().refreshAppData(appId)
+    await refreshDeploymentLists()
   },
 
   retryDeploy: async (appId, environmentId, targetReleaseId) => {
     await createDeployment({ appId, environmentId, releaseId: targetReleaseId })
     await get().refreshAppData(appId)
+    await refreshDeploymentLists()
   },
 
   rollbackDeployment: async (appId, environmentId, targetReleaseId) => {
     set({ rollbackModal: { open: false } })
     await createDeployment({ appId, environmentId, releaseId: targetReleaseId })
     await get().refreshAppData(appId)
+    await refreshDeploymentLists()
   },
 
   undeployDeployment: async (appId, _environmentId, runtimeInstanceId, isDeploying) => {
@@ -217,6 +227,7 @@ export const useDeploymentsStore = create<DeploymentsState>((set, get) => ({
     else
       await undeployEnvironment(appId, runtimeInstanceId)
     await get().refreshAppData(appId)
+    await refreshDeploymentLists()
   },
 
   generateApiKey: async (appId, environmentId) => {

@@ -1,7 +1,9 @@
 'use client'
 
 import type { FC, ReactNode } from 'react'
+import type { AppInfo, AppMode } from '../types'
 import type { InstanceDetailTabKey } from './tabs'
+import type { AppInstanceOverview } from '@/contract/console/deployments'
 import { Button } from '@langgenius/dify-ui/button'
 import { useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
@@ -16,6 +18,22 @@ import { useDeploymentsStore } from '../store'
 import { deployedRows, deploymentStatus } from '../utils'
 import { DeploymentSidebar } from './deployment-sidebar'
 import { isInstanceDetailTabKey } from './tabs'
+
+function toAppInfoFromOverview(instance?: AppInstanceOverview): AppInfo | undefined {
+  if (!instance?.id)
+    return undefined
+
+  return {
+    id: instance.id,
+    name: instance.name ?? instance.id,
+    mode: (instance.mode || 'workflow') as AppMode,
+    iconType: 'emoji',
+    icon: instance.icon,
+    description: instance.description ?? undefined,
+    sourceAppId: instance.sourceAppId,
+    sourceAppName: instance.sourceAppName,
+  }
+}
 
 type InstanceDetailProps = {
   instanceId: string
@@ -34,18 +52,29 @@ const InstanceDetail: FC<InstanceDetailProps> = ({ instanceId, children }) => {
   const { appMap, isLoading: isLoadingApps } = useSourceApps()
   useDocumentTitle(t('documentTitle.detail'))
 
-  const app = useMemo(
-    () => sourceApps.find(item => item.id === instanceId) ?? appMap.get(instanceId),
-    [sourceApps, instanceId, appMap],
+  const appDataForInstance = appData[instanceId]
+  const appFromData = useMemo(
+    () => toAppInfoFromOverview(appDataForInstance?.overview.instance),
+    [appDataForInstance?.overview.instance],
   )
-  const detailApps = useMemo(() => app ? [app] : [], [app])
-  useDeploymentData(detailApps, { enabled: detailApps.length > 0 })
+  const app = useMemo(
+    () => sourceApps.find(item => item.id === instanceId) ?? appMap.get(instanceId) ?? appFromData,
+    [sourceApps, instanceId, appMap, appFromData],
+  )
+  const detailApps = useMemo<AppInfo[]>(() => [
+    app ?? {
+      id: instanceId,
+      name: instanceId,
+      mode: 'workflow',
+    },
+  ], [app, instanceId])
+  const detailQuery = useDeploymentData(detailApps, { enabled: Boolean(instanceId) })
   const appDeployments = useMemo(
     () => deployedRows(appData[instanceId]?.environmentDeployments.data),
     [appData, instanceId],
   )
 
-  if (isLoadingApps && !app) {
+  if (!app && (isLoadingApps || detailQuery.isLoading || detailQuery.isFetching)) {
     return (
       <div className="flex h-full items-center justify-center bg-background-body">
         <span className="h-6 w-6 animate-spin rounded-full border-2 border-components-panel-border border-t-transparent" />

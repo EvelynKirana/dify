@@ -9,10 +9,11 @@ import type {
 } from '@/contract/console/deployments'
 import { queryOptions } from '@tanstack/react-query'
 import { getQueryClient } from '@/context/get-query-client'
-import { consoleClient } from '@/service/client'
+import { consoleClient, consoleQuery } from '@/service/client'
 
 const DEPLOYMENT_PAGE_SIZE = 100
 const DEPLOYMENT_APP_DATA_STALE_TIME = 30 * 1000
+const DEPLOYMENT_READINESS_RETRY_DELAYS = [0, 300, 700, 1200]
 
 export type DeploymentAppData = {
   appId: string
@@ -89,6 +90,65 @@ export const refreshDeploymentAppData = async (appId: string): Promise<Deploymen
     ...deploymentAppDataQueryOptions(appId),
     staleTime: 0,
   })
+}
+
+const wait = (delay: number) => new Promise(resolve => setTimeout(resolve, delay))
+
+export const refreshDeploymentAppDataWhenReady = async (appId: string): Promise<DeploymentAppData> => {
+  let lastError: unknown
+
+  for (const delay of DEPLOYMENT_READINESS_RETRY_DELAYS) {
+    if (delay > 0)
+      await wait(delay)
+
+    try {
+      return await refreshDeploymentAppData(appId)
+    }
+    catch (error) {
+      lastError = error
+    }
+  }
+
+  throw lastError
+}
+
+export const refreshDeploymentLists = async () => {
+  await getQueryClient().invalidateQueries({
+    queryKey: consoleQuery.deployments.list.key(),
+  })
+}
+
+export const waitForAppInstanceInDeploymentList = async (appInstanceId: string) => {
+  let lastError: unknown
+
+  for (const delay of DEPLOYMENT_READINESS_RETRY_DELAYS) {
+    if (delay > 0)
+      await wait(delay)
+
+    try {
+      const response = await getQueryClient().fetchQuery({
+        ...consoleQuery.deployments.list.queryOptions({
+          input: {
+            query: {
+              pageNumber: 1,
+              resultsPerPage: DEPLOYMENT_PAGE_SIZE,
+            },
+          },
+        }),
+        staleTime: 0,
+      })
+      if (response.data?.some(app => app.id === appInstanceId))
+        return
+    }
+    catch (error) {
+      lastError = error
+    }
+  }
+
+  await refreshDeploymentLists()
+
+  if (lastError)
+    throw lastError
 }
 
 export const createRelease = async (appId: string, releaseNote?: string): Promise<ConsoleReleaseSummary> => {
