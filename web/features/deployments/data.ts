@@ -9,7 +9,7 @@ import type {
 } from '@/contract/console/deployments'
 import { queryOptions } from '@tanstack/react-query'
 import { getQueryClient } from '@/context/get-query-client'
-import { consoleClient } from './client'
+import { consoleClient } from '@/service/client'
 
 const DEPLOYMENT_PAGE_SIZE = 100
 const DEPLOYMENT_APP_DATA_STALE_TIME = 30 * 1000

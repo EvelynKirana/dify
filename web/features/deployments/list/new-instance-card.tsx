@@ -1,0 +1,71 @@
+'use client'
+
+import type { FC } from 'react'
+import { cn } from '@langgenius/dify-ui/cn'
+import { useTranslation } from 'react-i18next'
+
+type NewInstanceCardProps = {
+  onOpen: () => void
+}
+
+type NewInstanceActionProps = {
+  icon: string
+  label: string
+  disabled?: boolean
+  onClick?: () => void
+}
+
+const NewInstanceAction: FC<NewInstanceActionProps> = ({ icon, label, disabled, onClick }) => {
+  const { t } = useTranslation('deployments')
+
+  return (
+    <button
+      type="button"
+      onClick={disabled ? undefined : onClick}
+      disabled={disabled}
+      title={disabled ? t('newInstance.comingSoon') : undefined}
+      className={cn(
+        'mb-1 flex w-full items-center rounded-lg px-6 py-[7px] text-left text-[13px] leading-[18px] font-medium text-text-tertiary hover:bg-state-base-hover hover:text-text-secondary',
+        disabled
+          ? 'cursor-not-allowed opacity-50 hover:bg-transparent hover:text-text-tertiary'
+          : 'cursor-pointer',
+      )}
+    >
+      <span aria-hidden className={cn('mr-2 h-4 w-4 shrink-0', icon)} />
+      <span className="min-w-0 flex-1 truncate">{label}</span>
+      {disabled && (
+        <span className="ml-2 shrink-0 rounded-md bg-state-base-hover px-1.5 system-2xs-medium text-text-tertiary">
+          {t('newInstance.comingSoon')}
+        </span>
+      )}
+    </button>
+  )
+}
+
+export const NewInstanceCard: FC<NewInstanceCardProps> = ({ onOpen }) => {
+  const { t } = useTranslation('deployments')
+  return (
+    <div className="relative col-span-1 inline-flex h-[160px] flex-col justify-between rounded-xl border-[0.5px] border-components-card-border bg-components-card-bg">
+      <div className="grow rounded-t-xl p-2">
+        <div className="px-6 pt-2 pb-1 text-xs leading-[18px] font-medium text-text-tertiary">
+          {t('newInstance.title')}
+        </div>
+        <NewInstanceAction
+          icon="i-ri-stack-line"
+          label={t('newInstance.fromStudio')}
+          onClick={onOpen}
+        />
+        <NewInstanceAction
+          icon="i-ri-github-fill"
+          label={t('newInstance.fromGitHub')}
+          disabled
+        />
+        <NewInstanceAction
+          icon="i-ri-file-code-line"
+          label={t('newInstance.importDSL')}
+          disabled
+        />
+      </div>
+    </div>
+  )
+}

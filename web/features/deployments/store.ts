@@ -1,6 +1,6 @@
+import type { DeploymentAppData } from './data'
 import type { AppInfo } from './types'
 import type { AccessSubject, APIToken, BindingsProto } from '@/contract/console/deployments'
-import type { DeploymentAppData } from '@/service/deployments'
 import { create } from 'zustand'
 import {
   cancelDeployment,
@@ -12,7 +12,7 @@ import {
   rollbackEnvironment,
   undeployEnvironment,
   updateEnvironmentAccessPolicy,
-} from '@/service/deployments'
+} from './data'
 
 export type StartDeployParams = {
   appId: string

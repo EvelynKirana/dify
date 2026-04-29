@@ -3,7 +3,7 @@
 import type { AppInfo } from '../types'
 import { useQueries } from '@tanstack/react-query'
 import { useEffect, useRef } from 'react'
-import { deploymentAppDataQueryOptions } from '@/service/deployments'
+import { deploymentAppDataQueryOptions } from '../data'
 import { useDeploymentsStore } from '../store'
 
 type UseDeploymentDataOptions = {

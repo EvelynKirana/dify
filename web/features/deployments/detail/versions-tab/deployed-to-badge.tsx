@@ -1,0 +1,49 @@
+'use client'
+
+import type { FC } from 'react'
+import type { ReleaseDeployment, ReleaseDeploymentState } from './release-deployments'
+import { cn } from '@langgenius/dify-ui/cn'
+import { Tooltip, TooltipContent, TooltipTrigger } from '@langgenius/dify-ui/tooltip'
+import { useTranslation } from 'react-i18next'
+
+const RELEASE_DEPLOYMENT_STYLES: Record<ReleaseDeploymentState, string> = {
+  active: 'border-util-colors-green-green-200 bg-util-colors-green-green-50 text-util-colors-green-green-700',
+  deploying: 'border-util-colors-blue-blue-200 bg-util-colors-blue-blue-50 text-util-colors-blue-blue-700',
+  failed: 'border-util-colors-warning-warning-200 bg-util-colors-warning-warning-50 text-util-colors-warning-warning-700',
+}
+
+type DeployedToBadgeProps = {
+  item: ReleaseDeployment
+}
+
+export const DeployedToBadge: FC<DeployedToBadgeProps> = ({ item }) => {
+  const { t } = useTranslation('deployments')
+  const statusLabel = t(`versions.deployedStatus.${item.state}`)
+
+  return (
+    <Tooltip>
+      <TooltipTrigger
+        render={(
+          <span
+            className={cn(
+              'inline-flex h-6 items-center gap-1 rounded-md border px-1.5 system-xs-medium',
+              RELEASE_DEPLOYMENT_STYLES[item.state],
+            )}
+          >
+            {item.state === 'deploying'
+              ? <span className="i-ri-loader-4-line h-3.5 w-3.5 animate-spin" />
+              : item.state === 'failed'
+                ? <span className="i-ri-alert-line h-3.5 w-3.5" />
+                : <span className="h-1.5 w-1.5 rounded-full bg-current" />}
+            {item.environmentName}
+          </span>
+        )}
+      />
+      <TooltipContent>
+        {statusLabel}
+        {' · '}
+        {item.environmentName}
+      </TooltipContent>
+    </Tooltip>
+  )
+}
