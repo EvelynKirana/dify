@@ -10,14 +10,22 @@ type OpenApiDocument = JsonObject & {
   paths?: Record<string, unknown>
 }
 
+type ContractOperation = {
+  id: string
+  operationId?: string
+  tags?: readonly string[]
+}
+
 const currentDir = path.dirname(fileURLToPath(import.meta.url))
 const enterpriseServerDir = process.env.DIFY_ENTERPRISE_SERVER
   ? path.resolve(process.env.DIFY_ENTERPRISE_SERVER)
   : path.resolve(currentDir, '../../dify-enterprise/server')
 const enterpriseOpenApiPath = path.join(enterpriseServerDir, 'pkg/apis/enterprise/openapi.yaml')
 
+const isConsoleApiPath = (routePath: string) => routePath.startsWith('/console/api/')
+
 const stripConsoleApiPrefix = (routePath: string) => {
-  if (routePath.startsWith('/console/api/'))
+  if (isConsoleApiPath(routePath))
     return routePath.replace('/console/api', '')
 
   return routePath
@@ -27,6 +35,20 @@ const stripSchemaNamePrefix = (schemaName: string) => {
   return schemaName
     .replace(/^dify\.enterprise\.api\.enterprise\./, '')
     .replace(/^pagination\./, '')
+}
+
+const contractNameSegments = (operation: ContractOperation) => {
+  const operationId = operation.operationId || operation.id
+  const tag = operation.tags?.[0]
+  const tagPrefixPattern = tag ? new RegExp(`^${tag}[._/-]`) : undefined
+  const name = tagPrefixPattern ? operationId.replace(tagPrefixPattern, '') : operationId
+  const segments = name.split(/[._/-]+/).filter(Boolean)
+
+  return segments.length > 0 ? segments : [operationId]
+}
+
+const contractPathSegments = (operation: ContractOperation) => {
+  return [operation.tags?.[0] || 'default', ...contractNameSegments(operation)]
 }
 
 const normalizeEnterpriseOpenApi = () => {
@@ -39,7 +61,9 @@ const normalizeEnterpriseOpenApi = () => {
   const paths = document.paths ?? {}
 
   document.paths = Object.fromEntries(
-    Object.entries(paths).map(([routePath, pathItem]) => [stripConsoleApiPrefix(routePath), pathItem]),
+    Object.entries(paths)
+      .filter(([routePath]) => isConsoleApiPath(routePath))
+      .map(([routePath, pathItem]) => [stripConsoleApiPrefix(routePath), pathItem]),
   )
 
   return document
@@ -48,13 +72,20 @@ const normalizeEnterpriseOpenApi = () => {
 export default defineConfig({
   input: normalizeEnterpriseOpenApi(),
   output: {
+    entryFile: false,
     path: 'contract/generated/enterprise',
     fileName: {
       suffix: '.gen',
     },
-    header: ctx => [
-      '/* eslint-disable */',
-      ...ctx.defaultValue,
+    postProcess: [
+      {
+        command: 'vp',
+        args: ['fmt', '{{path}}'],
+      },
+      {
+        command: 'eslint',
+        args: ['--fix', '{{path}}'],
+      },
     ],
   },
   parser: {
@@ -70,6 +101,18 @@ export default defineConfig({
     'zod',
     {
       name: 'orpc',
+      contracts: {
+        strategy: 'single',
+        contractName: {
+          name: '{{name}}',
+          casing: 'camelCase',
+        },
+        nesting: contractPathSegments,
+        segmentName: {
+          name: '{{name}}',
+          casing: 'camelCase',
+        },
+      },
       validator: 'zod',
     },
   ],
