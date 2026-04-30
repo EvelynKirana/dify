@@ -199,6 +199,10 @@ describe('CustomMetricEditorCard', () => {
     mockUseSnippetPublishedWorkflow.mockReturnValue({ data: undefined })
   })
 
+  afterEach(() => {
+    vi.restoreAllMocks()
+  })
+
   // Verify the selected evaluation workflow still drives the output summary section.
   describe('Outputs', () => {
     it('should render the selected workflow outputs from the end node', () => {
@@ -274,6 +278,33 @@ describe('CustomMetricEditorCard', () => {
 
   // Verify mapping rows use workflow start variables on the left and current published graph variables on the right.
   describe('Variable Mapping', () => {
+    it('should preserve saved mappings and outputs while the selected workflow is loading', () => {
+      const baseMetric = createMetric()
+      const metric = {
+        ...baseMetric,
+        customConfig: {
+          ...baseMetric.customConfig!,
+          outputs: [{ id: 'score', valueType: 'number' }],
+        },
+      }
+      const syncMappingsSpy = vi.spyOn(useEvaluationStore.getState(), 'syncCustomMetricMappings')
+      const syncOutputsSpy = vi.spyOn(useEvaluationStore.getState(), 'syncCustomMetricOutputs')
+
+      mockUseAppWorkflow.mockReturnValue({ data: undefined })
+
+      render(
+        <CustomMetricEditorCard
+          resourceType="apps"
+          resourceId="app-under-test"
+          metric={metric}
+        />,
+      )
+
+      expect(screen.getByText('Evaluation Workflow')).toBeInTheDocument()
+      expect(syncMappingsSpy).not.toHaveBeenCalled()
+      expect(syncOutputsSpy).not.toHaveBeenCalled()
+    })
+
     it('should pass the current app published graph and saved selector values to the picker', () => {
       const selectedWorkflow = createWorkflow([
         createStartNode(),
