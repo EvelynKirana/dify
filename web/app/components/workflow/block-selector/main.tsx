@@ -191,12 +191,14 @@ const NodeSelector: FC<NodeSelectorProps> = ({
     </PopoverTrigger>
   )
   const triggerElement = trigger?.(open)
+  const shouldRenderTriggerElementAsRoot = React.isValidElement(triggerElement)
+    && (asChild || triggerElement.type === 'button')
   const triggerElementProps = React.isValidElement(triggerElement)
     ? (triggerElement.props as {
         onClick?: MouseEventHandler<HTMLElement>
       })
     : null
-  const resolvedTriggerElement = asChild && React.isValidElement(triggerElement)
+  const resolvedTriggerElement = shouldRenderTriggerElementAsRoot
     ? React.cloneElement(
         triggerElement as React.ReactElement<{
           onClick?: MouseEventHandler<HTMLElement>
@@ -217,9 +219,8 @@ const NodeSelector: FC<NodeSelectorProps> = ({
   const resolvedOffset = typeof offset === 'number' || typeof offset === 'function' ? undefined : offset
   const sideOffset = typeof offset === 'number' ? offset : (resolvedOffset?.mainAxis ?? 0)
   const alignOffset = typeof offset === 'number' ? 0 : (resolvedOffset?.crossAxis ?? 0)
-  const nativeButton = asChild
-    ? React.isValidElement(triggerElement) && (typeof triggerElement.type !== 'string' || triggerElement.type === 'button')
-    : false
+  const nativeButton = shouldRenderTriggerElementAsRoot
+    && (typeof triggerElement.type !== 'string' || triggerElement.type === 'button')
 
   return (
     <Popover
