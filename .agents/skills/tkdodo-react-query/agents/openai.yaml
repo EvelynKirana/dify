@@ -1,0 +1,4 @@
+interface:
+  display_name: "TkDodo React Query"
+  short_description: "TanStack Query guidance distilled from TkDodo series"
+  default_prompt: "Use this skill when implementing or reviewing TanStack Query / React Query code, especially query keys, queryOptions, mutations, invalidation, selectors, optimistic updates, forms, testing, and TypeScript inference."
