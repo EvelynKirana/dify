@@ -12,10 +12,9 @@ import { useRouter, useSelectedLayoutSegment } from '@/next/navigation'
 import DeployDrawer from '../components/deploy-drawer'
 import RollbackModal from '../components/rollback-modal'
 import {
-  deploymentEnvironmentDeploymentsQueryOptions,
   deploymentOverviewQueryOptions,
 } from '../queries'
-import { deployedRows, deploymentStatus, toAppInfoFromOverview } from '../utils'
+import { toAppInfoFromOverview } from '../utils'
 import { DeploymentSidebar } from './deployment-sidebar'
 import { isInstanceDetailTabKey } from './tabs'
 
@@ -32,16 +31,12 @@ const InstanceDetail: FC<InstanceDetailProps> = ({ instanceId, children }) => {
   const selectedTab = selectedSegment ?? undefined
   const activeTab: InstanceDetailTabKey = isInstanceDetailTabKey(selectedTab) ? selectedTab : 'overview'
   const overviewQuery = useQuery(deploymentOverviewQueryOptions(instanceId))
-  const { data: environmentDeployments } = useQuery(deploymentEnvironmentDeploymentsQueryOptions(instanceId))
+
   useDocumentTitle(t('documentTitle.detail'))
 
   const app = useMemo(
     () => toAppInfoFromOverview(overviewQuery.data?.instance),
     [overviewQuery.data?.instance],
-  )
-  const deploymentRows = useMemo(
-    () => deployedRows(environmentDeployments?.data),
-    [environmentDeployments?.data],
   )
 
   if (!app && overviewQuery.isLoading) {
@@ -63,10 +58,6 @@ const InstanceDetail: FC<InstanceDetailProps> = ({ instanceId, children }) => {
       </div>
     )
   }
-
-  const deployingCount = deploymentRows.filter(row => deploymentStatus(row) === 'deploying').length
-  const failedCount = deploymentRows.filter(row => deploymentStatus(row) === 'deploy_failed').length
-  const envCount = deploymentRows.length
   const appModeLabel = app ? getAppModeLabel(app.mode, tCommon) : t('detail.sourceAppDeleted')
 
   return (
@@ -88,25 +79,6 @@ const InstanceDetail: FC<InstanceDetailProps> = ({ instanceId, children }) => {
                   <div className="title-md-semi-bold text-text-primary">{t(`tabs.${activeTab}.name`)}</div>
                 </div>
                 <div className="system-xs-regular text-text-tertiary">{t(`tabs.${activeTab}.description`)}</div>
-              </div>
-              <div className="flex items-center gap-2 system-xs-regular text-text-tertiary">
-                <span>{t('detail.envCount', { count: envCount })}</span>
-                {deployingCount > 0 && (
-                  <>
-                    <span>·</span>
-                    <span className="text-util-colors-warning-warning-700">
-                      {t('detail.deployingCount', { count: deployingCount })}
-                    </span>
-                  </>
-                )}
-                {failedCount > 0 && (
-                  <>
-                    <span>·</span>
-                    <span className="text-util-colors-red-red-700">
-                      {t('detail.failedCount', { count: failedCount })}
-                    </span>
-                  </>
-                )}
               </div>
             </div>
             <div className="grow overflow-y-auto">
