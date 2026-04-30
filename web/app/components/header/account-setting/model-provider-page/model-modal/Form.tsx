@@ -142,15 +142,15 @@ function Form<
   }, [onChange, value])
 
   const renderField = (formSchema: CredentialFormSchema | CustomFormSchema) => {
-    const tooltip = formSchema.tooltip
-    const tooltipText = tooltip?.[language] || tooltip?.en_US
-    const tooltipContent = (tooltipText && (
+    const infotip = formSchema.tooltip
+    const infotipText = infotip?.[language] || infotip?.en_US
+    const infotipContent = (infotipText && (
       <Infotip
-        aria-label={tooltipText}
+        aria-label={infotipText}
         className="ml-1"
         popupClassName="w-[200px] max-w-[200px]"
       >
-        {tooltipText}
+        {infotipText}
       </Infotip>
     ))
     if (override) {
@@ -182,7 +182,7 @@ function Form<
             {required && (
               <span className="ml-1 text-red-500">*</span>
             )}
-            {tooltipContent}
+            {infotipContent}
           </div>
           <Input
             className={cn(inputClassName, `${disabled && 'cursor-not-allowed opacity-60'}`)}
@@ -226,7 +226,7 @@ function Form<
             {required && (
               <span className="ml-1 text-red-500">*</span>
             )}
-            {tooltipContent}
+            {infotipContent}
           </div>
           <div className={cn('grid gap-3', gridColumnsClassName)}>
             {options.filter((option) => {
@@ -288,7 +288,7 @@ function Form<
             {required && (
               <span className="ml-1 text-red-500">*</span>
             )}
-            {tooltipContent}
+            {infotipContent}
           </div>
           <Select
             disabled={readonly}
@@ -336,7 +336,7 @@ function Form<
               {required && (
                 <span className="ml-1 text-red-500">*</span>
               )}
-              {tooltipContent}
+              {infotipContent}
             </div>
             <Radio.Group
               className="flex items-center"
@@ -366,7 +366,7 @@ function Form<
             {required && (
               <span className="ml-1 text-red-500">*</span>
             )}
-            {tooltipContent}
+            {infotipContent}
           </div>
           <ModelParameterModal
             popupClassName="w-[387px]!"
@@ -398,7 +398,7 @@ function Form<
             {required && (
               <span className="ml-1 text-red-500">*</span>
             )}
-            {tooltipContent}
+            {infotipContent}
           </div>
           <ToolSelector
             scope={scope}
@@ -421,7 +421,7 @@ function Form<
       const {
         variable,
         label,
-        tooltip,
+        tooltip: infotip,
         required,
         scope,
       } = formSchema as (CredentialFormSchemaTextInput | CredentialFormSchemaSecretInput)
@@ -436,7 +436,7 @@ function Form<
             scope={scope}
             label={label[language] || label.en_US}
             required={required}
-            tooltip={tooltip?.[language] || tooltip?.en_US}
+            tooltip={infotip?.[language] || infotip?.en_US}
             value={value[variable] || []}
             onChange={item => handleFormChange(variable, item)}
             supportCollapse
@@ -462,7 +462,7 @@ function Form<
             {required && (
               <span className="ml-1 text-red-500">*</span>
             )}
-            {tooltipContent}
+            {infotipContent}
           </div>
           <AppSelector
             disabled={readonly}
@@ -491,7 +491,7 @@ function Form<
             {required && (
               <span className="ml-1 text-red-500">*</span>
             )}
-            {tooltipContent}
+            {infotipContent}
           </div>
           <VarReferencePicker
             zIndex={1001}
