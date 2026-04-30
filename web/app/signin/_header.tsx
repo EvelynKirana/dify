@@ -1,5 +1,4 @@
 'use client'
-import type { Locale } from '@/i18n-config'
 import { useSuspenseQuery } from '@tanstack/react-query'
 import Divider from '@/app/components/base/divider'
 import { useLocale } from '@/context/i18n'
@@ -39,7 +38,7 @@ const Header = () => {
           value={locale}
           items={languages.filter(item => item.supported)}
           onChange={(value) => {
-            setLocaleOnClient(value as Locale, false)
+            setLocaleOnClient(value, false)
           }}
         />
         <Divider type="vertical" className="mx-0 ml-2 h-4" />

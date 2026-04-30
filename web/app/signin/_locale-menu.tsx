@@ -1,5 +1,3 @@
-'use client'
-
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -9,18 +7,28 @@ import {
   DropdownMenuTrigger,
 } from '@langgenius/dify-ui/dropdown-menu'
 
-type LocaleMenuProps = {
-  items: Array<{ value: string, name: string }>
-  value?: string
-  onChange?: (value: string) => void
+type LocaleMenuItem<T extends string> = {
+  value: T
+  name: string
 }
 
-export default function LocaleMenu({
+type LocaleMenuProps<T extends string> = {
+  items: Array<LocaleMenuItem<T>>
+  value?: T
+  onChange?: (value: T) => void
+}
+
+export default function LocaleMenu<T extends string>({
   items,
   value,
   onChange,
-}: LocaleMenuProps) {
+}: LocaleMenuProps<T>) {
   const selectedItem = items.find(item => item.value === value)
+  const handleValueChange = (nextValue: string) => {
+    const nextItem = items.find(item => item.value === nextValue)
+    if (nextItem)
+      onChange?.(nextItem.value)
+  }
 
   return (
     <div className="w-56 text-right">
@@ -45,11 +53,12 @@ export default function LocaleMenu({
           sideOffset={8}
           popupClassName="w-[200px]"
         >
-          <DropdownMenuRadioGroup value={value} onValueChange={onChange}>
+          <DropdownMenuRadioGroup value={value} onValueChange={handleValueChange}>
             {items.map(item => (
               <DropdownMenuRadioItem
                 key={item.value}
                 value={item.value}
+                closeOnClick
                 className="px-3 py-2 text-sm text-text-secondary"
               >
                 <span className="grow truncate">{item.name}</span>

@@ -57,7 +57,7 @@ describe('LocaleMenu', () => {
       await user.click(screen.getByRole('button', { name: /english \(us\)/i }))
       await user.click(screen.getByRole('menuitemradio', { name: '日本語' }))
 
-      expect(onChange).toHaveBeenCalledWith('ja-JP', expect.anything())
+      expect(onChange).toHaveBeenCalledWith('ja-JP')
     })
 
     it('should render all locale options when menu is opened', async () => {
@@ -93,7 +93,7 @@ describe('LocaleMenu', () => {
       await user.click(screen.getByRole('button', { name: /english \(us\)/i }))
       await user.click(screen.getByRole('menuitemradio', { name: '简体中文' }))
 
-      expect(screen.getByRole('menuitemradio', { name: '简体中文' })).toBeInTheDocument()
+      expect(screen.queryByRole('menuitemradio', { name: '简体中文' })).not.toBeInTheDocument()
     })
 
     it('should render no options when items are empty', async () => {
