@@ -1,7 +1,7 @@
 'use client'
 
 import type { QueryClient, QueryKey } from '@tanstack/react-query'
-import type { ConsoleReleaseSummary } from '@/contract/console/deployments'
+import type { ConsoleReleaseSummary } from '@/features/deployments/types'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { consoleClient, consoleQuery } from '@/service/client'
 import {
@@ -224,10 +224,18 @@ export const useUndeployDeployment = () => {
             appInstanceId,
             runtimeInstanceId,
           },
+          body: {
+            appInstanceId,
+            runtimeInstanceId,
+          },
         })
       }
       return consoleClient.deployments.undeployEnvironment({
         params: {
+          appInstanceId,
+          runtimeInstanceId,
+        },
+        body: {
           appInstanceId,
           runtimeInstanceId,
         },

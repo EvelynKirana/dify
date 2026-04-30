@@ -1,4 +1,4 @@
-import type { EnvironmentDeploymentRow, ReleaseHistoryRow } from '@/contract/console/deployments'
+import type { EnvironmentDeploymentRow, ReleaseHistoryRow } from '@/features/deployments/types'
 import { describe, expect, it } from 'vitest'
 import { getReleaseDeployments } from '../release-deployments'
 

@@ -1,7 +1,7 @@
 'use client'
 
 import type { FC } from 'react'
-import type { WebAppAccessRow } from '@/contract/console/deployments'
+import type { WebAppAccessRow } from '@/features/deployments/types'
 import { Switch } from '@langgenius/dify-ui/switch'
 import { useTranslation } from 'react-i18next'
 import { environmentName, webappUrl } from '../../utils'

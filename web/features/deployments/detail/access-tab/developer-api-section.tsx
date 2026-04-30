@@ -1,7 +1,7 @@
 'use client'
 
 import type { FC } from 'react'
-import type { ConsoleEnvironmentSummary, DeveloperAPIKeySummary } from '@/contract/console/deployments'
+import type { ConsoleEnvironmentSummary, DeveloperAPIKeySummary } from '@/features/deployments/types'
 import { Switch } from '@langgenius/dify-ui/switch'
 import { useTranslation } from 'react-i18next'
 import { ApiKeyGenerateMenu, ApiKeyRow } from './api-keys'

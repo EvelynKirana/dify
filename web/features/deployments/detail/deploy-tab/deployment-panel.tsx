@@ -1,7 +1,7 @@
 'use client'
 
 import type { FC, ReactNode } from 'react'
-import type { EnvironmentDeploymentRow } from '@/contract/console/deployments'
+import type { EnvironmentDeploymentRow } from '@/features/deployments/types'
 import { cn } from '@langgenius/dify-ui/cn'
 import { useTranslation } from 'react-i18next'
 import {

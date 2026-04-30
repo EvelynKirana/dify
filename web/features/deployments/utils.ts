@@ -1,7 +1,9 @@
-import type { AccessPermissionKind, AppInfo, AppMode } from './types'
 import type {
+  AccessPermissionKind,
   AppDeploymentSummary,
+  AppInfo,
   AppInstanceOverview,
+  AppMode,
   ConsoleEnvironmentSummary,
   ConsoleReleaseSummary,
   EnvironmentDeploymentRow,
@@ -9,7 +11,7 @@ import type {
   ListAppDeploymentsReply,
   ListDeploymentEnvironmentOptionsReply,
   RuntimeBindingDisplay,
-} from '@/contract/console/deployments'
+} from './types'
 import { PUBLIC_API_PREFIX } from '@/config'
 
 export type DeploymentUiStatus = 'ready' | 'deploying' | 'deploy_failed'

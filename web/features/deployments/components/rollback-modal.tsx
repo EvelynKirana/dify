@@ -69,8 +69,8 @@ const RollbackModal: FC = () => {
   const currentRow = deployedRows(environmentDeployments?.data)
     .find(row => environmentId(row.environment) === modal.environmentId)
   const targetRelease = [
-    ...(releaseHistory?.data?.map(row => row.release ?? row).filter(release => !!release?.id) ?? []),
-  ].find(release => release?.id === modal.targetReleaseId)
+    ...(releaseHistory?.data?.filter(release => !!release.id) ?? []),
+  ].find(release => release.id === modal.targetReleaseId)
   const currentRelease = activeRelease(currentRow)
   const environment = currentRow?.environment
     ?? environmentOptions.find(env => env.id === modal.environmentId)

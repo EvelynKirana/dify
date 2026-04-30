@@ -33,7 +33,7 @@ const DeployDrawer: FC = () => {
     [environmentOptionsReply],
   )
   const environments = environmentOptions
-  const releases = releaseHistory?.data?.map(row => row.release ?? row).filter(release => release.id) ?? []
+  const releases = releaseHistory?.data?.filter(release => release.id) ?? []
   const defaultReleaseId = releases[0]?.id
   const formKey = `${drawer.appInstanceId ?? 'none'}-${drawer.environmentId ?? 'any'}-${drawer.releaseId ?? 'new'}-${open ? '1' : '0'}`
 

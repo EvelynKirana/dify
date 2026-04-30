@@ -1,7 +1,7 @@
 'use client'
 import type { FC } from 'react'
 import type { AppInfo } from '../types'
-import type { GetAppInstanceSettingsReply } from '@/contract/console/deployments'
+import type { GetAppInstanceSettingsReply } from '@/features/deployments/types'
 import {
   AlertDialog,
   AlertDialogActions,

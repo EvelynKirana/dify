@@ -1,7 +1,7 @@
 'use client'
 
 import type { FC } from 'react'
-import type { EnvironmentOption } from '@/contract/console/deployments'
+import type { EnvironmentOption } from '@/features/deployments/types'
 import { cn } from '@langgenius/dify-ui/cn'
 import { Select, SelectContent, SelectItem, SelectItemIndicator, SelectItemText, SelectTrigger } from '@langgenius/dify-ui/select'
 import { useTranslation } from 'react-i18next'

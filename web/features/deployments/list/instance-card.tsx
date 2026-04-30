@@ -2,7 +2,7 @@
 
 import type { FC, MouseEvent } from 'react'
 import type { AppInfo } from '../types'
-import type { AppDeploymentSummary } from '@/contract/console/deployments'
+import type { AppDeploymentSummary } from '@/features/deployments/types'
 import type { AppModeEnum } from '@/types/app'
 import { cn } from '@langgenius/dify-ui/cn'
 import {
@@ -50,7 +50,7 @@ export const InstanceCard: FC<InstanceCardProps> = ({ app, summary }) => {
   const envCount = failedCount + deployingCount + readyCount
 
   const lastDeployedAt = summary?.lastDeployedAt
-    ? new Date(summary.lastDeployedAt).getTime()
+    ? Date.parse(summary.lastDeployedAt)
     : null
 
   const primaryStatus: 'none' | 'failed' | 'deploying' | 'ready' = envCount === 0

@@ -1,4 +1,4 @@
-import type { DeployedToSummary, EnvironmentDeploymentRow, ReleaseHistoryRow } from '@/contract/console/deployments'
+import type { DeployedToSummary, EnvironmentDeploymentRow, ReleaseHistoryRow } from '@/features/deployments/types'
 import {
   activeRelease,
   deploymentStatus,

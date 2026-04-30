@@ -1,7 +1,7 @@
 'use client'
 
 import type { FC } from 'react'
-import type { ConsoleEnvironmentSummary, DeveloperAPIKeySummary } from '@/contract/console/deployments'
+import type { ConsoleEnvironmentSummary, DeveloperAPIKeySummary } from '@/features/deployments/types'
 import { cn } from '@langgenius/dify-ui/cn'
 import {
   DropdownMenu,

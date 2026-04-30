@@ -1,4 +1,4 @@
-import type { ListAppDeploymentsQuery } from '@/contract/console/deployments'
+import type { ListAppDeploymentsQuery } from '@/features/deployments/types'
 import { skipToken } from '@tanstack/react-query'
 import { consoleQuery } from '@/service/client'
 import { DEPLOYMENT_PAGE_SIZE, SOURCE_APPS_PAGE_SIZE } from './data'

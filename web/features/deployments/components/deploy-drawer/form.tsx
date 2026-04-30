@@ -1,7 +1,7 @@
 'use client'
 
 import type { FC } from 'react'
-import type { ConsoleReleaseSummary, EnvironmentOption, RuntimeBindingDisplay } from '@/contract/console/deployments'
+import type { ConsoleReleaseSummary, EnvironmentOption, RuntimeBindingDisplay } from '@/features/deployments/types'
 import { Button } from '@langgenius/dify-ui/button'
 import { DialogDescription, DialogTitle } from '@langgenius/dify-ui/dialog'
 import { skipToken, useQuery } from '@tanstack/react-query'

@@ -1,7 +1,7 @@
 'use client'
 
 import type { FC } from 'react'
-import type { EnvironmentDeploymentRow } from '@/contract/console/deployments'
+import type { EnvironmentDeploymentRow } from '@/features/deployments/types'
 import { useTranslation } from 'react-i18next'
 import {
   activeRelease,

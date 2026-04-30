@@ -15,6 +15,7 @@ export default antfu(
       '!package.json',
       '!pnpm-workspace.yaml',
       '!vite.config.ts',
+      'web/contract/generated/**',
       ...original,
     ],
     typescript: {

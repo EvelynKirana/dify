@@ -1,7 +1,7 @@
 'use client'
 
 import type { FC } from 'react'
-import type { AccessPermission, AccessSubject, ConsoleEnvironmentSummary } from '@/contract/console/deployments'
+import type { AccessPermission, AccessSubject, ConsoleEnvironmentSummary } from '@/features/deployments/types'
 import { useTranslation } from 'react-i18next'
 import { Section } from './common'
 import { EnvironmentPermissionRow } from './permissions'

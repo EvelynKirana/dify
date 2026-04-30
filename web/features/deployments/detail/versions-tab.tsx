@@ -30,7 +30,7 @@ const VersionsTab: FC<VersionsTabProps> = ({ instanceId: appId }) => {
   const { data: releaseHistory } = useQuery(deploymentReleaseHistoryQueryOptions(appId))
   const { data: environmentDeployments } = useQuery(deploymentEnvironmentDeploymentsQueryOptions(appId))
   const releaseRows = useMemo(
-    () => releaseHistory?.data?.filter(row => (row.release ?? row).id) ?? [],
+    () => releaseHistory?.data?.filter(row => row.id) ?? [],
     [releaseHistory?.data],
   )
   const deploymentRows = useMemo(
@@ -73,7 +73,7 @@ const VersionsTab: FC<VersionsTabProps> = ({ instanceId: appId }) => {
               </div>
 
               {releaseRows.map((row) => {
-                const release = row.release ?? row
+                const release = row
                 const releaseDeployments = getReleaseDeployments(row, deploymentRows)
                 return (
                   <div key={release.id} className="border-b border-divider-subtle last:border-b-0">
@@ -95,7 +95,7 @@ const VersionsTab: FC<VersionsTabProps> = ({ instanceId: appId }) => {
                           <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 system-xs-regular text-text-secondary">
                             <span>{formatDate(release.createdAt)}</span>
                             <span aria-hidden>·</span>
-                            <span>{row.createdBy?.displayName ?? row.createdBy?.name ?? '—'}</span>
+                            <span>{row.createdBy?.name ?? '—'}</span>
                           </div>
                         </div>
                         <div className="flex shrink-0 justify-end gap-1">
@@ -138,7 +138,7 @@ const VersionsTab: FC<VersionsTabProps> = ({ instanceId: appId }) => {
                         </Tooltip>
                       </div>
                       <div className="system-sm-regular text-text-secondary">{formatDate(release.createdAt)}</div>
-                      <div className="system-sm-regular text-text-secondary">{row.createdBy?.displayName ?? row.createdBy?.name ?? '—'}</div>
+                      <div className="system-sm-regular text-text-secondary">{row.createdBy?.name ?? '—'}</div>
                       <div className="flex flex-wrap gap-1">
                         {releaseDeployments.length === 0
                           ? <span className="system-sm-regular text-text-quaternary">—</span>

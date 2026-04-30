@@ -8,7 +8,7 @@ import type {
   AccessSubject,
   AccessSubjectDisplay,
   ConsoleEnvironmentSummary,
-} from '@/contract/console/deployments'
+} from '@/features/deployments/types'
 import { cn } from '@langgenius/dify-ui/cn'
 import {
   DropdownMenu,
@@ -328,10 +328,12 @@ export const EnvironmentPermissionRow: FC<EnvironmentPermissionRowProps> = ({
   }))
   const detailPolicy = policyQuery.data?.policy
   const policyKind = accessModeToPermissionKey(detailPolicy?.accessMode ?? summaryPolicy?.accessMode)
+  const policySubjectFingerprint = detailPolicy?.subjects
+    ?.map(subject => `${subject.subjectType ?? ''}:${subject.id ?? ''}`)
+    .join(',')
   const policyFingerprint = [
-    detailPolicy?.id ?? 'new',
-    detailPolicy?.version ?? 0,
     detailPolicy?.accessMode ?? summaryPolicy?.accessMode ?? '',
+    policySubjectFingerprint ?? '',
   ].join(':')
   const policySelectedSubjects = useMemo(
     () => policyKind === 'specific' ? selectedSubjectsFromPolicy(detailPolicy) : [],

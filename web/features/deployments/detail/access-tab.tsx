@@ -5,7 +5,7 @@ import type {
   AccessPermission,
   AccessSubject,
   ConsoleEnvironmentSummary,
-} from '@/contract/console/deployments'
+} from '@/features/deployments/types'
 import { useQuery } from '@tanstack/react-query'
 import { useMemo, useState } from 'react'
 import { consoleQuery } from '@/service/client'
@@ -72,7 +72,7 @@ const AccessTab: FC<AccessTabProps> = ({ instanceId: appId }) => {
   const apiKeys = accessConfig?.developerApi?.apiKeys ?? []
   const createApiKeyLabel = (environmentId: string) => {
     const existingCount = apiKeys.filter(key =>
-      (key.environmentId ?? key.environment?.id) === environmentId,
+      key.environment?.id === environmentId,
     ).length
     const name = deployedEnvs.find(env => env.id === environmentId)?.name ?? 'env'
 
@@ -91,8 +91,8 @@ const AccessTab: FC<AccessTabProps> = ({ instanceId: appId }) => {
       },
       {
         onSuccess: (response) => {
-          if (response.apiToken?.token)
-            setCreatedApiToken({ appId, token: response.apiToken.token })
+          if (response.token)
+            setCreatedApiToken({ appId, token: response.token })
         },
       },
     )
