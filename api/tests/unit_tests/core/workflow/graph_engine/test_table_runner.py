@@ -250,7 +250,7 @@ class WorkflowRunner:
             conversation_variables.append(var)
 
         root_node_id = get_default_root_node_id(graph_config)
-        variable_pool = VariablePool()
+        variable_pool = VariablePool.from_bootstrap()
         add_variables_to_pool(
             variable_pool,
             build_bootstrap_variables(

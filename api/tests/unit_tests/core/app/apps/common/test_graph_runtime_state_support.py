@@ -9,7 +9,7 @@ from graphon.runtime import GraphRuntimeState, VariablePool
 
 
 def _make_state(workflow_run_id: str | None) -> GraphRuntimeState:
-    variable_pool = VariablePool()
+    variable_pool = VariablePool.from_bootstrap()
     add_variables_to_pool(variable_pool, build_system_variables(workflow_execution_id=workflow_run_id))
     return GraphRuntimeState(variable_pool=variable_pool, start_at=0.0)
 

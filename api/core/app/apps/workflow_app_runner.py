@@ -188,7 +188,7 @@ class WorkflowBasedAppRunner:
             ValueError: If neither single_iteration_run nor single_loop_run is specified
         """
         # Create initial runtime state with variable pool containing environment variables
-        variable_pool = VariablePool()
+        variable_pool = VariablePool.from_bootstrap()
         add_variables_to_pool(
             variable_pool,
             build_bootstrap_variables(

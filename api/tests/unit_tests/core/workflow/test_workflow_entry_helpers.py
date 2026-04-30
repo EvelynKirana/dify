@@ -165,7 +165,7 @@ class TestWorkflowChildEngineBuilder:
             _ = graph_config
             node = node_cls(
                 node_id=root_node_id,
-                config=BaseNodeData(
+                data=BaseNodeData(
                     type=node_cls.node_type,
                     title="Child Model",
                 ),
@@ -334,7 +334,7 @@ class TestWorkflowEntrySingleStepRun:
             def extract_variable_selector_to_variable_mapping(**_kwargs):
                 return {}
 
-        variable_pool = VariablePool(system_variables=default_system_variables(), user_inputs={})
+        variable_pool = VariablePool.from_bootstrap(system_variables=default_system_variables(), user_inputs={})
         variable_loader = MagicMock()
         variable_loader.load_variables.return_value = [
             StringVariable(
@@ -644,7 +644,7 @@ class TestWorkflowEntryHelpers:
 
         with (
             patch.object(workflow_entry, "default_system_variables", return_value=sentinel.system_variables),
-            patch.object(workflow_entry, "VariablePool", return_value=sentinel.variable_pool) as variable_pool_cls,
+            patch("graphon.runtime.VariablePool.from_bootstrap", return_value=sentinel.variable_pool) as variable_pool_cls,
             patch.object(workflow_entry, "add_variables_to_pool") as add_variables_to_pool,
             patch.object(
                 workflow_entry, "DifyGraphInitContext", return_value=sentinel.graph_init_context
@@ -732,7 +732,7 @@ class TestWorkflowEntryHelpers:
 
         with (
             patch.object(workflow_entry, "default_system_variables", return_value=sentinel.system_variables),
-            patch.object(workflow_entry, "VariablePool", return_value=sentinel.variable_pool),
+            patch("graphon.runtime.VariablePool.from_bootstrap", return_value=sentinel.variable_pool),
             patch.object(workflow_entry, "add_variables_to_pool"),
             patch.object(workflow_entry, "DifyGraphInitContext", return_value=sentinel.graph_init_context),
             patch.object(workflow_entry, "GraphRuntimeState", return_value=sentinel.graph_runtime_state),

@@ -877,7 +877,7 @@ class WorkflowService:
                 )
 
         else:
-            variable_pool = VariablePool()
+            variable_pool = VariablePool.from_bootstrap()
             add_variables_to_pool(
                 variable_pool,
                 build_bootstrap_variables(
@@ -1251,7 +1251,7 @@ class WorkflowService:
         node_data = HumanInputNode.validate_node_data(adapt_human_input_node_data_for_graph(node_config["data"]))
         node = HumanInputNode(
             node_id=node_config["id"],
-            config=node_data,
+            data=node_data,
             graph_init_params=graph_init_params,
             graph_runtime_state=graph_runtime_state,
             runtime=DifyHumanInputNodeRuntime(run_context),
@@ -1271,7 +1271,7 @@ class WorkflowService:
             draft_var_srv = WorkflowDraftVariableService(session)
             draft_var_srv.prefill_conversation_variable_default_values(workflow, user_id=user_id)
 
-        variable_pool = VariablePool()
+        variable_pool = VariablePool.from_bootstrap()
         add_variables_to_pool(
             variable_pool,
             build_bootstrap_variables(
@@ -1659,7 +1659,7 @@ def _setup_variable_pool(
         system_variable = default_system_variables()
 
     # init variable pool
-    variable_pool = VariablePool()
+    variable_pool = VariablePool.from_bootstrap()
     add_variables_to_pool(
         variable_pool,
         build_bootstrap_variables(

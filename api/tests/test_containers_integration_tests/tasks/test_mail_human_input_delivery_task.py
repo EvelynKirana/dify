@@ -177,7 +177,7 @@ def test_dispatch_human_input_email_task_integration(monkeypatch: pytest.MonkeyP
     workflow_run_id = str(uuid.uuid4())
     workflow_id = str(uuid.uuid4())
     app_id = str(uuid.uuid4())
-    variable_pool = VariablePool()
+    variable_pool = VariablePool.from_bootstrap()
     variable_pool.add(["node1", "value"], "OK")
     _create_workflow_pause_state(
         db_session_with_containers,

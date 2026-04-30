@@ -2103,7 +2103,7 @@ class TestSetupVariablePool:
 
         # Act
         with (
-            patch("services.workflow_service.VariablePool") as MockPool,
+            patch("services.workflow_service.VariablePool.from_bootstrap") as mock_pool_from_bootstrap,
             patch("services.workflow_service.build_system_variables") as mock_build_system_variables,
             patch("services.workflow_service.build_bootstrap_variables") as mock_build_bootstrap_variables,
             patch("services.workflow_service.add_variables_to_pool") as mock_add_variables_to_pool,
@@ -2122,14 +2122,14 @@ class TestSetupVariablePool:
             )
 
         # Assert — start nodes should build bootstrap variables and attach node inputs.
-        MockPool.assert_called_once_with()
+        mock_pool_from_bootstrap.assert_called_once_with()
         mock_build_system_variables.assert_called_once()
         mock_add_variables_to_pool.assert_called_once_with(
-            MockPool.return_value,
+            mock_pool_from_bootstrap.return_value,
             mock_build_bootstrap_variables.return_value,
         )
         mock_add_node_inputs_to_pool.assert_called_once_with(
-            MockPool.return_value,
+            mock_pool_from_bootstrap.return_value,
             node_id="start-node",
             inputs={"k": "v"},
         )
@@ -2142,7 +2142,7 @@ class TestSetupVariablePool:
 
         # Act
         with (
-            patch("services.workflow_service.VariablePool") as MockPool,
+            patch("services.workflow_service.VariablePool.from_bootstrap") as mock_pool_from_bootstrap,
             patch("services.workflow_service.default_system_variables") as mock_default_system_variables,
             patch("services.workflow_service.build_bootstrap_variables") as mock_build_bootstrap_variables,
             patch("services.workflow_service.add_variables_to_pool") as mock_add_variables_to_pool,
@@ -2162,9 +2162,9 @@ class TestSetupVariablePool:
 
         # Assert — default system variables should be used and node inputs should not be added.
         mock_default_system_variables.assert_called_once()
-        MockPool.assert_called_once_with()
+        mock_pool_from_bootstrap.assert_called_once_with()
         mock_add_variables_to_pool.assert_called_once_with(
-            MockPool.return_value,
+            mock_pool_from_bootstrap.return_value,
             mock_build_bootstrap_variables.return_value,
         )
         mock_add_node_inputs_to_pool.assert_not_called()
@@ -2180,7 +2180,7 @@ class TestSetupVariablePool:
 
         # Act
         with (
-            patch("services.workflow_service.VariablePool") as MockPool,
+            patch("services.workflow_service.VariablePool.from_bootstrap") as mock_pool_from_bootstrap,
             patch("services.workflow_service.build_system_variables") as mock_build_system_variables,
             patch("services.workflow_service.build_bootstrap_variables"),
             patch("services.workflow_service.add_variables_to_pool"),
@@ -2199,7 +2199,7 @@ class TestSetupVariablePool:
             )
 
         # Assert — chatflow system variables should include query, conversation_id and dialogue_count.
-        MockPool.assert_called_once_with()
+        mock_pool_from_bootstrap.assert_called_once_with()
         system_variable_values = mock_build_system_variables.call_args.args[0]
         assert system_variable_values["query"] == "what is AI?"
         assert system_variable_values["conversation_id"] == "conv-abc"
@@ -2513,7 +2513,7 @@ class TestWorkflowServiceDraftExecution:
             patch("services.workflow_service.db"),
             patch("services.workflow_service.Session"),
             patch("services.workflow_service.WorkflowDraftVariableService"),
-            patch("services.workflow_service.VariablePool") as mock_pool_cls,
+            patch("services.workflow_service.VariablePool.from_bootstrap") as mock_pool_cls,
             patch("services.workflow_service.default_system_variables") as mock_default_system_variables,
             patch("services.workflow_service.build_bootstrap_variables") as mock_build_bootstrap_variables,
             patch("services.workflow_service.add_variables_to_pool") as mock_add_variables_to_pool,
@@ -2737,7 +2737,7 @@ class TestWorkflowServiceHumanInputOperations:
             patch("services.workflow_service.db"),
             patch("services.workflow_service.Session"),
             patch("services.workflow_service.WorkflowDraftVariableService"),
-            patch("services.workflow_service.VariablePool") as mock_pool_cls,
+            patch("services.workflow_service.VariablePool.from_bootstrap") as mock_pool_cls,
             patch("services.workflow_service.DraftVarLoader"),
             patch("services.workflow_service.HumanInputNode.extract_variable_selector_to_variable_mapping"),
             patch("services.workflow_service.load_into_variable_pool"),

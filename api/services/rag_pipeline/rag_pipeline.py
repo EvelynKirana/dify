@@ -88,7 +88,7 @@ logger = logging.getLogger(__name__)
 
 
 def _build_seeded_variable_pool(variables: Sequence[Variable]) -> VariablePool:
-    variable_pool = VariablePool()
+    variable_pool = VariablePool.from_bootstrap()
     add_variables_to_pool(variable_pool, variables)
     return variable_pool
 

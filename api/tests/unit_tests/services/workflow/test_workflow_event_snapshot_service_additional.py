@@ -67,7 +67,7 @@ def _build_resumption_context(task_id: str) -> WorkflowResumptionContext:
         call_depth=0,
         workflow_execution_id="run-1",
     )
-    runtime_state = GraphRuntimeState(variable_pool=VariablePool(), start_at=0.0)
+    runtime_state = GraphRuntimeState(variable_pool=VariablePool.from_bootstrap(), start_at=0.0)
     runtime_state.outputs = {"answer": "ok"}
     wrapper = _WorkflowGenerateEntityWrapper(entity=generate_entity)
     return WorkflowResumptionContext(

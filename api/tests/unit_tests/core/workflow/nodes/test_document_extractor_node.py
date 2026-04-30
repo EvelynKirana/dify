@@ -49,7 +49,7 @@ def document_extractor_node(graph_init_params):
     http_client = Mock()
     node = DocumentExtractorNode(
         node_id="test_node_id",
-        config=node_data,
+        data=node_data,
         graph_init_params=graph_init_params,
         graph_runtime_state=Mock(),
         http_client=http_client,

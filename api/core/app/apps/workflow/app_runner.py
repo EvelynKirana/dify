@@ -106,7 +106,7 @@ class WorkflowAppRunner(WorkflowBasedAppRunner):
                 workflow_id=app_config.workflow_id,
                 workflow_execution_id=self.application_generate_entity.workflow_execution_id,
             )
-            variable_pool = VariablePool()
+            variable_pool = VariablePool.from_bootstrap()
             add_variables_to_pool(
                 variable_pool,
                 build_bootstrap_variables(

@@ -62,7 +62,7 @@ def build_test_variable_pool(
     node_id: str | None = None,
     inputs: Mapping[str, Any] | None = None,
 ) -> VariablePool:
-    variable_pool = VariablePool()
+    variable_pool = VariablePool.from_bootstrap()
     add_variables_to_pool(variable_pool, variables)
     if node_id is not None and inputs is not None:
         add_node_inputs_to_pool(variable_pool, node_id=node_id, inputs=inputs)

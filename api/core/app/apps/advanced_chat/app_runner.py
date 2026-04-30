@@ -175,7 +175,7 @@ class AdvancedChatAppRunner(WorkflowBasedAppRunner):
 
             # Create a variable pool.
             # init variable pool
-            variable_pool = VariablePool()
+            variable_pool = VariablePool.from_bootstrap()
             add_variables_to_pool(
                 variable_pool,
                 build_bootstrap_variables(

@@ -1,3 +1,4 @@
+import sys
 from types import SimpleNamespace
 
 import pytest
@@ -55,7 +56,7 @@ class TestWorkflowEntry:
     def test_mapping_user_inputs_to_variable_pool_with_system_variables(self):
         """Test mapping system variables from user inputs to variable pool."""
         # Initialize variable pool with system variables
-        variable_pool = VariablePool(
+        variable_pool = VariablePool.from_bootstrap(
             system_variables=build_system_variables(
                 user_id="test_user_id",
                 app_id="test_app_id",
@@ -128,7 +129,7 @@ class TestWorkflowEntry:
                 return NodeConfigDictAdapter.validate_python(node_config)
 
         workflow = StubWorkflow()
-        variable_pool = VariablePool(system_variables=default_system_variables(), user_inputs={})
+        variable_pool = VariablePool.from_bootstrap(system_variables=default_system_variables(), user_inputs={})
         expected_limits = CodeNodeLimits(
             max_string_length=dify_config.CODE_MAX_STRING_LENGTH,
             max_number=dify_config.CODE_MAX_NUMBER,
@@ -157,7 +158,7 @@ class TestWorkflowEntry:
         """Test mapping environment variables from user inputs to variable pool."""
         # Initialize variable pool with environment variables
         env_var = StringVariable(name="API_KEY", value="existing_key")
-        variable_pool = VariablePool(
+        variable_pool = VariablePool.from_bootstrap(
             system_variables=default_system_variables(),
             environment_variables=[env_var],
             user_inputs={},
@@ -198,7 +199,7 @@ class TestWorkflowEntry:
         """Test mapping conversation variables from user inputs to variable pool."""
         # Initialize variable pool with conversation variables
         conv_var = StringVariable(name="last_message", value="Hello")
-        variable_pool = VariablePool(
+        variable_pool = VariablePool.from_bootstrap(
             system_variables=default_system_variables(),
             conversation_variables=[conv_var],
             user_inputs={},
@@ -239,7 +240,7 @@ class TestWorkflowEntry:
     def test_mapping_user_inputs_to_variable_pool_with_regular_variables(self):
         """Test mapping regular node variables from user inputs to variable pool."""
         # Initialize empty variable pool
-        variable_pool = VariablePool(
+        variable_pool = VariablePool.from_bootstrap(
             system_variables=default_system_variables(),
             user_inputs={},
         )
@@ -281,7 +282,7 @@ class TestWorkflowEntry:
 
     def test_mapping_user_inputs_with_file_handling(self):
         """Test mapping file inputs from user inputs to variable pool."""
-        variable_pool = VariablePool(
+        variable_pool = VariablePool.from_bootstrap(
             system_variables=default_system_variables(),
             user_inputs={},
         )
@@ -340,7 +341,7 @@ class TestWorkflowEntry:
 
     def test_mapping_user_inputs_missing_variable_error(self):
         """Test that mapping raises error when required variable is missing."""
-        variable_pool = VariablePool(
+        variable_pool = VariablePool.from_bootstrap(
             system_variables=default_system_variables(),
             user_inputs={},
         )
@@ -366,7 +367,7 @@ class TestWorkflowEntry:
 
     def test_mapping_user_inputs_with_alternative_key_format(self):
         """Test mapping with alternative key format (without node prefix)."""
-        variable_pool = VariablePool(
+        variable_pool = VariablePool.from_bootstrap(
             system_variables=default_system_variables(),
             user_inputs={},
         )
@@ -396,7 +397,7 @@ class TestWorkflowEntry:
 
     def test_mapping_user_inputs_with_complex_selectors(self):
         """Test mapping with complex node variable keys."""
-        variable_pool = VariablePool(
+        variable_pool = VariablePool.from_bootstrap(
             system_variables=default_system_variables(),
             user_inputs={},
         )
@@ -432,7 +433,7 @@ class TestWorkflowEntry:
 
     def test_mapping_user_inputs_invalid_node_variable(self):
         """Test that mapping handles invalid node variable format."""
-        variable_pool = VariablePool(
+        variable_pool = VariablePool.from_bootstrap(
             system_variables=default_system_variables(),
             user_inputs={},
         )
@@ -463,7 +464,7 @@ class TestWorkflowEntry:
         env_var = StringVariable(name="API_KEY", value="existing_key")
         conv_var = StringVariable(name="session_id", value="session123")
 
-        variable_pool = VariablePool(
+        variable_pool = VariablePool.from_bootstrap(
             system_variables=build_system_variables(
                 user_id="test_user",
                 app_id="test_app",

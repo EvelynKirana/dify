@@ -411,7 +411,7 @@ class WorkflowEntry:
             raise ValueError(f"Node class not found for node type {node_type}")
 
         # init variable pool
-        variable_pool = VariablePool()
+        variable_pool = VariablePool.from_bootstrap()
         add_variables_to_pool(variable_pool, default_system_variables())
 
         # init graph context and runtime state

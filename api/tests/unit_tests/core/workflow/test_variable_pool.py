@@ -41,7 +41,7 @@ from models.utils.file_input_compat import rebuild_serialized_graph_files_withou
 
 @pytest.fixture
 def pool():
-    variable_pool = VariablePool()
+    variable_pool = VariablePool.from_bootstrap()
     add_variables_to_pool(
         variable_pool,
         build_system_variables(
@@ -82,7 +82,7 @@ def test_get_file_attribute(pool, file):
 
 class TestVariablePool:
     def test_constructor(self):
-        pool = VariablePool()
+        pool = VariablePool.from_bootstrap()
         assert pool.variable_dictionary == defaultdict(dict)
 
         complex_system_vars = build_system_variables(
@@ -110,7 +110,7 @@ class TestVariablePool:
         assert pool.get([CONVERSATION_VARIABLE_NODE_ID, "conv_var_1"]) is not None
 
     def test_constructor_loads_legacy_bootstrap_kwargs(self):
-        pool = VariablePool(
+        pool = VariablePool.from_bootstrap(
             system_variables=build_system_variables(user_id="test_user_id"),
             environment_variables=[StringVariable(name="env_var", value="env-value")],
             conversation_variables=[StringVariable(name="conv_var", value="conv-value")],
@@ -139,7 +139,7 @@ class TestVariablePool:
             conversation_id="test_conv_id",
             dialogue_count=5,
         )
-        pool = VariablePool()
+        pool = VariablePool.from_bootstrap()
         add_variables_to_pool(pool, sys_var)
         system_values = system_variables_to_mapping(sys_var)
 
@@ -259,7 +259,7 @@ class TestVariablePoolSerialization:
         }
 
         # Create VariablePool
-        pool = VariablePool()
+        pool = VariablePool.from_bootstrap()
         add_variables_to_pool(pool, system_vars)
         add_variables_to_pool(pool, env_vars)
         add_variables_to_pool(pool, conv_vars)
@@ -302,7 +302,7 @@ class TestVariablePoolSerialization:
             conversation_id="test_conv_id",
             dialogue_count=5,
         )
-        pool = VariablePool()
+        pool = VariablePool.from_bootstrap()
         add_variables_to_pool(pool, sys_vars)
         json = pool.model_dump_json()
         pool2 = VariablePool.model_validate_json(json)
@@ -437,7 +437,7 @@ class TestVariablePoolSerialization:
 
 
 def test_get_attr():
-    vp = VariablePool()
+    vp = VariablePool.from_bootstrap()
     value = {"output": StringSegment(value="hello")}
 
     vp.add(["node", "name"], value)

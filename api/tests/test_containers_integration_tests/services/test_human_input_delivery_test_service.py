@@ -186,7 +186,7 @@ class TestEmailDeliveryTestHandler:
         handler = EmailDeliveryTestHandler(session_factory=MagicMock())
         handler._resolve_recipients = MagicMock(return_value=["test@example.com"])
 
-        variable_pool = VariablePool()
+        variable_pool = VariablePool.from_bootstrap()
         context = DeliveryTestContext(
             tenant_id="t1",
             app_id="a1",

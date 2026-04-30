@@ -102,7 +102,7 @@ def test_dispatch_human_input_email_task_replaces_body_variables(monkeypatch: py
         recipients=[task_module._EmailRecipient(email="user@example.com", token="token-1")],
     )
 
-    variable_pool = task_module.VariablePool()
+    variable_pool = task_module.VariablePool.from_bootstrap()
     variable_pool.add(["node1", "value"], "OK")
 
     monkeypatch.setattr(task_module, "mail", mail)

@@ -187,7 +187,7 @@ def graph_init_params() -> GraphInitParams:
 
 @pytest.fixture
 def graph_runtime_state() -> GraphRuntimeState:
-    variable_pool = VariablePool(
+    variable_pool = VariablePool.from_bootstrap(
         system_variables=default_system_variables(),
         user_inputs={},
     )
@@ -208,7 +208,7 @@ def llm_node(
     http_client = mock.MagicMock()
     node = LLMNode(
         node_id="1",
-        config=llm_node_data,
+        data=llm_node_data,
         graph_init_params=graph_init_params,
         graph_runtime_state=graph_runtime_state,
         credentials_provider=mock_credentials_provider,
@@ -1173,7 +1173,7 @@ def llm_node_for_multimodal(llm_node_data, graph_init_params, graph_runtime_stat
     http_client = mock.MagicMock()
     node = LLMNode(
         node_id="1",
-        config=llm_node_data,
+        data=llm_node_data,
         graph_init_params=graph_init_params,
         graph_runtime_state=graph_runtime_state,
         credentials_provider=mock_credentials_provider,

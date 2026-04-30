@@ -271,7 +271,8 @@ def test_run_normal_path_builds_graph(mocker):
         def add(self, selector, value):
             return None
 
-    mocker.patch.object(module, "VariablePool", return_value=FakeVariablePool())
+    fake_pool = FakeVariablePool()
+    mocker.patch("graphon.runtime.VariablePool.from_bootstrap", return_value=fake_pool)
 
     workflow_entry = MagicMock()
     workflow_entry.graph_engine = MagicMock()
