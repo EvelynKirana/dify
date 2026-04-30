@@ -8,6 +8,7 @@ import { useEffect, useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 import { inputVarTypeToVarType } from '@/app/components/workflow/nodes/_base/components/variable/utils'
 import { BlockEnum, InputVarType } from '@/app/components/workflow/types'
+import { useAppDetail } from '@/service/use-apps'
 import { useSnippetPublishedWorkflow } from '@/service/use-snippet-workflows'
 import { useAppWorkflow } from '@/service/use-workflow'
 import { isCustomMetricConfigured, useEvaluationStore } from '../../store'
@@ -76,7 +77,9 @@ const CustomMetricEditorCard = ({
   const syncCustomMetricMappings = useEvaluationStore(state => state.syncCustomMetricMappings)
   const syncCustomMetricOutputs = useEvaluationStore(state => state.syncCustomMetricOutputs)
   const updateCustomMetricMapping = useEvaluationStore(state => state.updateCustomMetricMapping)
-  const { data: selectedWorkflow } = useAppWorkflow(metric.customConfig?.workflowAppId ?? '')
+  const selectedWorkflowAppId = metric.customConfig?.workflowAppId ?? metric.customConfig?.workflowId ?? ''
+  const { data: selectedWorkflowApp } = useAppDetail(selectedWorkflowAppId)
+  const { data: selectedWorkflow } = useAppWorkflow(selectedWorkflowAppId)
   const { data: currentAppWorkflow } = useAppWorkflow(resourceType === 'apps' ? resourceId : '')
   const { data: currentSnippetWorkflow } = useSnippetPublishedWorkflow(resourceType === 'snippets' ? resourceId : '')
   const inputVariables = useMemo(() => {
@@ -153,9 +156,9 @@ const CustomMetricEditorCard = ({
     <div className="px-3 pt-1 pb-3">
       <WorkflowSelector
         value={metric.customConfig.workflowId}
-        selectedWorkflowName={metric.customConfig.workflowName ?? (selectedWorkflow ? getWorkflowName(selectedWorkflow) : null)}
+        selectedWorkflowName={metric.customConfig.workflowName ?? selectedWorkflowApp?.name ?? null}
         onSelect={workflow => setCustomMetricWorkflow(resourceType, resourceId, metric.id, {
-          workflowId: workflow.id,
+          workflowId: workflow.app_id,
           workflowAppId: workflow.app_id,
           workflowName: getWorkflowName(workflow),
         })}
@@ -163,7 +166,7 @@ const CustomMetricEditorCard = ({
 
       <div className="mt-4">
         <div className="mb-2 flex items-center justify-between gap-3">
-          <div className="system-xs-medium-uppercase text-text-secondary">{t('metrics.custom.mappingTitle')}</div>
+          <div className="system-xs-medium-uppercase text-text-tertiary">{t('metrics.custom.mappingTitle')}</div>
         </div>
         <div className="space-y-2">
           {inputVariables.map((inputVariable) => {

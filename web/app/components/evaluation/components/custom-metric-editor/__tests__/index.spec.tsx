@@ -12,6 +12,7 @@ import CustomMetricEditorCard from '..'
 import { useEvaluationStore } from '../../../store'
 
 const mockUseAppWorkflow = vi.hoisted(() => vi.fn())
+const mockUseAppDetail = vi.hoisted(() => vi.fn())
 const mockUseSnippetPublishedWorkflow = vi.hoisted(() => vi.fn())
 const mockUseAvailableEvaluationWorkflows = vi.hoisted(() => vi.fn())
 const mockUseInfiniteScroll = vi.hoisted(() => vi.fn())
@@ -19,6 +20,10 @@ const mockPublishedGraphVariablePicker = vi.hoisted(() => vi.fn())
 
 vi.mock('@/service/use-workflow', () => ({
   useAppWorkflow: (...args: unknown[]) => mockUseAppWorkflow(...args),
+}))
+
+vi.mock('@/service/use-apps', () => ({
+  useAppDetail: (...args: unknown[]) => mockUseAppDetail(...args),
 }))
 
 vi.mock('@/service/use-snippet-workflows', () => ({
@@ -179,6 +184,7 @@ describe('CustomMetricEditorCard', () => {
     vi.clearAllMocks()
     useEvaluationStore.setState({ resources: {} })
     mockPublishedGraphVariablePicker.mockReset()
+    mockUseAppDetail.mockReturnValue({ data: undefined })
 
     mockUseInfiniteScroll.mockImplementation(() => undefined)
     mockUseAvailableEvaluationWorkflows.mockReturnValue({
@@ -303,6 +309,46 @@ describe('CustomMetricEditorCard', () => {
       expect(screen.getByText('Evaluation Workflow')).toBeInTheDocument()
       expect(syncMappingsSpy).not.toHaveBeenCalled()
       expect(syncOutputsSpy).not.toHaveBeenCalled()
+    })
+
+    it('should show the selected workflow app name from app detail when the config only has workflow id', () => {
+      const selectedWorkflow = {
+        ...createWorkflow([createStartNode()]),
+        marked_name: '',
+      }
+      const baseMetric = createMetric()
+      const metric = {
+        ...baseMetric,
+        customConfig: {
+          ...baseMetric.customConfig!,
+          workflowName: null,
+        },
+      }
+
+      mockUseAppDetail.mockReturnValue({
+        data: {
+          id: 'workflow-app-1',
+          name: 'Review Workflow App',
+        },
+      })
+      mockUseAppWorkflow.mockImplementation((appId: string) => {
+        if (appId === 'workflow-app-1')
+          return { data: selectedWorkflow }
+
+        return { data: undefined }
+      })
+
+      render(
+        <CustomMetricEditorCard
+          resourceType="apps"
+          resourceId="app-under-test"
+          metric={metric}
+        />,
+      )
+
+      expect(mockUseAppDetail).toHaveBeenCalledWith('workflow-app-1')
+      expect(screen.getByText('Review Workflow App')).toBeInTheDocument()
+      expect(screen.queryByText('workflow-1')).not.toBeInTheDocument()
     })
 
     it('should pass the current app published graph and saved selector values to the picker', () => {
