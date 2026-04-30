@@ -2,12 +2,12 @@
 import type { Locale } from '@/i18n-config'
 import { useSuspenseQuery } from '@tanstack/react-query'
 import Divider from '@/app/components/base/divider'
-import LocaleSigninSelect from '@/app/components/base/select/locale-signin'
 import { useLocale } from '@/context/i18n'
 import { setLocaleOnClient } from '@/i18n-config'
 import { languages } from '@/i18n-config/language'
 import dynamic from '@/next/dynamic'
 import { systemFeaturesQueryOptions } from '@/service/system-features'
+import LocaleMenu from './_locale-menu'
 
 // Avoid rendering the logo and theme selector on the server
 const DifyLogo = dynamic(() => import('@/app/components/base/logo/dify-logo'), {
@@ -35,7 +35,7 @@ const Header = () => {
           )
         : <DifyLogo size="large" />}
       <div className="flex items-center gap-1">
-        <LocaleSigninSelect
+        <LocaleMenu
           value={locale}
           items={languages.filter(item => item.supported)}
           onChange={(value) => {
