@@ -5,6 +5,16 @@ import type { ConsoleReleaseSummary } from '@/contract/console/deployments'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { consoleClient, consoleQuery } from '@/service/client'
 import { DEPLOYMENT_PAGE_SIZE } from '../data'
+import {
+  deploymentAccessConfigQueryKey,
+  deploymentAccessStateQueryKeys,
+  deploymentEnvironmentAccessPolicyQueryKeyForEnvironment,
+  deploymentInstanceDetailQueryKeys,
+  deploymentInstanceIdentityQueryKeys,
+  deploymentInstanceStateQueryKeys,
+  deploymentReleaseHistoryQueryKey,
+  deploymentsListQueryKey,
+} from '../queries'
 
 export type CreateDeploymentInstanceResult = {
   appInstanceId: string
@@ -34,58 +44,30 @@ const DEPLOYMENT_READINESS_RETRY_DELAYS = [0, 300, 700, 1200]
 
 const wait = (delay: number) => new Promise(resolve => setTimeout(resolve, delay))
 
-const appInstanceQueryInput = (appInstanceId: string) => ({
-  params: { appInstanceId },
-})
-
-const appInstanceQueryKey = (appInstanceId: string) => ({
-  type: 'query' as const,
-  input: appInstanceQueryInput(appInstanceId),
-})
-
-const environmentAccessPolicyQueryKey = (appInstanceId: string, environmentId: string) => ({
-  type: 'query' as const,
-  input: {
-    params: {
-      appInstanceId,
-      environmentId,
-    },
-  },
-})
-
-const invalidateQueries = async (queryClient: QueryClient, queryKeys: QueryKey[]): Promise<void> => {
+const invalidateQueries = async (queryClient: QueryClient, queryKeys: readonly QueryKey[]): Promise<void> => {
   await Promise.all(queryKeys.map(queryKey => queryClient.invalidateQueries({ queryKey })))
+}
+
+const removeQueries = (queryClient: QueryClient, queryKeys: readonly QueryKey[]): void => {
+  queryKeys.forEach(queryKey => queryClient.removeQueries({ queryKey }))
 }
 
 const invalidateInstanceList = (queryClient: QueryClient): Promise<void> => {
   return queryClient.invalidateQueries({
-    queryKey: consoleQuery.deployments.list.key({ type: 'query' }),
+    queryKey: deploymentsListQueryKey(),
   })
 }
 
 const invalidateInstanceIdentity = (queryClient: QueryClient, appInstanceId: string): Promise<void> => {
-  return invalidateQueries(queryClient, [
-    consoleQuery.deployments.list.key({ type: 'query' }),
-    consoleQuery.deployments.overview.key(appInstanceQueryKey(appInstanceId)),
-    consoleQuery.deployments.settings.key(appInstanceQueryKey(appInstanceId)),
-  ])
+  return invalidateQueries(queryClient, deploymentInstanceIdentityQueryKeys(appInstanceId))
 }
 
 const invalidateDeploymentState = (queryClient: QueryClient, appInstanceId: string): Promise<void> => {
-  return invalidateQueries(queryClient, [
-    consoleQuery.deployments.list.key({ type: 'query' }),
-    consoleQuery.deployments.overview.key(appInstanceQueryKey(appInstanceId)),
-    consoleQuery.deployments.environmentDeployments.key(appInstanceQueryKey(appInstanceId)),
-    consoleQuery.deployments.releaseHistory.key(appInstanceQueryKey(appInstanceId)),
-    consoleQuery.deployments.accessConfig.key(appInstanceQueryKey(appInstanceId)),
-  ])
+  return invalidateQueries(queryClient, deploymentInstanceStateQueryKeys(appInstanceId))
 }
 
 const invalidateAccessState = (queryClient: QueryClient, appInstanceId: string): Promise<void> => {
-  return invalidateQueries(queryClient, [
-    consoleQuery.deployments.overview.key(appInstanceQueryKey(appInstanceId)),
-    consoleQuery.deployments.accessConfig.key(appInstanceQueryKey(appInstanceId)),
-  ])
+  return invalidateQueries(queryClient, deploymentAccessStateQueryKeys(appInstanceId))
 }
 
 const invalidateEnvironmentAccessPolicy = (
@@ -94,11 +76,14 @@ const invalidateEnvironmentAccessPolicy = (
   environmentId: string,
 ): Promise<void> => {
   return invalidateQueries(queryClient, [
-    consoleQuery.deployments.accessConfig.key(appInstanceQueryKey(appInstanceId)),
-    consoleQuery.deployments.environmentAccessPolicy.key(
-      environmentAccessPolicyQueryKey(appInstanceId, environmentId),
-    ),
+    deploymentAccessConfigQueryKey(appInstanceId),
+    deploymentEnvironmentAccessPolicyQueryKeyForEnvironment(appInstanceId, environmentId),
   ])
+}
+
+const removeDeletedInstanceState = (queryClient: QueryClient, appInstanceId: string): Promise<void> => {
+  removeQueries(queryClient, deploymentInstanceDetailQueryKeys(appInstanceId))
+  return invalidateInstanceList(queryClient)
 }
 
 export const useCreateDeploymentInstance = () => {
@@ -156,8 +141,8 @@ export const useDeleteDeploymentInstance = () => {
   const queryClient = useQueryClient()
 
   return useMutation(consoleQuery.deployments.deleteInstance.mutationOptions({
-    onSuccess: () => {
-      return invalidateInstanceList(queryClient)
+    onSuccess: (_data, variables) => {
+      return removeDeletedInstanceState(queryClient, variables.params.appInstanceId)
     },
   }))
 }
@@ -174,6 +159,7 @@ export const useStartDeployment = () => {
       releaseNote,
     }: CreateDeploymentParams) => {
       let targetReleaseId = releaseId
+      let releaseWasCreated = false
       await consoleClient.deployments.previewRelease({
         params: {
           appInstanceId: appId,
@@ -183,34 +169,45 @@ export const useStartDeployment = () => {
         },
       })
 
-      if (!targetReleaseId) {
-        const trimmedReleaseNote = releaseNote?.trim()
-        const response = await consoleClient.deployments.createRelease({
+      try {
+        if (!targetReleaseId) {
+          const trimmedReleaseNote = releaseNote?.trim()
+          const response = await consoleClient.deployments.createRelease({
+            params: {
+              appInstanceId: appId,
+            },
+            body: {
+              name: trimmedReleaseNote || 'Release',
+              description: trimmedReleaseNote || undefined,
+            },
+          })
+          releaseWasCreated = true
+          if (!response.release)
+            throw new Error('Create release did not return a release.')
+          targetReleaseId = response.release.id
+        }
+
+        if (!targetReleaseId)
+          throw new Error('Failed to create a deployable release.')
+
+        return await consoleClient.deployments.createDeployment({
           params: {
             appInstanceId: appId,
           },
           body: {
-            name: trimmedReleaseNote || 'Release',
-            description: trimmedReleaseNote || undefined,
+            environmentId,
+            releaseId: targetReleaseId,
           },
         })
-        if (!response.release)
-          throw new Error('Create release did not return a release.')
-        targetReleaseId = response.release.id
       }
-
-      if (!targetReleaseId)
-        throw new Error('Failed to create a deployable release.')
-
-      return consoleClient.deployments.createDeployment({
-        params: {
-          appInstanceId: appId,
-        },
-        body: {
-          environmentId,
-          releaseId: targetReleaseId,
-        },
-      })
+      catch (error) {
+        if (releaseWasCreated) {
+          await queryClient.invalidateQueries({
+            queryKey: deploymentReleaseHistoryQueryKey(appId),
+          })
+        }
+        throw error
+      }
     },
     onSuccess: (_data, variables) => {
       return invalidateDeploymentState(queryClient, variables.appId)
