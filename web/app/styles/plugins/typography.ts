@@ -3,7 +3,7 @@
  * Injects `theme.typography` for v4 CSS-first via plugin `config` merge.
  */
 import typographyPlugin from '@tailwindcss/typography'
-import typographyConfig from '../../../typography.js'
+import typographyConfig from './typography-config.js'
 
 const created = typographyPlugin()
 
