@@ -143,7 +143,8 @@ def test_model_provider_factory_get_provider_schema_delegates_to_provider_lookup
 
 def test_model_provider_factory_raises_for_unknown_provider() -> None:
     factory = ModelProviderFactory(
-        runtime=_FakeModelRuntime([
+        runtime=_FakeModelRuntime(
+            [
                 _build_provider(
                     provider="langgenius/openai/openai",
                     provider_name="openai",
@@ -258,7 +259,8 @@ def test_model_provider_factory_validates_provider_credentials() -> None:
 
 def test_model_provider_factory_provider_credentials_validate_requires_schema() -> None:
     factory = ModelProviderFactory(
-        runtime=_FakeModelRuntime([
+        runtime=_FakeModelRuntime(
+            [
                 _build_provider(
                     provider="langgenius/openai/openai",
                     provider_name="openai",
@@ -313,7 +315,8 @@ def test_model_provider_factory_validates_model_credentials() -> None:
 
 def test_model_provider_factory_model_credentials_validate_requires_schema() -> None:
     factory = ModelProviderFactory(
-        runtime=_FakeModelRuntime([
+        runtime=_FakeModelRuntime(
+            [
                 _build_provider(
                     provider="langgenius/openai/openai",
                     provider_name="openai",
@@ -385,7 +388,8 @@ def test_model_provider_factory_builds_model_type_instances(
     expected_type: type[object],
 ) -> None:
     factory = ModelProviderFactory(
-        runtime=_FakeModelRuntime([
+        runtime=_FakeModelRuntime(
+            [
                 _build_provider(
                     provider="langgenius/openai/openai",
                     provider_name="openai",
@@ -402,7 +406,8 @@ def test_model_provider_factory_builds_model_type_instances(
 
 def test_model_provider_factory_rejects_unsupported_model_type() -> None:
     factory = ModelProviderFactory(
-        runtime=_FakeModelRuntime([
+        runtime=_FakeModelRuntime(
+            [
                 _build_provider(
                     provider="langgenius/openai/openai",
                     provider_name="openai",

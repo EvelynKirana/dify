@@ -189,13 +189,17 @@ def test_run_extract_text(
     if mime_type == "application/pdf":
         mock_pdf_extract = Mock(return_value=expected_text[0])
         if extension:
-            monkeypatch.setattr("graphon.nodes.document_extractor.node._extract_text_by_file_extension", mock_pdf_extract)
+            monkeypatch.setattr(
+                "graphon.nodes.document_extractor.node._extract_text_by_file_extension", mock_pdf_extract
+            )
         else:
             monkeypatch.setattr("graphon.nodes.document_extractor.node._extract_text_by_mime_type", mock_pdf_extract)
     elif mime_type.startswith("application/vnd.openxmlformats"):
         mock_docx_extract = Mock(return_value=expected_text[0])
         if extension:
-            monkeypatch.setattr("graphon.nodes.document_extractor.node._extract_text_by_file_extension", mock_docx_extract)
+            monkeypatch.setattr(
+                "graphon.nodes.document_extractor.node._extract_text_by_file_extension", mock_docx_extract
+            )
         else:
             monkeypatch.setattr("graphon.nodes.document_extractor.node._extract_text_by_mime_type", mock_docx_extract)
 

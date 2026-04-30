@@ -644,7 +644,9 @@ class TestWorkflowEntryHelpers:
 
         with (
             patch.object(workflow_entry, "default_system_variables", return_value=sentinel.system_variables),
-            patch("graphon.runtime.VariablePool.from_bootstrap", return_value=sentinel.variable_pool) as variable_pool_cls,
+            patch(
+                "graphon.runtime.VariablePool.from_bootstrap", return_value=sentinel.variable_pool
+            ) as variable_pool_cls,
             patch.object(workflow_entry, "add_variables_to_pool") as add_variables_to_pool,
             patch.object(
                 workflow_entry, "DifyGraphInitContext", return_value=sentinel.graph_init_context

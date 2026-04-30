@@ -17,7 +17,9 @@ def get_mocked_fetch_model_config(
 ):
     model_provider_factory = create_plugin_model_provider_factory(tenant_id="9d2074fc-6f86-45a9-b09d-6ecc63b9056b")
     model_type_instance = create_model_type_instance(
-        factory=model_provider_factory, provider=provider, model_type=ModelType.LLM,
+        factory=model_provider_factory,
+        provider=provider,
+        model_type=ModelType.LLM,
     )
     provider_model_bundle = ProviderModelBundle(
         configuration=ProviderConfiguration(
