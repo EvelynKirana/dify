@@ -91,8 +91,14 @@ const DropDown = ({
     }
     catch (e: unknown) {
       let message = 'Unknown error'
+      const errorWithJson = typeof e === 'object' && e !== null ? e as { json?: unknown } : null
       if (e instanceof Response) {
         const res = await e.json() as { message?: string }
+        message = res?.message || message
+      }
+      else if (typeof errorWithJson?.json === 'function') {
+        const parseErrorResponse = errorWithJson.json as () => Promise<{ message?: string }>
+        const res = await parseErrorResponse()
         message = res?.message || message
       }
       toast(message, { type: 'error' })
