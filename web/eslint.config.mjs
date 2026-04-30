@@ -27,7 +27,7 @@ export default antfu(
         'react/no-unnecessary-use-prefix': 'error',
       },
     },
-    ignores: ['public', 'types/doc-paths.ts', 'eslint-suppressions.json', 'contract/generated/**'],
+    ignores: ['public', 'types/doc-paths.ts', 'eslint-suppressions.json'],
     typescript: {
       overrides: {
         'ts/consistent-type-definitions': ['error', 'type'],
