@@ -89,9 +89,13 @@ const DropDown = ({
       setConfirmMessage(isUsedByApp ? t('datasetUsedByApp', { ns: 'dataset' })! : t('deleteDatasetConfirmContent', { ns: 'dataset' })!)
       setShowConfirmDelete(true)
     }
-    catch (e: any) {
-      const res = await e.json()
-      toast(res?.message || 'Unknown error', { type: 'error' })
+    catch (e: unknown) {
+      let message = 'Unknown error'
+      if (e instanceof Response) {
+        const res = await e.json() as { message?: string }
+        message = res?.message || message
+      }
+      toast(message, { type: 'error' })
     }
   }, [dataset.id, t])
 
@@ -112,10 +116,15 @@ const DropDown = ({
       open={open}
       onOpenChange={setOpen}
     >
-      <DropdownMenuTrigger render={<div />}>
-        <ActionButton className={cn(expand ? 'size-8 rounded-lg' : 'size-6 rounded-md', open && 'bg-state-base-hover')}>
-          <span aria-hidden className="i-ri-more-fill size-4" />
-        </ActionButton>
+      <DropdownMenuTrigger
+        render={(
+          <ActionButton
+            aria-label={t('operation.more', { ns: 'common' })}
+            className={cn(expand ? 'size-8 rounded-lg' : 'size-6 rounded-md', open && 'bg-state-base-hover')}
+          />
+        )}
+      >
+        <span aria-hidden className="i-ri-more-fill size-4" />
       </DropdownMenuTrigger>
       <DropdownMenuContent
         placement={expand ? 'bottom-end' : 'right-start'}
