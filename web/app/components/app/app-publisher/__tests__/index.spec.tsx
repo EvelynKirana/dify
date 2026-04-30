@@ -20,6 +20,7 @@ const mockOpenAsyncWindow = vi.fn()
 const mockFetchInstalledAppList = vi.fn()
 const mockFetchAppDetailDirect = vi.fn()
 const mockToastError = vi.fn()
+const mockToastSuccess = vi.fn()
 const mockConvertWorkflowType = vi.fn()
 const mockRefetchEvaluationWorkflowAssociatedTargets = vi.fn()
 const mockInvalidateAppWorkflow = vi.fn()
@@ -120,6 +121,7 @@ vi.mock('@/service/use-workflow', () => ({
 vi.mock('@langgenius/dify-ui/toast', () => ({
   toast: {
     error: (...args: unknown[]) => mockToastError(...args),
+    success: (...args: unknown[]) => mockToastSuccess(...args),
   },
 }))
 
@@ -586,6 +588,7 @@ describe('AppPublisher', () => {
         id: 'app-1',
         workflow_kind: AppTypeEnum.EVALUATION,
       })
+      expect(mockToastSuccess).toHaveBeenCalledWith('api.actionSuccess')
     })
     await waitFor(() => {
       expect(screen.queryByText('publisher-summary-publish')).not.toBeInTheDocument()
@@ -620,6 +623,7 @@ describe('AppPublisher', () => {
         id: 'app-1',
         workflow_kind: AppTypeEnum.EVALUATION,
       })
+      expect(mockToastSuccess).toHaveBeenCalledWith('api.actionSuccess')
     })
   })
 
@@ -695,6 +699,7 @@ describe('AppPublisher', () => {
         params: { appId: 'app-1' },
         query: { target_type: AppTypeEnum.WORKFLOW },
       })
+      expect(mockToastSuccess).toHaveBeenCalledWith('api.actionSuccess')
     })
   })
 
@@ -719,6 +724,7 @@ describe('AppPublisher', () => {
         params: { appId: 'app-1' },
         query: { target_type: AppTypeEnum.WORKFLOW },
       })
+      expect(mockToastSuccess).toHaveBeenCalledWith('api.actionSuccess')
     })
     expect(screen.queryByText('common.switchToStandardWorkflowConfirm.title')).not.toBeInTheDocument()
   })

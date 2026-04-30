@@ -131,6 +131,7 @@ export const useWorkflowTypeSwitch = ({
         })
         setAppDetail(latestAppDetail)
         resetEvaluationWorkflowSwitchConfirm()
+        toast.success(t('api.actionSuccess', { ns: 'common' }))
         return true
       }
 
@@ -150,6 +151,7 @@ export const useWorkflowTypeSwitch = ({
       setAppDetail(latestAppDetail)
       onPublishedSwitch()
       resetEvaluationWorkflowSwitchConfirm()
+      toast.success(t('api.actionSuccess', { ns: 'common' }))
       return true
     }
     catch {
@@ -164,6 +166,7 @@ export const useWorkflowTypeSwitch = ({
     publishedAt,
     resetEvaluationWorkflowSwitchConfirm,
     setAppDetail,
+    t,
     workflowTypeSwitchConfig,
   ])
 
