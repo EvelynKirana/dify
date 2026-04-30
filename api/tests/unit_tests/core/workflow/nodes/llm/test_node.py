@@ -241,7 +241,7 @@ def model_config(monkeypatch):
     )
 
     # Create actual provider and model type instances
-    model_provider_factory = ModelProviderFactory(model_runtime=create_plugin_model_runtime(tenant_id="test"))
+    model_provider_factory = ModelProviderFactory(runtime=create_plugin_model_runtime(tenant_id="test"))
     provider_instance = model_provider_factory.get_model_provider("openai")
     model_type_instance = model_provider_factory.get_model_type_instance("openai", ModelType.LLM)
 

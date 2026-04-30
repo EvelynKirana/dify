@@ -109,7 +109,7 @@ class ProviderConfiguration(BaseModel):
     def get_model_provider_factory(self) -> ModelProviderFactory:
         """Return a provider factory that preserves any request-bound runtime."""
         if self._bound_model_runtime is not None:
-            return ModelProviderFactory(model_runtime=self._bound_model_runtime)
+            return ModelProviderFactory(runtime=self._bound_model_runtime)
         return create_plugin_model_provider_factory(tenant_id=self.tenant_id)
 
     def get_current_credentials(self, model_type: ModelType, model: str) -> dict[str, Any] | None:
