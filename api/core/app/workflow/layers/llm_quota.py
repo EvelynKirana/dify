@@ -16,6 +16,7 @@ from graphon.graph_engine.entities.commands import AbortCommand, CommandType
 from graphon.graph_engine.layers import GraphEngineLayer
 from graphon.graph_events import GraphEngineEvent, GraphNodeEventBase, NodeRunSucceededEvent
 from graphon.nodes.base.node import Node
+from graphon.nodes.llm.runtime_protocols import PreparedLLMProtocol
 
 if TYPE_CHECKING:
     from graphon.nodes.llm.node import LLMNode
@@ -116,7 +117,8 @@ class LLMQuotaLayer(GraphEngineLayer):
                 case BuiltinNodeTypes.PARAMETER_EXTRACTOR:
                     model_instance = cast("ParameterExtractorNode", node).model_instance
                 case BuiltinNodeTypes.QUESTION_CLASSIFIER:
-                    model_instance = cast("QuestionClassifierNode", node).model_instance
+                    typed_node: QuestionClassifierNode = cast("QuestionClassifierNode", node)
+                    model_instance = cast(PreparedLLMProtocol, getattr(typed_node, "_model_instance"))
                 case _:
                     return None
         except AttributeError:
