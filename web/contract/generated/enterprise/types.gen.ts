@@ -5,26 +5,26 @@ export type ClientOptions = {
     baseUrl: `${string}://${string}` | (string & {});
 };
 
-export type DifyEnterpriseApiEnterpriseAccessChannels = {
+export type AccessChannels = {
     enabled?: boolean;
-    webappRows?: Array<DifyEnterpriseApiEnterpriseWebAppAccessRow>;
-    cli?: DifyEnterpriseApiEnterpriseCliAccess;
+    webappRows?: Array<WebAppAccessRow>;
+    cli?: CliAccess;
 };
 
-export type DifyEnterpriseApiEnterpriseAccessModeOption = {
+export type AccessModeOption = {
     mode?: string;
     label?: string;
     disabled?: boolean;
     selected?: boolean;
 };
 
-export type DifyEnterpriseApiEnterpriseAccessPolicyDetail = {
+export type AccessPolicyDetail = {
     accessMode?: string;
-    subjects?: Array<DifyEnterpriseApiEnterpriseAccessSubjectDisplay>;
-    options?: Array<DifyEnterpriseApiEnterpriseAccessModeOption>;
+    subjects?: Array<AccessSubjectDisplay>;
+    options?: Array<AccessModeOption>;
 };
 
-export type DifyEnterpriseApiEnterpriseAccessStatus = {
+export type AccessStatus = {
     accessChannelsEnabled?: boolean;
     webappUrl?: string;
     cliUrl?: string;
@@ -32,12 +32,12 @@ export type DifyEnterpriseApiEnterpriseAccessStatus = {
     apiKeyCount?: number;
 };
 
-export type DifyEnterpriseApiEnterpriseAccessSubject = {
+export type AccessSubject = {
     subjectId?: string;
     subjectType?: string;
 };
 
-export type DifyEnterpriseApiEnterpriseAccessSubjectDisplay = {
+export type AccessSubjectDisplay = {
     id?: string;
     subjectType?: string;
     name?: string;
@@ -45,47 +45,47 @@ export type DifyEnterpriseApiEnterpriseAccessSubjectDisplay = {
     memberCount?: string;
 };
 
-export type DifyEnterpriseApiEnterpriseAccount = {
+export type Account = {
     id?: string;
     email?: string;
     name?: string;
 };
 
-export type DifyEnterpriseApiEnterpriseAccountDetail = {
-    account?: DifyEnterpriseApiEnterpriseAccount;
+export type AccountDetail = {
+    account?: Account;
     status?: string;
     createdAt?: string;
     lastActiveAt?: string;
-    workspaces?: Array<DifyEnterpriseApiEnterpriseAccountInWorkspace>;
-    groups?: Array<DifyEnterpriseApiEnterpriseAccountDetailGroup>;
+    workspaces?: Array<AccountInWorkspace>;
+    groups?: Array<AccountDetailGroup>;
 };
 
-export type DifyEnterpriseApiEnterpriseAccountDetailGroup = {
+export type AccountDetailGroup = {
     id?: string;
     name?: string;
 };
 
-export type DifyEnterpriseApiEnterpriseAccountInWorkspace = {
+export type AccountInWorkspace = {
     workspaceId?: string;
     workspaceName?: string;
     role?: string;
 };
 
-export type DifyEnterpriseApiEnterpriseAckDeploymentReply = {
+export type AckDeploymentReply = {
     accepted?: boolean;
     newVersion?: string;
 };
 
-export type DifyEnterpriseApiEnterpriseAckDeploymentReq = {
+export type AckDeploymentReq = {
     deploymentId?: string;
     instanceId?: string;
     expectedVersion?: string;
     status?: string;
     observedReleaseId?: string;
-    lastError?: DifyEnterpriseApiEnterpriseLastError;
+    lastError?: LastError;
 };
 
-export type DifyEnterpriseApiEnterpriseAppInstanceBasicInfo = {
+export type AppInstanceBasicInfo = {
     id?: string;
     name?: string;
     description?: string;
@@ -95,25 +95,25 @@ export type DifyEnterpriseApiEnterpriseAppInstanceBasicInfo = {
     createdAt?: string;
 };
 
-export type DifyEnterpriseApiEnterpriseAppInstanceCard = {
+export type AppInstanceCard = {
     id?: string;
     name?: string;
     icon?: string;
     mode?: string;
     sourceAppName?: string;
-    statuses?: Array<DifyEnterpriseApiEnterpriseStatusCount>;
+    statuses?: Array<StatusCount>;
     lastDeployedAt?: string;
 };
 
-export type DifyEnterpriseApiEnterpriseAppRunnerBatchRuntimeArtifactReply = {
-    results?: Array<DifyEnterpriseApiEnterpriseAppRunnerRuntimeArtifactResult>;
+export type AppRunnerBatchRuntimeArtifactReply = {
+    results?: Array<AppRunnerRuntimeArtifactResult>;
 };
 
-export type DifyEnterpriseApiEnterpriseAppRunnerBatchRuntimeArtifactRequest = {
-    artifacts?: Array<DifyEnterpriseApiEnterpriseAppRunnerRuntimeArtifactRequest>;
+export type AppRunnerBatchRuntimeArtifactRequest = {
+    artifacts?: Array<AppRunnerRuntimeArtifactRequest>;
 };
 
-export type DifyEnterpriseApiEnterpriseAppRunnerBootstrapAssignment = {
+export type AppRunnerBootstrapAssignment = {
     appId?: string;
     environmentId?: string;
     workflowId?: string;
@@ -126,21 +126,21 @@ export type DifyEnterpriseApiEnterpriseAppRunnerBootstrapAssignment = {
     releaseId?: string;
 };
 
-export type DifyEnterpriseApiEnterpriseAppRunnerBootstrapReply = {
+export type AppRunnerBootstrapReply = {
     runnerId?: string;
     assignmentRevision?: string;
-    assignments?: Array<DifyEnterpriseApiEnterpriseAppRunnerBootstrapAssignment>;
+    assignments?: Array<AppRunnerBootstrapAssignment>;
 };
 
-export type DifyEnterpriseApiEnterpriseAppRunnerBootstrapRequest = {
-    runner?: DifyEnterpriseApiEnterpriseAppRunnerRunnerInfo;
+export type AppRunnerBootstrapRequest = {
+    runner?: AppRunnerRunnerInfo;
 };
 
-export type DifyEnterpriseApiEnterpriseAppRunnerRunnerInfo = {
+export type AppRunnerRunnerInfo = {
     hostname?: string;
 };
 
-export type DifyEnterpriseApiEnterpriseAppRunnerRuntimeArtifactReply = {
+export type AppRunnerRuntimeArtifactReply = {
     dslYaml?: string;
     bindingSnapshotVersion?: string;
     bindingSnapshot?: {
@@ -148,33 +148,33 @@ export type DifyEnterpriseApiEnterpriseAppRunnerRuntimeArtifactReply = {
     };
 };
 
-export type DifyEnterpriseApiEnterpriseAppRunnerRuntimeArtifactRequest = {
+export type AppRunnerRuntimeArtifactRequest = {
     instanceId?: string;
     releaseId?: string;
     bindingSnapshotVersion?: string;
 };
 
-export type DifyEnterpriseApiEnterpriseAppRunnerRuntimeArtifactResult = {
+export type AppRunnerRuntimeArtifactResult = {
     instanceId?: string;
     releaseId?: string;
-    artifact?: DifyEnterpriseApiEnterpriseAppRunnerRuntimeArtifactReply;
+    artifact?: AppRunnerRuntimeArtifactReply;
     errorCode?: string;
     errorMessage?: string;
 };
 
-export type DifyEnterpriseApiEnterpriseAppRunnerTokenExchangeReply = {
+export type AppRunnerTokenExchangeReply = {
     accessToken?: string;
     expiresAt?: string;
 };
 
-export type DifyEnterpriseApiEnterpriseAppRunnerTokenExchangeRequest = {
+export type AppRunnerTokenExchangeRequest = {
     joinToken?: string;
 };
 
-export type DifyEnterpriseApiEnterpriseAuthSettingsReply = {
-    userSsoSettings?: DifyEnterpriseApiEnterpriseSsoSettings;
-    webSsoSettings?: DifyEnterpriseApiEnterpriseSsoSettings;
-    dashboardSsoSettings?: DifyEnterpriseApiEnterpriseSsoSettings;
+export type AuthSettingsReply = {
+    userSsoSettings?: SsoSettings;
+    webSsoSettings?: SsoSettings;
+    dashboardSsoSettings?: SsoSettings;
     userSsoSamlAcsUrl?: string;
     userSsoOidcCallbackUrl?: string;
     userSsoOauth2CallbackUrl?: string;
@@ -189,12 +189,12 @@ export type DifyEnterpriseApiEnterpriseAuthSettingsReply = {
     dashboardSsoOauth2CallbackUrl?: string;
 };
 
-export type DifyEnterpriseApiEnterpriseAuthSettingsReq = {
+export type AuthSettingsReq = {
     ssoType?: string;
-    ssoSettings?: DifyEnterpriseApiEnterpriseSsoSettings;
+    ssoSettings?: SsoSettings;
 };
 
-export type DifyEnterpriseApiEnterpriseBootstrapProgress = {
+export type BootstrapProgress = {
     currentStep?: string;
     completedSteps?: Array<string>;
     attemptCount?: number;
@@ -203,7 +203,7 @@ export type DifyEnterpriseApiEnterpriseBootstrapProgress = {
     lastErrorMessage?: string;
 };
 
-export type DifyEnterpriseApiEnterpriseBrandingInfo = {
+export type BrandingInfo = {
     enabled?: boolean;
     applicationTitle?: string;
     loginPageLogo?: string;
@@ -211,31 +211,31 @@ export type DifyEnterpriseApiEnterpriseBrandingInfo = {
     favicon?: string;
 };
 
-export type DifyEnterpriseApiEnterpriseCancelRuntimeDeploymentReply = {
+export type CancelRuntimeDeploymentReply = {
     status?: string;
 };
 
-export type DifyEnterpriseApiEnterpriseCancelRuntimeDeploymentReq = {
+export type CancelRuntimeDeploymentReq = {
     appInstanceId?: string;
     runtimeInstanceId?: string;
 };
 
-export type DifyEnterpriseApiEnterpriseCheckPasswordStatusReply = {
+export type CheckPasswordStatusReply = {
     requirePasswordChange?: boolean;
     changeReason?: number;
     daysToExpire?: number;
     message?: string;
 };
 
-export type DifyEnterpriseApiEnterpriseClearDefaultWorkspaceReply = {
+export type ClearDefaultWorkspaceReply = {
     [key: string]: unknown;
 };
 
-export type DifyEnterpriseApiEnterpriseCliAccess = {
+export type CliAccess = {
     url?: string;
 };
 
-export type DifyEnterpriseApiEnterpriseConsoleEnvironment = {
+export type ConsoleEnvironment = {
     id?: string;
     name?: string;
     runtime?: string;
@@ -243,104 +243,104 @@ export type DifyEnterpriseApiEnterpriseConsoleEnvironment = {
     status?: string;
 };
 
-export type DifyEnterpriseApiEnterpriseConsoleRelease = {
+export type ConsoleRelease = {
     id?: string;
     name?: string;
     shortCommitId?: string;
     createdAt?: string;
 };
 
-export type DifyEnterpriseApiEnterpriseConsoleUser = {
+export type ConsoleUser = {
     id?: string;
     name?: string;
 };
 
-export type DifyEnterpriseApiEnterpriseCreateAppInstanceReply = {
+export type CreateAppInstanceReply = {
     appInstanceId?: string;
-    initialRelease?: DifyEnterpriseApiEnterpriseConsoleRelease;
+    initialRelease?: ConsoleRelease;
 };
 
-export type DifyEnterpriseApiEnterpriseCreateAppInstanceReq = {
+export type CreateAppInstanceReq = {
     sourceAppId?: string;
     name?: string;
     description?: string;
 };
 
-export type DifyEnterpriseApiEnterpriseCreateBearerTokenResponse = {
+export type CreateBearerTokenResponse = {
     token?: string;
 };
 
-export type DifyEnterpriseApiEnterpriseCreateDeploymentReply = {
+export type CreateDeploymentReply = {
     runtimeInstanceId?: string;
     deploymentId?: string;
     status?: string;
 };
 
-export type DifyEnterpriseApiEnterpriseCreateDeploymentReq = {
+export type CreateDeploymentReq = {
     appInstanceId?: string;
     environmentId?: string;
     releaseId?: string;
-    bindings?: Array<DifyEnterpriseApiEnterpriseDeploymentRuntimeBinding>;
+    bindings?: Array<DeploymentRuntimeBinding>;
 };
 
-export type DifyEnterpriseApiEnterpriseCreateDeveloperApiKeyReply = {
-    apiKey?: DifyEnterpriseApiEnterpriseDeveloperApiKeyRow;
+export type CreateDeveloperApiKeyReply = {
+    apiKey?: DeveloperApiKeyRow;
     token?: string;
 };
 
-export type DifyEnterpriseApiEnterpriseCreateDeveloperApiKeyReq = {
+export type CreateDeveloperApiKeyReq = {
     appInstanceId?: string;
     environmentId?: string;
     name?: string;
 };
 
-export type DifyEnterpriseApiEnterpriseCreateEnvironmentReply = {
-    environment?: DifyEnterpriseApiEnterpriseEnvironment;
+export type CreateEnvironmentReply = {
+    environment?: Environment;
 };
 
-export type DifyEnterpriseApiEnterpriseCreateEnvironmentReq = {
+export type CreateEnvironmentReq = {
     name?: string;
     description?: string;
     mode?: number;
     backend?: number;
-    k8s?: DifyEnterpriseApiEnterpriseK8sEnvironmentConfig;
-    host?: DifyEnterpriseApiEnterpriseHostEnvironmentConfig;
+    k8s?: K8sEnvironmentConfig;
+    host?: HostEnvironmentConfig;
 };
 
-export type DifyEnterpriseApiEnterpriseCreateMemberReply = {
+export type CreateMemberReply = {
     id?: string;
     password?: string;
 };
 
-export type DifyEnterpriseApiEnterpriseCreateMemberReq = {
+export type CreateMemberReq = {
     name?: string;
     email?: string;
     status?: string;
 };
 
-export type DifyEnterpriseApiEnterpriseCreateNewGroupsReq = {
-    groups?: Array<DifyEnterpriseApiEnterpriseCreateNewGroupsReqGroup>;
+export type CreateNewGroupsReq = {
+    groups?: Array<CreateNewGroupsReqGroup>;
 };
 
-export type DifyEnterpriseApiEnterpriseCreateNewGroupsReqGroup = {
+export type CreateNewGroupsReqGroup = {
     name?: string;
 };
 
-export type DifyEnterpriseApiEnterpriseCreateNewGroupsRes = {
-    groups?: Array<DifyEnterpriseApiEnterpriseSubjectGroupData>;
+export type CreateNewGroupsRes = {
+    groups?: Array<SubjectGroupData>;
 };
 
-export type DifyEnterpriseApiEnterpriseCreateReleaseReply = {
-    release?: DifyEnterpriseApiEnterpriseConsoleRelease;
+export type CreateReleaseReply = {
+    release?: ConsoleRelease;
 };
 
-export type DifyEnterpriseApiEnterpriseCreateReleaseReq = {
+export type CreateReleaseReq = {
     appInstanceId?: string;
     name?: string;
     description?: string;
 };
 
-export type DifyEnterpriseApiEnterpriseCreateSecretKeyReply = {
+export type CreateSecretKeyReply = {
     id?: string;
     name?: string;
     secretKey?: string;
@@ -348,32 +348,32 @@ export type DifyEnterpriseApiEnterpriseCreateSecretKeyReply = {
     lastActive?: string;
 };
 
-export type DifyEnterpriseApiEnterpriseCreateSecretKeyReq = {
+export type CreateSecretKeyReq = {
     name?: string;
 };
 
-export type DifyEnterpriseApiEnterpriseCreateUserReply = {
+export type CreateUserReply = {
     id?: string;
     password?: string;
 };
 
-export type DifyEnterpriseApiEnterpriseCreateUserReq = {
+export type CreateUserReq = {
     name?: string;
     email?: string;
     status?: string;
 };
 
-export type DifyEnterpriseApiEnterpriseCreateWorkspaceReply = {
-    workspace?: DifyEnterpriseApiEnterpriseWorkspace;
+export type CreateWorkspaceReply = {
+    workspace?: Workspace;
 };
 
-export type DifyEnterpriseApiEnterpriseCreateWorkspaceReq = {
+export type CreateWorkspaceReq = {
     name?: string;
     email?: string;
     status?: string;
 };
 
-export type DifyEnterpriseApiEnterpriseCurrentUserReply = {
+export type CurrentUserReply = {
     id?: string;
     name?: string;
     email?: string;
@@ -381,72 +381,72 @@ export type DifyEnterpriseApiEnterpriseCurrentUserReply = {
     timezone?: string;
 };
 
-export type DifyEnterpriseApiEnterpriseDashboardSsooidcLoginReply = {
+export type DashboardSsooidcLoginReply = {
     url?: string;
     state?: string;
 };
 
-export type DifyEnterpriseApiEnterpriseDashboardSsoOauth2LoginReply = {
+export type DashboardSsoOauth2LoginReply = {
     url?: string;
     state?: string;
 };
 
-export type DifyEnterpriseApiEnterpriseDashboardSsosamlLoginReply = {
+export type DashboardSsosamlLoginReply = {
     url?: string;
 };
 
-export type DifyEnterpriseApiEnterpriseDeleteAppInstanceReply = {
+export type DeleteAppInstanceReply = {
     [key: string]: unknown;
 };
 
-export type DifyEnterpriseApiEnterpriseDeleteDeveloperApiKeyReply = {
+export type DeleteDeveloperApiKeyReply = {
     [key: string]: unknown;
 };
 
-export type DifyEnterpriseApiEnterpriseDeleteEnvironmentReply = {
+export type DeleteEnvironmentReply = {
     [key: string]: unknown;
 };
 
-export type DifyEnterpriseApiEnterpriseDeleteGroupsRes = {
+export type DeleteGroupsRes = {
     message?: string;
 };
 
-export type DifyEnterpriseApiEnterpriseDeleteGuard = {
+export type DeleteGuard = {
     canDelete?: boolean;
     disabledReason?: string;
 };
 
-export type DifyEnterpriseApiEnterpriseDeleteMemberReply = {
-    account?: DifyEnterpriseApiEnterpriseAccount;
+export type DeleteMemberReply = {
+    account?: Account;
 };
 
-export type DifyEnterpriseApiEnterpriseDeleteSecretKeyReply = {
+export type DeleteSecretKeyReply = {
     message?: string;
 };
 
-export type DifyEnterpriseApiEnterpriseDeleteUserReply = {
-    account?: DifyEnterpriseApiEnterpriseAccount;
+export type DeleteUserReply = {
+    account?: Account;
 };
 
-export type DifyEnterpriseApiEnterpriseDeleteWorkspaceReply = {
+export type DeleteWorkspaceReply = {
     [key: string]: unknown;
 };
 
-export type DifyEnterpriseApiEnterpriseDeployedEnvironment = {
+export type DeployedEnvironment = {
     environmentId?: string;
     environmentName?: string;
 };
 
-export type DifyEnterpriseApiEnterpriseDeploymentBindingOptionSlot = {
+export type DeploymentBindingOptionSlot = {
     slot?: string;
     kind?: string;
     label?: string;
     required?: boolean;
-    candidates?: Array<DifyEnterpriseApiEnterpriseDeploymentCredentialOption>;
-    envVarCandidates?: Array<DifyEnterpriseApiEnterpriseDeploymentEnvVarOption>;
+    candidates?: Array<DeploymentCredentialOption>;
+    envVarCandidates?: Array<DeploymentEnvVarOption>;
 };
 
-export type DifyEnterpriseApiEnterpriseDeploymentCredentialOption = {
+export type DeploymentCredentialOption = {
     credentialId?: string;
     displayName?: string;
     pluginId?: string;
@@ -454,14 +454,14 @@ export type DifyEnterpriseApiEnterpriseDeploymentCredentialOption = {
     pluginVersion?: string;
 };
 
-export type DifyEnterpriseApiEnterpriseDeploymentEnvVarOption = {
+export type DeploymentEnvVarOption = {
     envVarId?: string;
     name?: string;
     valueType?: string;
     displayValue?: string;
 };
 
-export type DifyEnterpriseApiEnterpriseDeploymentEnvironmentOption = {
+export type DeploymentEnvironmentOption = {
     id?: string;
     name?: string;
     type?: string;
@@ -472,43 +472,43 @@ export type DifyEnterpriseApiEnterpriseDeploymentEnvironmentOption = {
     disabledReason?: string;
 };
 
-export type DifyEnterpriseApiEnterpriseDeploymentRuntimeBinding = {
+export type DeploymentRuntimeBinding = {
     slot?: string;
     credentialId?: string;
     envVarId?: string;
 };
 
-export type DifyEnterpriseApiEnterpriseDeploymentStatusRow = {
-    environment?: DifyEnterpriseApiEnterpriseConsoleEnvironment;
-    release?: DifyEnterpriseApiEnterpriseConsoleRelease;
+export type DeploymentStatusRow = {
+    environment?: ConsoleEnvironment;
+    release?: ConsoleRelease;
     status?: string;
 };
 
-export type DifyEnterpriseApiEnterpriseDeveloperApiAccess = {
+export type DeveloperApiAccess = {
     enabled?: boolean;
-    apiKeys?: Array<DifyEnterpriseApiEnterpriseDeveloperApiKeyRow>;
+    apiKeys?: Array<DeveloperApiKeyRow>;
 };
 
-export type DifyEnterpriseApiEnterpriseDeveloperApiKeyRow = {
+export type DeveloperApiKeyRow = {
     id?: string;
     name?: string;
-    environment?: DifyEnterpriseApiEnterpriseConsoleEnvironment;
+    environment?: ConsoleEnvironment;
     maskedKey?: string;
 };
 
-export type DifyEnterpriseApiEnterpriseEndpointReply = {
+export type EndpointReply = {
     mode?: number;
-    metricsEndpoint?: DifyEnterpriseApiEnterpriseOtelExporterEndpoint;
-    tracesEndpoint?: DifyEnterpriseApiEnterpriseOtelExporterEndpoint;
+    metricsEndpoint?: OtelExporterEndpoint;
+    tracesEndpoint?: OtelExporterEndpoint;
 };
 
-export type DifyEnterpriseApiEnterpriseEnterpriseSystemUserSettingReply = {
+export type EnterpriseSystemUserSettingReply = {
     ssoEnforcedForSignin?: boolean;
     ssoEnforcedForSigninProtocol?: string;
     enableEmailPasswordLogin?: boolean;
 };
 
-export type DifyEnterpriseApiEnterpriseEnvironment = {
+export type Environment = {
     id?: string;
     name?: string;
     description?: string;
@@ -517,7 +517,7 @@ export type DifyEnterpriseApiEnterpriseEnvironment = {
     apiServer?: string;
     status?: number;
     statusMessage?: string;
-    bootstrapProgress?: DifyEnterpriseApiEnterpriseBootstrapProgress;
+    bootstrapProgress?: BootstrapProgress;
     managedBy?: string;
     createdAt?: string;
     updatedAt?: string;
@@ -525,70 +525,70 @@ export type DifyEnterpriseApiEnterpriseEnvironment = {
     host?: string;
 };
 
-export type DifyEnterpriseApiEnterpriseEnvironmentAccessRow = {
-    environment?: DifyEnterpriseApiEnterpriseConsoleEnvironment;
-    currentRelease?: DifyEnterpriseApiEnterpriseConsoleRelease;
+export type EnvironmentAccessRow = {
+    environment?: ConsoleEnvironment;
+    currentRelease?: ConsoleRelease;
     accessMode?: string;
     accessModeLabel?: string;
     hint?: string;
 };
 
-export type DifyEnterpriseApiEnterpriseEnvironmentFilter = {
+export type EnvironmentFilter = {
     id?: string;
     name?: string;
     kind?: string;
 };
 
-export type DifyEnterpriseApiEnterpriseGetAppInstanceAccessReply = {
-    permissions?: Array<DifyEnterpriseApiEnterpriseEnvironmentAccessRow>;
-    accessChannels?: DifyEnterpriseApiEnterpriseAccessChannels;
-    developerApi?: DifyEnterpriseApiEnterpriseDeveloperApiAccess;
+export type GetAppInstanceAccessReply = {
+    permissions?: Array<EnvironmentAccessRow>;
+    accessChannels?: AccessChannels;
+    developerApi?: DeveloperApiAccess;
 };
 
-export type DifyEnterpriseApiEnterpriseGetAppInstanceOverviewReply = {
-    instance?: DifyEnterpriseApiEnterpriseAppInstanceBasicInfo;
-    deployments?: Array<DifyEnterpriseApiEnterpriseDeploymentStatusRow>;
-    access?: DifyEnterpriseApiEnterpriseAccessStatus;
+export type GetAppInstanceOverviewReply = {
+    instance?: AppInstanceBasicInfo;
+    deployments?: Array<DeploymentStatusRow>;
+    access?: AccessStatus;
 };
 
-export type DifyEnterpriseApiEnterpriseGetAppInstanceSettingsReply = {
+export type GetAppInstanceSettingsReply = {
     name?: string;
     description?: string;
-    deleteGuard?: DifyEnterpriseApiEnterpriseDeleteGuard;
+    deleteGuard?: DeleteGuard;
 };
 
-export type DifyEnterpriseApiEnterpriseGetBearerTokenResponse = {
+export type GetBearerTokenResponse = {
     maskedToken?: string;
 };
 
-export type DifyEnterpriseApiEnterpriseGetClusterInfoReply = {
+export type GetClusterInfoReply = {
     mode?: string;
     clusterId?: string;
     verifyMode?: string;
 };
 
-export type DifyEnterpriseApiEnterpriseGetDefaultWorkspaceReply = {
+export type GetDefaultWorkspaceReply = {
     workspaceId?: string;
-    workspace?: DifyEnterpriseApiEnterpriseWorkspace;
+    workspace?: Workspace;
 };
 
-export type DifyEnterpriseApiEnterpriseGetEnvironmentAccessPolicyReply = {
-    policy?: DifyEnterpriseApiEnterpriseAccessPolicyDetail;
+export type GetEnvironmentAccessPolicyReply = {
+    policy?: AccessPolicyDetail;
 };
 
-export type DifyEnterpriseApiEnterpriseGetEnvironmentReply = {
-    environment?: DifyEnterpriseApiEnterpriseEnvironment;
+export type GetEnvironmentReply = {
+    environment?: Environment;
 };
 
-export type DifyEnterpriseApiEnterpriseGetGroupSubjectsRes = {
-    subjects?: Array<DifyEnterpriseApiEnterpriseSubject>;
+export type GetGroupSubjectsRes = {
+    subjects?: Array<Subject>;
 };
 
-export type DifyEnterpriseApiEnterpriseGetGroupsRes = {
-    groups?: Array<DifyEnterpriseApiEnterpriseSubjectGroupData>;
+export type GetGroupsRes = {
+    groups?: Array<SubjectGroupData>;
 };
 
-export type DifyEnterpriseApiEnterpriseGetInstanceReply = {
+export type GetInstanceReply = {
     instanceId?: string;
     status?: string;
     desiredReleaseId?: string;
@@ -597,73 +597,73 @@ export type DifyEnterpriseApiEnterpriseGetInstanceReply = {
     version?: string;
 };
 
-export type DifyEnterpriseApiEnterpriseGetJoinedGroupsRes = {
-    groups?: Array<DifyEnterpriseApiEnterpriseSubjectGroupData>;
+export type GetJoinedGroupsRes = {
+    groups?: Array<SubjectGroupData>;
 };
 
-export type DifyEnterpriseApiEnterpriseGetLicenseReply = {
-    license?: DifyEnterpriseApiEnterpriseLicenseInfo;
+export type GetLicenseReply = {
+    license?: LicenseInfo;
 };
 
-export type DifyEnterpriseApiEnterpriseGetLicenseStatusReply = {
+export type GetLicenseStatusReply = {
     status?: string;
 };
 
-export type DifyEnterpriseApiEnterpriseGetMfaInfoReply = {
+export type GetMfaInfoReply = {
     userEnabled?: boolean;
     userSetup?: boolean;
     globalEnabled?: boolean;
 };
 
-export type DifyEnterpriseApiEnterpriseGetMemberReply = {
-    account?: DifyEnterpriseApiEnterpriseAccountDetail;
+export type GetMemberReply = {
+    account?: AccountDetail;
 };
 
-export type DifyEnterpriseApiEnterpriseGetUserReply = {
-    account?: DifyEnterpriseApiEnterpriseAccountDetail;
+export type GetUserReply = {
+    account?: AccountDetail;
 };
 
-export type DifyEnterpriseApiEnterpriseGetWebAppAccessModeRes = {
+export type GetWebAppAccessModeRes = {
     accessMode?: string;
 };
 
-export type DifyEnterpriseApiEnterpriseGetWebAppAuthInfoRes = {
+export type GetWebAppAuthInfoRes = {
     allowSso?: boolean;
     allowEmailCodeLogin?: boolean;
     allowEmailPasswordLogin?: boolean;
 };
 
-export type DifyEnterpriseApiEnterpriseGetWebAppWhitelistSubjectsRes = {
-    groups?: Array<DifyEnterpriseApiEnterpriseSubjectGroupData>;
-    members?: Array<DifyEnterpriseApiEnterpriseGetWebAppWhitelistSubjectsResMember>;
+export type GetWebAppWhitelistSubjectsRes = {
+    groups?: Array<SubjectGroupData>;
+    members?: Array<GetWebAppWhitelistSubjectsResMember>;
 };
 
-export type DifyEnterpriseApiEnterpriseGetWebAppWhitelistSubjectsResMember = {
+export type GetWebAppWhitelistSubjectsResMember = {
     id?: string;
     name?: string;
     email?: string;
     avatar?: string;
 };
 
-export type DifyEnterpriseApiEnterpriseGetWorkspacePermissionReply = {
-    permission?: DifyEnterpriseApiEnterpriseWorkspacePermission;
+export type GetWorkspacePermissionReply = {
+    permission?: WorkspacePermission;
 };
 
-export type DifyEnterpriseApiEnterpriseGetWorkspaceReply = {
-    workspace?: DifyEnterpriseApiEnterpriseWorkspace;
+export type GetWorkspaceReply = {
+    workspace?: Workspace;
 };
 
-export type DifyEnterpriseApiEnterpriseHealthzReply = {
+export type HealthzReply = {
     message?: string;
     status?: string;
 };
 
-export type DifyEnterpriseApiEnterpriseHostEnvironmentConfig = {
+export type HostEnvironmentConfig = {
     machineId?: string;
     joinTokenHash?: string;
 };
 
-export type DifyEnterpriseApiEnterpriseInfoConfigReply = {
+export type InfoConfigReply = {
     SSOEnforcedForSignin?: boolean;
     SSOEnforcedForSigninProtocol?: string;
     SSOEnforcedForWeb?: boolean;
@@ -672,34 +672,34 @@ export type DifyEnterpriseApiEnterpriseInfoConfigReply = {
     EnableEmailPasswordLogin?: boolean;
     IsAllowRegister?: boolean;
     IsAllowCreateWorkspace?: boolean;
-    License?: DifyEnterpriseApiEnterpriseLicenseStatus;
-    Branding?: DifyEnterpriseApiEnterpriseBrandingInfo;
-    WebAppAuth?: DifyEnterpriseApiEnterpriseWebAppAuthInfo;
-    PluginInstallationPermission?: DifyEnterpriseApiEnterprisePluginInstallationPermissionInfo;
+    License?: LicenseStatus;
+    Branding?: BrandingInfo;
+    WebAppAuth?: WebAppAuthInfo;
+    PluginInstallationPermission?: PluginInstallationPermissionInfo;
 };
 
-export type DifyEnterpriseApiEnterpriseInnerBatchGetWebAppAccessModesByIdReq = {
+export type InnerBatchGetWebAppAccessModesByIdReq = {
     appIds?: Array<string>;
 };
 
-export type DifyEnterpriseApiEnterpriseInnerBatchGetWebAppAccessModesByIdRes = {
+export type InnerBatchGetWebAppAccessModesByIdRes = {
     accessModes?: {
         [key: string]: string;
     };
 };
 
-export type DifyEnterpriseApiEnterpriseInnerBatchIsUserAllowedToAccessWebAppReq = {
+export type InnerBatchIsUserAllowedToAccessWebAppReq = {
     userId?: string;
     appIds?: Array<string>;
 };
 
-export type DifyEnterpriseApiEnterpriseInnerBatchIsUserAllowedToAccessWebAppRes = {
+export type InnerBatchIsUserAllowedToAccessWebAppRes = {
     permissions?: {
         [key: string]: boolean;
     };
 };
 
-export type DifyEnterpriseApiEnterpriseInnerCheckAppDeployAccessReply = {
+export type InnerCheckAppDeployAccessReply = {
     allowed?: boolean;
     matchedPolicyId?: string;
     matchedScopeType?: string;
@@ -707,18 +707,18 @@ export type DifyEnterpriseApiEnterpriseInnerCheckAppDeployAccessReply = {
     cacheTtlSeconds?: number;
 };
 
-export type DifyEnterpriseApiEnterpriseInnerCheckAppDeployAccessReq = {
+export type InnerCheckAppDeployAccessReq = {
     appInstanceId?: string;
     environmentId?: string;
     principalType?: string;
     principalId?: string;
 };
 
-export type DifyEnterpriseApiEnterpriseInnerCleanAppRes = {
+export type InnerCleanAppRes = {
     message?: string;
 };
 
-export type DifyEnterpriseApiEnterpriseInnerGetTokenRouteReply = {
+export type InnerGetTokenRouteReply = {
     environmentId?: string;
     namespace?: string;
     serviceName?: string;
@@ -731,177 +731,177 @@ export type DifyEnterpriseApiEnterpriseInnerGetTokenRouteReply = {
     instanceStatus?: string;
 };
 
-export type DifyEnterpriseApiEnterpriseInnerGetTokenRouteReq = {
+export type InnerGetTokenRouteReq = {
     token?: string;
 };
 
-export type DifyEnterpriseApiEnterpriseInnerGetWebAppAccessModeByCodeRes = {
+export type InnerGetWebAppAccessModeByCodeRes = {
     accessMode?: string;
 };
 
-export type DifyEnterpriseApiEnterpriseInnerGetWebAppAccessModeByIdRes = {
+export type InnerGetWebAppAccessModeByIdRes = {
     accessMode?: string;
 };
 
-export type DifyEnterpriseApiEnterpriseInnerIsUserAllowedToAccessWebAppRes = {
+export type InnerIsUserAllowedToAccessWebAppRes = {
     result?: boolean;
 };
 
-export type DifyEnterpriseApiEnterpriseInnerTryAddAccountToDefaultWorkspaceReply = {
+export type InnerTryAddAccountToDefaultWorkspaceReply = {
     workspaceId?: string;
     joined?: boolean;
     message?: string;
 };
 
-export type DifyEnterpriseApiEnterpriseInnerTryAddAccountToDefaultWorkspaceReq = {
+export type InnerTryAddAccountToDefaultWorkspaceReq = {
     accountId?: string;
 };
 
-export type DifyEnterpriseApiEnterpriseIsUserAllowedToAccessWebAppRes = {
+export type IsUserAllowedToAccessWebAppRes = {
     result?: boolean;
 };
 
-export type DifyEnterpriseApiEnterpriseJoinWorkspaceReply = {
+export type JoinWorkspaceReply = {
     message?: string;
 };
 
-export type DifyEnterpriseApiEnterpriseJoinWorkspaceReq = {
+export type JoinWorkspaceReq = {
     id?: string;
     email?: string;
     role?: string;
 };
 
-export type DifyEnterpriseApiEnterpriseK8sEnvironmentConfig = {
+export type K8sEnvironmentConfig = {
     namespace?: string;
     apiServer?: string;
     caBundle?: string;
     bearerToken?: string;
 };
 
-export type DifyEnterpriseApiEnterpriseLastError = {
+export type LastError = {
     phase?: string;
     code?: string;
     message?: string;
     releaseId?: string;
 };
 
-export type DifyEnterpriseApiEnterpriseLicenseInfo = {
+export type LicenseInfo = {
     uuid?: string;
     expiredAt?: string;
     clusterId?: string;
     product?: string;
-    limits?: DifyEnterpriseApiEnterpriseLimitFields;
+    limits?: LimitFields;
 };
 
-export type DifyEnterpriseApiEnterpriseLicenseStatus = {
+export type LicenseStatus = {
     status?: string;
     expiredAt?: string;
-    workspaces?: DifyEnterpriseApiEnterpriseResourceQuota;
+    workspaces?: ResourceQuota;
 };
 
-export type DifyEnterpriseApiEnterpriseLimitFields = {
+export type LimitFields = {
     workspaceMembers?: number;
-    workspaces?: DifyEnterpriseApiEnterpriseResourceQuota;
+    workspaces?: ResourceQuota;
 };
 
-export type DifyEnterpriseApiEnterpriseListAppInstancesReply = {
-    filters?: Array<DifyEnterpriseApiEnterpriseEnvironmentFilter>;
-    data?: Array<DifyEnterpriseApiEnterpriseAppInstanceCard>;
-    pagination?: PaginationPagination;
+export type ListAppInstancesReply = {
+    filters?: Array<EnvironmentFilter>;
+    data?: Array<AppInstanceCard>;
+    pagination?: Pagination;
 };
 
-export type DifyEnterpriseApiEnterpriseListDeploymentBindingOptionsReply = {
-    slots?: Array<DifyEnterpriseApiEnterpriseDeploymentBindingOptionSlot>;
+export type ListDeploymentBindingOptionsReply = {
+    slots?: Array<DeploymentBindingOptionSlot>;
 };
 
-export type DifyEnterpriseApiEnterpriseListDeploymentEnvironmentOptionsReply = {
-    environments?: Array<DifyEnterpriseApiEnterpriseDeploymentEnvironmentOption>;
+export type ListDeploymentEnvironmentOptionsReply = {
+    environments?: Array<DeploymentEnvironmentOption>;
 };
 
-export type DifyEnterpriseApiEnterpriseListEnvironmentsReply = {
-    data?: Array<DifyEnterpriseApiEnterpriseEnvironment>;
-    pagination?: PaginationPagination;
+export type ListEnvironmentsReply = {
+    data?: Array<Environment>;
+    pagination?: Pagination;
 };
 
-export type DifyEnterpriseApiEnterpriseListMembersReply = {
-    data?: Array<DifyEnterpriseApiEnterpriseAccountDetail>;
-    pagination?: PaginationPagination;
+export type ListMembersReply = {
+    data?: Array<AccountDetail>;
+    pagination?: Pagination;
 };
 
-export type DifyEnterpriseApiEnterpriseListReleasesReply = {
-    data?: Array<DifyEnterpriseApiEnterpriseReleaseRow>;
-    pagination?: PaginationPagination;
+export type ListReleasesReply = {
+    data?: Array<ReleaseRow>;
+    pagination?: Pagination;
 };
 
-export type DifyEnterpriseApiEnterpriseListRuntimeInstancesReply = {
-    data?: Array<DifyEnterpriseApiEnterpriseRuntimeInstanceRow>;
+export type ListRuntimeInstancesReply = {
+    data?: Array<RuntimeInstanceRow>;
 };
 
-export type DifyEnterpriseApiEnterpriseListSecretKeysReply = {
-    data?: Array<DifyEnterpriseApiEnterpriseSecretKey>;
-    pagination?: PaginationPagination;
+export type ListSecretKeysReply = {
+    data?: Array<SecretKey>;
+    pagination?: Pagination;
 };
 
-export type DifyEnterpriseApiEnterpriseListUsersReply = {
-    data?: Array<DifyEnterpriseApiEnterpriseAccountDetail>;
-    pagination?: PaginationPagination;
+export type ListUsersReply = {
+    data?: Array<AccountDetail>;
+    pagination?: Pagination;
 };
 
-export type DifyEnterpriseApiEnterpriseListWorkspacesReply = {
-    data?: Array<DifyEnterpriseApiEnterpriseWorkspace>;
-    pagination?: PaginationPagination;
+export type ListWorkspacesReply = {
+    data?: Array<Workspace>;
+    pagination?: Pagination;
 };
 
-export type DifyEnterpriseApiEnterpriseLoginTypesReply = {
+export type LoginTypesReply = {
     enabledEmailCodeLogin?: boolean;
     enableEmailPasswordLogin?: boolean;
     isAllowRegister?: boolean;
     isAllowCreateWorkspace?: boolean;
 };
 
-export type DifyEnterpriseApiEnterpriseLoginTypesReq = {
+export type LoginTypesReq = {
     enabledEmailCodeLogin?: boolean;
     enableEmailPasswordLogin?: boolean;
     isAllowRegister?: boolean;
     isAllowCreateWorkspace?: boolean;
 };
 
-export type DifyEnterpriseApiEnterpriseMfaBackupCodesRes = {
+export type MfaBackupCodesRes = {
     codes?: Array<string>;
     validCounts?: number;
     createdAt?: string;
 };
 
-export type DifyEnterpriseApiEnterpriseMfaDeleteBackupCodesRes = {
+export type MfaDeleteBackupCodesRes = {
     message?: string;
 };
 
-export type DifyEnterpriseApiEnterpriseMfaDeleteRes = {
+export type MfaDeleteRes = {
     token?: string;
 };
 
-export type DifyEnterpriseApiEnterpriseMfaDownloadBackupCodesSummaryRes = {
+export type MfaDownloadBackupCodesSummaryRes = {
     content?: string;
 };
 
-export type DifyEnterpriseApiEnterpriseMfaEnrollReq = {
+export type MfaEnrollReq = {
     code?: string;
 };
 
-export type DifyEnterpriseApiEnterpriseMfaEnrollRes = {
+export type MfaEnrollRes = {
     token?: string;
 };
 
-export type DifyEnterpriseApiEnterpriseMfaGetEnrollInfoRes = {
+export type MfaGetEnrollInfoRes = {
     qrCode?: string;
     secret?: string;
 };
 
-export type DifyEnterpriseApiEnterpriseMfaModifyRes = {
+export type MfaModifyRes = {
     message?: string;
 };
 
-export type DifyEnterpriseApiEnterpriseOAuth2Config = {
+export type OAuth2Config = {
     clientId?: string;
     clientSecret?: string;
     authUrl?: string;
@@ -911,24 +911,24 @@ export type DifyEnterpriseApiEnterpriseOAuth2Config = {
     enablePkce?: boolean;
 };
 
-export type DifyEnterpriseApiEnterpriseOAuth2LoginReply = {
+export type OAuth2LoginReply = {
     url?: string;
     state?: string;
 };
 
-export type DifyEnterpriseApiEnterpriseOidcConfig = {
+export type OidcConfig = {
     issuerUrl?: string;
     clientId?: string;
     clientSecret?: string;
     enablePkce?: boolean;
 };
 
-export type DifyEnterpriseApiEnterpriseOidcReply = {
+export type OidcReply = {
     url?: string;
     state?: string;
 };
 
-export type DifyEnterpriseApiEnterpriseOtelExporterEndpoint = {
+export type OtelExporterEndpoint = {
     endpoint?: string;
     compression?: string;
     protocol?: number;
@@ -944,7 +944,7 @@ export type DifyEnterpriseApiEnterpriseOtelExporterEndpoint = {
     tlsInsecureSkipVerify?: boolean;
 };
 
-export type DifyEnterpriseApiEnterpriseOtelExporterStatusReply = {
+export type OtelExporterStatusReply = {
     connectedAt?: string;
     bytesPushed?: string;
     itemsInQueue?: string;
@@ -952,7 +952,7 @@ export type DifyEnterpriseApiEnterpriseOtelExporterStatusReply = {
     status?: number;
 };
 
-export type DifyEnterpriseApiEnterprisePasswordPolicyConfig = {
+export type PasswordPolicyConfig = {
     minLength?: number;
     requireDigit?: boolean;
     requireLowercase?: boolean;
@@ -964,173 +964,173 @@ export type DifyEnterpriseApiEnterprisePasswordPolicyConfig = {
     expiryDays?: number;
 };
 
-export type DifyEnterpriseApiEnterprisePasswordStrengthReply = {
+export type PasswordStrengthReply = {
     level?: number;
 };
 
-export type DifyEnterpriseApiEnterprisePasswordStrengthReq = {
+export type PasswordStrengthReq = {
     password?: string;
 };
 
-export type DifyEnterpriseApiEnterprisePluginInstallationPermissionInfo = {
+export type PluginInstallationPermissionInfo = {
     pluginInstallationScope?: string;
     restrictToMarketplaceOnly?: boolean;
 };
 
-export type DifyEnterpriseApiEnterprisePluginInstallationSettingsReply = {
+export type PluginInstallationSettingsReply = {
     pluginInstallationScope?: number;
     restrictToMarketplaceOnly?: boolean;
 };
 
-export type DifyEnterpriseApiEnterprisePreviewReleaseReply = {
-    release?: DifyEnterpriseApiEnterpriseConsoleRelease;
-    bindings?: Array<DifyEnterpriseApiEnterpriseReleaseRuntimeBinding>;
+export type PreviewReleaseReply = {
+    release?: ConsoleRelease;
+    bindings?: Array<ReleaseRuntimeBinding>;
 };
 
-export type DifyEnterpriseApiEnterprisePreviewReleaseReq = {
+export type PreviewReleaseReq = {
     appInstanceId?: string;
     releaseId?: string;
 };
 
-export type DifyEnterpriseApiEnterpriseReleaseRow = {
+export type ReleaseRow = {
     id?: string;
     name?: string;
     createdAt?: string;
-    createdBy?: DifyEnterpriseApiEnterpriseConsoleUser;
-    deployedTo?: Array<DifyEnterpriseApiEnterpriseDeployedEnvironment>;
+    createdBy?: ConsoleUser;
+    deployedTo?: Array<DeployedEnvironment>;
 };
 
-export type DifyEnterpriseApiEnterpriseReleaseRuntimeBinding = {
+export type ReleaseRuntimeBinding = {
     kind?: string;
     label?: string;
     displayValue?: string;
     valueType?: string;
 };
 
-export type DifyEnterpriseApiEnterpriseResetMemberPasswordReply = {
+export type ResetMemberPasswordReply = {
     id?: string;
     password?: string;
 };
 
-export type DifyEnterpriseApiEnterpriseResetMemberPasswordReq = {
+export type ResetMemberPasswordReq = {
     id?: string;
 };
 
-export type DifyEnterpriseApiEnterpriseResetPasswordReply = {
+export type ResetPasswordReply = {
     message?: string;
 };
 
-export type DifyEnterpriseApiEnterpriseResetPasswordReq = {
+export type ResetPasswordReq = {
     currentPassword?: string;
     newPassword?: string;
     confirmPassword?: string;
 };
 
-export type DifyEnterpriseApiEnterpriseResetUserPasswordReply = {
+export type ResetUserPasswordReply = {
     id?: string;
     password?: string;
 };
 
-export type DifyEnterpriseApiEnterpriseResetUserPasswordReq = {
+export type ResetUserPasswordReq = {
     id?: string;
 };
 
-export type DifyEnterpriseApiEnterpriseResolveCredentialsReply = {
-    resolved?: Array<DifyEnterpriseApiEnterpriseResolvedCredential>;
+export type ResolveCredentialsReply = {
+    resolved?: Array<ResolvedCredential>;
 };
 
-export type DifyEnterpriseApiEnterpriseResolveCredentialsReq = {
+export type ResolveCredentialsReq = {
     instanceId?: string;
     deploymentId?: string;
     slots?: Array<string>;
 };
 
-export type DifyEnterpriseApiEnterpriseResolvedCredential = {
+export type ResolvedCredential = {
     slot?: string;
     credentialId?: string;
     envVarId?: string;
     value?: string;
 };
 
-export type DifyEnterpriseApiEnterpriseResourceQuota = {
+export type ResourceQuota = {
     used?: number;
     limit?: number;
     enabled?: boolean;
 };
 
-export type DifyEnterpriseApiEnterpriseRetryEnvironmentReply = {
-    environment?: DifyEnterpriseApiEnterpriseEnvironment;
+export type RetryEnvironmentReply = {
+    environment?: Environment;
 };
 
-export type DifyEnterpriseApiEnterpriseRetryEnvironmentReq = {
+export type RetryEnvironmentReq = {
     id?: string;
 };
 
-export type DifyEnterpriseApiEnterpriseRuntimeEndpoints = {
+export type RuntimeEndpoints = {
     run?: string;
     health?: string;
 };
 
-export type DifyEnterpriseApiEnterpriseRuntimeInstanceDetail = {
+export type RuntimeInstanceDetail = {
     deploymentName?: string;
     replicas?: number;
     runtimeMode?: string;
     runtimeNote?: string;
-    endpoints?: DifyEnterpriseApiEnterpriseRuntimeEndpoints;
-    bindings?: Array<DifyEnterpriseApiEnterpriseReleaseRuntimeBinding>;
+    endpoints?: RuntimeEndpoints;
+    bindings?: Array<ReleaseRuntimeBinding>;
 };
 
-export type DifyEnterpriseApiEnterpriseRuntimeInstanceRow = {
+export type RuntimeInstanceRow = {
     id?: string;
-    environment?: DifyEnterpriseApiEnterpriseConsoleEnvironment;
+    environment?: ConsoleEnvironment;
     status?: string;
-    currentRelease?: DifyEnterpriseApiEnterpriseConsoleRelease;
-    detail?: DifyEnterpriseApiEnterpriseRuntimeInstanceDetail;
+    currentRelease?: ConsoleRelease;
+    detail?: RuntimeInstanceDetail;
 };
 
-export type DifyEnterpriseApiEnterpriseSamlConfig = {
+export type SamlConfig = {
     idpSsoUrl?: string;
     certificate?: string;
 };
 
-export type DifyEnterpriseApiEnterpriseSamlLoginReply = {
+export type SamlLoginReply = {
     url?: string;
 };
 
-export type DifyEnterpriseApiEnterpriseSsoIdPProvider = {
+export type SsoIdPProvider = {
     protocol?: string;
     provider?: string;
-    samlConfig?: DifyEnterpriseApiEnterpriseSamlConfig;
-    oidcConfig?: DifyEnterpriseApiEnterpriseOidcConfig;
-    oauth2Config?: DifyEnterpriseApiEnterpriseOAuth2Config;
+    samlConfig?: SamlConfig;
+    oidcConfig?: OidcConfig;
+    oauth2Config?: OAuth2Config;
 };
 
-export type DifyEnterpriseApiEnterpriseSsoSettings = {
+export type SsoSettings = {
     ssoEnforced?: boolean;
     sessionTimeout?: number;
-    ssoIdpProvider?: DifyEnterpriseApiEnterpriseSsoIdPProvider;
+    ssoIdpProvider?: SsoIdPProvider;
 };
 
-export type DifyEnterpriseApiEnterpriseSsoSettingsReply = {
+export type SsoSettingsReply = {
     enabled?: boolean;
 };
 
-export type DifyEnterpriseApiEnterpriseScimSettings = {
+export type ScimSettings = {
     enabled?: boolean;
     lastSyncTime?: string;
 };
 
-export type DifyEnterpriseApiEnterpriseSearchAccessSubjectsReply = {
-    data?: Array<DifyEnterpriseApiEnterpriseAccessSubjectDisplay>;
+export type SearchAccessSubjectsReply = {
+    data?: Array<AccessSubjectDisplay>;
 };
 
-export type DifyEnterpriseApiEnterpriseSearchForWhilteListCandidatesRes = {
-    subjects?: Array<DifyEnterpriseApiEnterpriseSubject>;
+export type SearchForWhilteListCandidatesRes = {
+    subjects?: Array<Subject>;
     currPage?: number;
     hasMore?: boolean;
 };
 
-export type DifyEnterpriseApiEnterpriseSecretKey = {
+export type SecretKey = {
     id?: string;
     name?: string;
     secretKeyMasked?: string;
@@ -1138,55 +1138,55 @@ export type DifyEnterpriseApiEnterpriseSecretKey = {
     lastActive?: string;
 };
 
-export type DifyEnterpriseApiEnterpriseSetDefaultWorkspaceReply = {
+export type SetDefaultWorkspaceReply = {
     workspaceId?: string;
 };
 
-export type DifyEnterpriseApiEnterpriseSetDefaultWorkspaceReq = {
+export type SetDefaultWorkspaceReq = {
     id?: string;
 };
 
-export type DifyEnterpriseApiEnterpriseStatusCount = {
+export type StatusCount = {
     status?: string;
     count?: number;
 };
 
-export type DifyEnterpriseApiEnterpriseSubject = {
+export type Subject = {
     subjectId?: string;
     subjectType?: string;
-    accountData?: DifyEnterpriseApiEnterpriseSubjectAccountData;
-    groupData?: DifyEnterpriseApiEnterpriseSubjectGroupData;
+    accountData?: SubjectAccountData;
+    groupData?: SubjectGroupData;
 };
 
-export type DifyEnterpriseApiEnterpriseSubjectAccountData = {
+export type SubjectAccountData = {
     id?: string;
     name?: string;
     email?: string;
     avatar?: string;
 };
 
-export type DifyEnterpriseApiEnterpriseSubjectGroupData = {
+export type SubjectGroupData = {
     id?: string;
     name?: string;
     groupSize?: number;
 };
 
-export type DifyEnterpriseApiEnterpriseSystemUserSettingReply = {
+export type SystemUserSettingReply = {
     isAllowRegister?: boolean;
     enableEmailPasswordLogin?: boolean;
 };
 
-export type DifyEnterpriseApiEnterpriseSystemUserSettingReq = {
+export type SystemUserSettingReq = {
     isAllowRegister?: boolean;
     enableEmailPasswordLogin?: boolean;
 };
 
-export type DifyEnterpriseApiEnterpriseTestConnectionReply = {
+export type TestConnectionReply = {
     success?: boolean;
     error?: string;
 };
 
-export type DifyEnterpriseApiEnterpriseTestEnvironmentConnectionReply = {
+export type TestEnvironmentConnectionReply = {
     ok?: boolean;
     reachableServerVersion?: string;
     namespaceExists?: boolean;
@@ -1195,53 +1195,53 @@ export type DifyEnterpriseApiEnterpriseTestEnvironmentConnectionReply = {
     probedAt?: string;
 };
 
-export type DifyEnterpriseApiEnterpriseTestEnvironmentConnectionReq = {
+export type TestEnvironmentConnectionReq = {
     id?: string;
 };
 
-export type DifyEnterpriseApiEnterpriseToggleEndpointRequest = {
+export type ToggleEndpointRequest = {
     enabled?: boolean;
 };
 
-export type DifyEnterpriseApiEnterpriseUndeployRuntimeInstanceReply = {
+export type UndeployRuntimeInstanceReply = {
     deploymentId?: string;
     status?: string;
 };
 
-export type DifyEnterpriseApiEnterpriseUndeployRuntimeInstanceReq = {
+export type UndeployRuntimeInstanceReq = {
     appInstanceId?: string;
     runtimeInstanceId?: string;
 };
 
-export type DifyEnterpriseApiEnterpriseUpdateAccessChannelsReply = {
-    accessChannels?: DifyEnterpriseApiEnterpriseAccessChannels;
+export type UpdateAccessChannelsReply = {
+    accessChannels?: AccessChannels;
 };
 
-export type DifyEnterpriseApiEnterpriseUpdateAccessChannelsReq = {
+export type UpdateAccessChannelsReq = {
     appInstanceId?: string;
     enabled?: boolean;
 };
 
-export type DifyEnterpriseApiEnterpriseUpdateAccessModeReq = {
+export type UpdateAccessModeReq = {
     appId?: string;
     accessMode?: string;
 };
 
-export type DifyEnterpriseApiEnterpriseUpdateAccessModeRes = {
+export type UpdateAccessModeRes = {
     message?: string;
 };
 
-export type DifyEnterpriseApiEnterpriseUpdateAppInstanceReply = {
+export type UpdateAppInstanceReply = {
     appInstanceId?: string;
 };
 
-export type DifyEnterpriseApiEnterpriseUpdateAppInstanceReq = {
+export type UpdateAppInstanceReq = {
     appInstanceId?: string;
     name?: string;
     description?: string;
 };
 
-export type DifyEnterpriseApiEnterpriseUpdateBrandingInfoReq = {
+export type UpdateBrandingInfoReq = {
     enabled?: boolean;
     applicationTitle?: string;
     loginPageLogo?: string;
@@ -1249,211 +1249,211 @@ export type DifyEnterpriseApiEnterpriseUpdateBrandingInfoReq = {
     favicon?: string;
 };
 
-export type DifyEnterpriseApiEnterpriseUpdateDeveloperApiReply = {
-    developerApi?: DifyEnterpriseApiEnterpriseDeveloperApiAccess;
+export type UpdateDeveloperApiReply = {
+    developerApi?: DeveloperApiAccess;
 };
 
-export type DifyEnterpriseApiEnterpriseUpdateDeveloperApiReq = {
+export type UpdateDeveloperApiReq = {
     appInstanceId?: string;
     enabled?: boolean;
 };
 
-export type DifyEnterpriseApiEnterpriseUpdateEnvironmentAccessPolicyReply = {
-    permission?: DifyEnterpriseApiEnterpriseEnvironmentAccessRow;
+export type UpdateEnvironmentAccessPolicyReply = {
+    permission?: EnvironmentAccessRow;
 };
 
-export type DifyEnterpriseApiEnterpriseUpdateEnvironmentAccessPolicyReq = {
+export type UpdateEnvironmentAccessPolicyReq = {
     appInstanceId?: string;
     environmentId?: string;
     accessMode?: string;
-    subjects?: Array<DifyEnterpriseApiEnterpriseAccessSubject>;
+    subjects?: Array<AccessSubject>;
 };
 
-export type DifyEnterpriseApiEnterpriseUpdateEnvironmentReply = {
-    environment?: DifyEnterpriseApiEnterpriseEnvironment;
+export type UpdateEnvironmentReply = {
+    environment?: Environment;
 };
 
-export type DifyEnterpriseApiEnterpriseUpdateEnvironmentReq = {
+export type UpdateEnvironmentReq = {
     id?: string;
     name?: string;
     description?: string;
 };
 
-export type DifyEnterpriseApiEnterpriseUpdateGroupSubjectsReq = {
+export type UpdateGroupSubjectsReq = {
     groupId?: string;
-    subjects?: Array<DifyEnterpriseApiEnterpriseSubject>;
+    subjects?: Array<Subject>;
 };
 
-export type DifyEnterpriseApiEnterpriseUpdateGroupSubjectsRes = {
+export type UpdateGroupSubjectsRes = {
     message?: string;
 };
 
-export type DifyEnterpriseApiEnterpriseUpdateGroupsReq = {
-    groups?: Array<DifyEnterpriseApiEnterpriseUpdateGroupsReqGroup>;
+export type UpdateGroupsReq = {
+    groups?: Array<UpdateGroupsReqGroup>;
 };
 
-export type DifyEnterpriseApiEnterpriseUpdateGroupsReqGroup = {
+export type UpdateGroupsReqGroup = {
     id?: string;
     name?: string;
 };
 
-export type DifyEnterpriseApiEnterpriseUpdateGroupsRes = {
-    groups?: Array<DifyEnterpriseApiEnterpriseSubjectGroupData>;
+export type UpdateGroupsRes = {
+    groups?: Array<SubjectGroupData>;
 };
 
-export type DifyEnterpriseApiEnterpriseUpdateJoinedGroupsReq = {
+export type UpdateJoinedGroupsReq = {
     accountId?: string;
     groupIds?: Array<string>;
 };
 
-export type DifyEnterpriseApiEnterpriseUpdateJoinedGroupsRes = {
+export type UpdateJoinedGroupsRes = {
     message?: string;
 };
 
-export type DifyEnterpriseApiEnterpriseUpdateLicenseReply = {
+export type UpdateLicenseReply = {
     message?: string;
 };
 
-export type DifyEnterpriseApiEnterpriseUpdateLicenseReq = {
+export type UpdateLicenseReq = {
     licenseId?: string;
 };
 
-export type DifyEnterpriseApiEnterpriseUpdateMfaStatusReq = {
+export type UpdateMfaStatusReq = {
     enabled?: boolean;
 };
 
-export type DifyEnterpriseApiEnterpriseUpdateMfaStatusRes = {
+export type UpdateMfaStatusRes = {
     message?: string;
 };
 
-export type DifyEnterpriseApiEnterpriseUpdateMemberReply = {
-    account?: DifyEnterpriseApiEnterpriseAccount;
+export type UpdateMemberReply = {
+    account?: Account;
 };
 
-export type DifyEnterpriseApiEnterpriseUpdateMemberReq = {
+export type UpdateMemberReq = {
     id?: string;
     name?: string;
     email?: string;
     status?: string;
 };
 
-export type DifyEnterpriseApiEnterpriseUpdateMembersInGroupsReq = {
+export type UpdateMembersInGroupsReq = {
     groupId?: string;
     accountIds?: Array<string>;
 };
 
-export type DifyEnterpriseApiEnterpriseUpdateMembersInGroupsRes = {
+export type UpdateMembersInGroupsRes = {
     message?: string;
 };
 
-export type DifyEnterpriseApiEnterpriseUpdateOfflineLicenseReply = {
+export type UpdateOfflineLicenseReply = {
     message?: string;
 };
 
-export type DifyEnterpriseApiEnterpriseUpdateOfflineLicenseReq = {
+export type UpdateOfflineLicenseReq = {
     offlineCode?: string;
 };
 
-export type DifyEnterpriseApiEnterpriseUpdatePluginInstallationSettingsRequest = {
+export type UpdatePluginInstallationSettingsRequest = {
     pluginInstallationScope?: number;
     restrictToMarketplaceOnly?: boolean;
 };
 
-export type DifyEnterpriseApiEnterpriseUpdateUserReply = {
-    account?: DifyEnterpriseApiEnterpriseAccountDetail;
+export type UpdateUserReply = {
+    account?: AccountDetail;
 };
 
-export type DifyEnterpriseApiEnterpriseUpdateUserReq = {
+export type UpdateUserReq = {
     id?: string;
     name?: string;
     email?: string;
     status?: string;
 };
 
-export type DifyEnterpriseApiEnterpriseUpdateWebAppAuthInfoReq = {
+export type UpdateWebAppAuthInfoReq = {
     allowSso?: boolean;
     allowEmailCodeLogin?: boolean;
     allowEmailPasswordLogin?: boolean;
 };
 
-export type DifyEnterpriseApiEnterpriseUpdateWebAppAuthInfoRes = {
+export type UpdateWebAppAuthInfoRes = {
     message?: string;
 };
 
-export type DifyEnterpriseApiEnterpriseUpdateWebAppWhitelistSubjectsReq = {
+export type UpdateWebAppWhitelistSubjectsReq = {
     appId?: string;
-    subjects?: Array<DifyEnterpriseApiEnterpriseSubject>;
+    subjects?: Array<Subject>;
     accessMode?: string;
 };
 
-export type DifyEnterpriseApiEnterpriseUpdateWebAppWhitelistSubjectsRes = {
+export type UpdateWebAppWhitelistSubjectsRes = {
     message?: string;
 };
 
-export type DifyEnterpriseApiEnterpriseUpdateWorkspacePermissionReply = {
+export type UpdateWorkspacePermissionReply = {
     message?: string;
-    permission?: DifyEnterpriseApiEnterpriseWorkspacePermission;
+    permission?: WorkspacePermission;
 };
 
-export type DifyEnterpriseApiEnterpriseUpdateWorkspacePermissionReq = {
+export type UpdateWorkspacePermissionReq = {
     id?: string;
-    permission?: DifyEnterpriseApiEnterpriseWorkspacePermission;
+    permission?: WorkspacePermission;
 };
 
-export type DifyEnterpriseApiEnterpriseUpdateWorkspaceReply = {
-    workspace?: DifyEnterpriseApiEnterpriseWorkspace;
+export type UpdateWorkspaceReply = {
+    workspace?: Workspace;
 };
 
-export type DifyEnterpriseApiEnterpriseUpdateWorkspaceReq = {
+export type UpdateWorkspaceReq = {
     id?: string;
     name?: string;
     email?: string;
     status?: string;
 };
 
-export type DifyEnterpriseApiEnterpriseWebAppAccessRow = {
-    environment?: DifyEnterpriseApiEnterpriseConsoleEnvironment;
+export type WebAppAccessRow = {
+    environment?: ConsoleEnvironment;
     url?: string;
 };
 
-export type DifyEnterpriseApiEnterpriseWebAppAuthInfo = {
+export type WebAppAuthInfo = {
     allowSso?: boolean;
     allowEmailCodeLogin?: boolean;
     allowEmailPasswordLogin?: boolean;
 };
 
-export type DifyEnterpriseApiEnterpriseWebOAuth2LoginReply = {
+export type WebOAuth2LoginReply = {
     url?: string;
     state?: string;
 };
 
-export type DifyEnterpriseApiEnterpriseWebOidcLoginReply = {
+export type WebOidcLoginReply = {
     url?: string;
 };
 
-export type DifyEnterpriseApiEnterpriseWebSamlLoginReply = {
+export type WebSamlLoginReply = {
     url?: string;
 };
 
-export type DifyEnterpriseApiEnterpriseWorkspace = {
+export type Workspace = {
     id?: string;
     name?: string;
     status?: string;
     createdAt?: string;
-    owner?: DifyEnterpriseApiEnterpriseAccount;
+    owner?: Account;
 };
 
-export type DifyEnterpriseApiEnterpriseWorkspaceInfoReply = {
-    WorkspaceMembers?: DifyEnterpriseApiEnterpriseResourceQuota;
+export type WorkspaceInfoReply = {
+    WorkspaceMembers?: ResourceQuota;
 };
 
-export type DifyEnterpriseApiEnterpriseWorkspacePermission = {
+export type WorkspacePermission = {
     workspaceId?: string;
     allowMemberInvite?: boolean;
     allowOwnerTransfer?: boolean;
 };
 
-export type PaginationPagination = {
+export type Pagination = {
     totalCount?: number;
     perPage?: number;
     currentPage?: number;
@@ -1471,7 +1471,7 @@ export type WebSsoWebOauth2LoginData = {
 };
 
 export type WebSsoWebOauth2LoginResponses = {
-    200: DifyEnterpriseApiEnterpriseWebOAuth2LoginReply;
+    200: WebOAuth2LoginReply;
 };
 
 export type WebSsoWebOauth2LoginResponse = WebSsoWebOauth2LoginResponses[keyof WebSsoWebOauth2LoginResponses];
@@ -1487,7 +1487,7 @@ export type WebSsoWebOidcLoginData = {
 };
 
 export type WebSsoWebOidcLoginResponses = {
-    200: DifyEnterpriseApiEnterpriseWebOidcLoginReply;
+    200: WebOidcLoginReply;
 };
 
 export type WebSsoWebOidcLoginResponse = WebSsoWebOidcLoginResponses[keyof WebSsoWebOidcLoginResponses];
@@ -1503,7 +1503,7 @@ export type WebSsoWebSamlLoginData = {
 };
 
 export type WebSsoWebSamlLoginResponses = {
-    200: DifyEnterpriseApiEnterpriseWebSamlLoginReply;
+    200: WebSamlLoginReply;
 };
 
 export type WebSsoWebSamlLoginResponse = WebSsoWebSamlLoginResponses[keyof WebSsoWebSamlLoginResponses];
@@ -1519,7 +1519,7 @@ export type WebSsoWebOauth2ExternalLoginData = {
 };
 
 export type WebSsoWebOauth2ExternalLoginResponses = {
-    200: DifyEnterpriseApiEnterpriseWebOAuth2LoginReply;
+    200: WebOAuth2LoginReply;
 };
 
 export type WebSsoWebOauth2ExternalLoginResponse = WebSsoWebOauth2ExternalLoginResponses[keyof WebSsoWebOauth2ExternalLoginResponses];
@@ -1535,7 +1535,7 @@ export type WebSsoWebOidcExternalLoginData = {
 };
 
 export type WebSsoWebOidcExternalLoginResponses = {
-    200: DifyEnterpriseApiEnterpriseWebOidcLoginReply;
+    200: WebOidcLoginReply;
 };
 
 export type WebSsoWebOidcExternalLoginResponse = WebSsoWebOidcExternalLoginResponses[keyof WebSsoWebOidcExternalLoginResponses];
@@ -1551,7 +1551,7 @@ export type WebSsoWebSamlExternalLoginData = {
 };
 
 export type WebSsoWebSamlExternalLoginResponses = {
-    200: DifyEnterpriseApiEnterpriseWebSamlLoginReply;
+    200: WebSamlLoginReply;
 };
 
 export type WebSsoWebSamlExternalLoginResponse = WebSsoWebSamlExternalLoginResponses[keyof WebSsoWebSamlExternalLoginResponses];
@@ -1570,20 +1570,20 @@ export type EnterpriseAppDeployConsoleListAppInstancesData = {
 };
 
 export type EnterpriseAppDeployConsoleListAppInstancesResponses = {
-    200: DifyEnterpriseApiEnterpriseListAppInstancesReply;
+    200: ListAppInstancesReply;
 };
 
 export type EnterpriseAppDeployConsoleListAppInstancesResponse = EnterpriseAppDeployConsoleListAppInstancesResponses[keyof EnterpriseAppDeployConsoleListAppInstancesResponses];
 
 export type EnterpriseAppDeployConsoleCreateAppInstanceData = {
-    body: DifyEnterpriseApiEnterpriseCreateAppInstanceReq;
+    body: CreateAppInstanceReq;
     path?: never;
     query?: never;
     url: '/enterprise/app-instances';
 };
 
 export type EnterpriseAppDeployConsoleCreateAppInstanceResponses = {
-    200: DifyEnterpriseApiEnterpriseCreateAppInstanceReply;
+    200: CreateAppInstanceReply;
 };
 
 export type EnterpriseAppDeployConsoleCreateAppInstanceResponse = EnterpriseAppDeployConsoleCreateAppInstanceResponses[keyof EnterpriseAppDeployConsoleCreateAppInstanceResponses];
@@ -1598,13 +1598,13 @@ export type EnterpriseAppDeployConsoleDeleteAppInstanceData = {
 };
 
 export type EnterpriseAppDeployConsoleDeleteAppInstanceResponses = {
-    200: DifyEnterpriseApiEnterpriseDeleteAppInstanceReply;
+    200: DeleteAppInstanceReply;
 };
 
 export type EnterpriseAppDeployConsoleDeleteAppInstanceResponse = EnterpriseAppDeployConsoleDeleteAppInstanceResponses[keyof EnterpriseAppDeployConsoleDeleteAppInstanceResponses];
 
 export type EnterpriseAppDeployConsoleUpdateAppInstanceData = {
-    body: DifyEnterpriseApiEnterpriseUpdateAppInstanceReq;
+    body: UpdateAppInstanceReq;
     path: {
         appInstanceId: string;
     };
@@ -1613,7 +1613,7 @@ export type EnterpriseAppDeployConsoleUpdateAppInstanceData = {
 };
 
 export type EnterpriseAppDeployConsoleUpdateAppInstanceResponses = {
-    200: DifyEnterpriseApiEnterpriseUpdateAppInstanceReply;
+    200: UpdateAppInstanceReply;
 };
 
 export type EnterpriseAppDeployConsoleUpdateAppInstanceResponse = EnterpriseAppDeployConsoleUpdateAppInstanceResponses[keyof EnterpriseAppDeployConsoleUpdateAppInstanceResponses];
@@ -1628,13 +1628,13 @@ export type EnterpriseAppDeployConsoleGetAppInstanceAccessData = {
 };
 
 export type EnterpriseAppDeployConsoleGetAppInstanceAccessResponses = {
-    200: DifyEnterpriseApiEnterpriseGetAppInstanceAccessReply;
+    200: GetAppInstanceAccessReply;
 };
 
 export type EnterpriseAppDeployConsoleGetAppInstanceAccessResponse = EnterpriseAppDeployConsoleGetAppInstanceAccessResponses[keyof EnterpriseAppDeployConsoleGetAppInstanceAccessResponses];
 
 export type EnterpriseAppDeployConsoleUpdateAccessChannelsData = {
-    body: DifyEnterpriseApiEnterpriseUpdateAccessChannelsReq;
+    body: UpdateAccessChannelsReq;
     path: {
         appInstanceId: string;
     };
@@ -1643,7 +1643,7 @@ export type EnterpriseAppDeployConsoleUpdateAccessChannelsData = {
 };
 
 export type EnterpriseAppDeployConsoleUpdateAccessChannelsResponses = {
-    200: DifyEnterpriseApiEnterpriseUpdateAccessChannelsReply;
+    200: UpdateAccessChannelsReply;
 };
 
 export type EnterpriseAppDeployConsoleUpdateAccessChannelsResponse = EnterpriseAppDeployConsoleUpdateAccessChannelsResponses[keyof EnterpriseAppDeployConsoleUpdateAccessChannelsResponses];
@@ -1661,13 +1661,13 @@ export type EnterpriseAppDeployConsoleSearchAccessSubjectsData = {
 };
 
 export type EnterpriseAppDeployConsoleSearchAccessSubjectsResponses = {
-    200: DifyEnterpriseApiEnterpriseSearchAccessSubjectsReply;
+    200: SearchAccessSubjectsReply;
 };
 
 export type EnterpriseAppDeployConsoleSearchAccessSubjectsResponse = EnterpriseAppDeployConsoleSearchAccessSubjectsResponses[keyof EnterpriseAppDeployConsoleSearchAccessSubjectsResponses];
 
 export type EnterpriseAppDeployConsoleCreateDeveloperApiKeyData = {
-    body: DifyEnterpriseApiEnterpriseCreateDeveloperApiKeyReq;
+    body: CreateDeveloperApiKeyReq;
     path: {
         appInstanceId: string;
     };
@@ -1676,7 +1676,7 @@ export type EnterpriseAppDeployConsoleCreateDeveloperApiKeyData = {
 };
 
 export type EnterpriseAppDeployConsoleCreateDeveloperApiKeyResponses = {
-    200: DifyEnterpriseApiEnterpriseCreateDeveloperApiKeyReply;
+    200: CreateDeveloperApiKeyReply;
 };
 
 export type EnterpriseAppDeployConsoleCreateDeveloperApiKeyResponse = EnterpriseAppDeployConsoleCreateDeveloperApiKeyResponses[keyof EnterpriseAppDeployConsoleCreateDeveloperApiKeyResponses];
@@ -1692,7 +1692,7 @@ export type EnterpriseAppDeployConsoleDeleteDeveloperApiKeyData = {
 };
 
 export type EnterpriseAppDeployConsoleDeleteDeveloperApiKeyResponses = {
-    200: DifyEnterpriseApiEnterpriseDeleteDeveloperApiKeyReply;
+    200: DeleteDeveloperApiKeyReply;
 };
 
 export type EnterpriseAppDeployConsoleDeleteDeveloperApiKeyResponse = EnterpriseAppDeployConsoleDeleteDeveloperApiKeyResponses[keyof EnterpriseAppDeployConsoleDeleteDeveloperApiKeyResponses];
@@ -1707,13 +1707,13 @@ export type EnterpriseAppDeployConsoleListDeploymentBindingOptionsData = {
 };
 
 export type EnterpriseAppDeployConsoleListDeploymentBindingOptionsResponses = {
-    200: DifyEnterpriseApiEnterpriseListDeploymentBindingOptionsReply;
+    200: ListDeploymentBindingOptionsReply;
 };
 
 export type EnterpriseAppDeployConsoleListDeploymentBindingOptionsResponse = EnterpriseAppDeployConsoleListDeploymentBindingOptionsResponses[keyof EnterpriseAppDeployConsoleListDeploymentBindingOptionsResponses];
 
 export type EnterpriseAppDeployConsoleCreateDeploymentData = {
-    body: DifyEnterpriseApiEnterpriseCreateDeploymentReq;
+    body: CreateDeploymentReq;
     path: {
         appInstanceId: string;
     };
@@ -1722,13 +1722,13 @@ export type EnterpriseAppDeployConsoleCreateDeploymentData = {
 };
 
 export type EnterpriseAppDeployConsoleCreateDeploymentResponses = {
-    200: DifyEnterpriseApiEnterpriseCreateDeploymentReply;
+    200: CreateDeploymentReply;
 };
 
 export type EnterpriseAppDeployConsoleCreateDeploymentResponse = EnterpriseAppDeployConsoleCreateDeploymentResponses[keyof EnterpriseAppDeployConsoleCreateDeploymentResponses];
 
 export type EnterpriseAppDeployConsoleUpdateDeveloperApiData = {
-    body: DifyEnterpriseApiEnterpriseUpdateDeveloperApiReq;
+    body: UpdateDeveloperApiReq;
     path: {
         appInstanceId: string;
     };
@@ -1737,7 +1737,7 @@ export type EnterpriseAppDeployConsoleUpdateDeveloperApiData = {
 };
 
 export type EnterpriseAppDeployConsoleUpdateDeveloperApiResponses = {
-    200: DifyEnterpriseApiEnterpriseUpdateDeveloperApiReply;
+    200: UpdateDeveloperApiReply;
 };
 
 export type EnterpriseAppDeployConsoleUpdateDeveloperApiResponse = EnterpriseAppDeployConsoleUpdateDeveloperApiResponses[keyof EnterpriseAppDeployConsoleUpdateDeveloperApiResponses];
@@ -1753,13 +1753,13 @@ export type EnterpriseAppDeployConsoleGetEnvironmentAccessPolicyData = {
 };
 
 export type EnterpriseAppDeployConsoleGetEnvironmentAccessPolicyResponses = {
-    200: DifyEnterpriseApiEnterpriseGetEnvironmentAccessPolicyReply;
+    200: GetEnvironmentAccessPolicyReply;
 };
 
 export type EnterpriseAppDeployConsoleGetEnvironmentAccessPolicyResponse = EnterpriseAppDeployConsoleGetEnvironmentAccessPolicyResponses[keyof EnterpriseAppDeployConsoleGetEnvironmentAccessPolicyResponses];
 
 export type EnterpriseAppDeployConsoleUpdateEnvironmentAccessPolicyData = {
-    body: DifyEnterpriseApiEnterpriseUpdateEnvironmentAccessPolicyReq;
+    body: UpdateEnvironmentAccessPolicyReq;
     path: {
         appInstanceId: string;
         environmentId: string;
@@ -1769,7 +1769,7 @@ export type EnterpriseAppDeployConsoleUpdateEnvironmentAccessPolicyData = {
 };
 
 export type EnterpriseAppDeployConsoleUpdateEnvironmentAccessPolicyResponses = {
-    200: DifyEnterpriseApiEnterpriseUpdateEnvironmentAccessPolicyReply;
+    200: UpdateEnvironmentAccessPolicyReply;
 };
 
 export type EnterpriseAppDeployConsoleUpdateEnvironmentAccessPolicyResponse = EnterpriseAppDeployConsoleUpdateEnvironmentAccessPolicyResponses[keyof EnterpriseAppDeployConsoleUpdateEnvironmentAccessPolicyResponses];
@@ -1784,7 +1784,7 @@ export type EnterpriseAppDeployConsoleGetAppInstanceOverviewData = {
 };
 
 export type EnterpriseAppDeployConsoleGetAppInstanceOverviewResponses = {
-    200: DifyEnterpriseApiEnterpriseGetAppInstanceOverviewReply;
+    200: GetAppInstanceOverviewReply;
 };
 
 export type EnterpriseAppDeployConsoleGetAppInstanceOverviewResponse = EnterpriseAppDeployConsoleGetAppInstanceOverviewResponses[keyof EnterpriseAppDeployConsoleGetAppInstanceOverviewResponses];
@@ -1802,13 +1802,13 @@ export type EnterpriseAppDeployConsoleListReleasesData = {
 };
 
 export type EnterpriseAppDeployConsoleListReleasesResponses = {
-    200: DifyEnterpriseApiEnterpriseListReleasesReply;
+    200: ListReleasesReply;
 };
 
 export type EnterpriseAppDeployConsoleListReleasesResponse = EnterpriseAppDeployConsoleListReleasesResponses[keyof EnterpriseAppDeployConsoleListReleasesResponses];
 
 export type EnterpriseAppDeployConsoleCreateReleaseData = {
-    body: DifyEnterpriseApiEnterpriseCreateReleaseReq;
+    body: CreateReleaseReq;
     path: {
         appInstanceId: string;
     };
@@ -1817,13 +1817,13 @@ export type EnterpriseAppDeployConsoleCreateReleaseData = {
 };
 
 export type EnterpriseAppDeployConsoleCreateReleaseResponses = {
-    200: DifyEnterpriseApiEnterpriseCreateReleaseReply;
+    200: CreateReleaseReply;
 };
 
 export type EnterpriseAppDeployConsoleCreateReleaseResponse = EnterpriseAppDeployConsoleCreateReleaseResponses[keyof EnterpriseAppDeployConsoleCreateReleaseResponses];
 
 export type EnterpriseAppDeployConsolePreviewReleaseData = {
-    body: DifyEnterpriseApiEnterprisePreviewReleaseReq;
+    body: PreviewReleaseReq;
     path: {
         appInstanceId: string;
     };
@@ -1832,7 +1832,7 @@ export type EnterpriseAppDeployConsolePreviewReleaseData = {
 };
 
 export type EnterpriseAppDeployConsolePreviewReleaseResponses = {
-    200: DifyEnterpriseApiEnterprisePreviewReleaseReply;
+    200: PreviewReleaseReply;
 };
 
 export type EnterpriseAppDeployConsolePreviewReleaseResponse = EnterpriseAppDeployConsolePreviewReleaseResponses[keyof EnterpriseAppDeployConsolePreviewReleaseResponses];
@@ -1847,13 +1847,13 @@ export type EnterpriseAppDeployConsoleListRuntimeInstancesData = {
 };
 
 export type EnterpriseAppDeployConsoleListRuntimeInstancesResponses = {
-    200: DifyEnterpriseApiEnterpriseListRuntimeInstancesReply;
+    200: ListRuntimeInstancesReply;
 };
 
 export type EnterpriseAppDeployConsoleListRuntimeInstancesResponse = EnterpriseAppDeployConsoleListRuntimeInstancesResponses[keyof EnterpriseAppDeployConsoleListRuntimeInstancesResponses];
 
 export type EnterpriseAppDeployConsoleCancelRuntimeDeploymentData = {
-    body: DifyEnterpriseApiEnterpriseCancelRuntimeDeploymentReq;
+    body: CancelRuntimeDeploymentReq;
     path: {
         appInstanceId: string;
         runtimeInstanceId: string;
@@ -1863,13 +1863,13 @@ export type EnterpriseAppDeployConsoleCancelRuntimeDeploymentData = {
 };
 
 export type EnterpriseAppDeployConsoleCancelRuntimeDeploymentResponses = {
-    200: DifyEnterpriseApiEnterpriseCancelRuntimeDeploymentReply;
+    200: CancelRuntimeDeploymentReply;
 };
 
 export type EnterpriseAppDeployConsoleCancelRuntimeDeploymentResponse = EnterpriseAppDeployConsoleCancelRuntimeDeploymentResponses[keyof EnterpriseAppDeployConsoleCancelRuntimeDeploymentResponses];
 
 export type EnterpriseAppDeployConsoleUndeployRuntimeInstanceData = {
-    body: DifyEnterpriseApiEnterpriseUndeployRuntimeInstanceReq;
+    body: UndeployRuntimeInstanceReq;
     path: {
         appInstanceId: string;
         runtimeInstanceId: string;
@@ -1879,7 +1879,7 @@ export type EnterpriseAppDeployConsoleUndeployRuntimeInstanceData = {
 };
 
 export type EnterpriseAppDeployConsoleUndeployRuntimeInstanceResponses = {
-    200: DifyEnterpriseApiEnterpriseUndeployRuntimeInstanceReply;
+    200: UndeployRuntimeInstanceReply;
 };
 
 export type EnterpriseAppDeployConsoleUndeployRuntimeInstanceResponse = EnterpriseAppDeployConsoleUndeployRuntimeInstanceResponses[keyof EnterpriseAppDeployConsoleUndeployRuntimeInstanceResponses];
@@ -1894,7 +1894,7 @@ export type EnterpriseAppDeployConsoleGetAppInstanceSettingsData = {
 };
 
 export type EnterpriseAppDeployConsoleGetAppInstanceSettingsResponses = {
-    200: DifyEnterpriseApiEnterpriseGetAppInstanceSettingsReply;
+    200: GetAppInstanceSettingsReply;
 };
 
 export type EnterpriseAppDeployConsoleGetAppInstanceSettingsResponse = EnterpriseAppDeployConsoleGetAppInstanceSettingsResponses[keyof EnterpriseAppDeployConsoleGetAppInstanceSettingsResponses];
@@ -1907,7 +1907,7 @@ export type EnterpriseAppDeployConsoleListDeploymentEnvironmentOptionsData = {
 };
 
 export type EnterpriseAppDeployConsoleListDeploymentEnvironmentOptionsResponses = {
-    200: DifyEnterpriseApiEnterpriseListDeploymentEnvironmentOptionsReply;
+    200: ListDeploymentEnvironmentOptionsReply;
 };
 
 export type EnterpriseAppDeployConsoleListDeploymentEnvironmentOptionsResponse = EnterpriseAppDeployConsoleListDeploymentEnvironmentOptionsResponses[keyof EnterpriseAppDeployConsoleListDeploymentEnvironmentOptionsResponses];
@@ -1920,7 +1920,7 @@ export type ConsoleSsoOAuth2LoginData = {
 };
 
 export type ConsoleSsoOAuth2LoginResponses = {
-    200: DifyEnterpriseApiEnterpriseOAuth2LoginReply;
+    200: OAuth2LoginReply;
 };
 
 export type ConsoleSsoOAuth2LoginResponse = ConsoleSsoOAuth2LoginResponses[keyof ConsoleSsoOAuth2LoginResponses];
@@ -1933,7 +1933,7 @@ export type ConsoleSsoOidcLoginData = {
 };
 
 export type ConsoleSsoOidcLoginResponses = {
-    200: DifyEnterpriseApiEnterpriseOidcReply;
+    200: OidcReply;
 };
 
 export type ConsoleSsoOidcLoginResponse = ConsoleSsoOidcLoginResponses[keyof ConsoleSsoOidcLoginResponses];
@@ -1946,7 +1946,7 @@ export type ConsoleSsoSamlLoginData = {
 };
 
 export type ConsoleSsoSamlLoginResponses = {
-    200: DifyEnterpriseApiEnterpriseSamlLoginReply;
+    200: SamlLoginReply;
 };
 
 export type ConsoleSsoSamlLoginResponse = ConsoleSsoSamlLoginResponses[keyof ConsoleSsoSamlLoginResponses];
@@ -1961,20 +1961,20 @@ export type WebAppAuthGetWebAppAccessModeData = {
 };
 
 export type WebAppAuthGetWebAppAccessModeResponses = {
-    200: DifyEnterpriseApiEnterpriseGetWebAppAccessModeRes;
+    200: GetWebAppAccessModeRes;
 };
 
 export type WebAppAuthGetWebAppAccessModeResponse = WebAppAuthGetWebAppAccessModeResponses[keyof WebAppAuthGetWebAppAccessModeResponses];
 
 export type WebAppAuthUpdateWebAppWhitelistSubjectsData = {
-    body: DifyEnterpriseApiEnterpriseUpdateWebAppWhitelistSubjectsReq;
+    body: UpdateWebAppWhitelistSubjectsReq;
     path?: never;
     query?: never;
     url: '/enterprise/webapp/app/access-mode';
 };
 
 export type WebAppAuthUpdateWebAppWhitelistSubjectsResponses = {
-    200: DifyEnterpriseApiEnterpriseUpdateWebAppWhitelistSubjectsRes;
+    200: UpdateWebAppWhitelistSubjectsRes;
 };
 
 export type WebAppAuthUpdateWebAppWhitelistSubjectsResponse = WebAppAuthUpdateWebAppWhitelistSubjectsResponses[keyof WebAppAuthUpdateWebAppWhitelistSubjectsResponses];
@@ -1992,7 +1992,7 @@ export type WebAppAuthSearchForWhilteListCandidatesData = {
 };
 
 export type WebAppAuthSearchForWhilteListCandidatesResponses = {
-    200: DifyEnterpriseApiEnterpriseSearchForWhilteListCandidatesRes;
+    200: SearchForWhilteListCandidatesRes;
 };
 
 export type WebAppAuthSearchForWhilteListCandidatesResponse = WebAppAuthSearchForWhilteListCandidatesResponses[keyof WebAppAuthSearchForWhilteListCandidatesResponses];
@@ -2007,7 +2007,7 @@ export type WebAppAuthGetWebAppWhitelistSubjectsData = {
 };
 
 export type WebAppAuthGetWebAppWhitelistSubjectsResponses = {
-    200: DifyEnterpriseApiEnterpriseGetWebAppWhitelistSubjectsRes;
+    200: GetWebAppWhitelistSubjectsRes;
 };
 
 export type WebAppAuthGetWebAppWhitelistSubjectsResponse = WebAppAuthGetWebAppWhitelistSubjectsResponses[keyof WebAppAuthGetWebAppWhitelistSubjectsResponses];
@@ -2022,7 +2022,7 @@ export type WebAppAuthGetGroupSubjectsData = {
 };
 
 export type WebAppAuthGetGroupSubjectsResponses = {
-    200: DifyEnterpriseApiEnterpriseGetGroupSubjectsRes;
+    200: GetGroupSubjectsRes;
 };
 
 export type WebAppAuthGetGroupSubjectsResponse = WebAppAuthGetGroupSubjectsResponses[keyof WebAppAuthGetGroupSubjectsResponses];
@@ -2037,7 +2037,7 @@ export type WebAppAuthIsUserAllowedToAccessWebAppData = {
 };
 
 export type WebAppAuthIsUserAllowedToAccessWebAppResponses = {
-    200: DifyEnterpriseApiEnterpriseIsUserAllowedToAccessWebAppRes;
+    200: IsUserAllowedToAccessWebAppRes;
 };
 
 export type WebAppAuthIsUserAllowedToAccessWebAppResponse = WebAppAuthIsUserAllowedToAccessWebAppResponses[keyof WebAppAuthIsUserAllowedToAccessWebAppResponses];
@@ -2053,20 +2053,20 @@ export type EnterpriseSsoSsoSettingsData = {
 };
 
 export type EnterpriseSsoSsoSettingsResponses = {
-    200: DifyEnterpriseApiEnterpriseSsoSettingsReply;
+    200: SsoSettingsReply;
 };
 
 export type EnterpriseSsoSsoSettingsResponse = EnterpriseSsoSsoSettingsResponses[keyof EnterpriseSsoSsoSettingsResponses];
 
 export type EnterpriseWorkspaceInnerTryAddAccountToDefaultWorkspaceData = {
-    body: DifyEnterpriseApiEnterpriseInnerTryAddAccountToDefaultWorkspaceReq;
+    body: InnerTryAddAccountToDefaultWorkspaceReq;
     path?: never;
     query?: never;
     url: '/inner/api/default-workspace/members';
 };
 
 export type EnterpriseWorkspaceInnerTryAddAccountToDefaultWorkspaceResponses = {
-    200: DifyEnterpriseApiEnterpriseInnerTryAddAccountToDefaultWorkspaceReply;
+    200: InnerTryAddAccountToDefaultWorkspaceReply;
 };
 
 export type EnterpriseWorkspaceInnerTryAddAccountToDefaultWorkspaceResponse = EnterpriseWorkspaceInnerTryAddAccountToDefaultWorkspaceResponses[keyof EnterpriseWorkspaceInnerTryAddAccountToDefaultWorkspaceResponses];
@@ -2079,7 +2079,7 @@ export type EnterpriseSsoInfoData = {
 };
 
 export type EnterpriseSsoInfoResponses = {
-    200: DifyEnterpriseApiEnterpriseInfoConfigReply;
+    200: InfoConfigReply;
 };
 
 export type EnterpriseSsoInfoResponse = EnterpriseSsoInfoResponses[keyof EnterpriseSsoInfoResponses];
@@ -2111,27 +2111,27 @@ export type EnterpriseSsoInnerGetWorkspaceSsoLastUpdateTimeResponses = {
 export type EnterpriseSsoInnerGetWorkspaceSsoLastUpdateTimeResponse = EnterpriseSsoInnerGetWorkspaceSsoLastUpdateTimeResponses[keyof EnterpriseSsoInnerGetWorkspaceSsoLastUpdateTimeResponses];
 
 export type WebAppAuthInnerUpdateAccessModeData = {
-    body: DifyEnterpriseApiEnterpriseUpdateAccessModeReq;
+    body: UpdateAccessModeReq;
     path?: never;
     query?: never;
     url: '/inner/api/webapp/access-mode';
 };
 
 export type WebAppAuthInnerUpdateAccessModeResponses = {
-    200: DifyEnterpriseApiEnterpriseUpdateAccessModeRes;
+    200: UpdateAccessModeRes;
 };
 
 export type WebAppAuthInnerUpdateAccessModeResponse = WebAppAuthInnerUpdateAccessModeResponses[keyof WebAppAuthInnerUpdateAccessModeResponses];
 
 export type WebAppAuthInnerBatchGetWebAppAccessModesByIdData = {
-    body: DifyEnterpriseApiEnterpriseInnerBatchGetWebAppAccessModesByIdReq;
+    body: InnerBatchGetWebAppAccessModesByIdReq;
     path?: never;
     query?: never;
     url: '/inner/api/webapp/access-mode/batch/id';
 };
 
 export type WebAppAuthInnerBatchGetWebAppAccessModesByIdResponses = {
-    200: DifyEnterpriseApiEnterpriseInnerBatchGetWebAppAccessModesByIdRes;
+    200: InnerBatchGetWebAppAccessModesByIdRes;
 };
 
 export type WebAppAuthInnerBatchGetWebAppAccessModesByIdResponse = WebAppAuthInnerBatchGetWebAppAccessModesByIdResponses[keyof WebAppAuthInnerBatchGetWebAppAccessModesByIdResponses];
@@ -2146,7 +2146,7 @@ export type WebAppAuthInnerGetWebAppAccessModeByCodeData = {
 };
 
 export type WebAppAuthInnerGetWebAppAccessModeByCodeResponses = {
-    200: DifyEnterpriseApiEnterpriseInnerGetWebAppAccessModeByCodeRes;
+    200: InnerGetWebAppAccessModeByCodeRes;
 };
 
 export type WebAppAuthInnerGetWebAppAccessModeByCodeResponse = WebAppAuthInnerGetWebAppAccessModeByCodeResponses[keyof WebAppAuthInnerGetWebAppAccessModeByCodeResponses];
@@ -2161,7 +2161,7 @@ export type WebAppAuthInnerGetWebAppAccessModeByIdData = {
 };
 
 export type WebAppAuthInnerGetWebAppAccessModeByIdResponses = {
-    200: DifyEnterpriseApiEnterpriseInnerGetWebAppAccessModeByIdRes;
+    200: InnerGetWebAppAccessModeByIdRes;
 };
 
 export type WebAppAuthInnerGetWebAppAccessModeByIdResponse = WebAppAuthInnerGetWebAppAccessModeByIdResponses[keyof WebAppAuthInnerGetWebAppAccessModeByIdResponses];
@@ -2176,7 +2176,7 @@ export type WebAppAuthInnerCleanAppData = {
 };
 
 export type WebAppAuthInnerCleanAppResponses = {
-    200: DifyEnterpriseApiEnterpriseInnerCleanAppRes;
+    200: InnerCleanAppRes;
 };
 
 export type WebAppAuthInnerCleanAppResponse = WebAppAuthInnerCleanAppResponses[keyof WebAppAuthInnerCleanAppResponses];
@@ -2192,20 +2192,20 @@ export type WebAppAuthInnerIsUserAllowedToAccessWebAppData = {
 };
 
 export type WebAppAuthInnerIsUserAllowedToAccessWebAppResponses = {
-    200: DifyEnterpriseApiEnterpriseInnerIsUserAllowedToAccessWebAppRes;
+    200: InnerIsUserAllowedToAccessWebAppRes;
 };
 
 export type WebAppAuthInnerIsUserAllowedToAccessWebAppResponse = WebAppAuthInnerIsUserAllowedToAccessWebAppResponses[keyof WebAppAuthInnerIsUserAllowedToAccessWebAppResponses];
 
 export type WebAppAuthInnerBatchIsUserAllowedToAccessWebAppData = {
-    body: DifyEnterpriseApiEnterpriseInnerBatchIsUserAllowedToAccessWebAppReq;
+    body: InnerBatchIsUserAllowedToAccessWebAppReq;
     path?: never;
     query?: never;
     url: '/inner/api/webapp/permission/batch';
 };
 
 export type WebAppAuthInnerBatchIsUserAllowedToAccessWebAppResponses = {
-    200: DifyEnterpriseApiEnterpriseInnerBatchIsUserAllowedToAccessWebAppRes;
+    200: InnerBatchIsUserAllowedToAccessWebAppRes;
 };
 
 export type WebAppAuthInnerBatchIsUserAllowedToAccessWebAppResponse = WebAppAuthInnerBatchIsUserAllowedToAccessWebAppResponses[keyof WebAppAuthInnerBatchIsUserAllowedToAccessWebAppResponses];
@@ -2220,7 +2220,7 @@ export type EnterpriseSsoWorkspaceInfoData = {
 };
 
 export type EnterpriseSsoWorkspaceInfoResponses = {
-    200: DifyEnterpriseApiEnterpriseWorkspaceInfoReply;
+    200: WorkspaceInfoReply;
 };
 
 export type EnterpriseSsoWorkspaceInfoResponse = EnterpriseSsoWorkspaceInfoResponses[keyof EnterpriseSsoWorkspaceInfoResponses];
@@ -2235,46 +2235,46 @@ export type EnterpriseWorkspaceInnerGetWorkspacePermissionData = {
 };
 
 export type EnterpriseWorkspaceInnerGetWorkspacePermissionResponses = {
-    200: DifyEnterpriseApiEnterpriseGetWorkspacePermissionReply;
+    200: GetWorkspacePermissionReply;
 };
 
 export type EnterpriseWorkspaceInnerGetWorkspacePermissionResponse = EnterpriseWorkspaceInnerGetWorkspacePermissionResponses[keyof EnterpriseWorkspaceInnerGetWorkspacePermissionResponses];
 
 export type AppRunnerControlExchangeControlTokenData = {
-    body: DifyEnterpriseApiEnterpriseAppRunnerTokenExchangeRequest;
+    body: AppRunnerTokenExchangeRequest;
     path?: never;
     query?: never;
     url: '/v1/app-runner/control-tokens';
 };
 
 export type AppRunnerControlExchangeControlTokenResponses = {
-    200: DifyEnterpriseApiEnterpriseAppRunnerTokenExchangeReply;
+    200: AppRunnerTokenExchangeReply;
 };
 
 export type AppRunnerControlExchangeControlTokenResponse = AppRunnerControlExchangeControlTokenResponses[keyof AppRunnerControlExchangeControlTokenResponses];
 
 export type AppRunnerControlBootstrapRunnerData = {
-    body: DifyEnterpriseApiEnterpriseAppRunnerBootstrapRequest;
+    body: AppRunnerBootstrapRequest;
     path?: never;
     query?: never;
     url: '/v1/app-runner/runners';
 };
 
 export type AppRunnerControlBootstrapRunnerResponses = {
-    200: DifyEnterpriseApiEnterpriseAppRunnerBootstrapReply;
+    200: AppRunnerBootstrapReply;
 };
 
 export type AppRunnerControlBootstrapRunnerResponse = AppRunnerControlBootstrapRunnerResponses[keyof AppRunnerControlBootstrapRunnerResponses];
 
 export type AppRunnerControlBatchResolveRuntimeArtifactsData = {
-    body: DifyEnterpriseApiEnterpriseAppRunnerBatchRuntimeArtifactRequest;
+    body: AppRunnerBatchRuntimeArtifactRequest;
     path?: never;
     query?: never;
     url: '/v1/app-runner/runtime-artifacts/batch';
 };
 
 export type AppRunnerControlBatchResolveRuntimeArtifactsResponses = {
-    200: DifyEnterpriseApiEnterpriseAppRunnerBatchRuntimeArtifactReply;
+    200: AppRunnerBatchRuntimeArtifactReply;
 };
 
 export type AppRunnerControlBatchResolveRuntimeArtifactsResponse = AppRunnerControlBatchResolveRuntimeArtifactsResponses[keyof AppRunnerControlBatchResolveRuntimeArtifactsResponses];
@@ -2292,20 +2292,20 @@ export type AdminSecretKeyListSecretKeysData = {
 };
 
 export type AdminSecretKeyListSecretKeysResponses = {
-    200: DifyEnterpriseApiEnterpriseListSecretKeysReply;
+    200: ListSecretKeysReply;
 };
 
 export type AdminSecretKeyListSecretKeysResponse = AdminSecretKeyListSecretKeysResponses[keyof AdminSecretKeyListSecretKeysResponses];
 
 export type AdminSecretKeyCreateSecretKeyData = {
-    body: DifyEnterpriseApiEnterpriseCreateSecretKeyReq;
+    body: CreateSecretKeyReq;
     path?: never;
     query?: never;
     url: '/v1/dashboard/api/admin-secret-keys';
 };
 
 export type AdminSecretKeyCreateSecretKeyResponses = {
-    200: DifyEnterpriseApiEnterpriseCreateSecretKeyReply;
+    200: CreateSecretKeyReply;
 };
 
 export type AdminSecretKeyCreateSecretKeyResponse = AdminSecretKeyCreateSecretKeyResponses[keyof AdminSecretKeyCreateSecretKeyResponses];
@@ -2320,7 +2320,7 @@ export type AdminSecretKeyDeleteSecretKeyData = {
 };
 
 export type AdminSecretKeyDeleteSecretKeyResponses = {
-    200: DifyEnterpriseApiEnterpriseDeleteSecretKeyReply;
+    200: DeleteSecretKeyReply;
 };
 
 export type AdminSecretKeyDeleteSecretKeyResponse = AdminSecretKeyDeleteSecretKeyResponses[keyof AdminSecretKeyDeleteSecretKeyResponses];
@@ -2352,7 +2352,7 @@ export type EnterpriseSsoDeleteAuthSettingsData = {
 };
 
 export type EnterpriseSsoDeleteAuthSettingsResponses = {
-    200: DifyEnterpriseApiEnterpriseAuthSettingsReply;
+    200: AuthSettingsReply;
 };
 
 export type EnterpriseSsoDeleteAuthSettingsResponse = EnterpriseSsoDeleteAuthSettingsResponses[keyof EnterpriseSsoDeleteAuthSettingsResponses];
@@ -2365,20 +2365,20 @@ export type EnterpriseSsoGetAuthSettingsData = {
 };
 
 export type EnterpriseSsoGetAuthSettingsResponses = {
-    200: DifyEnterpriseApiEnterpriseAuthSettingsReply;
+    200: AuthSettingsReply;
 };
 
 export type EnterpriseSsoGetAuthSettingsResponse = EnterpriseSsoGetAuthSettingsResponses[keyof EnterpriseSsoGetAuthSettingsResponses];
 
 export type EnterpriseSsoUpdateAuthSettingsData = {
-    body: DifyEnterpriseApiEnterpriseAuthSettingsReq;
+    body: AuthSettingsReq;
     path?: never;
     query?: never;
     url: '/v1/dashboard/api/authentication';
 };
 
 export type EnterpriseSsoUpdateAuthSettingsResponses = {
-    200: DifyEnterpriseApiEnterpriseAuthSettingsReply;
+    200: AuthSettingsReply;
 };
 
 export type EnterpriseSsoUpdateAuthSettingsResponse = EnterpriseSsoUpdateAuthSettingsResponses[keyof EnterpriseSsoUpdateAuthSettingsResponses];
@@ -2391,20 +2391,20 @@ export type EnterpriseBrandingGetBrandingInfoData = {
 };
 
 export type EnterpriseBrandingGetBrandingInfoResponses = {
-    200: DifyEnterpriseApiEnterpriseBrandingInfo;
+    200: BrandingInfo;
 };
 
 export type EnterpriseBrandingGetBrandingInfoResponse = EnterpriseBrandingGetBrandingInfoResponses[keyof EnterpriseBrandingGetBrandingInfoResponses];
 
 export type EnterpriseBrandingUpdateBrandingInfoData = {
-    body: DifyEnterpriseApiEnterpriseUpdateBrandingInfoReq;
+    body: UpdateBrandingInfoReq;
     path?: never;
     query?: never;
     url: '/v1/dashboard/api/branding/info';
 };
 
 export type EnterpriseBrandingUpdateBrandingInfoResponses = {
-    200: DifyEnterpriseApiEnterpriseBrandingInfo;
+    200: BrandingInfo;
 };
 
 export type EnterpriseBrandingUpdateBrandingInfoResponse = EnterpriseBrandingUpdateBrandingInfoResponses[keyof EnterpriseBrandingUpdateBrandingInfoResponses];
@@ -2417,7 +2417,7 @@ export type EnterpriseUserCurrentUserData = {
 };
 
 export type EnterpriseUserCurrentUserResponses = {
-    200: DifyEnterpriseApiEnterpriseCurrentUserReply;
+    200: CurrentUserReply;
 };
 
 export type EnterpriseUserCurrentUserResponse = EnterpriseUserCurrentUserResponses[keyof EnterpriseUserCurrentUserResponses];
@@ -2430,7 +2430,7 @@ export type EnterpriseWorkspaceClearDefaultWorkspaceData = {
 };
 
 export type EnterpriseWorkspaceClearDefaultWorkspaceResponses = {
-    200: DifyEnterpriseApiEnterpriseClearDefaultWorkspaceReply;
+    200: ClearDefaultWorkspaceReply;
 };
 
 export type EnterpriseWorkspaceClearDefaultWorkspaceResponse = EnterpriseWorkspaceClearDefaultWorkspaceResponses[keyof EnterpriseWorkspaceClearDefaultWorkspaceResponses];
@@ -2443,7 +2443,7 @@ export type EnterpriseWorkspaceGetDefaultWorkspaceData = {
 };
 
 export type EnterpriseWorkspaceGetDefaultWorkspaceResponses = {
-    200: DifyEnterpriseApiEnterpriseGetDefaultWorkspaceReply;
+    200: GetDefaultWorkspaceReply;
 };
 
 export type EnterpriseWorkspaceGetDefaultWorkspaceResponse = EnterpriseWorkspaceGetDefaultWorkspaceResponses[keyof EnterpriseWorkspaceGetDefaultWorkspaceResponses];
@@ -2456,7 +2456,7 @@ export type EnterpriseSystemGetEnterpriseSystemUserSettingData = {
 };
 
 export type EnterpriseSystemGetEnterpriseSystemUserSettingResponses = {
-    200: DifyEnterpriseApiEnterpriseEnterpriseSystemUserSettingReply;
+    200: EnterpriseSystemUserSettingReply;
 };
 
 export type EnterpriseSystemGetEnterpriseSystemUserSettingResponse = EnterpriseSystemGetEnterpriseSystemUserSettingResponses[keyof EnterpriseSystemGetEnterpriseSystemUserSettingResponses];
@@ -2475,20 +2475,20 @@ export type EnterpriseEnvironmentListEnvironmentsData = {
 };
 
 export type EnterpriseEnvironmentListEnvironmentsResponses = {
-    200: DifyEnterpriseApiEnterpriseListEnvironmentsReply;
+    200: ListEnvironmentsReply;
 };
 
 export type EnterpriseEnvironmentListEnvironmentsResponse = EnterpriseEnvironmentListEnvironmentsResponses[keyof EnterpriseEnvironmentListEnvironmentsResponses];
 
 export type EnterpriseEnvironmentCreateEnvironmentData = {
-    body: DifyEnterpriseApiEnterpriseCreateEnvironmentReq;
+    body: CreateEnvironmentReq;
     path?: never;
     query?: never;
     url: '/v1/dashboard/api/environments';
 };
 
 export type EnterpriseEnvironmentCreateEnvironmentResponses = {
-    200: DifyEnterpriseApiEnterpriseCreateEnvironmentReply;
+    200: CreateEnvironmentReply;
 };
 
 export type EnterpriseEnvironmentCreateEnvironmentResponse = EnterpriseEnvironmentCreateEnvironmentResponses[keyof EnterpriseEnvironmentCreateEnvironmentResponses];
@@ -2503,7 +2503,7 @@ export type EnterpriseEnvironmentDeleteEnvironmentData = {
 };
 
 export type EnterpriseEnvironmentDeleteEnvironmentResponses = {
-    200: DifyEnterpriseApiEnterpriseDeleteEnvironmentReply;
+    200: DeleteEnvironmentReply;
 };
 
 export type EnterpriseEnvironmentDeleteEnvironmentResponse = EnterpriseEnvironmentDeleteEnvironmentResponses[keyof EnterpriseEnvironmentDeleteEnvironmentResponses];
@@ -2518,13 +2518,13 @@ export type EnterpriseEnvironmentGetEnvironmentData = {
 };
 
 export type EnterpriseEnvironmentGetEnvironmentResponses = {
-    200: DifyEnterpriseApiEnterpriseGetEnvironmentReply;
+    200: GetEnvironmentReply;
 };
 
 export type EnterpriseEnvironmentGetEnvironmentResponse = EnterpriseEnvironmentGetEnvironmentResponses[keyof EnterpriseEnvironmentGetEnvironmentResponses];
 
 export type EnterpriseEnvironmentUpdateEnvironmentData = {
-    body: DifyEnterpriseApiEnterpriseUpdateEnvironmentReq;
+    body: UpdateEnvironmentReq;
     path: {
         id: string;
     };
@@ -2533,13 +2533,13 @@ export type EnterpriseEnvironmentUpdateEnvironmentData = {
 };
 
 export type EnterpriseEnvironmentUpdateEnvironmentResponses = {
-    200: DifyEnterpriseApiEnterpriseUpdateEnvironmentReply;
+    200: UpdateEnvironmentReply;
 };
 
 export type EnterpriseEnvironmentUpdateEnvironmentResponse = EnterpriseEnvironmentUpdateEnvironmentResponses[keyof EnterpriseEnvironmentUpdateEnvironmentResponses];
 
 export type EnterpriseEnvironmentRetryEnvironmentData = {
-    body: DifyEnterpriseApiEnterpriseRetryEnvironmentReq;
+    body: RetryEnvironmentReq;
     path: {
         id: string;
     };
@@ -2548,13 +2548,13 @@ export type EnterpriseEnvironmentRetryEnvironmentData = {
 };
 
 export type EnterpriseEnvironmentRetryEnvironmentResponses = {
-    200: DifyEnterpriseApiEnterpriseRetryEnvironmentReply;
+    200: RetryEnvironmentReply;
 };
 
 export type EnterpriseEnvironmentRetryEnvironmentResponse = EnterpriseEnvironmentRetryEnvironmentResponses[keyof EnterpriseEnvironmentRetryEnvironmentResponses];
 
 export type EnterpriseEnvironmentTestEnvironmentConnectionData = {
-    body: DifyEnterpriseApiEnterpriseTestEnvironmentConnectionReq;
+    body: TestEnvironmentConnectionReq;
     path: {
         id: string;
     };
@@ -2563,7 +2563,7 @@ export type EnterpriseEnvironmentTestEnvironmentConnectionData = {
 };
 
 export type EnterpriseEnvironmentTestEnvironmentConnectionResponses = {
-    200: DifyEnterpriseApiEnterpriseTestEnvironmentConnectionReply;
+    200: TestEnvironmentConnectionReply;
 };
 
 export type EnterpriseEnvironmentTestEnvironmentConnectionResponse = EnterpriseEnvironmentTestEnvironmentConnectionResponses[keyof EnterpriseEnvironmentTestEnvironmentConnectionResponses];
@@ -2576,20 +2576,20 @@ export type LicenseGetLicenseData = {
 };
 
 export type LicenseGetLicenseResponses = {
-    200: DifyEnterpriseApiEnterpriseGetLicenseReply;
+    200: GetLicenseReply;
 };
 
 export type LicenseGetLicenseResponse = LicenseGetLicenseResponses[keyof LicenseGetLicenseResponses];
 
 export type LicenseUpdateLicenseData = {
-    body: DifyEnterpriseApiEnterpriseUpdateLicenseReq;
+    body: UpdateLicenseReq;
     path?: never;
     query?: never;
     url: '/v1/dashboard/api/license';
 };
 
 export type LicenseUpdateLicenseResponses = {
-    200: DifyEnterpriseApiEnterpriseUpdateLicenseReply;
+    200: UpdateLicenseReply;
 };
 
 export type LicenseUpdateLicenseResponse = LicenseUpdateLicenseResponses[keyof LicenseUpdateLicenseResponses];
@@ -2602,20 +2602,20 @@ export type LicenseGetClusterInfoData = {
 };
 
 export type LicenseGetClusterInfoResponses = {
-    200: DifyEnterpriseApiEnterpriseGetClusterInfoReply;
+    200: GetClusterInfoReply;
 };
 
 export type LicenseGetClusterInfoResponse = LicenseGetClusterInfoResponses[keyof LicenseGetClusterInfoResponses];
 
 export type LicenseUpdateOfflineLicenseData = {
-    body: DifyEnterpriseApiEnterpriseUpdateOfflineLicenseReq;
+    body: UpdateOfflineLicenseReq;
     path?: never;
     query?: never;
     url: '/v1/dashboard/api/license/offline-code';
 };
 
 export type LicenseUpdateOfflineLicenseResponses = {
-    200: DifyEnterpriseApiEnterpriseUpdateOfflineLicenseReply;
+    200: UpdateOfflineLicenseReply;
 };
 
 export type LicenseUpdateOfflineLicenseResponse = LicenseUpdateOfflineLicenseResponses[keyof LicenseUpdateOfflineLicenseResponses];
@@ -2628,7 +2628,7 @@ export type LicenseGetLicenseStatusData = {
 };
 
 export type LicenseGetLicenseStatusResponses = {
-    200: DifyEnterpriseApiEnterpriseGetLicenseStatusReply;
+    200: GetLicenseStatusReply;
 };
 
 export type LicenseGetLicenseStatusResponse = LicenseGetLicenseStatusResponses[keyof LicenseGetLicenseStatusResponses];
@@ -2641,20 +2641,20 @@ export type EnterpriseSsoGetLoginTypesData = {
 };
 
 export type EnterpriseSsoGetLoginTypesResponses = {
-    200: DifyEnterpriseApiEnterpriseLoginTypesReply;
+    200: LoginTypesReply;
 };
 
 export type EnterpriseSsoGetLoginTypesResponse = EnterpriseSsoGetLoginTypesResponses[keyof EnterpriseSsoGetLoginTypesResponses];
 
 export type EnterpriseSsoUpdateLoginTypesData = {
-    body: DifyEnterpriseApiEnterpriseLoginTypesReq;
+    body: LoginTypesReq;
     path?: never;
     query?: never;
     url: '/v1/dashboard/api/login-types';
 };
 
 export type EnterpriseSsoUpdateLoginTypesResponses = {
-    200: DifyEnterpriseApiEnterpriseLoginTypesReply;
+    200: LoginTypesReply;
 };
 
 export type EnterpriseSsoUpdateLoginTypesResponse = EnterpriseSsoUpdateLoginTypesResponses[keyof EnterpriseSsoUpdateLoginTypesResponses];
@@ -2675,20 +2675,20 @@ export type EnterpriseMemberListMembersData = {
 };
 
 export type EnterpriseMemberListMembersResponses = {
-    200: DifyEnterpriseApiEnterpriseListMembersReply;
+    200: ListMembersReply;
 };
 
 export type EnterpriseMemberListMembersResponse = EnterpriseMemberListMembersResponses[keyof EnterpriseMemberListMembersResponses];
 
 export type EnterpriseMemberCreateMemberData = {
-    body: DifyEnterpriseApiEnterpriseCreateMemberReq;
+    body: CreateMemberReq;
     path?: never;
     query?: never;
     url: '/v1/dashboard/api/members';
 };
 
 export type EnterpriseMemberCreateMemberResponses = {
-    200: DifyEnterpriseApiEnterpriseCreateMemberReply;
+    200: CreateMemberReply;
 };
 
 export type EnterpriseMemberCreateMemberResponse = EnterpriseMemberCreateMemberResponses[keyof EnterpriseMemberCreateMemberResponses];
@@ -2703,7 +2703,7 @@ export type EnterpriseMemberDeleteMemberData = {
 };
 
 export type EnterpriseMemberDeleteMemberResponses = {
-    200: DifyEnterpriseApiEnterpriseDeleteMemberReply;
+    200: DeleteMemberReply;
 };
 
 export type EnterpriseMemberDeleteMemberResponse = EnterpriseMemberDeleteMemberResponses[keyof EnterpriseMemberDeleteMemberResponses];
@@ -2718,13 +2718,13 @@ export type EnterpriseMemberGetMemberData = {
 };
 
 export type EnterpriseMemberGetMemberResponses = {
-    200: DifyEnterpriseApiEnterpriseGetMemberReply;
+    200: GetMemberReply;
 };
 
 export type EnterpriseMemberGetMemberResponse = EnterpriseMemberGetMemberResponses[keyof EnterpriseMemberGetMemberResponses];
 
 export type EnterpriseMemberUpdateMemberData = {
-    body: DifyEnterpriseApiEnterpriseUpdateMemberReq;
+    body: UpdateMemberReq;
     path: {
         id: string;
     };
@@ -2733,13 +2733,13 @@ export type EnterpriseMemberUpdateMemberData = {
 };
 
 export type EnterpriseMemberUpdateMemberResponses = {
-    200: DifyEnterpriseApiEnterpriseUpdateMemberReply;
+    200: UpdateMemberReply;
 };
 
 export type EnterpriseMemberUpdateMemberResponse = EnterpriseMemberUpdateMemberResponses[keyof EnterpriseMemberUpdateMemberResponses];
 
 export type EnterpriseMemberResetMemberPasswordData = {
-    body: DifyEnterpriseApiEnterpriseResetMemberPasswordReq;
+    body: ResetMemberPasswordReq;
     path: {
         id: string;
     };
@@ -2748,7 +2748,7 @@ export type EnterpriseMemberResetMemberPasswordData = {
 };
 
 export type EnterpriseMemberResetMemberPasswordResponses = {
-    200: DifyEnterpriseApiEnterpriseResetMemberPasswordReply;
+    200: ResetMemberPasswordReply;
 };
 
 export type EnterpriseMemberResetMemberPasswordResponse = EnterpriseMemberResetMemberPasswordResponses[keyof EnterpriseMemberResetMemberPasswordResponses];
@@ -2761,20 +2761,20 @@ export type EnterpriseMfaMfaUnenrollData = {
 };
 
 export type EnterpriseMfaMfaUnenrollResponses = {
-    200: DifyEnterpriseApiEnterpriseMfaDeleteRes;
+    200: MfaDeleteRes;
 };
 
 export type EnterpriseMfaMfaUnenrollResponse = EnterpriseMfaMfaUnenrollResponses[keyof EnterpriseMfaMfaUnenrollResponses];
 
 export type EnterpriseMfaMfaModifyData = {
-    body: DifyEnterpriseApiEnterpriseMfaEnrollReq;
+    body: MfaEnrollReq;
     path?: never;
     query?: never;
     url: '/v1/dashboard/api/mfa';
 };
 
 export type EnterpriseMfaMfaModifyResponses = {
-    200: DifyEnterpriseApiEnterpriseMfaModifyRes;
+    200: MfaModifyRes;
 };
 
 export type EnterpriseMfaMfaModifyResponse = EnterpriseMfaMfaModifyResponses[keyof EnterpriseMfaMfaModifyResponses];
@@ -2787,7 +2787,7 @@ export type EnterpriseMfaMfaDeleteBackupCodesData = {
 };
 
 export type EnterpriseMfaMfaDeleteBackupCodesResponses = {
-    200: DifyEnterpriseApiEnterpriseMfaDeleteBackupCodesRes;
+    200: MfaDeleteBackupCodesRes;
 };
 
 export type EnterpriseMfaMfaDeleteBackupCodesResponse = EnterpriseMfaMfaDeleteBackupCodesResponses[keyof EnterpriseMfaMfaDeleteBackupCodesResponses];
@@ -2800,7 +2800,7 @@ export type EnterpriseMfaMfaGetBackupCodesData = {
 };
 
 export type EnterpriseMfaMfaGetBackupCodesResponses = {
-    200: DifyEnterpriseApiEnterpriseMfaBackupCodesRes;
+    200: MfaBackupCodesRes;
 };
 
 export type EnterpriseMfaMfaGetBackupCodesResponse = EnterpriseMfaMfaGetBackupCodesResponses[keyof EnterpriseMfaMfaGetBackupCodesResponses];
@@ -2813,7 +2813,7 @@ export type EnterpriseMfaMfaGetNewBackupCodesData = {
 };
 
 export type EnterpriseMfaMfaGetNewBackupCodesResponses = {
-    200: DifyEnterpriseApiEnterpriseMfaBackupCodesRes;
+    200: MfaBackupCodesRes;
 };
 
 export type EnterpriseMfaMfaGetNewBackupCodesResponse = EnterpriseMfaMfaGetNewBackupCodesResponses[keyof EnterpriseMfaMfaGetNewBackupCodesResponses];
@@ -2826,33 +2826,33 @@ export type EnterpriseMfaMfaDownloadBackupCodesSummaryData = {
 };
 
 export type EnterpriseMfaMfaDownloadBackupCodesSummaryResponses = {
-    200: DifyEnterpriseApiEnterpriseMfaDownloadBackupCodesSummaryRes;
+    200: MfaDownloadBackupCodesSummaryRes;
 };
 
 export type EnterpriseMfaMfaDownloadBackupCodesSummaryResponse = EnterpriseMfaMfaDownloadBackupCodesSummaryResponses[keyof EnterpriseMfaMfaDownloadBackupCodesSummaryResponses];
 
 export type EnterpriseMfaUpdateMfaStatusGlobalData = {
-    body: DifyEnterpriseApiEnterpriseUpdateMfaStatusReq;
+    body: UpdateMfaStatusReq;
     path?: never;
     query?: never;
     url: '/v1/dashboard/api/mfa/enable/global';
 };
 
 export type EnterpriseMfaUpdateMfaStatusGlobalResponses = {
-    200: DifyEnterpriseApiEnterpriseUpdateMfaStatusRes;
+    200: UpdateMfaStatusRes;
 };
 
 export type EnterpriseMfaUpdateMfaStatusGlobalResponse = EnterpriseMfaUpdateMfaStatusGlobalResponses[keyof EnterpriseMfaUpdateMfaStatusGlobalResponses];
 
 export type EnterpriseMfaUpdateMfaStatusUserData = {
-    body: DifyEnterpriseApiEnterpriseUpdateMfaStatusReq;
+    body: UpdateMfaStatusReq;
     path?: never;
     query?: never;
     url: '/v1/dashboard/api/mfa/enable/individual';
 };
 
 export type EnterpriseMfaUpdateMfaStatusUserResponses = {
-    200: DifyEnterpriseApiEnterpriseUpdateMfaStatusRes;
+    200: UpdateMfaStatusRes;
 };
 
 export type EnterpriseMfaUpdateMfaStatusUserResponse = EnterpriseMfaUpdateMfaStatusUserResponses[keyof EnterpriseMfaUpdateMfaStatusUserResponses];
@@ -2865,20 +2865,20 @@ export type EnterpriseMfaGetMfaEnrollInfoData = {
 };
 
 export type EnterpriseMfaGetMfaEnrollInfoResponses = {
-    200: DifyEnterpriseApiEnterpriseMfaGetEnrollInfoRes;
+    200: MfaGetEnrollInfoRes;
 };
 
 export type EnterpriseMfaGetMfaEnrollInfoResponse = EnterpriseMfaGetMfaEnrollInfoResponses[keyof EnterpriseMfaGetMfaEnrollInfoResponses];
 
 export type EnterpriseMfaMfaEnrollData = {
-    body: DifyEnterpriseApiEnterpriseMfaEnrollReq;
+    body: MfaEnrollReq;
     path?: never;
     query?: never;
     url: '/v1/dashboard/api/mfa/enroll';
 };
 
 export type EnterpriseMfaMfaEnrollResponses = {
-    200: DifyEnterpriseApiEnterpriseMfaEnrollRes;
+    200: MfaEnrollRes;
 };
 
 export type EnterpriseMfaMfaEnrollResponse = EnterpriseMfaMfaEnrollResponses[keyof EnterpriseMfaMfaEnrollResponses];
@@ -2891,7 +2891,7 @@ export type EnterpriseMfaGetMfaInfoData = {
 };
 
 export type EnterpriseMfaGetMfaInfoResponses = {
-    200: DifyEnterpriseApiEnterpriseGetMfaInfoReply;
+    200: GetMfaInfoReply;
 };
 
 export type EnterpriseMfaGetMfaInfoResponse = EnterpriseMfaGetMfaInfoResponses[keyof EnterpriseMfaGetMfaInfoResponses];
@@ -2904,13 +2904,13 @@ export type OtelExporterServiceGetOtelExporterEndpointData = {
 };
 
 export type OtelExporterServiceGetOtelExporterEndpointResponses = {
-    200: DifyEnterpriseApiEnterpriseEndpointReply;
+    200: EndpointReply;
 };
 
 export type OtelExporterServiceGetOtelExporterEndpointResponse = OtelExporterServiceGetOtelExporterEndpointResponses[keyof OtelExporterServiceGetOtelExporterEndpointResponses];
 
 export type OtelExporterServiceUpdateAllEndpointsData = {
-    body: DifyEnterpriseApiEnterpriseOtelExporterEndpoint;
+    body: OtelExporterEndpoint;
     path?: never;
     query?: never;
     url: '/v1/dashboard/api/otel/exporter/endpoints';
@@ -2921,7 +2921,7 @@ export type OtelExporterServiceUpdateAllEndpointsResponses = {
 };
 
 export type OtelExporterServiceToggleAllEndpointsData = {
-    body: DifyEnterpriseApiEnterpriseToggleEndpointRequest;
+    body: ToggleEndpointRequest;
     path?: never;
     query?: never;
     url: '/v1/dashboard/api/otel/exporter/endpoints/toggle';
@@ -2939,13 +2939,13 @@ export type OtelExporterServiceGetMetricExporterStatusData = {
 };
 
 export type OtelExporterServiceGetMetricExporterStatusResponses = {
-    200: DifyEnterpriseApiEnterpriseOtelExporterStatusReply;
+    200: OtelExporterStatusReply;
 };
 
 export type OtelExporterServiceGetMetricExporterStatusResponse = OtelExporterServiceGetMetricExporterStatusResponses[keyof OtelExporterServiceGetMetricExporterStatusResponses];
 
 export type OtelExporterServiceUpdateMetricsEndpointData = {
-    body: DifyEnterpriseApiEnterpriseOtelExporterEndpoint;
+    body: OtelExporterEndpoint;
     path?: never;
     query?: never;
     url: '/v1/dashboard/api/otel/exporter/metrics/endpoint';
@@ -2956,7 +2956,7 @@ export type OtelExporterServiceUpdateMetricsEndpointResponses = {
 };
 
 export type OtelExporterServiceToggleMetricsEndpointData = {
-    body: DifyEnterpriseApiEnterpriseToggleEndpointRequest;
+    body: ToggleEndpointRequest;
     path?: never;
     query?: never;
     url: '/v1/dashboard/api/otel/exporter/metrics/toggle';
@@ -2974,46 +2974,46 @@ export type OtelExporterServiceGetOtelExporterStatusData = {
 };
 
 export type OtelExporterServiceGetOtelExporterStatusResponses = {
-    200: DifyEnterpriseApiEnterpriseOtelExporterStatusReply;
+    200: OtelExporterStatusReply;
 };
 
 export type OtelExporterServiceGetOtelExporterStatusResponse = OtelExporterServiceGetOtelExporterStatusResponses[keyof OtelExporterServiceGetOtelExporterStatusResponses];
 
 export type OtelExporterServiceTestConnectionData = {
-    body: DifyEnterpriseApiEnterpriseOtelExporterEndpoint;
+    body: OtelExporterEndpoint;
     path?: never;
     query?: never;
     url: '/v1/dashboard/api/otel/exporter/test';
 };
 
 export type OtelExporterServiceTestConnectionResponses = {
-    200: DifyEnterpriseApiEnterpriseTestConnectionReply;
+    200: TestConnectionReply;
 };
 
 export type OtelExporterServiceTestConnectionResponse = OtelExporterServiceTestConnectionResponses[keyof OtelExporterServiceTestConnectionResponses];
 
 export type OtelExporterServiceTestConnectionForMetricsData = {
-    body: DifyEnterpriseApiEnterpriseOtelExporterEndpoint;
+    body: OtelExporterEndpoint;
     path?: never;
     query?: never;
     url: '/v1/dashboard/api/otel/exporter/test/metrics';
 };
 
 export type OtelExporterServiceTestConnectionForMetricsResponses = {
-    200: DifyEnterpriseApiEnterpriseTestConnectionReply;
+    200: TestConnectionReply;
 };
 
 export type OtelExporterServiceTestConnectionForMetricsResponse = OtelExporterServiceTestConnectionForMetricsResponses[keyof OtelExporterServiceTestConnectionForMetricsResponses];
 
 export type OtelExporterServiceTestConnectionForTracesData = {
-    body: DifyEnterpriseApiEnterpriseOtelExporterEndpoint;
+    body: OtelExporterEndpoint;
     path?: never;
     query?: never;
     url: '/v1/dashboard/api/otel/exporter/test/traces';
 };
 
 export type OtelExporterServiceTestConnectionForTracesResponses = {
-    200: DifyEnterpriseApiEnterpriseTestConnectionReply;
+    200: TestConnectionReply;
 };
 
 export type OtelExporterServiceTestConnectionForTracesResponse = OtelExporterServiceTestConnectionForTracesResponses[keyof OtelExporterServiceTestConnectionForTracesResponses];
@@ -3026,13 +3026,13 @@ export type OtelExporterServiceGetTraceExporterStatusData = {
 };
 
 export type OtelExporterServiceGetTraceExporterStatusResponses = {
-    200: DifyEnterpriseApiEnterpriseOtelExporterStatusReply;
+    200: OtelExporterStatusReply;
 };
 
 export type OtelExporterServiceGetTraceExporterStatusResponse = OtelExporterServiceGetTraceExporterStatusResponses[keyof OtelExporterServiceGetTraceExporterStatusResponses];
 
 export type OtelExporterServiceUpdateTracesEndpointData = {
-    body: DifyEnterpriseApiEnterpriseOtelExporterEndpoint;
+    body: OtelExporterEndpoint;
     path?: never;
     query?: never;
     url: '/v1/dashboard/api/otel/exporter/traces/endpoint';
@@ -3043,7 +3043,7 @@ export type OtelExporterServiceUpdateTracesEndpointResponses = {
 };
 
 export type OtelExporterServiceToggleTracesEndpointData = {
-    body: DifyEnterpriseApiEnterpriseToggleEndpointRequest;
+    body: ToggleEndpointRequest;
     path?: never;
     query?: never;
     url: '/v1/dashboard/api/otel/exporter/traces/toggle';
@@ -3061,20 +3061,20 @@ export type EnterprisePasswordPolicyGetPasswordPolicyData = {
 };
 
 export type EnterprisePasswordPolicyGetPasswordPolicyResponses = {
-    200: DifyEnterpriseApiEnterprisePasswordPolicyConfig;
+    200: PasswordPolicyConfig;
 };
 
 export type EnterprisePasswordPolicyGetPasswordPolicyResponse = EnterprisePasswordPolicyGetPasswordPolicyResponses[keyof EnterprisePasswordPolicyGetPasswordPolicyResponses];
 
 export type EnterprisePasswordPolicyUpdatePasswordPolicyData = {
-    body: DifyEnterpriseApiEnterprisePasswordPolicyConfig;
+    body: PasswordPolicyConfig;
     path?: never;
     query?: never;
     url: '/v1/dashboard/api/password/policy';
 };
 
 export type EnterprisePasswordPolicyUpdatePasswordPolicyResponses = {
-    200: DifyEnterpriseApiEnterprisePasswordPolicyConfig;
+    200: PasswordPolicyConfig;
 };
 
 export type EnterprisePasswordPolicyUpdatePasswordPolicyResponse = EnterprisePasswordPolicyUpdatePasswordPolicyResponses[keyof EnterprisePasswordPolicyUpdatePasswordPolicyResponses];
@@ -3087,20 +3087,20 @@ export type EnterpriseUserCheckPasswordStatusData = {
 };
 
 export type EnterpriseUserCheckPasswordStatusResponses = {
-    200: DifyEnterpriseApiEnterpriseCheckPasswordStatusReply;
+    200: CheckPasswordStatusReply;
 };
 
 export type EnterpriseUserCheckPasswordStatusResponse = EnterpriseUserCheckPasswordStatusResponses[keyof EnterpriseUserCheckPasswordStatusResponses];
 
 export type EnterprisePasswordPolicyGetPasswordStrengthData = {
-    body: DifyEnterpriseApiEnterprisePasswordStrengthReq;
+    body: PasswordStrengthReq;
     path?: never;
     query?: never;
     url: '/v1/dashboard/api/password/strength';
 };
 
 export type EnterprisePasswordPolicyGetPasswordStrengthResponses = {
-    200: DifyEnterpriseApiEnterprisePasswordStrengthReply;
+    200: PasswordStrengthReply;
 };
 
 export type EnterprisePasswordPolicyGetPasswordStrengthResponse = EnterprisePasswordPolicyGetPasswordStrengthResponses[keyof EnterprisePasswordPolicyGetPasswordStrengthResponses];
@@ -3113,33 +3113,33 @@ export type PluginGetPluginInstallationSettingsData = {
 };
 
 export type PluginGetPluginInstallationSettingsResponses = {
-    200: DifyEnterpriseApiEnterprisePluginInstallationSettingsReply;
+    200: PluginInstallationSettingsReply;
 };
 
 export type PluginGetPluginInstallationSettingsResponse = PluginGetPluginInstallationSettingsResponses[keyof PluginGetPluginInstallationSettingsResponses];
 
 export type PluginUpdatePluginInstallationSettingsData = {
-    body: DifyEnterpriseApiEnterpriseUpdatePluginInstallationSettingsRequest;
+    body: UpdatePluginInstallationSettingsRequest;
     path?: never;
     query?: never;
     url: '/v1/dashboard/api/plugin/settings';
 };
 
 export type PluginUpdatePluginInstallationSettingsResponses = {
-    200: DifyEnterpriseApiEnterprisePluginInstallationSettingsReply;
+    200: PluginInstallationSettingsReply;
 };
 
 export type PluginUpdatePluginInstallationSettingsResponse = PluginUpdatePluginInstallationSettingsResponses[keyof PluginUpdatePluginInstallationSettingsResponses];
 
 export type EnterpriseUserResetPasswordData = {
-    body: DifyEnterpriseApiEnterpriseResetPasswordReq;
+    body: ResetPasswordReq;
     path?: never;
     query?: never;
     url: '/v1/dashboard/api/reset-password';
 };
 
 export type EnterpriseUserResetPasswordResponses = {
-    200: DifyEnterpriseApiEnterpriseResetPasswordReply;
+    200: ResetPasswordReply;
 };
 
 export type EnterpriseUserResetPasswordResponse = EnterpriseUserResetPasswordResponses[keyof EnterpriseUserResetPasswordResponses];
@@ -3152,20 +3152,20 @@ export type ScimProvisioningGetSettingsData = {
 };
 
 export type ScimProvisioningGetSettingsResponses = {
-    200: DifyEnterpriseApiEnterpriseScimSettings;
+    200: ScimSettings;
 };
 
 export type ScimProvisioningGetSettingsResponse = ScimProvisioningGetSettingsResponses[keyof ScimProvisioningGetSettingsResponses];
 
 export type ScimProvisioningUpdateSettingsData = {
-    body: DifyEnterpriseApiEnterpriseScimSettings;
+    body: ScimSettings;
     path?: never;
     query?: never;
     url: '/v1/dashboard/api/scim/settings';
 };
 
 export type ScimProvisioningUpdateSettingsResponses = {
-    200: DifyEnterpriseApiEnterpriseScimSettings;
+    200: ScimSettings;
 };
 
 export type ScimProvisioningUpdateSettingsResponse = ScimProvisioningUpdateSettingsResponses[keyof ScimProvisioningUpdateSettingsResponses];
@@ -3189,7 +3189,7 @@ export type ScimProvisioningGetBearerTokenData = {
 };
 
 export type ScimProvisioningGetBearerTokenResponses = {
-    200: DifyEnterpriseApiEnterpriseGetBearerTokenResponse;
+    200: GetBearerTokenResponse;
 };
 
 export type ScimProvisioningGetBearerTokenResponse = ScimProvisioningGetBearerTokenResponses[keyof ScimProvisioningGetBearerTokenResponses];
@@ -3202,7 +3202,7 @@ export type ScimProvisioningCreateBearerTokenData = {
 };
 
 export type ScimProvisioningCreateBearerTokenResponses = {
-    200: DifyEnterpriseApiEnterpriseCreateBearerTokenResponse;
+    200: CreateBearerTokenResponse;
 };
 
 export type ScimProvisioningCreateBearerTokenResponse = ScimProvisioningCreateBearerTokenResponses[keyof ScimProvisioningCreateBearerTokenResponses];
@@ -3215,20 +3215,20 @@ export type EnterpriseSsoGetSystemUserSettingData = {
 };
 
 export type EnterpriseSsoGetSystemUserSettingResponses = {
-    200: DifyEnterpriseApiEnterpriseSystemUserSettingReply;
+    200: SystemUserSettingReply;
 };
 
 export type EnterpriseSsoGetSystemUserSettingResponse = EnterpriseSsoGetSystemUserSettingResponses[keyof EnterpriseSsoGetSystemUserSettingResponses];
 
 export type EnterpriseSsoUpdateSystemUserSettingData = {
-    body: DifyEnterpriseApiEnterpriseSystemUserSettingReq;
+    body: SystemUserSettingReq;
     path?: never;
     query?: never;
     url: '/v1/dashboard/api/system-user-setting';
 };
 
 export type EnterpriseSsoUpdateSystemUserSettingResponses = {
-    200: DifyEnterpriseApiEnterpriseSystemUserSettingReply;
+    200: SystemUserSettingReply;
 };
 
 export type EnterpriseSsoUpdateSystemUserSettingResponse = EnterpriseSsoUpdateSystemUserSettingResponses[keyof EnterpriseSsoUpdateSystemUserSettingResponses];
@@ -3247,20 +3247,20 @@ export type EnterpriseUserListUsersData = {
 };
 
 export type EnterpriseUserListUsersResponses = {
-    200: DifyEnterpriseApiEnterpriseListUsersReply;
+    200: ListUsersReply;
 };
 
 export type EnterpriseUserListUsersResponse = EnterpriseUserListUsersResponses[keyof EnterpriseUserListUsersResponses];
 
 export type EnterpriseUserCreateUserData = {
-    body: DifyEnterpriseApiEnterpriseCreateUserReq;
+    body: CreateUserReq;
     path?: never;
     query?: never;
     url: '/v1/dashboard/api/users';
 };
 
 export type EnterpriseUserCreateUserResponses = {
-    200: DifyEnterpriseApiEnterpriseCreateUserReply;
+    200: CreateUserReply;
 };
 
 export type EnterpriseUserCreateUserResponse = EnterpriseUserCreateUserResponses[keyof EnterpriseUserCreateUserResponses];
@@ -3275,7 +3275,7 @@ export type EnterpriseUserDeleteUserData = {
 };
 
 export type EnterpriseUserDeleteUserResponses = {
-    200: DifyEnterpriseApiEnterpriseDeleteUserReply;
+    200: DeleteUserReply;
 };
 
 export type EnterpriseUserDeleteUserResponse = EnterpriseUserDeleteUserResponses[keyof EnterpriseUserDeleteUserResponses];
@@ -3290,13 +3290,13 @@ export type EnterpriseUserGetUserData = {
 };
 
 export type EnterpriseUserGetUserResponses = {
-    200: DifyEnterpriseApiEnterpriseGetUserReply;
+    200: GetUserReply;
 };
 
 export type EnterpriseUserGetUserResponse = EnterpriseUserGetUserResponses[keyof EnterpriseUserGetUserResponses];
 
 export type EnterpriseUserUpdateUserData = {
-    body: DifyEnterpriseApiEnterpriseUpdateUserReq;
+    body: UpdateUserReq;
     path: {
         id: string;
     };
@@ -3305,13 +3305,13 @@ export type EnterpriseUserUpdateUserData = {
 };
 
 export type EnterpriseUserUpdateUserResponses = {
-    200: DifyEnterpriseApiEnterpriseUpdateUserReply;
+    200: UpdateUserReply;
 };
 
 export type EnterpriseUserUpdateUserResponse = EnterpriseUserUpdateUserResponses[keyof EnterpriseUserUpdateUserResponses];
 
 export type EnterpriseUserResetUserPasswordData = {
-    body: DifyEnterpriseApiEnterpriseResetUserPasswordReq;
+    body: ResetUserPasswordReq;
     path: {
         id: string;
     };
@@ -3320,7 +3320,7 @@ export type EnterpriseUserResetUserPasswordData = {
 };
 
 export type EnterpriseUserResetUserPasswordResponses = {
-    200: DifyEnterpriseApiEnterpriseResetUserPasswordReply;
+    200: ResetUserPasswordReply;
 };
 
 export type EnterpriseUserResetUserPasswordResponse = EnterpriseUserResetUserPasswordResponses[keyof EnterpriseUserResetUserPasswordResponses];
@@ -3333,46 +3333,46 @@ export type WebAppAuthGetWebAppAuthInfoData = {
 };
 
 export type WebAppAuthGetWebAppAuthInfoResponses = {
-    200: DifyEnterpriseApiEnterpriseGetWebAppAuthInfoRes;
+    200: GetWebAppAuthInfoRes;
 };
 
 export type WebAppAuthGetWebAppAuthInfoResponse = WebAppAuthGetWebAppAuthInfoResponses[keyof WebAppAuthGetWebAppAuthInfoResponses];
 
 export type WebAppAuthUpdateWebAppAuthInfoData = {
-    body: DifyEnterpriseApiEnterpriseUpdateWebAppAuthInfoReq;
+    body: UpdateWebAppAuthInfoReq;
     path?: never;
     query?: never;
     url: '/v1/dashboard/api/webapp/auth/info';
 };
 
 export type WebAppAuthUpdateWebAppAuthInfoResponses = {
-    200: DifyEnterpriseApiEnterpriseUpdateWebAppAuthInfoRes;
+    200: UpdateWebAppAuthInfoRes;
 };
 
 export type WebAppAuthUpdateWebAppAuthInfoResponse = WebAppAuthUpdateWebAppAuthInfoResponses[keyof WebAppAuthUpdateWebAppAuthInfoResponses];
 
 export type WebAppAuthUpdateMembersInGroupsData = {
-    body: DifyEnterpriseApiEnterpriseUpdateMembersInGroupsReq;
+    body: UpdateMembersInGroupsReq;
     path?: never;
     query?: never;
     url: '/v1/dashboard/api/webapp/group/batch';
 };
 
 export type WebAppAuthUpdateMembersInGroupsResponses = {
-    200: DifyEnterpriseApiEnterpriseUpdateMembersInGroupsRes;
+    200: UpdateMembersInGroupsRes;
 };
 
 export type WebAppAuthUpdateMembersInGroupsResponse = WebAppAuthUpdateMembersInGroupsResponses[keyof WebAppAuthUpdateMembersInGroupsResponses];
 
 export type WebAppAuthUpdateGroupSubjectsData = {
-    body: DifyEnterpriseApiEnterpriseUpdateGroupSubjectsReq;
+    body: UpdateGroupSubjectsReq;
     path?: never;
     query?: never;
     url: '/v1/dashboard/api/webapp/group/subjects';
 };
 
 export type WebAppAuthUpdateGroupSubjectsResponses = {
-    200: DifyEnterpriseApiEnterpriseUpdateGroupSubjectsRes;
+    200: UpdateGroupSubjectsRes;
 };
 
 export type WebAppAuthUpdateGroupSubjectsResponse = WebAppAuthUpdateGroupSubjectsResponses[keyof WebAppAuthUpdateGroupSubjectsResponses];
@@ -3387,7 +3387,7 @@ export type WebAppAuthDeleteGroupsData = {
 };
 
 export type WebAppAuthDeleteGroupsResponses = {
-    200: DifyEnterpriseApiEnterpriseDeleteGroupsRes;
+    200: DeleteGroupsRes;
 };
 
 export type WebAppAuthDeleteGroupsResponse = WebAppAuthDeleteGroupsResponses[keyof WebAppAuthDeleteGroupsResponses];
@@ -3400,33 +3400,33 @@ export type WebAppAuthGetRootGroupsData = {
 };
 
 export type WebAppAuthGetRootGroupsResponses = {
-    200: DifyEnterpriseApiEnterpriseGetGroupsRes;
+    200: GetGroupsRes;
 };
 
 export type WebAppAuthGetRootGroupsResponse = WebAppAuthGetRootGroupsResponses[keyof WebAppAuthGetRootGroupsResponses];
 
 export type WebAppAuthCreateNewGroupsData = {
-    body: DifyEnterpriseApiEnterpriseCreateNewGroupsReq;
+    body: CreateNewGroupsReq;
     path?: never;
     query?: never;
     url: '/v1/dashboard/api/webapp/groups';
 };
 
 export type WebAppAuthCreateNewGroupsResponses = {
-    200: DifyEnterpriseApiEnterpriseCreateNewGroupsRes;
+    200: CreateNewGroupsRes;
 };
 
 export type WebAppAuthCreateNewGroupsResponse = WebAppAuthCreateNewGroupsResponses[keyof WebAppAuthCreateNewGroupsResponses];
 
 export type WebAppAuthUpdateGroupsData = {
-    body: DifyEnterpriseApiEnterpriseUpdateGroupsReq;
+    body: UpdateGroupsReq;
     path?: never;
     query?: never;
     url: '/v1/dashboard/api/webapp/groups';
 };
 
 export type WebAppAuthUpdateGroupsResponses = {
-    200: DifyEnterpriseApiEnterpriseUpdateGroupsRes;
+    200: UpdateGroupsRes;
 };
 
 export type WebAppAuthUpdateGroupsResponse = WebAppAuthUpdateGroupsResponses[keyof WebAppAuthUpdateGroupsResponses];
@@ -3441,20 +3441,20 @@ export type WebAppAuthGetJoinedGroupsData = {
 };
 
 export type WebAppAuthGetJoinedGroupsResponses = {
-    200: DifyEnterpriseApiEnterpriseGetJoinedGroupsRes;
+    200: GetJoinedGroupsRes;
 };
 
 export type WebAppAuthGetJoinedGroupsResponse = WebAppAuthGetJoinedGroupsResponses[keyof WebAppAuthGetJoinedGroupsResponses];
 
 export type WebAppAuthUpdateJoinedGroupsData = {
-    body: DifyEnterpriseApiEnterpriseUpdateJoinedGroupsReq;
+    body: UpdateJoinedGroupsReq;
     path?: never;
     query?: never;
     url: '/v1/dashboard/api/webapp/joined-groups';
 };
 
 export type WebAppAuthUpdateJoinedGroupsResponses = {
-    200: DifyEnterpriseApiEnterpriseUpdateJoinedGroupsRes;
+    200: UpdateJoinedGroupsRes;
 };
 
 export type WebAppAuthUpdateJoinedGroupsResponse = WebAppAuthUpdateJoinedGroupsResponses[keyof WebAppAuthUpdateJoinedGroupsResponses];
@@ -3474,20 +3474,20 @@ export type EnterpriseWorkspaceListWorkSpacesData = {
 };
 
 export type EnterpriseWorkspaceListWorkSpacesResponses = {
-    200: DifyEnterpriseApiEnterpriseListWorkspacesReply;
+    200: ListWorkspacesReply;
 };
 
 export type EnterpriseWorkspaceListWorkSpacesResponse = EnterpriseWorkspaceListWorkSpacesResponses[keyof EnterpriseWorkspaceListWorkSpacesResponses];
 
 export type EnterpriseWorkspaceCreateWorkspaceData = {
-    body: DifyEnterpriseApiEnterpriseCreateWorkspaceReq;
+    body: CreateWorkspaceReq;
     path?: never;
     query?: never;
     url: '/v1/dashboard/api/workspaces';
 };
 
 export type EnterpriseWorkspaceCreateWorkspaceResponses = {
-    200: DifyEnterpriseApiEnterpriseCreateWorkspaceReply;
+    200: CreateWorkspaceReply;
 };
 
 export type EnterpriseWorkspaceCreateWorkspaceResponse = EnterpriseWorkspaceCreateWorkspaceResponses[keyof EnterpriseWorkspaceCreateWorkspaceResponses];
@@ -3502,7 +3502,7 @@ export type EnterpriseWorkspaceDeleteWorkspaceData = {
 };
 
 export type EnterpriseWorkspaceDeleteWorkspaceResponses = {
-    200: DifyEnterpriseApiEnterpriseDeleteWorkspaceReply;
+    200: DeleteWorkspaceReply;
 };
 
 export type EnterpriseWorkspaceDeleteWorkspaceResponse = EnterpriseWorkspaceDeleteWorkspaceResponses[keyof EnterpriseWorkspaceDeleteWorkspaceResponses];
@@ -3517,13 +3517,13 @@ export type EnterpriseWorkspaceGetWorkspaceData = {
 };
 
 export type EnterpriseWorkspaceGetWorkspaceResponses = {
-    200: DifyEnterpriseApiEnterpriseGetWorkspaceReply;
+    200: GetWorkspaceReply;
 };
 
 export type EnterpriseWorkspaceGetWorkspaceResponse = EnterpriseWorkspaceGetWorkspaceResponses[keyof EnterpriseWorkspaceGetWorkspaceResponses];
 
 export type EnterpriseWorkspaceUpdateWorkspaceData = {
-    body: DifyEnterpriseApiEnterpriseUpdateWorkspaceReq;
+    body: UpdateWorkspaceReq;
     path: {
         id: string;
     };
@@ -3532,13 +3532,13 @@ export type EnterpriseWorkspaceUpdateWorkspaceData = {
 };
 
 export type EnterpriseWorkspaceUpdateWorkspaceResponses = {
-    200: DifyEnterpriseApiEnterpriseUpdateWorkspaceReply;
+    200: UpdateWorkspaceReply;
 };
 
 export type EnterpriseWorkspaceUpdateWorkspaceResponse = EnterpriseWorkspaceUpdateWorkspaceResponses[keyof EnterpriseWorkspaceUpdateWorkspaceResponses];
 
 export type EnterpriseWorkspaceSetDefaultWorkspaceData = {
-    body: DifyEnterpriseApiEnterpriseSetDefaultWorkspaceReq;
+    body: SetDefaultWorkspaceReq;
     path: {
         id: string;
     };
@@ -3547,13 +3547,13 @@ export type EnterpriseWorkspaceSetDefaultWorkspaceData = {
 };
 
 export type EnterpriseWorkspaceSetDefaultWorkspaceResponses = {
-    200: DifyEnterpriseApiEnterpriseSetDefaultWorkspaceReply;
+    200: SetDefaultWorkspaceReply;
 };
 
 export type EnterpriseWorkspaceSetDefaultWorkspaceResponse = EnterpriseWorkspaceSetDefaultWorkspaceResponses[keyof EnterpriseWorkspaceSetDefaultWorkspaceResponses];
 
 export type EnterpriseWorkspaceJoinWorkspaceData = {
-    body: DifyEnterpriseApiEnterpriseJoinWorkspaceReq;
+    body: JoinWorkspaceReq;
     path: {
         id: string;
     };
@@ -3562,7 +3562,7 @@ export type EnterpriseWorkspaceJoinWorkspaceData = {
 };
 
 export type EnterpriseWorkspaceJoinWorkspaceResponses = {
-    200: DifyEnterpriseApiEnterpriseJoinWorkspaceReply;
+    200: JoinWorkspaceReply;
 };
 
 export type EnterpriseWorkspaceJoinWorkspaceResponse = EnterpriseWorkspaceJoinWorkspaceResponses[keyof EnterpriseWorkspaceJoinWorkspaceResponses];
@@ -3577,13 +3577,13 @@ export type EnterpriseWorkspaceGetWorkspacePermissionData = {
 };
 
 export type EnterpriseWorkspaceGetWorkspacePermissionResponses = {
-    200: DifyEnterpriseApiEnterpriseGetWorkspacePermissionReply;
+    200: GetWorkspacePermissionReply;
 };
 
 export type EnterpriseWorkspaceGetWorkspacePermissionResponse = EnterpriseWorkspaceGetWorkspacePermissionResponses[keyof EnterpriseWorkspaceGetWorkspacePermissionResponses];
 
 export type EnterpriseWorkspaceUpdateWorkspacePermissionData = {
-    body: DifyEnterpriseApiEnterpriseUpdateWorkspacePermissionReq;
+    body: UpdateWorkspacePermissionReq;
     path: {
         id: string;
     };
@@ -3592,7 +3592,7 @@ export type EnterpriseWorkspaceUpdateWorkspacePermissionData = {
 };
 
 export type EnterpriseWorkspaceUpdateWorkspacePermissionResponses = {
-    200: DifyEnterpriseApiEnterpriseUpdateWorkspacePermissionReply;
+    200: UpdateWorkspacePermissionReply;
 };
 
 export type EnterpriseWorkspaceUpdateWorkspacePermissionResponse = EnterpriseWorkspaceUpdateWorkspacePermissionResponses[keyof EnterpriseWorkspaceUpdateWorkspacePermissionResponses];
@@ -3605,7 +3605,7 @@ export type DashboardSsoLoginOAuth2LoginData = {
 };
 
 export type DashboardSsoLoginOAuth2LoginResponses = {
-    200: DifyEnterpriseApiEnterpriseDashboardSsoOauth2LoginReply;
+    200: DashboardSsoOauth2LoginReply;
 };
 
 export type DashboardSsoLoginOAuth2LoginResponse = DashboardSsoLoginOAuth2LoginResponses[keyof DashboardSsoLoginOAuth2LoginResponses];
@@ -3618,7 +3618,7 @@ export type DashboardSsoLoginOidcLoginData = {
 };
 
 export type DashboardSsoLoginOidcLoginResponses = {
-    200: DifyEnterpriseApiEnterpriseDashboardSsooidcLoginReply;
+    200: DashboardSsooidcLoginReply;
 };
 
 export type DashboardSsoLoginOidcLoginResponse = DashboardSsoLoginOidcLoginResponses[keyof DashboardSsoLoginOidcLoginResponses];
@@ -3631,7 +3631,7 @@ export type DashboardSsoLoginSamlLoginData = {
 };
 
 export type DashboardSsoLoginSamlLoginResponses = {
-    200: DifyEnterpriseApiEnterpriseDashboardSsosamlLoginReply;
+    200: DashboardSsosamlLoginReply;
 };
 
 export type DashboardSsoLoginSamlLoginResponse = DashboardSsoLoginSamlLoginResponses[keyof DashboardSsoLoginSamlLoginResponses];
@@ -3644,39 +3644,39 @@ export type EnterpriseTelemetryHealthzData = {
 };
 
 export type EnterpriseTelemetryHealthzResponses = {
-    200: DifyEnterpriseApiEnterpriseHealthzReply;
+    200: HealthzReply;
 };
 
 export type EnterpriseTelemetryHealthzResponse = EnterpriseTelemetryHealthzResponses[keyof EnterpriseTelemetryHealthzResponses];
 
 export type InnerApiTokenRouterInnerGetTokenRouteData = {
-    body: DifyEnterpriseApiEnterpriseInnerGetTokenRouteReq;
+    body: InnerGetTokenRouteReq;
     path?: never;
     query?: never;
     url: '/v1/inner/api-token-route';
 };
 
 export type InnerApiTokenRouterInnerGetTokenRouteResponses = {
-    200: DifyEnterpriseApiEnterpriseInnerGetTokenRouteReply;
+    200: InnerGetTokenRouteReply;
 };
 
 export type InnerApiTokenRouterInnerGetTokenRouteResponse = InnerApiTokenRouterInnerGetTokenRouteResponses[keyof InnerApiTokenRouterInnerGetTokenRouteResponses];
 
 export type InnerAppDeployAccessInnerCheckAppDeployAccessData = {
-    body: DifyEnterpriseApiEnterpriseInnerCheckAppDeployAccessReq;
+    body: InnerCheckAppDeployAccessReq;
     path?: never;
     query?: never;
     url: '/v1/inner/app-deploy-access/check';
 };
 
 export type InnerAppDeployAccessInnerCheckAppDeployAccessResponses = {
-    200: DifyEnterpriseApiEnterpriseInnerCheckAppDeployAccessReply;
+    200: InnerCheckAppDeployAccessReply;
 };
 
 export type InnerAppDeployAccessInnerCheckAppDeployAccessResponse = InnerAppDeployAccessInnerCheckAppDeployAccessResponses[keyof InnerAppDeployAccessInnerCheckAppDeployAccessResponses];
 
 export type InnerAppRunnerAckDeploymentData = {
-    body: DifyEnterpriseApiEnterpriseAckDeploymentReq;
+    body: AckDeploymentReq;
     path: {
         deploymentId: string;
     };
@@ -3685,7 +3685,7 @@ export type InnerAppRunnerAckDeploymentData = {
 };
 
 export type InnerAppRunnerAckDeploymentResponses = {
-    200: DifyEnterpriseApiEnterpriseAckDeploymentReply;
+    200: AckDeploymentReply;
 };
 
 export type InnerAppRunnerAckDeploymentResponse = InnerAppRunnerAckDeploymentResponses[keyof InnerAppRunnerAckDeploymentResponses];
@@ -3700,13 +3700,13 @@ export type InnerAppRunnerGetInstanceData = {
 };
 
 export type InnerAppRunnerGetInstanceResponses = {
-    200: DifyEnterpriseApiEnterpriseGetInstanceReply;
+    200: GetInstanceReply;
 };
 
 export type InnerAppRunnerGetInstanceResponse = InnerAppRunnerGetInstanceResponses[keyof InnerAppRunnerGetInstanceResponses];
 
 export type InnerAppRunnerResolveCredentialsData = {
-    body: DifyEnterpriseApiEnterpriseResolveCredentialsReq;
+    body: ResolveCredentialsReq;
     path: {
         instanceId: string;
     };
@@ -3715,7 +3715,7 @@ export type InnerAppRunnerResolveCredentialsData = {
 };
 
 export type InnerAppRunnerResolveCredentialsResponses = {
-    200: DifyEnterpriseApiEnterpriseResolveCredentialsReply;
+    200: ResolveCredentialsReply;
 };
 
 export type InnerAppRunnerResolveCredentialsResponse = InnerAppRunnerResolveCredentialsResponses[keyof InnerAppRunnerResolveCredentialsResponses];

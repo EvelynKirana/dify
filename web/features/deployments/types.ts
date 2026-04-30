@@ -1,53 +1,4 @@
-import type {
-  DifyEnterpriseApiEnterpriseAccessChannels,
-  DifyEnterpriseApiEnterpriseAccessModeOption,
-  DifyEnterpriseApiEnterpriseAccessPolicyDetail,
-  DifyEnterpriseApiEnterpriseAccessStatus,
-  DifyEnterpriseApiEnterpriseAccessSubject,
-  DifyEnterpriseApiEnterpriseAccessSubjectDisplay,
-  DifyEnterpriseApiEnterpriseAppInstanceBasicInfo,
-  DifyEnterpriseApiEnterpriseAppInstanceCard,
-  DifyEnterpriseApiEnterpriseCancelRuntimeDeploymentReply,
-  DifyEnterpriseApiEnterpriseConsoleEnvironment,
-  DifyEnterpriseApiEnterpriseConsoleRelease,
-  DifyEnterpriseApiEnterpriseConsoleUser,
-  DifyEnterpriseApiEnterpriseCreateAppInstanceReply,
-  DifyEnterpriseApiEnterpriseCreateDeploymentReply,
-  DifyEnterpriseApiEnterpriseCreateDeveloperApiKeyReply,
-  DifyEnterpriseApiEnterpriseCreateReleaseReply,
-  DifyEnterpriseApiEnterpriseDeleteAppInstanceReply,
-  DifyEnterpriseApiEnterpriseDeleteDeveloperApiKeyReply,
-  DifyEnterpriseApiEnterpriseDeployedEnvironment,
-  DifyEnterpriseApiEnterpriseDeploymentEnvironmentOption,
-  DifyEnterpriseApiEnterpriseDeploymentStatusRow,
-  DifyEnterpriseApiEnterpriseDeveloperApiAccess,
-  DifyEnterpriseApiEnterpriseDeveloperApiKeyRow,
-  DifyEnterpriseApiEnterpriseEnvironmentAccessRow,
-  DifyEnterpriseApiEnterpriseGetAppInstanceAccessReply,
-  DifyEnterpriseApiEnterpriseGetAppInstanceOverviewReply,
-  DifyEnterpriseApiEnterpriseGetAppInstanceSettingsReply,
-  DifyEnterpriseApiEnterpriseGetEnvironmentAccessPolicyReply,
-  DifyEnterpriseApiEnterpriseListAppInstancesReply,
-  DifyEnterpriseApiEnterpriseListDeploymentEnvironmentOptionsReply,
-  DifyEnterpriseApiEnterpriseListReleasesReply,
-  DifyEnterpriseApiEnterpriseListRuntimeInstancesReply,
-  DifyEnterpriseApiEnterprisePreviewReleaseReply,
-  DifyEnterpriseApiEnterpriseReleaseRow,
-  DifyEnterpriseApiEnterpriseReleaseRuntimeBinding,
-  DifyEnterpriseApiEnterpriseRuntimeEndpoints,
-  DifyEnterpriseApiEnterpriseRuntimeInstanceDetail,
-  DifyEnterpriseApiEnterpriseRuntimeInstanceRow,
-  DifyEnterpriseApiEnterpriseSearchAccessSubjectsReply,
-  DifyEnterpriseApiEnterpriseStatusCount,
-  DifyEnterpriseApiEnterpriseUndeployRuntimeInstanceReply,
-  DifyEnterpriseApiEnterpriseUpdateAccessChannelsReply,
-  DifyEnterpriseApiEnterpriseUpdateAppInstanceReply,
-  DifyEnterpriseApiEnterpriseUpdateDeveloperApiReply,
-  DifyEnterpriseApiEnterpriseUpdateEnvironmentAccessPolicyReply,
-  DifyEnterpriseApiEnterpriseWebAppAccessRow,
-  EnterpriseAppDeployConsoleListAppInstancesData,
-  PaginationPagination,
-} from '@/contract/generated/enterprise/types.gen'
+import type * as EnterpriseContract from '@/contract/generated/enterprise/types.gen'
 import type { AppIconType } from '@/types/app'
 
 type Timestamp = string
@@ -74,90 +25,58 @@ export type AppInfo = {
   sourceAppName?: string
 }
 
-export type ConsoleAppSummary = {
-  id?: string
-  name?: string
-  description?: string
-  icon?: string
-  mode?: string
-  status?: string
-  createdAt?: Timestamp
-}
-
-export type ConsoleEnvironmentSummary = DifyEnterpriseApiEnterpriseConsoleEnvironment & {
+export type ConsoleEnvironmentSummary = EnterpriseContract.ConsoleEnvironment & {
   backend?: string
   description?: string
   tags?: string[]
 }
 
-export type ConsoleReleaseSummary = DifyEnterpriseApiEnterpriseConsoleRelease & {
+export type ConsoleReleaseSummary = EnterpriseContract.ConsoleRelease & {
   commitId?: string
   description?: string
   displayId?: string
   status?: string
 }
 
-export type ConsoleUser = DifyEnterpriseApiEnterpriseConsoleUser & {
+type ConsoleUser = EnterpriseContract.ConsoleUser & {
   displayName?: string
 }
 
-export type DeploymentStatusCount = DifyEnterpriseApiEnterpriseStatusCount
-
-export type AppDeploymentSummary = DifyEnterpriseApiEnterpriseAppInstanceCard & {
+export type AppDeploymentSummary = EnterpriseContract.AppInstanceCard & {
   createdAt?: Timestamp
   description?: string
   status?: string
 }
 
-export type Pagination = PaginationPagination
-
-export type ListAppDeploymentsReply = Omit<DifyEnterpriseApiEnterpriseListAppInstancesReply, 'data'> & {
+export type ListAppDeploymentsReply = Omit<EnterpriseContract.ListAppInstancesReply, 'data'> & {
   data?: AppDeploymentSummary[]
 }
 
-export type AppInstanceOverview = DifyEnterpriseApiEnterpriseAppInstanceBasicInfo
+export type AppInstanceOverview = EnterpriseContract.AppInstanceBasicInfo
 
-export type DeploymentSummaryRow = Omit<DifyEnterpriseApiEnterpriseDeploymentStatusRow, 'environment' | 'release'> & {
-  environment?: ConsoleEnvironmentSummary
-  release?: ConsoleReleaseSummary
-}
-
-export type AccessSummary = DifyEnterpriseApiEnterpriseAccessStatus
-
-export type GetDeploymentOverviewReply = Omit<DifyEnterpriseApiEnterpriseGetAppInstanceOverviewReply, 'deployments' | 'instance'> & {
-  deployments?: DeploymentSummaryRow[]
-  instance?: AppInstanceOverview
-}
-
-export type RuntimeBindingDisplay = DifyEnterpriseApiEnterpriseReleaseRuntimeBinding & {
+export type RuntimeBindingDisplay = EnterpriseContract.ReleaseRuntimeBinding & {
   displayName?: string
   maskedValue?: string
   slot?: string
 }
 
-export type RuntimeEndpoints = DifyEnterpriseApiEnterpriseRuntimeEndpoints
-
-export type RuntimeInstanceDetail = Omit<DifyEnterpriseApiEnterpriseRuntimeInstanceDetail, 'bindings'> & {
+type RuntimeInstanceDetail = Omit<EnterpriseContract.RuntimeInstanceDetail, 'bindings'> & {
   bindings?: RuntimeBindingDisplay[]
 }
 
-export type EnvironmentDeploymentRow = Omit<DifyEnterpriseApiEnterpriseRuntimeInstanceRow, 'currentRelease' | 'detail' | 'environment'> & {
+export type EnvironmentDeploymentRow = Omit<EnterpriseContract.RuntimeInstanceRow, 'currentRelease' | 'detail' | 'environment'> & {
   currentRelease?: ConsoleReleaseSummary
   detail?: RuntimeInstanceDetail
   environment?: ConsoleEnvironmentSummary
 }
 
-export type ListEnvironmentDeploymentsReply = Omit<DifyEnterpriseApiEnterpriseListRuntimeInstancesReply, 'data'> & {
-  data?: EnvironmentDeploymentRow[]
-}
-
-export type DeploymentEnvironmentOption = DifyEnterpriseApiEnterpriseDeploymentEnvironmentOption & {
+type DeploymentEnvironmentOption = EnterpriseContract.DeploymentEnvironmentOption & {
   description?: string
   runtime?: string
   tags?: string[]
 }
 
-export type ListDeploymentEnvironmentOptionsReply = Omit<DifyEnterpriseApiEnterpriseListDeploymentEnvironmentOptionsReply, 'environments'> & {
+export type ListDeploymentEnvironmentOptionsReply = Omit<EnterpriseContract.ListDeploymentEnvironmentOptionsReply, 'environments'> & {
   environments?: DeploymentEnvironmentOption[]
 }
 
@@ -165,20 +84,11 @@ export type EnvironmentOption = DeploymentEnvironmentOption & {
   disabled?: boolean
 }
 
-export type ReleaseRuntimePreviewReply = Omit<DifyEnterpriseApiEnterprisePreviewReleaseReply, 'bindings' | 'release'> & {
-  bindings?: RuntimeBindingDisplay[]
-  release?: ConsoleReleaseSummary
-}
-
-export type CreateReleaseReply = Omit<DifyEnterpriseApiEnterpriseCreateReleaseReply, 'release'> & {
-  release?: ConsoleReleaseSummary
-}
-
-export type DeployedToSummary = DifyEnterpriseApiEnterpriseDeployedEnvironment & {
+export type DeployedToSummary = EnterpriseContract.DeployedEnvironment & {
   instanceStatus?: string
 }
 
-export type ReleaseHistoryRow = Omit<DifyEnterpriseApiEnterpriseReleaseRow, 'createdBy' | 'deployedTo'> & {
+export type ReleaseHistoryRow = Omit<EnterpriseContract.ReleaseRow, 'createdBy' | 'deployedTo'> & {
   commitId?: string
   createdBy?: ConsoleUser
   deployedTo?: DeployedToSummary[]
@@ -189,24 +99,16 @@ export type ReleaseHistoryRow = Omit<DifyEnterpriseApiEnterpriseReleaseRow, 'cre
   status?: string
 }
 
-export type ListReleaseHistoryReply = Omit<DifyEnterpriseApiEnterpriseListReleasesReply, 'data'> & {
-  data?: ReleaseHistoryRow[]
-}
-
-export type AccessPermission = Omit<DifyEnterpriseApiEnterpriseEnvironmentAccessRow, 'currentRelease' | 'environment'> & {
+export type AccessPermission = Omit<EnterpriseContract.EnvironmentAccessRow, 'currentRelease' | 'environment'> & {
   currentRelease?: ConsoleReleaseSummary
   environment?: ConsoleEnvironmentSummary
 }
 
-export type WebAppAccessRow = Omit<DifyEnterpriseApiEnterpriseWebAppAccessRow, 'environment'> & {
+export type WebAppAccessRow = Omit<EnterpriseContract.WebAppAccessRow, 'environment'> & {
   environment?: ConsoleEnvironmentSummary
 }
 
-export type AccessChannelsSummary = Omit<DifyEnterpriseApiEnterpriseAccessChannels, 'webappRows'> & {
-  webappRows?: WebAppAccessRow[]
-}
-
-export type DeveloperAPIKeySummary = Omit<DifyEnterpriseApiEnterpriseDeveloperApiKeyRow, 'environment'> & {
+export type DeveloperAPIKeySummary = Omit<EnterpriseContract.DeveloperApiKeyRow, 'environment'> & {
   createdAt?: Timestamp
   environment?: ConsoleEnvironmentSummary
   environmentId?: string
@@ -215,27 +117,17 @@ export type DeveloperAPIKeySummary = Omit<DifyEnterpriseApiEnterpriseDeveloperAp
   token?: string
 }
 
-export type DeveloperAPISummary = Omit<DifyEnterpriseApiEnterpriseDeveloperApiAccess, 'apiKeys'> & {
-  apiKeys?: DeveloperAPIKeySummary[]
-}
-
-export type GetAccessConfigReply = Omit<DifyEnterpriseApiEnterpriseGetAppInstanceAccessReply, 'accessChannels' | 'developerApi' | 'permissions'> & {
-  accessChannels?: AccessChannelsSummary
-  developerApi?: DeveloperAPISummary
-  permissions?: AccessPermission[]
-}
-
-export type AccessSubjectDisplay = Omit<DifyEnterpriseApiEnterpriseAccessSubjectDisplay, 'memberCount'> & {
+export type AccessSubjectDisplay = Omit<EnterpriseContract.AccessSubjectDisplay, 'memberCount'> & {
   memberCount?: number | string
   subjectId?: string
 }
 
-export type AccessPolicyOption = DifyEnterpriseApiEnterpriseAccessModeOption & {
+type AccessPolicyOption = EnterpriseContract.AccessModeOption & {
   groups?: AccessSubjectDisplay[]
   members?: AccessSubjectDisplay[]
 }
 
-export type AccessPolicyDetail = Omit<DifyEnterpriseApiEnterpriseAccessPolicyDetail, 'options' | 'subjects'> & {
+export type AccessPolicyDetail = Omit<EnterpriseContract.AccessPolicyDetail, 'options' | 'subjects'> & {
   enabled?: boolean
   id?: string
   options?: AccessPolicyOption[]
@@ -243,50 +135,8 @@ export type AccessPolicyDetail = Omit<DifyEnterpriseApiEnterpriseAccessPolicyDet
   version?: number
 }
 
-export type GetEnvironmentAccessPolicyReply = Omit<DifyEnterpriseApiEnterpriseGetEnvironmentAccessPolicyReply, 'policy'> & {
-  policy?: AccessPolicyDetail
-}
+export type AccessSubject = EnterpriseContract.AccessSubject
 
-export type AccessSubject = DifyEnterpriseApiEnterpriseAccessSubject
+export type GetAppInstanceSettingsReply = EnterpriseContract.GetAppInstanceSettingsReply
 
-export type AccessPolicy = {
-  accessMode?: string
-  appInstanceId?: string
-  environmentId?: string
-  id?: string
-  subjects?: AccessSubject[]
-}
-
-export type UpdateEnvironmentAccessPolicyReply = DifyEnterpriseApiEnterpriseUpdateEnvironmentAccessPolicyReply
-
-export type SearchAccessSubjectsReply = Omit<DifyEnterpriseApiEnterpriseSearchAccessSubjectsReply, 'data'> & {
-  data?: AccessSubjectDisplay[]
-}
-
-export type PatchAccessChannelReply = DifyEnterpriseApiEnterpriseUpdateAccessChannelsReply
-
-export type PatchDeveloperAPIReply = DifyEnterpriseApiEnterpriseUpdateDeveloperApiReply
-
-export type CreateDeploymentReply = DifyEnterpriseApiEnterpriseCreateDeploymentReply
-
-export type CancelDeploymentReply = DifyEnterpriseApiEnterpriseCancelRuntimeDeploymentReply
-
-export type UndeployEnvironmentReply = DifyEnterpriseApiEnterpriseUndeployRuntimeInstanceReply
-
-export type APIToken = DeveloperAPIKeySummary
-
-export type CreateEnvironmentAPITokenReply = DifyEnterpriseApiEnterpriseCreateDeveloperApiKeyReply
-
-export type DeleteEnvironmentAPITokenReply = DifyEnterpriseApiEnterpriseDeleteDeveloperApiKeyReply
-
-export type CreateAppInstanceReply = Omit<DifyEnterpriseApiEnterpriseCreateAppInstanceReply, 'initialRelease'> & {
-  initialRelease?: ConsoleReleaseSummary
-}
-
-export type GetAppInstanceSettingsReply = DifyEnterpriseApiEnterpriseGetAppInstanceSettingsReply
-
-export type UpdateAppInstanceReply = DifyEnterpriseApiEnterpriseUpdateAppInstanceReply
-
-export type DeleteAppInstanceReply = DifyEnterpriseApiEnterpriseDeleteAppInstanceReply
-
-export type ListAppDeploymentsQuery = NonNullable<EnterpriseAppDeployConsoleListAppInstancesData['query']>
+export type ListAppDeploymentsQuery = NonNullable<EnterpriseContract.EnterpriseAppDeployConsoleListAppInstancesData['query']>

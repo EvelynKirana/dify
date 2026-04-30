@@ -3,14 +3,14 @@
 
 import * as z from 'zod';
 
-export const zDifyEnterpriseApiEnterpriseAccessModeOption = z.object({
+export const zAccessModeOption = z.object({
     mode: z.string().optional(),
     label: z.string().optional(),
     disabled: z.boolean().optional(),
     selected: z.boolean().optional()
 });
 
-export const zDifyEnterpriseApiEnterpriseAccessStatus = z.object({
+export const zAccessStatus = z.object({
     accessChannelsEnabled: z.boolean().optional(),
     webappUrl: z.string().optional(),
     cliUrl: z.string().optional(),
@@ -18,12 +18,12 @@ export const zDifyEnterpriseApiEnterpriseAccessStatus = z.object({
     apiKeyCount: z.int().min(-2147483648, { error: 'Invalid value: Expected int32 to be >= -2147483648' }).max(2147483647, { error: 'Invalid value: Expected int32 to be <= 2147483647' }).optional()
 });
 
-export const zDifyEnterpriseApiEnterpriseAccessSubject = z.object({
+export const zAccessSubject = z.object({
     subjectId: z.string().optional(),
     subjectType: z.string().optional()
 });
 
-export const zDifyEnterpriseApiEnterpriseAccessSubjectDisplay = z.object({
+export const zAccessSubjectDisplay = z.object({
     id: z.string().optional(),
     subjectType: z.string().optional(),
     name: z.string().optional(),
@@ -31,22 +31,22 @@ export const zDifyEnterpriseApiEnterpriseAccessSubjectDisplay = z.object({
     memberCount: z.string().optional()
 });
 
-export const zDifyEnterpriseApiEnterpriseAccessPolicyDetail = z.object({
+export const zAccessPolicyDetail = z.object({
     accessMode: z.string().optional(),
-    subjects: z.array(zDifyEnterpriseApiEnterpriseAccessSubjectDisplay).optional(),
-    options: z.array(zDifyEnterpriseApiEnterpriseAccessModeOption).optional()
+    subjects: z.array(zAccessSubjectDisplay).optional(),
+    options: z.array(zAccessModeOption).optional()
 });
 
 /**
  * Account represents a basic user account
  */
-export const zDifyEnterpriseApiEnterpriseAccount = z.object({
+export const zAccount = z.object({
     id: z.string().optional(),
     email: z.string().optional(),
     name: z.string().optional()
 });
 
-export const zDifyEnterpriseApiEnterpriseAccountDetailGroup = z.object({
+export const zAccountDetailGroup = z.object({
     id: z.string().optional(),
     name: z.string().optional()
 });
@@ -54,7 +54,7 @@ export const zDifyEnterpriseApiEnterpriseAccountDetailGroup = z.object({
 /**
  * AccountInWorkspace represents account's role in a workspace
  */
-export const zDifyEnterpriseApiEnterpriseAccountInWorkspace = z.object({
+export const zAccountInWorkspace = z.object({
     workspaceId: z.string().optional(),
     workspaceName: z.string().optional(),
     role: z.string().optional()
@@ -63,21 +63,21 @@ export const zDifyEnterpriseApiEnterpriseAccountInWorkspace = z.object({
 /**
  * AccountDetail contains detailed account information
  */
-export const zDifyEnterpriseApiEnterpriseAccountDetail = z.object({
-    account: zDifyEnterpriseApiEnterpriseAccount.optional(),
+export const zAccountDetail = z.object({
+    account: zAccount.optional(),
     status: z.string().optional(),
     createdAt: z.iso.datetime().optional(),
     lastActiveAt: z.iso.datetime().optional(),
-    workspaces: z.array(zDifyEnterpriseApiEnterpriseAccountInWorkspace).optional(),
-    groups: z.array(zDifyEnterpriseApiEnterpriseAccountDetailGroup).optional()
+    workspaces: z.array(zAccountInWorkspace).optional(),
+    groups: z.array(zAccountDetailGroup).optional()
 });
 
-export const zDifyEnterpriseApiEnterpriseAckDeploymentReply = z.object({
+export const zAckDeploymentReply = z.object({
     accepted: z.boolean().optional(),
     newVersion: z.string().optional()
 });
 
-export const zDifyEnterpriseApiEnterpriseAppInstanceBasicInfo = z.object({
+export const zAppInstanceBasicInfo = z.object({
     id: z.string().optional(),
     name: z.string().optional(),
     description: z.string().optional(),
@@ -87,7 +87,7 @@ export const zDifyEnterpriseApiEnterpriseAppInstanceBasicInfo = z.object({
     createdAt: z.iso.datetime().optional()
 });
 
-export const zDifyEnterpriseApiEnterpriseAppRunnerBootstrapAssignment = z.object({
+export const zAppRunnerBootstrapAssignment = z.object({
     appId: z.string().optional(),
     environmentId: z.string().optional(),
     workflowId: z.string().optional(),
@@ -100,54 +100,54 @@ export const zDifyEnterpriseApiEnterpriseAppRunnerBootstrapAssignment = z.object
     releaseId: z.string().optional()
 });
 
-export const zDifyEnterpriseApiEnterpriseAppRunnerBootstrapReply = z.object({
+export const zAppRunnerBootstrapReply = z.object({
     runnerId: z.string().optional(),
     assignmentRevision: z.string().optional(),
-    assignments: z.array(zDifyEnterpriseApiEnterpriseAppRunnerBootstrapAssignment).optional()
+    assignments: z.array(zAppRunnerBootstrapAssignment).optional()
 });
 
-export const zDifyEnterpriseApiEnterpriseAppRunnerRunnerInfo = z.object({
+export const zAppRunnerRunnerInfo = z.object({
     hostname: z.string().optional()
 });
 
-export const zDifyEnterpriseApiEnterpriseAppRunnerBootstrapRequest = z.object({
-    runner: zDifyEnterpriseApiEnterpriseAppRunnerRunnerInfo.optional()
+export const zAppRunnerBootstrapRequest = z.object({
+    runner: zAppRunnerRunnerInfo.optional()
 });
 
-export const zDifyEnterpriseApiEnterpriseAppRunnerRuntimeArtifactReply = z.object({
+export const zAppRunnerRuntimeArtifactReply = z.object({
     dslYaml: z.string().optional(),
     bindingSnapshotVersion: z.string().optional(),
     bindingSnapshot: z.record(z.string(), z.unknown()).optional()
 });
 
-export const zDifyEnterpriseApiEnterpriseAppRunnerRuntimeArtifactRequest = z.object({
+export const zAppRunnerRuntimeArtifactRequest = z.object({
     instanceId: z.string().optional(),
     releaseId: z.string().optional(),
     bindingSnapshotVersion: z.string().optional()
 });
 
-export const zDifyEnterpriseApiEnterpriseAppRunnerBatchRuntimeArtifactRequest = z.object({
-    artifacts: z.array(zDifyEnterpriseApiEnterpriseAppRunnerRuntimeArtifactRequest).optional()
+export const zAppRunnerBatchRuntimeArtifactRequest = z.object({
+    artifacts: z.array(zAppRunnerRuntimeArtifactRequest).optional()
 });
 
-export const zDifyEnterpriseApiEnterpriseAppRunnerRuntimeArtifactResult = z.object({
+export const zAppRunnerRuntimeArtifactResult = z.object({
     instanceId: z.string().optional(),
     releaseId: z.string().optional(),
-    artifact: zDifyEnterpriseApiEnterpriseAppRunnerRuntimeArtifactReply.optional(),
+    artifact: zAppRunnerRuntimeArtifactReply.optional(),
     errorCode: z.string().optional(),
     errorMessage: z.string().optional()
 });
 
-export const zDifyEnterpriseApiEnterpriseAppRunnerBatchRuntimeArtifactReply = z.object({
-    results: z.array(zDifyEnterpriseApiEnterpriseAppRunnerRuntimeArtifactResult).optional()
+export const zAppRunnerBatchRuntimeArtifactReply = z.object({
+    results: z.array(zAppRunnerRuntimeArtifactResult).optional()
 });
 
-export const zDifyEnterpriseApiEnterpriseAppRunnerTokenExchangeReply = z.object({
+export const zAppRunnerTokenExchangeReply = z.object({
     accessToken: z.string().optional(),
     expiresAt: z.iso.datetime().optional()
 });
 
-export const zDifyEnterpriseApiEnterpriseAppRunnerTokenExchangeRequest = z.object({
+export const zAppRunnerTokenExchangeRequest = z.object({
     joinToken: z.string().optional()
 });
 
@@ -156,7 +156,7 @@ export const zDifyEnterpriseApiEnterpriseAppRunnerTokenExchangeRequest = z.objec
  * strings owned by each executor (e.g. "connectivity", "namespace"), so adding
  * or removing steps does not break the API.
  */
-export const zDifyEnterpriseApiEnterpriseBootstrapProgress = z.object({
+export const zBootstrapProgress = z.object({
     currentStep: z.string().optional(),
     completedSteps: z.array(z.string()).optional(),
     attemptCount: z.int().min(-2147483648, { error: 'Invalid value: Expected int32 to be >= -2147483648' }).max(2147483647, { error: 'Invalid value: Expected int32 to be <= 2147483647' }).optional(),
@@ -165,7 +165,7 @@ export const zDifyEnterpriseApiEnterpriseBootstrapProgress = z.object({
     lastErrorMessage: z.string().optional()
 });
 
-export const zDifyEnterpriseApiEnterpriseBrandingInfo = z.object({
+export const zBrandingInfo = z.object({
     enabled: z.boolean().optional(),
     applicationTitle: z.string().optional(),
     loginPageLogo: z.string().optional(),
@@ -173,29 +173,29 @@ export const zDifyEnterpriseApiEnterpriseBrandingInfo = z.object({
     favicon: z.string().optional()
 });
 
-export const zDifyEnterpriseApiEnterpriseCancelRuntimeDeploymentReply = z.object({
+export const zCancelRuntimeDeploymentReply = z.object({
     status: z.string().optional()
 });
 
-export const zDifyEnterpriseApiEnterpriseCancelRuntimeDeploymentReq = z.object({
+export const zCancelRuntimeDeploymentReq = z.object({
     appInstanceId: z.string().optional(),
     runtimeInstanceId: z.string().optional()
 });
 
-export const zDifyEnterpriseApiEnterpriseCheckPasswordStatusReply = z.object({
+export const zCheckPasswordStatusReply = z.object({
     requirePasswordChange: z.boolean().optional(),
     changeReason: z.int().optional(),
     daysToExpire: z.int().min(-2147483648, { error: 'Invalid value: Expected int32 to be >= -2147483648' }).max(2147483647, { error: 'Invalid value: Expected int32 to be <= 2147483647' }).optional(),
     message: z.string().optional()
 });
 
-export const zDifyEnterpriseApiEnterpriseClearDefaultWorkspaceReply = z.record(z.string(), z.unknown());
+export const zClearDefaultWorkspaceReply = z.record(z.string(), z.unknown());
 
-export const zDifyEnterpriseApiEnterpriseCliAccess = z.object({
+export const zCliAccess = z.object({
     url: z.string().optional()
 });
 
-export const zDifyEnterpriseApiEnterpriseConsoleEnvironment = z.object({
+export const zConsoleEnvironment = z.object({
     id: z.string().optional(),
     name: z.string().optional(),
     runtime: z.string().optional(),
@@ -203,46 +203,46 @@ export const zDifyEnterpriseApiEnterpriseConsoleEnvironment = z.object({
     status: z.string().optional()
 });
 
-export const zDifyEnterpriseApiEnterpriseConsoleRelease = z.object({
+export const zConsoleRelease = z.object({
     id: z.string().optional(),
     name: z.string().optional(),
     shortCommitId: z.string().optional(),
     createdAt: z.iso.datetime().optional()
 });
 
-export const zDifyEnterpriseApiEnterpriseConsoleUser = z.object({
+export const zConsoleUser = z.object({
     id: z.string().optional(),
     name: z.string().optional()
 });
 
-export const zDifyEnterpriseApiEnterpriseCreateAppInstanceReply = z.object({
+export const zCreateAppInstanceReply = z.object({
     appInstanceId: z.string().optional(),
-    initialRelease: zDifyEnterpriseApiEnterpriseConsoleRelease.optional()
+    initialRelease: zConsoleRelease.optional()
 });
 
-export const zDifyEnterpriseApiEnterpriseCreateAppInstanceReq = z.object({
+export const zCreateAppInstanceReq = z.object({
     sourceAppId: z.string().optional(),
     name: z.string().optional(),
     description: z.string().optional()
 });
 
-export const zDifyEnterpriseApiEnterpriseCreateBearerTokenResponse = z.object({
+export const zCreateBearerTokenResponse = z.object({
     token: z.string().optional()
 });
 
-export const zDifyEnterpriseApiEnterpriseCreateDeploymentReply = z.object({
+export const zCreateDeploymentReply = z.object({
     runtimeInstanceId: z.string().optional(),
     deploymentId: z.string().optional(),
     status: z.string().optional()
 });
 
-export const zDifyEnterpriseApiEnterpriseCreateDeveloperApiKeyReq = z.object({
+export const zCreateDeveloperApiKeyReq = z.object({
     appInstanceId: z.string().optional(),
     environmentId: z.string().optional(),
     name: z.string().optional()
 });
 
-export const zDifyEnterpriseApiEnterpriseCreateMemberReply = z.object({
+export const zCreateMemberReply = z.object({
     id: z.string().optional(),
     password: z.string().optional()
 });
@@ -250,31 +250,31 @@ export const zDifyEnterpriseApiEnterpriseCreateMemberReply = z.object({
 /**
  * Create member messages
  */
-export const zDifyEnterpriseApiEnterpriseCreateMemberReq = z.object({
+export const zCreateMemberReq = z.object({
     name: z.string().optional(),
     email: z.string().optional(),
     status: z.string().optional()
 });
 
-export const zDifyEnterpriseApiEnterpriseCreateNewGroupsReqGroup = z.object({
+export const zCreateNewGroupsReqGroup = z.object({
     name: z.string().optional()
 });
 
-export const zDifyEnterpriseApiEnterpriseCreateNewGroupsReq = z.object({
-    groups: z.array(zDifyEnterpriseApiEnterpriseCreateNewGroupsReqGroup).optional()
+export const zCreateNewGroupsReq = z.object({
+    groups: z.array(zCreateNewGroupsReqGroup).optional()
 });
 
-export const zDifyEnterpriseApiEnterpriseCreateReleaseReply = z.object({
-    release: zDifyEnterpriseApiEnterpriseConsoleRelease.optional()
+export const zCreateReleaseReply = z.object({
+    release: zConsoleRelease.optional()
 });
 
-export const zDifyEnterpriseApiEnterpriseCreateReleaseReq = z.object({
+export const zCreateReleaseReq = z.object({
     appInstanceId: z.string().optional(),
     name: z.string().optional(),
     description: z.string().optional()
 });
 
-export const zDifyEnterpriseApiEnterpriseCreateSecretKeyReply = z.object({
+export const zCreateSecretKeyReply = z.object({
     id: z.string().optional(),
     name: z.string().optional(),
     secretKey: z.string().optional(),
@@ -282,16 +282,16 @@ export const zDifyEnterpriseApiEnterpriseCreateSecretKeyReply = z.object({
     lastActive: z.iso.datetime().optional()
 });
 
-export const zDifyEnterpriseApiEnterpriseCreateSecretKeyReq = z.object({
+export const zCreateSecretKeyReq = z.object({
     name: z.string().optional()
 });
 
-export const zDifyEnterpriseApiEnterpriseCreateUserReply = z.object({
+export const zCreateUserReply = z.object({
     id: z.string().optional(),
     password: z.string().optional()
 });
 
-export const zDifyEnterpriseApiEnterpriseCreateUserReq = z.object({
+export const zCreateUserReq = z.object({
     name: z.string().optional(),
     email: z.string().optional(),
     status: z.string().optional()
@@ -300,13 +300,13 @@ export const zDifyEnterpriseApiEnterpriseCreateUserReq = z.object({
 /**
  * Create workspace messages
  */
-export const zDifyEnterpriseApiEnterpriseCreateWorkspaceReq = z.object({
+export const zCreateWorkspaceReq = z.object({
     name: z.string().optional(),
     email: z.string().optional(),
     status: z.string().optional()
 });
 
-export const zDifyEnterpriseApiEnterpriseCurrentUserReply = z.object({
+export const zCurrentUserReply = z.object({
     id: z.string().optional(),
     name: z.string().optional(),
     email: z.string().optional(),
@@ -314,12 +314,12 @@ export const zDifyEnterpriseApiEnterpriseCurrentUserReply = z.object({
     timezone: z.string().optional()
 });
 
-export const zDifyEnterpriseApiEnterpriseDashboardSsooidcLoginReply = z.object({
+export const zDashboardSsooidcLoginReply = z.object({
     url: z.string().optional(),
     state: z.string().optional()
 });
 
-export const zDifyEnterpriseApiEnterpriseDashboardSsoOauth2LoginReply = z.object({
+export const zDashboardSsoOauth2LoginReply = z.object({
     url: z.string().optional(),
     state: z.string().optional()
 });
@@ -327,45 +327,45 @@ export const zDifyEnterpriseApiEnterpriseDashboardSsoOauth2LoginReply = z.object
 /**
  * Dashboard SSO Login messages
  */
-export const zDifyEnterpriseApiEnterpriseDashboardSsosamlLoginReply = z.object({
+export const zDashboardSsosamlLoginReply = z.object({
     url: z.string().optional()
 });
 
-export const zDifyEnterpriseApiEnterpriseDeleteAppInstanceReply = z.record(z.string(), z.unknown());
+export const zDeleteAppInstanceReply = z.record(z.string(), z.unknown());
 
-export const zDifyEnterpriseApiEnterpriseDeleteDeveloperApiKeyReply = z.record(z.string(), z.unknown());
+export const zDeleteDeveloperApiKeyReply = z.record(z.string(), z.unknown());
 
-export const zDifyEnterpriseApiEnterpriseDeleteEnvironmentReply = z.record(z.string(), z.unknown());
+export const zDeleteEnvironmentReply = z.record(z.string(), z.unknown());
 
-export const zDifyEnterpriseApiEnterpriseDeleteGroupsRes = z.object({
+export const zDeleteGroupsRes = z.object({
     message: z.string().optional()
 });
 
-export const zDifyEnterpriseApiEnterpriseDeleteGuard = z.object({
+export const zDeleteGuard = z.object({
     canDelete: z.boolean().optional(),
     disabledReason: z.string().optional()
 });
 
-export const zDifyEnterpriseApiEnterpriseDeleteMemberReply = z.object({
-    account: zDifyEnterpriseApiEnterpriseAccount.optional()
+export const zDeleteMemberReply = z.object({
+    account: zAccount.optional()
 });
 
-export const zDifyEnterpriseApiEnterpriseDeleteSecretKeyReply = z.object({
+export const zDeleteSecretKeyReply = z.object({
     message: z.string().optional()
 });
 
-export const zDifyEnterpriseApiEnterpriseDeleteUserReply = z.object({
-    account: zDifyEnterpriseApiEnterpriseAccount.optional()
+export const zDeleteUserReply = z.object({
+    account: zAccount.optional()
 });
 
-export const zDifyEnterpriseApiEnterpriseDeleteWorkspaceReply = z.record(z.string(), z.unknown());
+export const zDeleteWorkspaceReply = z.record(z.string(), z.unknown());
 
-export const zDifyEnterpriseApiEnterpriseDeployedEnvironment = z.object({
+export const zDeployedEnvironment = z.object({
     environmentId: z.string().optional(),
     environmentName: z.string().optional()
 });
 
-export const zDifyEnterpriseApiEnterpriseDeploymentCredentialOption = z.object({
+export const zDeploymentCredentialOption = z.object({
     credentialId: z.string().optional(),
     displayName: z.string().optional(),
     pluginId: z.string().optional(),
@@ -373,23 +373,23 @@ export const zDifyEnterpriseApiEnterpriseDeploymentCredentialOption = z.object({
     pluginVersion: z.string().optional()
 });
 
-export const zDifyEnterpriseApiEnterpriseDeploymentEnvVarOption = z.object({
+export const zDeploymentEnvVarOption = z.object({
     envVarId: z.string().optional(),
     name: z.string().optional(),
     valueType: z.string().optional(),
     displayValue: z.string().optional()
 });
 
-export const zDifyEnterpriseApiEnterpriseDeploymentBindingOptionSlot = z.object({
+export const zDeploymentBindingOptionSlot = z.object({
     slot: z.string().optional(),
     kind: z.string().optional(),
     label: z.string().optional(),
     required: z.boolean().optional(),
-    candidates: z.array(zDifyEnterpriseApiEnterpriseDeploymentCredentialOption).optional(),
-    envVarCandidates: z.array(zDifyEnterpriseApiEnterpriseDeploymentEnvVarOption).optional()
+    candidates: z.array(zDeploymentCredentialOption).optional(),
+    envVarCandidates: z.array(zDeploymentEnvVarOption).optional()
 });
 
-export const zDifyEnterpriseApiEnterpriseDeploymentEnvironmentOption = z.object({
+export const zDeploymentEnvironmentOption = z.object({
     id: z.string().optional(),
     name: z.string().optional(),
     type: z.string().optional(),
@@ -400,52 +400,52 @@ export const zDifyEnterpriseApiEnterpriseDeploymentEnvironmentOption = z.object(
     disabledReason: z.string().optional()
 });
 
-export const zDifyEnterpriseApiEnterpriseDeploymentRuntimeBinding = z.object({
+export const zDeploymentRuntimeBinding = z.object({
     slot: z.string().optional(),
     credentialId: z.string().optional(),
     envVarId: z.string().optional()
 });
 
-export const zDifyEnterpriseApiEnterpriseCreateDeploymentReq = z.object({
+export const zCreateDeploymentReq = z.object({
     appInstanceId: z.string().optional(),
     environmentId: z.string().optional(),
     releaseId: z.string().optional(),
-    bindings: z.array(zDifyEnterpriseApiEnterpriseDeploymentRuntimeBinding).optional()
+    bindings: z.array(zDeploymentRuntimeBinding).optional()
 });
 
-export const zDifyEnterpriseApiEnterpriseDeploymentStatusRow = z.object({
-    environment: zDifyEnterpriseApiEnterpriseConsoleEnvironment.optional(),
-    release: zDifyEnterpriseApiEnterpriseConsoleRelease.optional(),
+export const zDeploymentStatusRow = z.object({
+    environment: zConsoleEnvironment.optional(),
+    release: zConsoleRelease.optional(),
     status: z.string().optional()
 });
 
-export const zDifyEnterpriseApiEnterpriseDeveloperApiKeyRow = z.object({
+export const zDeveloperApiKeyRow = z.object({
     id: z.string().optional(),
     name: z.string().optional(),
-    environment: zDifyEnterpriseApiEnterpriseConsoleEnvironment.optional(),
+    environment: zConsoleEnvironment.optional(),
     maskedKey: z.string().optional()
 });
 
-export const zDifyEnterpriseApiEnterpriseCreateDeveloperApiKeyReply = z.object({
-    apiKey: zDifyEnterpriseApiEnterpriseDeveloperApiKeyRow.optional(),
+export const zCreateDeveloperApiKeyReply = z.object({
+    apiKey: zDeveloperApiKeyRow.optional(),
     token: z.string().optional()
 });
 
-export const zDifyEnterpriseApiEnterpriseDeveloperApiAccess = z.object({
+export const zDeveloperApiAccess = z.object({
     enabled: z.boolean().optional(),
-    apiKeys: z.array(zDifyEnterpriseApiEnterpriseDeveloperApiKeyRow).optional()
+    apiKeys: z.array(zDeveloperApiKeyRow).optional()
 });
 
 /**
  * System user setting messages
  */
-export const zDifyEnterpriseApiEnterpriseEnterpriseSystemUserSettingReply = z.object({
+export const zEnterpriseSystemUserSettingReply = z.object({
     ssoEnforcedForSignin: z.boolean().optional(),
     ssoEnforcedForSigninProtocol: z.string().optional(),
     enableEmailPasswordLogin: z.boolean().optional()
 });
 
-export const zDifyEnterpriseApiEnterpriseEnvironment = z.object({
+export const zEnvironment = z.object({
     id: z.string().optional(),
     name: z.string().optional(),
     description: z.string().optional(),
@@ -454,7 +454,7 @@ export const zDifyEnterpriseApiEnterpriseEnvironment = z.object({
     apiServer: z.string().optional(),
     status: z.int().optional(),
     statusMessage: z.string().optional(),
-    bootstrapProgress: zDifyEnterpriseApiEnterpriseBootstrapProgress.optional(),
+    bootstrapProgress: zBootstrapProgress.optional(),
     managedBy: z.string().optional(),
     createdAt: z.iso.datetime().optional(),
     updatedAt: z.iso.datetime().optional(),
@@ -462,55 +462,55 @@ export const zDifyEnterpriseApiEnterpriseEnvironment = z.object({
     host: z.string().optional()
 });
 
-export const zDifyEnterpriseApiEnterpriseCreateEnvironmentReply = z.object({
-    environment: zDifyEnterpriseApiEnterpriseEnvironment.optional()
+export const zCreateEnvironmentReply = z.object({
+    environment: zEnvironment.optional()
 });
 
-export const zDifyEnterpriseApiEnterpriseEnvironmentAccessRow = z.object({
-    environment: zDifyEnterpriseApiEnterpriseConsoleEnvironment.optional(),
-    currentRelease: zDifyEnterpriseApiEnterpriseConsoleRelease.optional(),
+export const zEnvironmentAccessRow = z.object({
+    environment: zConsoleEnvironment.optional(),
+    currentRelease: zConsoleRelease.optional(),
     accessMode: z.string().optional(),
     accessModeLabel: z.string().optional(),
     hint: z.string().optional()
 });
 
-export const zDifyEnterpriseApiEnterpriseEnvironmentFilter = z.object({
+export const zEnvironmentFilter = z.object({
     id: z.string().optional(),
     name: z.string().optional(),
     kind: z.string().optional()
 });
 
-export const zDifyEnterpriseApiEnterpriseGetAppInstanceOverviewReply = z.object({
-    instance: zDifyEnterpriseApiEnterpriseAppInstanceBasicInfo.optional(),
-    deployments: z.array(zDifyEnterpriseApiEnterpriseDeploymentStatusRow).optional(),
-    access: zDifyEnterpriseApiEnterpriseAccessStatus.optional()
+export const zGetAppInstanceOverviewReply = z.object({
+    instance: zAppInstanceBasicInfo.optional(),
+    deployments: z.array(zDeploymentStatusRow).optional(),
+    access: zAccessStatus.optional()
 });
 
-export const zDifyEnterpriseApiEnterpriseGetAppInstanceSettingsReply = z.object({
+export const zGetAppInstanceSettingsReply = z.object({
     name: z.string().optional(),
     description: z.string().optional(),
-    deleteGuard: zDifyEnterpriseApiEnterpriseDeleteGuard.optional()
+    deleteGuard: zDeleteGuard.optional()
 });
 
-export const zDifyEnterpriseApiEnterpriseGetBearerTokenResponse = z.object({
+export const zGetBearerTokenResponse = z.object({
     maskedToken: z.string().optional()
 });
 
-export const zDifyEnterpriseApiEnterpriseGetClusterInfoReply = z.object({
+export const zGetClusterInfoReply = z.object({
     mode: z.string().optional(),
     clusterId: z.string().optional(),
     verifyMode: z.string().optional()
 });
 
-export const zDifyEnterpriseApiEnterpriseGetEnvironmentAccessPolicyReply = z.object({
-    policy: zDifyEnterpriseApiEnterpriseAccessPolicyDetail.optional()
+export const zGetEnvironmentAccessPolicyReply = z.object({
+    policy: zAccessPolicyDetail.optional()
 });
 
-export const zDifyEnterpriseApiEnterpriseGetEnvironmentReply = z.object({
-    environment: zDifyEnterpriseApiEnterpriseEnvironment.optional()
+export const zGetEnvironmentReply = z.object({
+    environment: zEnvironment.optional()
 });
 
-export const zDifyEnterpriseApiEnterpriseGetInstanceReply = z.object({
+export const zGetInstanceReply = z.object({
     instanceId: z.string().optional(),
     status: z.string().optional(),
     desiredReleaseId: z.string().optional(),
@@ -519,69 +519,69 @@ export const zDifyEnterpriseApiEnterpriseGetInstanceReply = z.object({
     version: z.string().optional()
 });
 
-export const zDifyEnterpriseApiEnterpriseGetLicenseStatusReply = z.object({
+export const zGetLicenseStatusReply = z.object({
     status: z.string().optional()
 });
 
-export const zDifyEnterpriseApiEnterpriseGetMfaInfoReply = z.object({
+export const zGetMfaInfoReply = z.object({
     userEnabled: z.boolean().optional(),
     userSetup: z.boolean().optional(),
     globalEnabled: z.boolean().optional()
 });
 
-export const zDifyEnterpriseApiEnterpriseGetMemberReply = z.object({
-    account: zDifyEnterpriseApiEnterpriseAccountDetail.optional()
+export const zGetMemberReply = z.object({
+    account: zAccountDetail.optional()
 });
 
-export const zDifyEnterpriseApiEnterpriseGetUserReply = z.object({
-    account: zDifyEnterpriseApiEnterpriseAccountDetail.optional()
+export const zGetUserReply = z.object({
+    account: zAccountDetail.optional()
 });
 
-export const zDifyEnterpriseApiEnterpriseGetWebAppAccessModeRes = z.object({
+export const zGetWebAppAccessModeRes = z.object({
     accessMode: z.string().optional()
 });
 
-export const zDifyEnterpriseApiEnterpriseGetWebAppAuthInfoRes = z.object({
+export const zGetWebAppAuthInfoRes = z.object({
     allowSso: z.boolean().optional(),
     allowEmailCodeLogin: z.boolean().optional(),
     allowEmailPasswordLogin: z.boolean().optional()
 });
 
-export const zDifyEnterpriseApiEnterpriseGetWebAppWhitelistSubjectsResMember = z.object({
+export const zGetWebAppWhitelistSubjectsResMember = z.object({
     id: z.string().optional(),
     name: z.string().optional(),
     email: z.string().optional(),
     avatar: z.string().optional()
 });
 
-export const zDifyEnterpriseApiEnterpriseHealthzReply = z.object({
+export const zHealthzReply = z.object({
     message: z.string().optional(),
     status: z.string().optional()
 });
 
-export const zDifyEnterpriseApiEnterpriseHostEnvironmentConfig = z.object({
+export const zHostEnvironmentConfig = z.object({
     machineId: z.string().optional(),
     joinTokenHash: z.string().optional()
 });
 
-export const zDifyEnterpriseApiEnterpriseInnerBatchGetWebAppAccessModesByIdReq = z.object({
+export const zInnerBatchGetWebAppAccessModesByIdReq = z.object({
     appIds: z.array(z.string()).optional()
 });
 
-export const zDifyEnterpriseApiEnterpriseInnerBatchGetWebAppAccessModesByIdRes = z.object({
+export const zInnerBatchGetWebAppAccessModesByIdRes = z.object({
     accessModes: z.record(z.string(), z.string()).optional()
 });
 
-export const zDifyEnterpriseApiEnterpriseInnerBatchIsUserAllowedToAccessWebAppReq = z.object({
+export const zInnerBatchIsUserAllowedToAccessWebAppReq = z.object({
     userId: z.string().optional(),
     appIds: z.array(z.string()).optional()
 });
 
-export const zDifyEnterpriseApiEnterpriseInnerBatchIsUserAllowedToAccessWebAppRes = z.object({
+export const zInnerBatchIsUserAllowedToAccessWebAppRes = z.object({
     permissions: z.record(z.string(), z.boolean()).optional()
 });
 
-export const zDifyEnterpriseApiEnterpriseInnerCheckAppDeployAccessReply = z.object({
+export const zInnerCheckAppDeployAccessReply = z.object({
     allowed: z.boolean().optional(),
     matchedPolicyId: z.string().optional(),
     matchedScopeType: z.string().optional(),
@@ -589,18 +589,18 @@ export const zDifyEnterpriseApiEnterpriseInnerCheckAppDeployAccessReply = z.obje
     cacheTtlSeconds: z.int().min(-2147483648, { error: 'Invalid value: Expected int32 to be >= -2147483648' }).max(2147483647, { error: 'Invalid value: Expected int32 to be <= 2147483647' }).optional()
 });
 
-export const zDifyEnterpriseApiEnterpriseInnerCheckAppDeployAccessReq = z.object({
+export const zInnerCheckAppDeployAccessReq = z.object({
     appInstanceId: z.string().optional(),
     environmentId: z.string().optional(),
     principalType: z.string().optional(),
     principalId: z.string().optional()
 });
 
-export const zDifyEnterpriseApiEnterpriseInnerCleanAppRes = z.object({
+export const zInnerCleanAppRes = z.object({
     message: z.string().optional()
 });
 
-export const zDifyEnterpriseApiEnterpriseInnerGetTokenRouteReply = z.object({
+export const zInnerGetTokenRouteReply = z.object({
     environmentId: z.string().optional(),
     namespace: z.string().optional(),
     serviceName: z.string().optional(),
@@ -613,23 +613,23 @@ export const zDifyEnterpriseApiEnterpriseInnerGetTokenRouteReply = z.object({
     instanceStatus: z.string().optional()
 });
 
-export const zDifyEnterpriseApiEnterpriseInnerGetTokenRouteReq = z.object({
+export const zInnerGetTokenRouteReq = z.object({
     token: z.string().optional()
 });
 
-export const zDifyEnterpriseApiEnterpriseInnerGetWebAppAccessModeByCodeRes = z.object({
+export const zInnerGetWebAppAccessModeByCodeRes = z.object({
     accessMode: z.string().optional()
 });
 
-export const zDifyEnterpriseApiEnterpriseInnerGetWebAppAccessModeByIdRes = z.object({
+export const zInnerGetWebAppAccessModeByIdRes = z.object({
     accessMode: z.string().optional()
 });
 
-export const zDifyEnterpriseApiEnterpriseInnerIsUserAllowedToAccessWebAppRes = z.object({
+export const zInnerIsUserAllowedToAccessWebAppRes = z.object({
     result: z.boolean().optional()
 });
 
-export const zDifyEnterpriseApiEnterpriseInnerTryAddAccountToDefaultWorkspaceReply = z.object({
+export const zInnerTryAddAccountToDefaultWorkspaceReply = z.object({
     workspaceId: z.string().optional(),
     joined: z.boolean().optional(),
     message: z.string().optional()
@@ -638,28 +638,28 @@ export const zDifyEnterpriseApiEnterpriseInnerTryAddAccountToDefaultWorkspaceRep
 /**
  * Inner API messages
  */
-export const zDifyEnterpriseApiEnterpriseInnerTryAddAccountToDefaultWorkspaceReq = z.object({
+export const zInnerTryAddAccountToDefaultWorkspaceReq = z.object({
     accountId: z.string().optional()
 });
 
-export const zDifyEnterpriseApiEnterpriseIsUserAllowedToAccessWebAppRes = z.object({
+export const zIsUserAllowedToAccessWebAppRes = z.object({
     result: z.boolean().optional()
 });
 
-export const zDifyEnterpriseApiEnterpriseJoinWorkspaceReply = z.object({
+export const zJoinWorkspaceReply = z.object({
     message: z.string().optional()
 });
 
 /**
  * Join workspace messages
  */
-export const zDifyEnterpriseApiEnterpriseJoinWorkspaceReq = z.object({
+export const zJoinWorkspaceReq = z.object({
     id: z.string().optional(),
     email: z.string().optional(),
     role: z.string().optional()
 });
 
-export const zDifyEnterpriseApiEnterpriseK8sEnvironmentConfig = z.object({
+export const zK8sEnvironmentConfig = z.object({
     namespace: z.string().optional(),
     apiServer: z.string().optional(),
     caBundle: z.string().optional(),
@@ -670,89 +670,89 @@ export const zDifyEnterpriseApiEnterpriseK8sEnvironmentConfig = z.object({
  * Field-level validation only; target (api_server) and RBAC validation happen
  * in the bootstrap reconciler.
  */
-export const zDifyEnterpriseApiEnterpriseCreateEnvironmentReq = z.object({
+export const zCreateEnvironmentReq = z.object({
     name: z.string().optional(),
     description: z.string().optional(),
     mode: z.int().optional(),
     backend: z.int().optional(),
-    k8s: zDifyEnterpriseApiEnterpriseK8sEnvironmentConfig.optional(),
-    host: zDifyEnterpriseApiEnterpriseHostEnvironmentConfig.optional()
+    k8s: zK8sEnvironmentConfig.optional(),
+    host: zHostEnvironmentConfig.optional()
 });
 
-export const zDifyEnterpriseApiEnterpriseLastError = z.object({
+export const zLastError = z.object({
     phase: z.string().optional(),
     code: z.string().optional(),
     message: z.string().optional(),
     releaseId: z.string().optional()
 });
 
-export const zDifyEnterpriseApiEnterpriseAckDeploymentReq = z.object({
+export const zAckDeploymentReq = z.object({
     deploymentId: z.string().optional(),
     instanceId: z.string().optional(),
     expectedVersion: z.string().optional(),
     status: z.string().optional(),
     observedReleaseId: z.string().optional(),
-    lastError: zDifyEnterpriseApiEnterpriseLastError.optional()
+    lastError: zLastError.optional()
 });
 
-export const zDifyEnterpriseApiEnterpriseListDeploymentBindingOptionsReply = z.object({
-    slots: z.array(zDifyEnterpriseApiEnterpriseDeploymentBindingOptionSlot).optional()
+export const zListDeploymentBindingOptionsReply = z.object({
+    slots: z.array(zDeploymentBindingOptionSlot).optional()
 });
 
-export const zDifyEnterpriseApiEnterpriseListDeploymentEnvironmentOptionsReply = z.object({
-    environments: z.array(zDifyEnterpriseApiEnterpriseDeploymentEnvironmentOption).optional()
+export const zListDeploymentEnvironmentOptionsReply = z.object({
+    environments: z.array(zDeploymentEnvironmentOption).optional()
 });
 
-export const zDifyEnterpriseApiEnterpriseLoginTypesReply = z.object({
+export const zLoginTypesReply = z.object({
     enabledEmailCodeLogin: z.boolean().optional(),
     enableEmailPasswordLogin: z.boolean().optional(),
     isAllowRegister: z.boolean().optional(),
     isAllowCreateWorkspace: z.boolean().optional()
 });
 
-export const zDifyEnterpriseApiEnterpriseLoginTypesReq = z.object({
+export const zLoginTypesReq = z.object({
     enabledEmailCodeLogin: z.boolean().optional(),
     enableEmailPasswordLogin: z.boolean().optional(),
     isAllowRegister: z.boolean().optional(),
     isAllowCreateWorkspace: z.boolean().optional()
 });
 
-export const zDifyEnterpriseApiEnterpriseMfaBackupCodesRes = z.object({
+export const zMfaBackupCodesRes = z.object({
     codes: z.array(z.string()).optional(),
     validCounts: z.int().min(-2147483648, { error: 'Invalid value: Expected int32 to be >= -2147483648' }).max(2147483647, { error: 'Invalid value: Expected int32 to be <= 2147483647' }).optional(),
     createdAt: z.iso.datetime().optional()
 });
 
-export const zDifyEnterpriseApiEnterpriseMfaDeleteBackupCodesRes = z.object({
+export const zMfaDeleteBackupCodesRes = z.object({
     message: z.string().optional()
 });
 
-export const zDifyEnterpriseApiEnterpriseMfaDeleteRes = z.object({
+export const zMfaDeleteRes = z.object({
     token: z.string().optional()
 });
 
-export const zDifyEnterpriseApiEnterpriseMfaDownloadBackupCodesSummaryRes = z.object({
+export const zMfaDownloadBackupCodesSummaryRes = z.object({
     content: z.string().optional()
 });
 
-export const zDifyEnterpriseApiEnterpriseMfaEnrollReq = z.object({
+export const zMfaEnrollReq = z.object({
     code: z.string().optional()
 });
 
-export const zDifyEnterpriseApiEnterpriseMfaEnrollRes = z.object({
+export const zMfaEnrollRes = z.object({
     token: z.string().optional()
 });
 
-export const zDifyEnterpriseApiEnterpriseMfaGetEnrollInfoRes = z.object({
+export const zMfaGetEnrollInfoRes = z.object({
     qrCode: z.string().optional(),
     secret: z.string().optional()
 });
 
-export const zDifyEnterpriseApiEnterpriseMfaModifyRes = z.object({
+export const zMfaModifyRes = z.object({
     message: z.string().optional()
 });
 
-export const zDifyEnterpriseApiEnterpriseOAuth2Config = z.object({
+export const zOAuth2Config = z.object({
     clientId: z.string().optional(),
     clientSecret: z.string().optional(),
     authUrl: z.string().optional(),
@@ -762,24 +762,24 @@ export const zDifyEnterpriseApiEnterpriseOAuth2Config = z.object({
     enablePkce: z.boolean().optional()
 });
 
-export const zDifyEnterpriseApiEnterpriseOAuth2LoginReply = z.object({
+export const zOAuth2LoginReply = z.object({
     url: z.string().optional(),
     state: z.string().optional()
 });
 
-export const zDifyEnterpriseApiEnterpriseOidcConfig = z.object({
+export const zOidcConfig = z.object({
     issuerUrl: z.string().optional(),
     clientId: z.string().optional(),
     clientSecret: z.string().optional(),
     enablePkce: z.boolean().optional()
 });
 
-export const zDifyEnterpriseApiEnterpriseOidcReply = z.object({
+export const zOidcReply = z.object({
     url: z.string().optional(),
     state: z.string().optional()
 });
 
-export const zDifyEnterpriseApiEnterpriseOtelExporterEndpoint = z.object({
+export const zOtelExporterEndpoint = z.object({
     endpoint: z.string().optional(),
     compression: z.string().optional(),
     protocol: z.int().optional(),
@@ -793,13 +793,13 @@ export const zDifyEnterpriseApiEnterpriseOtelExporterEndpoint = z.object({
     tlsInsecureSkipVerify: z.boolean().optional()
 });
 
-export const zDifyEnterpriseApiEnterpriseEndpointReply = z.object({
+export const zEndpointReply = z.object({
     mode: z.int().optional(),
-    metricsEndpoint: zDifyEnterpriseApiEnterpriseOtelExporterEndpoint.optional(),
-    tracesEndpoint: zDifyEnterpriseApiEnterpriseOtelExporterEndpoint.optional()
+    metricsEndpoint: zOtelExporterEndpoint.optional(),
+    tracesEndpoint: zOtelExporterEndpoint.optional()
 });
 
-export const zDifyEnterpriseApiEnterpriseOtelExporterStatusReply = z.object({
+export const zOtelExporterStatusReply = z.object({
     connectedAt: z.iso.datetime().optional(),
     bytesPushed: z.string().optional(),
     itemsInQueue: z.string().optional(),
@@ -807,7 +807,7 @@ export const zDifyEnterpriseApiEnterpriseOtelExporterStatusReply = z.object({
     status: z.int().optional()
 });
 
-export const zDifyEnterpriseApiEnterprisePasswordPolicyConfig = z.object({
+export const zPasswordPolicyConfig = z.object({
     minLength: z.int().min(0, { error: 'Invalid value: Expected uint32 to be >= 0' }).max(4294967295, { error: 'Invalid value: Expected uint32 to be <= 4294967295' }).optional(),
     requireDigit: z.boolean().optional(),
     requireLowercase: z.boolean().optional(),
@@ -819,50 +819,50 @@ export const zDifyEnterpriseApiEnterprisePasswordPolicyConfig = z.object({
     expiryDays: z.int().min(0, { error: 'Invalid value: Expected uint32 to be >= 0' }).max(4294967295, { error: 'Invalid value: Expected uint32 to be <= 4294967295' }).optional()
 });
 
-export const zDifyEnterpriseApiEnterprisePasswordStrengthReply = z.object({
+export const zPasswordStrengthReply = z.object({
     level: z.int().optional()
 });
 
-export const zDifyEnterpriseApiEnterprisePasswordStrengthReq = z.object({
+export const zPasswordStrengthReq = z.object({
     password: z.string().optional()
 });
 
-export const zDifyEnterpriseApiEnterprisePluginInstallationPermissionInfo = z.object({
+export const zPluginInstallationPermissionInfo = z.object({
     pluginInstallationScope: z.string().optional(),
     restrictToMarketplaceOnly: z.boolean().optional()
 });
 
-export const zDifyEnterpriseApiEnterprisePluginInstallationSettingsReply = z.object({
+export const zPluginInstallationSettingsReply = z.object({
     pluginInstallationScope: z.int().optional(),
     restrictToMarketplaceOnly: z.boolean().optional()
 });
 
-export const zDifyEnterpriseApiEnterprisePreviewReleaseReq = z.object({
+export const zPreviewReleaseReq = z.object({
     appInstanceId: z.string().optional(),
     releaseId: z.string().optional()
 });
 
-export const zDifyEnterpriseApiEnterpriseReleaseRow = z.object({
+export const zReleaseRow = z.object({
     id: z.string().optional(),
     name: z.string().optional(),
     createdAt: z.iso.datetime().optional(),
-    createdBy: zDifyEnterpriseApiEnterpriseConsoleUser.optional(),
-    deployedTo: z.array(zDifyEnterpriseApiEnterpriseDeployedEnvironment).optional()
+    createdBy: zConsoleUser.optional(),
+    deployedTo: z.array(zDeployedEnvironment).optional()
 });
 
-export const zDifyEnterpriseApiEnterpriseReleaseRuntimeBinding = z.object({
+export const zReleaseRuntimeBinding = z.object({
     kind: z.string().optional(),
     label: z.string().optional(),
     displayValue: z.string().optional(),
     valueType: z.string().optional()
 });
 
-export const zDifyEnterpriseApiEnterprisePreviewReleaseReply = z.object({
-    release: zDifyEnterpriseApiEnterpriseConsoleRelease.optional(),
-    bindings: z.array(zDifyEnterpriseApiEnterpriseReleaseRuntimeBinding).optional()
+export const zPreviewReleaseReply = z.object({
+    release: zConsoleRelease.optional(),
+    bindings: z.array(zReleaseRuntimeBinding).optional()
 });
 
-export const zDifyEnterpriseApiEnterpriseResetMemberPasswordReply = z.object({
+export const zResetMemberPasswordReply = z.object({
     id: z.string().optional(),
     password: z.string().optional()
 });
@@ -870,33 +870,33 @@ export const zDifyEnterpriseApiEnterpriseResetMemberPasswordReply = z.object({
 /**
  * Reset member password messages
  */
-export const zDifyEnterpriseApiEnterpriseResetMemberPasswordReq = z.object({
+export const zResetMemberPasswordReq = z.object({
     id: z.string().optional()
 });
 
-export const zDifyEnterpriseApiEnterpriseResetPasswordReply = z.object({
+export const zResetPasswordReply = z.object({
     message: z.string().optional()
 });
 
 /**
  * Password reset messages
  */
-export const zDifyEnterpriseApiEnterpriseResetPasswordReq = z.object({
+export const zResetPasswordReq = z.object({
     currentPassword: z.string().optional(),
     newPassword: z.string().optional(),
     confirmPassword: z.string().optional()
 });
 
-export const zDifyEnterpriseApiEnterpriseResetUserPasswordReply = z.object({
+export const zResetUserPasswordReply = z.object({
     id: z.string().optional(),
     password: z.string().optional()
 });
 
-export const zDifyEnterpriseApiEnterpriseResetUserPasswordReq = z.object({
+export const zResetUserPasswordReq = z.object({
     id: z.string().optional()
 });
 
-export const zDifyEnterpriseApiEnterpriseResolveCredentialsReq = z.object({
+export const zResolveCredentialsReq = z.object({
     instanceId: z.string().optional(),
     deploymentId: z.string().optional(),
     slots: z.array(z.string()).optional()
@@ -907,119 +907,119 @@ export const zDifyEnterpriseApiEnterpriseResolveCredentialsReq = z.object({
  * carry credential_id (pool A), env_var slots carry env_var_id (pool B).
  * See design §4.1.
  */
-export const zDifyEnterpriseApiEnterpriseResolvedCredential = z.object({
+export const zResolvedCredential = z.object({
     slot: z.string().optional(),
     credentialId: z.string().optional(),
     envVarId: z.string().optional(),
     value: z.string().optional()
 });
 
-export const zDifyEnterpriseApiEnterpriseResolveCredentialsReply = z.object({
-    resolved: z.array(zDifyEnterpriseApiEnterpriseResolvedCredential).optional()
+export const zResolveCredentialsReply = z.object({
+    resolved: z.array(zResolvedCredential).optional()
 });
 
 /**
  * ResourceQuota represents usage quota for a resource
  */
-export const zDifyEnterpriseApiEnterpriseResourceQuota = z.object({
+export const zResourceQuota = z.object({
     used: z.int().min(-2147483648, { error: 'Invalid value: Expected int32 to be >= -2147483648' }).max(2147483647, { error: 'Invalid value: Expected int32 to be <= 2147483647' }).optional(),
     limit: z.int().min(-2147483648, { error: 'Invalid value: Expected int32 to be >= -2147483648' }).max(2147483647, { error: 'Invalid value: Expected int32 to be <= 2147483647' }).optional(),
     enabled: z.boolean().optional()
 });
 
-export const zDifyEnterpriseApiEnterpriseLicenseStatus = z.object({
+export const zLicenseStatus = z.object({
     status: z.string().optional(),
     expiredAt: z.string().optional(),
-    workspaces: zDifyEnterpriseApiEnterpriseResourceQuota.optional()
+    workspaces: zResourceQuota.optional()
 });
 
-export const zDifyEnterpriseApiEnterpriseLimitFields = z.object({
+export const zLimitFields = z.object({
     workspaceMembers: z.int().min(-2147483648, { error: 'Invalid value: Expected int32 to be >= -2147483648' }).max(2147483647, { error: 'Invalid value: Expected int32 to be <= 2147483647' }).optional(),
-    workspaces: zDifyEnterpriseApiEnterpriseResourceQuota.optional()
+    workspaces: zResourceQuota.optional()
 });
 
 /**
  * License information
  */
-export const zDifyEnterpriseApiEnterpriseLicenseInfo = z.object({
+export const zLicenseInfo = z.object({
     uuid: z.string().optional(),
     expiredAt: z.iso.datetime().optional(),
     clusterId: z.string().optional(),
     product: z.string().optional(),
-    limits: zDifyEnterpriseApiEnterpriseLimitFields.optional()
+    limits: zLimitFields.optional()
 });
 
 /**
  * License RPC messages
  */
-export const zDifyEnterpriseApiEnterpriseGetLicenseReply = z.object({
-    license: zDifyEnterpriseApiEnterpriseLicenseInfo.optional()
+export const zGetLicenseReply = z.object({
+    license: zLicenseInfo.optional()
 });
 
-export const zDifyEnterpriseApiEnterpriseRetryEnvironmentReply = z.object({
-    environment: zDifyEnterpriseApiEnterpriseEnvironment.optional()
+export const zRetryEnvironmentReply = z.object({
+    environment: zEnvironment.optional()
 });
 
-export const zDifyEnterpriseApiEnterpriseRetryEnvironmentReq = z.object({
+export const zRetryEnvironmentReq = z.object({
     id: z.string().optional()
 });
 
-export const zDifyEnterpriseApiEnterpriseRuntimeEndpoints = z.object({
+export const zRuntimeEndpoints = z.object({
     run: z.string().optional(),
     health: z.string().optional()
 });
 
-export const zDifyEnterpriseApiEnterpriseRuntimeInstanceDetail = z.object({
+export const zRuntimeInstanceDetail = z.object({
     deploymentName: z.string().optional(),
     replicas: z.int().min(-2147483648, { error: 'Invalid value: Expected int32 to be >= -2147483648' }).max(2147483647, { error: 'Invalid value: Expected int32 to be <= 2147483647' }).optional(),
     runtimeMode: z.string().optional(),
     runtimeNote: z.string().optional(),
-    endpoints: zDifyEnterpriseApiEnterpriseRuntimeEndpoints.optional(),
-    bindings: z.array(zDifyEnterpriseApiEnterpriseReleaseRuntimeBinding).optional()
+    endpoints: zRuntimeEndpoints.optional(),
+    bindings: z.array(zReleaseRuntimeBinding).optional()
 });
 
-export const zDifyEnterpriseApiEnterpriseRuntimeInstanceRow = z.object({
+export const zRuntimeInstanceRow = z.object({
     id: z.string().optional(),
-    environment: zDifyEnterpriseApiEnterpriseConsoleEnvironment.optional(),
+    environment: zConsoleEnvironment.optional(),
     status: z.string().optional(),
-    currentRelease: zDifyEnterpriseApiEnterpriseConsoleRelease.optional(),
-    detail: zDifyEnterpriseApiEnterpriseRuntimeInstanceDetail.optional()
+    currentRelease: zConsoleRelease.optional(),
+    detail: zRuntimeInstanceDetail.optional()
 });
 
-export const zDifyEnterpriseApiEnterpriseListRuntimeInstancesReply = z.object({
-    data: z.array(zDifyEnterpriseApiEnterpriseRuntimeInstanceRow).optional()
+export const zListRuntimeInstancesReply = z.object({
+    data: z.array(zRuntimeInstanceRow).optional()
 });
 
 /**
  * SSO Configuration messages
  */
-export const zDifyEnterpriseApiEnterpriseSamlConfig = z.object({
+export const zSamlConfig = z.object({
     idpSsoUrl: z.string().optional(),
     certificate: z.string().optional()
 });
 
-export const zDifyEnterpriseApiEnterpriseSamlLoginReply = z.object({
+export const zSamlLoginReply = z.object({
     url: z.string().optional()
 });
 
-export const zDifyEnterpriseApiEnterpriseSsoIdPProvider = z.object({
+export const zSsoIdPProvider = z.object({
     protocol: z.string().optional(),
     provider: z.string().optional(),
-    samlConfig: zDifyEnterpriseApiEnterpriseSamlConfig.optional(),
-    oidcConfig: zDifyEnterpriseApiEnterpriseOidcConfig.optional(),
-    oauth2Config: zDifyEnterpriseApiEnterpriseOAuth2Config.optional()
+    samlConfig: zSamlConfig.optional(),
+    oidcConfig: zOidcConfig.optional(),
+    oauth2Config: zOAuth2Config.optional()
 });
 
-export const zDifyEnterpriseApiEnterpriseSsoSettings = z.object({
+export const zSsoSettings = z.object({
     ssoEnforced: z.boolean().optional(),
     sessionTimeout: z.int().min(-2147483648, { error: 'Invalid value: Expected int32 to be >= -2147483648' }).max(2147483647, { error: 'Invalid value: Expected int32 to be <= 2147483647' }).optional(),
-    ssoIdpProvider: zDifyEnterpriseApiEnterpriseSsoIdPProvider.optional()
+    ssoIdpProvider: zSsoIdPProvider.optional()
 });
 
-export const zDifyEnterpriseApiEnterpriseAuthSettingsReply = z.object({
-    userSsoSettings: zDifyEnterpriseApiEnterpriseSsoSettings.optional(),
-    webSsoSettings: zDifyEnterpriseApiEnterpriseSsoSettings.optional(),
-    dashboardSsoSettings: zDifyEnterpriseApiEnterpriseSsoSettings.optional(),
+export const zAuthSettingsReply = z.object({
+    userSsoSettings: zSsoSettings.optional(),
+    webSsoSettings: zSsoSettings.optional(),
+    dashboardSsoSettings: zSsoSettings.optional(),
     userSsoSamlAcsUrl: z.string().optional(),
     userSsoOidcCallbackUrl: z.string().optional(),
     userSsoOauth2CallbackUrl: z.string().optional(),
@@ -1034,25 +1034,25 @@ export const zDifyEnterpriseApiEnterpriseAuthSettingsReply = z.object({
     dashboardSsoOauth2CallbackUrl: z.string().optional()
 });
 
-export const zDifyEnterpriseApiEnterpriseAuthSettingsReq = z.object({
+export const zAuthSettingsReq = z.object({
     ssoType: z.string().optional(),
-    ssoSettings: zDifyEnterpriseApiEnterpriseSsoSettings.optional()
+    ssoSettings: zSsoSettings.optional()
 });
 
-export const zDifyEnterpriseApiEnterpriseSsoSettingsReply = z.object({
+export const zSsoSettingsReply = z.object({
     enabled: z.boolean().optional()
 });
 
-export const zDifyEnterpriseApiEnterpriseScimSettings = z.object({
+export const zScimSettings = z.object({
     enabled: z.boolean().optional(),
     lastSyncTime: z.iso.datetime().optional()
 });
 
-export const zDifyEnterpriseApiEnterpriseSearchAccessSubjectsReply = z.object({
-    data: z.array(zDifyEnterpriseApiEnterpriseAccessSubjectDisplay).optional()
+export const zSearchAccessSubjectsReply = z.object({
+    data: z.array(zAccessSubjectDisplay).optional()
 });
 
-export const zDifyEnterpriseApiEnterpriseSecretKey = z.object({
+export const zSecretKey = z.object({
     id: z.string().optional(),
     name: z.string().optional(),
     secretKeyMasked: z.string().optional(),
@@ -1060,95 +1060,95 @@ export const zDifyEnterpriseApiEnterpriseSecretKey = z.object({
     lastActive: z.iso.datetime().optional()
 });
 
-export const zDifyEnterpriseApiEnterpriseSetDefaultWorkspaceReply = z.object({
+export const zSetDefaultWorkspaceReply = z.object({
     workspaceId: z.string().optional()
 });
 
-export const zDifyEnterpriseApiEnterpriseSetDefaultWorkspaceReq = z.object({
+export const zSetDefaultWorkspaceReq = z.object({
     id: z.string().optional()
 });
 
-export const zDifyEnterpriseApiEnterpriseStatusCount = z.object({
+export const zStatusCount = z.object({
     status: z.string().optional(),
     count: z.int().min(-2147483648, { error: 'Invalid value: Expected int32 to be >= -2147483648' }).max(2147483647, { error: 'Invalid value: Expected int32 to be <= 2147483647' }).optional()
 });
 
-export const zDifyEnterpriseApiEnterpriseAppInstanceCard = z.object({
+export const zAppInstanceCard = z.object({
     id: z.string().optional(),
     name: z.string().optional(),
     icon: z.string().optional(),
     mode: z.string().optional(),
     sourceAppName: z.string().optional(),
-    statuses: z.array(zDifyEnterpriseApiEnterpriseStatusCount).optional(),
+    statuses: z.array(zStatusCount).optional(),
     lastDeployedAt: z.iso.datetime().optional()
 });
 
-export const zDifyEnterpriseApiEnterpriseSubjectAccountData = z.object({
+export const zSubjectAccountData = z.object({
     id: z.string().optional(),
     name: z.string().optional(),
     email: z.string().optional(),
     avatar: z.string().optional()
 });
 
-export const zDifyEnterpriseApiEnterpriseSubjectGroupData = z.object({
+export const zSubjectGroupData = z.object({
     id: z.string().optional(),
     name: z.string().optional(),
     groupSize: z.int().min(-2147483648, { error: 'Invalid value: Expected int32 to be >= -2147483648' }).max(2147483647, { error: 'Invalid value: Expected int32 to be <= 2147483647' }).optional()
 });
 
-export const zDifyEnterpriseApiEnterpriseCreateNewGroupsRes = z.object({
-    groups: z.array(zDifyEnterpriseApiEnterpriseSubjectGroupData).optional()
+export const zCreateNewGroupsRes = z.object({
+    groups: z.array(zSubjectGroupData).optional()
 });
 
-export const zDifyEnterpriseApiEnterpriseGetGroupsRes = z.object({
-    groups: z.array(zDifyEnterpriseApiEnterpriseSubjectGroupData).optional()
+export const zGetGroupsRes = z.object({
+    groups: z.array(zSubjectGroupData).optional()
 });
 
-export const zDifyEnterpriseApiEnterpriseGetJoinedGroupsRes = z.object({
-    groups: z.array(zDifyEnterpriseApiEnterpriseSubjectGroupData).optional()
+export const zGetJoinedGroupsRes = z.object({
+    groups: z.array(zSubjectGroupData).optional()
 });
 
-export const zDifyEnterpriseApiEnterpriseGetWebAppWhitelistSubjectsRes = z.object({
-    groups: z.array(zDifyEnterpriseApiEnterpriseSubjectGroupData).optional(),
-    members: z.array(zDifyEnterpriseApiEnterpriseGetWebAppWhitelistSubjectsResMember).optional()
+export const zGetWebAppWhitelistSubjectsRes = z.object({
+    groups: z.array(zSubjectGroupData).optional(),
+    members: z.array(zGetWebAppWhitelistSubjectsResMember).optional()
 });
 
 /**
  * Subject represents a subject (user or group) in access control
  */
-export const zDifyEnterpriseApiEnterpriseSubject = z.object({
+export const zSubject = z.object({
     subjectId: z.string().optional(),
     subjectType: z.string().optional(),
-    accountData: zDifyEnterpriseApiEnterpriseSubjectAccountData.optional(),
-    groupData: zDifyEnterpriseApiEnterpriseSubjectGroupData.optional()
+    accountData: zSubjectAccountData.optional(),
+    groupData: zSubjectGroupData.optional()
 });
 
-export const zDifyEnterpriseApiEnterpriseGetGroupSubjectsRes = z.object({
-    subjects: z.array(zDifyEnterpriseApiEnterpriseSubject).optional()
+export const zGetGroupSubjectsRes = z.object({
+    subjects: z.array(zSubject).optional()
 });
 
-export const zDifyEnterpriseApiEnterpriseSearchForWhilteListCandidatesRes = z.object({
-    subjects: z.array(zDifyEnterpriseApiEnterpriseSubject).optional(),
+export const zSearchForWhilteListCandidatesRes = z.object({
+    subjects: z.array(zSubject).optional(),
     currPage: z.int().min(-2147483648, { error: 'Invalid value: Expected int32 to be >= -2147483648' }).max(2147483647, { error: 'Invalid value: Expected int32 to be <= 2147483647' }).optional(),
     hasMore: z.boolean().optional()
 });
 
-export const zDifyEnterpriseApiEnterpriseSystemUserSettingReply = z.object({
+export const zSystemUserSettingReply = z.object({
     isAllowRegister: z.boolean().optional(),
     enableEmailPasswordLogin: z.boolean().optional()
 });
 
-export const zDifyEnterpriseApiEnterpriseSystemUserSettingReq = z.object({
+export const zSystemUserSettingReq = z.object({
     isAllowRegister: z.boolean().optional(),
     enableEmailPasswordLogin: z.boolean().optional()
 });
 
-export const zDifyEnterpriseApiEnterpriseTestConnectionReply = z.object({
+export const zTestConnectionReply = z.object({
     success: z.boolean().optional(),
     error: z.string().optional()
 });
 
-export const zDifyEnterpriseApiEnterpriseTestEnvironmentConnectionReply = z.object({
+export const zTestEnvironmentConnectionReply = z.object({
     ok: z.boolean().optional(),
     reachableServerVersion: z.string().optional(),
     namespaceExists: z.boolean().optional(),
@@ -1157,49 +1157,49 @@ export const zDifyEnterpriseApiEnterpriseTestEnvironmentConnectionReply = z.obje
     probedAt: z.iso.datetime().optional()
 });
 
-export const zDifyEnterpriseApiEnterpriseTestEnvironmentConnectionReq = z.object({
+export const zTestEnvironmentConnectionReq = z.object({
     id: z.string().optional()
 });
 
-export const zDifyEnterpriseApiEnterpriseToggleEndpointRequest = z.object({
+export const zToggleEndpointRequest = z.object({
     enabled: z.boolean().optional()
 });
 
-export const zDifyEnterpriseApiEnterpriseUndeployRuntimeInstanceReply = z.object({
+export const zUndeployRuntimeInstanceReply = z.object({
     deploymentId: z.string().optional(),
     status: z.string().optional()
 });
 
-export const zDifyEnterpriseApiEnterpriseUndeployRuntimeInstanceReq = z.object({
+export const zUndeployRuntimeInstanceReq = z.object({
     appInstanceId: z.string().optional(),
     runtimeInstanceId: z.string().optional()
 });
 
-export const zDifyEnterpriseApiEnterpriseUpdateAccessChannelsReq = z.object({
+export const zUpdateAccessChannelsReq = z.object({
     appInstanceId: z.string().optional(),
     enabled: z.boolean().optional()
 });
 
-export const zDifyEnterpriseApiEnterpriseUpdateAccessModeReq = z.object({
+export const zUpdateAccessModeReq = z.object({
     appId: z.string().optional(),
     accessMode: z.string().optional()
 });
 
-export const zDifyEnterpriseApiEnterpriseUpdateAccessModeRes = z.object({
+export const zUpdateAccessModeRes = z.object({
     message: z.string().optional()
 });
 
-export const zDifyEnterpriseApiEnterpriseUpdateAppInstanceReply = z.object({
+export const zUpdateAppInstanceReply = z.object({
     appInstanceId: z.string().optional()
 });
 
-export const zDifyEnterpriseApiEnterpriseUpdateAppInstanceReq = z.object({
+export const zUpdateAppInstanceReq = z.object({
     appInstanceId: z.string().optional(),
     name: z.string().optional(),
     description: z.string().optional()
 });
 
-export const zDifyEnterpriseApiEnterpriseUpdateBrandingInfoReq = z.object({
+export const zUpdateBrandingInfoReq = z.object({
     enabled: z.boolean().optional(),
     applicationTitle: z.string().optional(),
     loginPageLogo: z.string().optional(),
@@ -1207,124 +1207,124 @@ export const zDifyEnterpriseApiEnterpriseUpdateBrandingInfoReq = z.object({
     favicon: z.string().optional()
 });
 
-export const zDifyEnterpriseApiEnterpriseUpdateDeveloperApiReply = z.object({
-    developerApi: zDifyEnterpriseApiEnterpriseDeveloperApiAccess.optional()
+export const zUpdateDeveloperApiReply = z.object({
+    developerApi: zDeveloperApiAccess.optional()
 });
 
-export const zDifyEnterpriseApiEnterpriseUpdateDeveloperApiReq = z.object({
+export const zUpdateDeveloperApiReq = z.object({
     appInstanceId: z.string().optional(),
     enabled: z.boolean().optional()
 });
 
-export const zDifyEnterpriseApiEnterpriseUpdateEnvironmentAccessPolicyReply = z.object({
-    permission: zDifyEnterpriseApiEnterpriseEnvironmentAccessRow.optional()
+export const zUpdateEnvironmentAccessPolicyReply = z.object({
+    permission: zEnvironmentAccessRow.optional()
 });
 
-export const zDifyEnterpriseApiEnterpriseUpdateEnvironmentAccessPolicyReq = z.object({
+export const zUpdateEnvironmentAccessPolicyReq = z.object({
     appInstanceId: z.string().optional(),
     environmentId: z.string().optional(),
     accessMode: z.string().optional(),
-    subjects: z.array(zDifyEnterpriseApiEnterpriseAccessSubject).optional()
+    subjects: z.array(zAccessSubject).optional()
 });
 
-export const zDifyEnterpriseApiEnterpriseUpdateEnvironmentReply = z.object({
-    environment: zDifyEnterpriseApiEnterpriseEnvironment.optional()
+export const zUpdateEnvironmentReply = z.object({
+    environment: zEnvironment.optional()
 });
 
-export const zDifyEnterpriseApiEnterpriseUpdateEnvironmentReq = z.object({
+export const zUpdateEnvironmentReq = z.object({
     id: z.string().optional(),
     name: z.string().optional(),
     description: z.string().optional()
 });
 
-export const zDifyEnterpriseApiEnterpriseUpdateGroupSubjectsReq = z.object({
+export const zUpdateGroupSubjectsReq = z.object({
     groupId: z.string().optional(),
-    subjects: z.array(zDifyEnterpriseApiEnterpriseSubject).optional()
+    subjects: z.array(zSubject).optional()
 });
 
-export const zDifyEnterpriseApiEnterpriseUpdateGroupSubjectsRes = z.object({
+export const zUpdateGroupSubjectsRes = z.object({
     message: z.string().optional()
 });
 
-export const zDifyEnterpriseApiEnterpriseUpdateGroupsReqGroup = z.object({
+export const zUpdateGroupsReqGroup = z.object({
     id: z.string().optional(),
     name: z.string().optional()
 });
 
-export const zDifyEnterpriseApiEnterpriseUpdateGroupsReq = z.object({
-    groups: z.array(zDifyEnterpriseApiEnterpriseUpdateGroupsReqGroup).optional()
+export const zUpdateGroupsReq = z.object({
+    groups: z.array(zUpdateGroupsReqGroup).optional()
 });
 
-export const zDifyEnterpriseApiEnterpriseUpdateGroupsRes = z.object({
-    groups: z.array(zDifyEnterpriseApiEnterpriseSubjectGroupData).optional()
+export const zUpdateGroupsRes = z.object({
+    groups: z.array(zSubjectGroupData).optional()
 });
 
-export const zDifyEnterpriseApiEnterpriseUpdateJoinedGroupsReq = z.object({
+export const zUpdateJoinedGroupsReq = z.object({
     accountId: z.string().optional(),
     groupIds: z.array(z.string()).optional()
 });
 
-export const zDifyEnterpriseApiEnterpriseUpdateJoinedGroupsRes = z.object({
+export const zUpdateJoinedGroupsRes = z.object({
     message: z.string().optional()
 });
 
-export const zDifyEnterpriseApiEnterpriseUpdateLicenseReply = z.object({
+export const zUpdateLicenseReply = z.object({
     message: z.string().optional()
 });
 
-export const zDifyEnterpriseApiEnterpriseUpdateLicenseReq = z.object({
+export const zUpdateLicenseReq = z.object({
     licenseId: z.string().optional()
 });
 
-export const zDifyEnterpriseApiEnterpriseUpdateMfaStatusReq = z.object({
+export const zUpdateMfaStatusReq = z.object({
     enabled: z.boolean().optional()
 });
 
-export const zDifyEnterpriseApiEnterpriseUpdateMfaStatusRes = z.object({
+export const zUpdateMfaStatusRes = z.object({
     message: z.string().optional()
 });
 
-export const zDifyEnterpriseApiEnterpriseUpdateMemberReply = z.object({
-    account: zDifyEnterpriseApiEnterpriseAccount.optional()
+export const zUpdateMemberReply = z.object({
+    account: zAccount.optional()
 });
 
 /**
  * Update member messages
  */
-export const zDifyEnterpriseApiEnterpriseUpdateMemberReq = z.object({
+export const zUpdateMemberReq = z.object({
     id: z.string().optional(),
     name: z.string().optional(),
     email: z.string().optional(),
     status: z.string().optional()
 });
 
-export const zDifyEnterpriseApiEnterpriseUpdateMembersInGroupsReq = z.object({
+export const zUpdateMembersInGroupsReq = z.object({
     groupId: z.string().optional(),
     accountIds: z.array(z.string()).optional()
 });
 
-export const zDifyEnterpriseApiEnterpriseUpdateMembersInGroupsRes = z.object({
+export const zUpdateMembersInGroupsRes = z.object({
     message: z.string().optional()
 });
 
-export const zDifyEnterpriseApiEnterpriseUpdateOfflineLicenseReply = z.object({
+export const zUpdateOfflineLicenseReply = z.object({
     message: z.string().optional()
 });
 
-export const zDifyEnterpriseApiEnterpriseUpdateOfflineLicenseReq = z.object({
+export const zUpdateOfflineLicenseReq = z.object({
     offlineCode: z.string().optional()
 });
 
-export const zDifyEnterpriseApiEnterpriseUpdatePluginInstallationSettingsRequest = z.object({
+export const zUpdatePluginInstallationSettingsRequest = z.object({
     pluginInstallationScope: z.int().optional(),
     restrictToMarketplaceOnly: z.boolean().optional()
 });
 
-export const zDifyEnterpriseApiEnterpriseUpdateUserReply = z.object({
-    account: zDifyEnterpriseApiEnterpriseAccountDetail.optional()
+export const zUpdateUserReply = z.object({
+    account: zAccountDetail.optional()
 });
 
-export const zDifyEnterpriseApiEnterpriseUpdateUserReq = z.object({
+export const zUpdateUserReq = z.object({
     id: z.string().optional(),
     name: z.string().optional(),
     email: z.string().optional(),
@@ -1334,58 +1334,58 @@ export const zDifyEnterpriseApiEnterpriseUpdateUserReq = z.object({
 /**
  * Web app auth info messages
  */
-export const zDifyEnterpriseApiEnterpriseUpdateWebAppAuthInfoReq = z.object({
+export const zUpdateWebAppAuthInfoReq = z.object({
     allowSso: z.boolean().optional(),
     allowEmailCodeLogin: z.boolean().optional(),
     allowEmailPasswordLogin: z.boolean().optional()
 });
 
-export const zDifyEnterpriseApiEnterpriseUpdateWebAppAuthInfoRes = z.object({
+export const zUpdateWebAppAuthInfoRes = z.object({
     message: z.string().optional()
 });
 
-export const zDifyEnterpriseApiEnterpriseUpdateWebAppWhitelistSubjectsReq = z.object({
+export const zUpdateWebAppWhitelistSubjectsReq = z.object({
     appId: z.string().optional(),
-    subjects: z.array(zDifyEnterpriseApiEnterpriseSubject).optional(),
+    subjects: z.array(zSubject).optional(),
     accessMode: z.string().optional()
 });
 
-export const zDifyEnterpriseApiEnterpriseUpdateWebAppWhitelistSubjectsRes = z.object({
+export const zUpdateWebAppWhitelistSubjectsRes = z.object({
     message: z.string().optional()
 });
 
 /**
  * Update workspace messages
  */
-export const zDifyEnterpriseApiEnterpriseUpdateWorkspaceReq = z.object({
+export const zUpdateWorkspaceReq = z.object({
     id: z.string().optional(),
     name: z.string().optional(),
     email: z.string().optional(),
     status: z.string().optional()
 });
 
-export const zDifyEnterpriseApiEnterpriseWebAppAccessRow = z.object({
-    environment: zDifyEnterpriseApiEnterpriseConsoleEnvironment.optional(),
+export const zWebAppAccessRow = z.object({
+    environment: zConsoleEnvironment.optional(),
     url: z.string().optional()
 });
 
-export const zDifyEnterpriseApiEnterpriseAccessChannels = z.object({
+export const zAccessChannels = z.object({
     enabled: z.boolean().optional(),
-    webappRows: z.array(zDifyEnterpriseApiEnterpriseWebAppAccessRow).optional(),
-    cli: zDifyEnterpriseApiEnterpriseCliAccess.optional()
+    webappRows: z.array(zWebAppAccessRow).optional(),
+    cli: zCliAccess.optional()
 });
 
-export const zDifyEnterpriseApiEnterpriseGetAppInstanceAccessReply = z.object({
-    permissions: z.array(zDifyEnterpriseApiEnterpriseEnvironmentAccessRow).optional(),
-    accessChannels: zDifyEnterpriseApiEnterpriseAccessChannels.optional(),
-    developerApi: zDifyEnterpriseApiEnterpriseDeveloperApiAccess.optional()
+export const zGetAppInstanceAccessReply = z.object({
+    permissions: z.array(zEnvironmentAccessRow).optional(),
+    accessChannels: zAccessChannels.optional(),
+    developerApi: zDeveloperApiAccess.optional()
 });
 
-export const zDifyEnterpriseApiEnterpriseUpdateAccessChannelsReply = z.object({
-    accessChannels: zDifyEnterpriseApiEnterpriseAccessChannels.optional()
+export const zUpdateAccessChannelsReply = z.object({
+    accessChannels: zAccessChannels.optional()
 });
 
-export const zDifyEnterpriseApiEnterpriseWebAppAuthInfo = z.object({
+export const zWebAppAuthInfo = z.object({
     allowSso: z.boolean().optional(),
     allowEmailCodeLogin: z.boolean().optional(),
     allowEmailPasswordLogin: z.boolean().optional()
@@ -1394,7 +1394,7 @@ export const zDifyEnterpriseApiEnterpriseWebAppAuthInfo = z.object({
 /**
  * Info configuration messages
  */
-export const zDifyEnterpriseApiEnterpriseInfoConfigReply = z.object({
+export const zInfoConfigReply = z.object({
     SSOEnforcedForSignin: z.boolean().optional(),
     SSOEnforcedForSigninProtocol: z.string().optional(),
     SSOEnforcedForWeb: z.boolean().optional(),
@@ -1403,127 +1403,127 @@ export const zDifyEnterpriseApiEnterpriseInfoConfigReply = z.object({
     EnableEmailPasswordLogin: z.boolean().optional(),
     IsAllowRegister: z.boolean().optional(),
     IsAllowCreateWorkspace: z.boolean().optional(),
-    License: zDifyEnterpriseApiEnterpriseLicenseStatus.optional(),
-    Branding: zDifyEnterpriseApiEnterpriseBrandingInfo.optional(),
-    WebAppAuth: zDifyEnterpriseApiEnterpriseWebAppAuthInfo.optional(),
-    PluginInstallationPermission: zDifyEnterpriseApiEnterprisePluginInstallationPermissionInfo.optional()
+    License: zLicenseStatus.optional(),
+    Branding: zBrandingInfo.optional(),
+    WebAppAuth: zWebAppAuthInfo.optional(),
+    PluginInstallationPermission: zPluginInstallationPermissionInfo.optional()
 });
 
-export const zDifyEnterpriseApiEnterpriseWebOAuth2LoginReply = z.object({
+export const zWebOAuth2LoginReply = z.object({
     url: z.string().optional(),
     state: z.string().optional()
 });
 
-export const zDifyEnterpriseApiEnterpriseWebOidcLoginReply = z.object({
+export const zWebOidcLoginReply = z.object({
     url: z.string().optional()
 });
 
-export const zDifyEnterpriseApiEnterpriseWebSamlLoginReply = z.object({
+export const zWebSamlLoginReply = z.object({
     url: z.string().optional()
 });
 
 /**
  * Workspace represents a workspace entity
  */
-export const zDifyEnterpriseApiEnterpriseWorkspace = z.object({
+export const zWorkspace = z.object({
     id: z.string().optional(),
     name: z.string().optional(),
     status: z.string().optional(),
     createdAt: z.iso.datetime().optional(),
-    owner: zDifyEnterpriseApiEnterpriseAccount.optional()
+    owner: zAccount.optional()
 });
 
-export const zDifyEnterpriseApiEnterpriseCreateWorkspaceReply = z.object({
-    workspace: zDifyEnterpriseApiEnterpriseWorkspace.optional()
+export const zCreateWorkspaceReply = z.object({
+    workspace: zWorkspace.optional()
 });
 
-export const zDifyEnterpriseApiEnterpriseGetDefaultWorkspaceReply = z.object({
+export const zGetDefaultWorkspaceReply = z.object({
     workspaceId: z.string().optional(),
-    workspace: zDifyEnterpriseApiEnterpriseWorkspace.optional()
+    workspace: zWorkspace.optional()
 });
 
-export const zDifyEnterpriseApiEnterpriseGetWorkspaceReply = z.object({
-    workspace: zDifyEnterpriseApiEnterpriseWorkspace.optional()
+export const zGetWorkspaceReply = z.object({
+    workspace: zWorkspace.optional()
 });
 
-export const zDifyEnterpriseApiEnterpriseUpdateWorkspaceReply = z.object({
-    workspace: zDifyEnterpriseApiEnterpriseWorkspace.optional()
+export const zUpdateWorkspaceReply = z.object({
+    workspace: zWorkspace.optional()
 });
 
-export const zDifyEnterpriseApiEnterpriseWorkspaceInfoReply = z.object({
-    WorkspaceMembers: zDifyEnterpriseApiEnterpriseResourceQuota.optional()
+export const zWorkspaceInfoReply = z.object({
+    WorkspaceMembers: zResourceQuota.optional()
 });
 
 /**
  * Workspace permission
  */
-export const zDifyEnterpriseApiEnterpriseWorkspacePermission = z.object({
+export const zWorkspacePermission = z.object({
     workspaceId: z.string().optional(),
     allowMemberInvite: z.boolean().optional(),
     allowOwnerTransfer: z.boolean().optional()
 });
 
-export const zDifyEnterpriseApiEnterpriseGetWorkspacePermissionReply = z.object({
-    permission: zDifyEnterpriseApiEnterpriseWorkspacePermission.optional()
+export const zGetWorkspacePermissionReply = z.object({
+    permission: zWorkspacePermission.optional()
 });
 
-export const zDifyEnterpriseApiEnterpriseUpdateWorkspacePermissionReply = z.object({
+export const zUpdateWorkspacePermissionReply = z.object({
     message: z.string().optional(),
-    permission: zDifyEnterpriseApiEnterpriseWorkspacePermission.optional()
+    permission: zWorkspacePermission.optional()
 });
 
 /**
  * Update workspace permission messages
  */
-export const zDifyEnterpriseApiEnterpriseUpdateWorkspacePermissionReq = z.object({
+export const zUpdateWorkspacePermissionReq = z.object({
     id: z.string().optional(),
-    permission: zDifyEnterpriseApiEnterpriseWorkspacePermission.optional()
+    permission: zWorkspacePermission.optional()
 });
 
 /**
  * Pagination ： Just for pagination by page
  */
-export const zPaginationPagination = z.object({
+export const zPagination = z.object({
     totalCount: z.int().min(-2147483648, { error: 'Invalid value: Expected int32 to be >= -2147483648' }).max(2147483647, { error: 'Invalid value: Expected int32 to be <= 2147483647' }).optional(),
     perPage: z.int().min(-2147483648, { error: 'Invalid value: Expected int32 to be >= -2147483648' }).max(2147483647, { error: 'Invalid value: Expected int32 to be <= 2147483647' }).optional(),
     currentPage: z.int().min(-2147483648, { error: 'Invalid value: Expected int32 to be >= -2147483648' }).max(2147483647, { error: 'Invalid value: Expected int32 to be <= 2147483647' }).optional(),
     totalPages: z.int().min(-2147483648, { error: 'Invalid value: Expected int32 to be >= -2147483648' }).max(2147483647, { error: 'Invalid value: Expected int32 to be <= 2147483647' }).optional()
 });
 
-export const zDifyEnterpriseApiEnterpriseListAppInstancesReply = z.object({
-    filters: z.array(zDifyEnterpriseApiEnterpriseEnvironmentFilter).optional(),
-    data: z.array(zDifyEnterpriseApiEnterpriseAppInstanceCard).optional(),
-    pagination: zPaginationPagination.optional()
+export const zListAppInstancesReply = z.object({
+    filters: z.array(zEnvironmentFilter).optional(),
+    data: z.array(zAppInstanceCard).optional(),
+    pagination: zPagination.optional()
 });
 
-export const zDifyEnterpriseApiEnterpriseListEnvironmentsReply = z.object({
-    data: z.array(zDifyEnterpriseApiEnterpriseEnvironment).optional(),
-    pagination: zPaginationPagination.optional()
+export const zListEnvironmentsReply = z.object({
+    data: z.array(zEnvironment).optional(),
+    pagination: zPagination.optional()
 });
 
-export const zDifyEnterpriseApiEnterpriseListMembersReply = z.object({
-    data: z.array(zDifyEnterpriseApiEnterpriseAccountDetail).optional(),
-    pagination: zPaginationPagination.optional()
+export const zListMembersReply = z.object({
+    data: z.array(zAccountDetail).optional(),
+    pagination: zPagination.optional()
 });
 
-export const zDifyEnterpriseApiEnterpriseListReleasesReply = z.object({
-    data: z.array(zDifyEnterpriseApiEnterpriseReleaseRow).optional(),
-    pagination: zPaginationPagination.optional()
+export const zListReleasesReply = z.object({
+    data: z.array(zReleaseRow).optional(),
+    pagination: zPagination.optional()
 });
 
-export const zDifyEnterpriseApiEnterpriseListSecretKeysReply = z.object({
-    data: z.array(zDifyEnterpriseApiEnterpriseSecretKey).optional(),
-    pagination: zPaginationPagination.optional()
+export const zListSecretKeysReply = z.object({
+    data: z.array(zSecretKey).optional(),
+    pagination: zPagination.optional()
 });
 
-export const zDifyEnterpriseApiEnterpriseListUsersReply = z.object({
-    data: z.array(zDifyEnterpriseApiEnterpriseAccountDetail).optional(),
-    pagination: zPaginationPagination.optional()
+export const zListUsersReply = z.object({
+    data: z.array(zAccountDetail).optional(),
+    pagination: zPagination.optional()
 });
 
-export const zDifyEnterpriseApiEnterpriseListWorkspacesReply = z.object({
-    data: z.array(zDifyEnterpriseApiEnterpriseWorkspace).optional(),
-    pagination: zPaginationPagination.optional()
+export const zListWorkspacesReply = z.object({
+    data: z.array(zWorkspace).optional(),
+    pagination: zPagination.optional()
 });
 
 export const zWebSsoWebOauth2LoginQuery = z.object({
@@ -1534,7 +1534,7 @@ export const zWebSsoWebOauth2LoginQuery = z.object({
 /**
  * OK
  */
-export const zWebSsoWebOauth2LoginResponse = zDifyEnterpriseApiEnterpriseWebOAuth2LoginReply;
+export const zWebSsoWebOauth2LoginResponse = zWebOAuth2LoginReply;
 
 export const zWebSsoWebOidcLoginQuery = z.object({
     redirectUrl: z.string().optional(),
@@ -1544,7 +1544,7 @@ export const zWebSsoWebOidcLoginQuery = z.object({
 /**
  * OK
  */
-export const zWebSsoWebOidcLoginResponse = zDifyEnterpriseApiEnterpriseWebOidcLoginReply;
+export const zWebSsoWebOidcLoginResponse = zWebOidcLoginReply;
 
 export const zWebSsoWebSamlLoginQuery = z.object({
     redirectUrl: z.string().optional(),
@@ -1554,7 +1554,7 @@ export const zWebSsoWebSamlLoginQuery = z.object({
 /**
  * OK
  */
-export const zWebSsoWebSamlLoginResponse = zDifyEnterpriseApiEnterpriseWebSamlLoginReply;
+export const zWebSsoWebSamlLoginResponse = zWebSamlLoginReply;
 
 export const zWebSsoWebOauth2ExternalLoginQuery = z.object({
     redirectUrl: z.string().optional(),
@@ -1564,7 +1564,7 @@ export const zWebSsoWebOauth2ExternalLoginQuery = z.object({
 /**
  * OK
  */
-export const zWebSsoWebOauth2ExternalLoginResponse = zDifyEnterpriseApiEnterpriseWebOAuth2LoginReply;
+export const zWebSsoWebOauth2ExternalLoginResponse = zWebOAuth2LoginReply;
 
 export const zWebSsoWebOidcExternalLoginQuery = z.object({
     redirectUrl: z.string().optional(),
@@ -1574,7 +1574,7 @@ export const zWebSsoWebOidcExternalLoginQuery = z.object({
 /**
  * OK
  */
-export const zWebSsoWebOidcExternalLoginResponse = zDifyEnterpriseApiEnterpriseWebOidcLoginReply;
+export const zWebSsoWebOidcExternalLoginResponse = zWebOidcLoginReply;
 
 export const zWebSsoWebSamlExternalLoginQuery = z.object({
     redirectUrl: z.string().optional(),
@@ -1584,7 +1584,7 @@ export const zWebSsoWebSamlExternalLoginQuery = z.object({
 /**
  * OK
  */
-export const zWebSsoWebSamlExternalLoginResponse = zDifyEnterpriseApiEnterpriseWebSamlLoginReply;
+export const zWebSsoWebSamlExternalLoginResponse = zWebSamlLoginReply;
 
 export const zEnterpriseAppDeployConsoleListAppInstancesQuery = z.object({
     environmentId: z.string().optional(),
@@ -1597,14 +1597,14 @@ export const zEnterpriseAppDeployConsoleListAppInstancesQuery = z.object({
 /**
  * OK
  */
-export const zEnterpriseAppDeployConsoleListAppInstancesResponse = zDifyEnterpriseApiEnterpriseListAppInstancesReply;
+export const zEnterpriseAppDeployConsoleListAppInstancesResponse = zListAppInstancesReply;
 
-export const zEnterpriseAppDeployConsoleCreateAppInstanceBody = zDifyEnterpriseApiEnterpriseCreateAppInstanceReq;
+export const zEnterpriseAppDeployConsoleCreateAppInstanceBody = zCreateAppInstanceReq;
 
 /**
  * OK
  */
-export const zEnterpriseAppDeployConsoleCreateAppInstanceResponse = zDifyEnterpriseApiEnterpriseCreateAppInstanceReply;
+export const zEnterpriseAppDeployConsoleCreateAppInstanceResponse = zCreateAppInstanceReply;
 
 export const zEnterpriseAppDeployConsoleDeleteAppInstancePath = z.object({
     appInstanceId: z.string()
@@ -1613,9 +1613,9 @@ export const zEnterpriseAppDeployConsoleDeleteAppInstancePath = z.object({
 /**
  * OK
  */
-export const zEnterpriseAppDeployConsoleDeleteAppInstanceResponse = zDifyEnterpriseApiEnterpriseDeleteAppInstanceReply;
+export const zEnterpriseAppDeployConsoleDeleteAppInstanceResponse = zDeleteAppInstanceReply;
 
-export const zEnterpriseAppDeployConsoleUpdateAppInstanceBody = zDifyEnterpriseApiEnterpriseUpdateAppInstanceReq;
+export const zEnterpriseAppDeployConsoleUpdateAppInstanceBody = zUpdateAppInstanceReq;
 
 export const zEnterpriseAppDeployConsoleUpdateAppInstancePath = z.object({
     appInstanceId: z.string()
@@ -1624,7 +1624,7 @@ export const zEnterpriseAppDeployConsoleUpdateAppInstancePath = z.object({
 /**
  * OK
  */
-export const zEnterpriseAppDeployConsoleUpdateAppInstanceResponse = zDifyEnterpriseApiEnterpriseUpdateAppInstanceReply;
+export const zEnterpriseAppDeployConsoleUpdateAppInstanceResponse = zUpdateAppInstanceReply;
 
 export const zEnterpriseAppDeployConsoleGetAppInstanceAccessPath = z.object({
     appInstanceId: z.string()
@@ -1633,9 +1633,9 @@ export const zEnterpriseAppDeployConsoleGetAppInstanceAccessPath = z.object({
 /**
  * OK
  */
-export const zEnterpriseAppDeployConsoleGetAppInstanceAccessResponse = zDifyEnterpriseApiEnterpriseGetAppInstanceAccessReply;
+export const zEnterpriseAppDeployConsoleGetAppInstanceAccessResponse = zGetAppInstanceAccessReply;
 
-export const zEnterpriseAppDeployConsoleUpdateAccessChannelsBody = zDifyEnterpriseApiEnterpriseUpdateAccessChannelsReq;
+export const zEnterpriseAppDeployConsoleUpdateAccessChannelsBody = zUpdateAccessChannelsReq;
 
 export const zEnterpriseAppDeployConsoleUpdateAccessChannelsPath = z.object({
     appInstanceId: z.string()
@@ -1644,7 +1644,7 @@ export const zEnterpriseAppDeployConsoleUpdateAccessChannelsPath = z.object({
 /**
  * OK
  */
-export const zEnterpriseAppDeployConsoleUpdateAccessChannelsResponse = zDifyEnterpriseApiEnterpriseUpdateAccessChannelsReply;
+export const zEnterpriseAppDeployConsoleUpdateAccessChannelsResponse = zUpdateAccessChannelsReply;
 
 export const zEnterpriseAppDeployConsoleSearchAccessSubjectsPath = z.object({
     appInstanceId: z.string()
@@ -1658,9 +1658,9 @@ export const zEnterpriseAppDeployConsoleSearchAccessSubjectsQuery = z.object({
 /**
  * OK
  */
-export const zEnterpriseAppDeployConsoleSearchAccessSubjectsResponse = zDifyEnterpriseApiEnterpriseSearchAccessSubjectsReply;
+export const zEnterpriseAppDeployConsoleSearchAccessSubjectsResponse = zSearchAccessSubjectsReply;
 
-export const zEnterpriseAppDeployConsoleCreateDeveloperApiKeyBody = zDifyEnterpriseApiEnterpriseCreateDeveloperApiKeyReq;
+export const zEnterpriseAppDeployConsoleCreateDeveloperApiKeyBody = zCreateDeveloperApiKeyReq;
 
 export const zEnterpriseAppDeployConsoleCreateDeveloperApiKeyPath = z.object({
     appInstanceId: z.string()
@@ -1669,7 +1669,7 @@ export const zEnterpriseAppDeployConsoleCreateDeveloperApiKeyPath = z.object({
 /**
  * OK
  */
-export const zEnterpriseAppDeployConsoleCreateDeveloperApiKeyResponse = zDifyEnterpriseApiEnterpriseCreateDeveloperApiKeyReply;
+export const zEnterpriseAppDeployConsoleCreateDeveloperApiKeyResponse = zCreateDeveloperApiKeyReply;
 
 export const zEnterpriseAppDeployConsoleDeleteDeveloperApiKeyPath = z.object({
     appInstanceId: z.string(),
@@ -1679,7 +1679,7 @@ export const zEnterpriseAppDeployConsoleDeleteDeveloperApiKeyPath = z.object({
 /**
  * OK
  */
-export const zEnterpriseAppDeployConsoleDeleteDeveloperApiKeyResponse = zDifyEnterpriseApiEnterpriseDeleteDeveloperApiKeyReply;
+export const zEnterpriseAppDeployConsoleDeleteDeveloperApiKeyResponse = zDeleteDeveloperApiKeyReply;
 
 export const zEnterpriseAppDeployConsoleListDeploymentBindingOptionsPath = z.object({
     appInstanceId: z.string()
@@ -1688,9 +1688,9 @@ export const zEnterpriseAppDeployConsoleListDeploymentBindingOptionsPath = z.obj
 /**
  * OK
  */
-export const zEnterpriseAppDeployConsoleListDeploymentBindingOptionsResponse = zDifyEnterpriseApiEnterpriseListDeploymentBindingOptionsReply;
+export const zEnterpriseAppDeployConsoleListDeploymentBindingOptionsResponse = zListDeploymentBindingOptionsReply;
 
-export const zEnterpriseAppDeployConsoleCreateDeploymentBody = zDifyEnterpriseApiEnterpriseCreateDeploymentReq;
+export const zEnterpriseAppDeployConsoleCreateDeploymentBody = zCreateDeploymentReq;
 
 export const zEnterpriseAppDeployConsoleCreateDeploymentPath = z.object({
     appInstanceId: z.string()
@@ -1699,9 +1699,9 @@ export const zEnterpriseAppDeployConsoleCreateDeploymentPath = z.object({
 /**
  * OK
  */
-export const zEnterpriseAppDeployConsoleCreateDeploymentResponse = zDifyEnterpriseApiEnterpriseCreateDeploymentReply;
+export const zEnterpriseAppDeployConsoleCreateDeploymentResponse = zCreateDeploymentReply;
 
-export const zEnterpriseAppDeployConsoleUpdateDeveloperApiBody = zDifyEnterpriseApiEnterpriseUpdateDeveloperApiReq;
+export const zEnterpriseAppDeployConsoleUpdateDeveloperApiBody = zUpdateDeveloperApiReq;
 
 export const zEnterpriseAppDeployConsoleUpdateDeveloperApiPath = z.object({
     appInstanceId: z.string()
@@ -1710,7 +1710,7 @@ export const zEnterpriseAppDeployConsoleUpdateDeveloperApiPath = z.object({
 /**
  * OK
  */
-export const zEnterpriseAppDeployConsoleUpdateDeveloperApiResponse = zDifyEnterpriseApiEnterpriseUpdateDeveloperApiReply;
+export const zEnterpriseAppDeployConsoleUpdateDeveloperApiResponse = zUpdateDeveloperApiReply;
 
 export const zEnterpriseAppDeployConsoleGetEnvironmentAccessPolicyPath = z.object({
     appInstanceId: z.string(),
@@ -1720,9 +1720,9 @@ export const zEnterpriseAppDeployConsoleGetEnvironmentAccessPolicyPath = z.objec
 /**
  * OK
  */
-export const zEnterpriseAppDeployConsoleGetEnvironmentAccessPolicyResponse = zDifyEnterpriseApiEnterpriseGetEnvironmentAccessPolicyReply;
+export const zEnterpriseAppDeployConsoleGetEnvironmentAccessPolicyResponse = zGetEnvironmentAccessPolicyReply;
 
-export const zEnterpriseAppDeployConsoleUpdateEnvironmentAccessPolicyBody = zDifyEnterpriseApiEnterpriseUpdateEnvironmentAccessPolicyReq;
+export const zEnterpriseAppDeployConsoleUpdateEnvironmentAccessPolicyBody = zUpdateEnvironmentAccessPolicyReq;
 
 export const zEnterpriseAppDeployConsoleUpdateEnvironmentAccessPolicyPath = z.object({
     appInstanceId: z.string(),
@@ -1732,7 +1732,7 @@ export const zEnterpriseAppDeployConsoleUpdateEnvironmentAccessPolicyPath = z.ob
 /**
  * OK
  */
-export const zEnterpriseAppDeployConsoleUpdateEnvironmentAccessPolicyResponse = zDifyEnterpriseApiEnterpriseUpdateEnvironmentAccessPolicyReply;
+export const zEnterpriseAppDeployConsoleUpdateEnvironmentAccessPolicyResponse = zUpdateEnvironmentAccessPolicyReply;
 
 export const zEnterpriseAppDeployConsoleGetAppInstanceOverviewPath = z.object({
     appInstanceId: z.string()
@@ -1741,7 +1741,7 @@ export const zEnterpriseAppDeployConsoleGetAppInstanceOverviewPath = z.object({
 /**
  * OK
  */
-export const zEnterpriseAppDeployConsoleGetAppInstanceOverviewResponse = zDifyEnterpriseApiEnterpriseGetAppInstanceOverviewReply;
+export const zEnterpriseAppDeployConsoleGetAppInstanceOverviewResponse = zGetAppInstanceOverviewReply;
 
 export const zEnterpriseAppDeployConsoleListReleasesPath = z.object({
     appInstanceId: z.string()
@@ -1755,9 +1755,9 @@ export const zEnterpriseAppDeployConsoleListReleasesQuery = z.object({
 /**
  * OK
  */
-export const zEnterpriseAppDeployConsoleListReleasesResponse = zDifyEnterpriseApiEnterpriseListReleasesReply;
+export const zEnterpriseAppDeployConsoleListReleasesResponse = zListReleasesReply;
 
-export const zEnterpriseAppDeployConsoleCreateReleaseBody = zDifyEnterpriseApiEnterpriseCreateReleaseReq;
+export const zEnterpriseAppDeployConsoleCreateReleaseBody = zCreateReleaseReq;
 
 export const zEnterpriseAppDeployConsoleCreateReleasePath = z.object({
     appInstanceId: z.string()
@@ -1766,9 +1766,9 @@ export const zEnterpriseAppDeployConsoleCreateReleasePath = z.object({
 /**
  * OK
  */
-export const zEnterpriseAppDeployConsoleCreateReleaseResponse = zDifyEnterpriseApiEnterpriseCreateReleaseReply;
+export const zEnterpriseAppDeployConsoleCreateReleaseResponse = zCreateReleaseReply;
 
-export const zEnterpriseAppDeployConsolePreviewReleaseBody = zDifyEnterpriseApiEnterprisePreviewReleaseReq;
+export const zEnterpriseAppDeployConsolePreviewReleaseBody = zPreviewReleaseReq;
 
 export const zEnterpriseAppDeployConsolePreviewReleasePath = z.object({
     appInstanceId: z.string()
@@ -1777,7 +1777,7 @@ export const zEnterpriseAppDeployConsolePreviewReleasePath = z.object({
 /**
  * OK
  */
-export const zEnterpriseAppDeployConsolePreviewReleaseResponse = zDifyEnterpriseApiEnterprisePreviewReleaseReply;
+export const zEnterpriseAppDeployConsolePreviewReleaseResponse = zPreviewReleaseReply;
 
 export const zEnterpriseAppDeployConsoleListRuntimeInstancesPath = z.object({
     appInstanceId: z.string()
@@ -1786,9 +1786,9 @@ export const zEnterpriseAppDeployConsoleListRuntimeInstancesPath = z.object({
 /**
  * OK
  */
-export const zEnterpriseAppDeployConsoleListRuntimeInstancesResponse = zDifyEnterpriseApiEnterpriseListRuntimeInstancesReply;
+export const zEnterpriseAppDeployConsoleListRuntimeInstancesResponse = zListRuntimeInstancesReply;
 
-export const zEnterpriseAppDeployConsoleCancelRuntimeDeploymentBody = zDifyEnterpriseApiEnterpriseCancelRuntimeDeploymentReq;
+export const zEnterpriseAppDeployConsoleCancelRuntimeDeploymentBody = zCancelRuntimeDeploymentReq;
 
 export const zEnterpriseAppDeployConsoleCancelRuntimeDeploymentPath = z.object({
     appInstanceId: z.string(),
@@ -1798,9 +1798,9 @@ export const zEnterpriseAppDeployConsoleCancelRuntimeDeploymentPath = z.object({
 /**
  * OK
  */
-export const zEnterpriseAppDeployConsoleCancelRuntimeDeploymentResponse = zDifyEnterpriseApiEnterpriseCancelRuntimeDeploymentReply;
+export const zEnterpriseAppDeployConsoleCancelRuntimeDeploymentResponse = zCancelRuntimeDeploymentReply;
 
-export const zEnterpriseAppDeployConsoleUndeployRuntimeInstanceBody = zDifyEnterpriseApiEnterpriseUndeployRuntimeInstanceReq;
+export const zEnterpriseAppDeployConsoleUndeployRuntimeInstanceBody = zUndeployRuntimeInstanceReq;
 
 export const zEnterpriseAppDeployConsoleUndeployRuntimeInstancePath = z.object({
     appInstanceId: z.string(),
@@ -1810,7 +1810,7 @@ export const zEnterpriseAppDeployConsoleUndeployRuntimeInstancePath = z.object({
 /**
  * OK
  */
-export const zEnterpriseAppDeployConsoleUndeployRuntimeInstanceResponse = zDifyEnterpriseApiEnterpriseUndeployRuntimeInstanceReply;
+export const zEnterpriseAppDeployConsoleUndeployRuntimeInstanceResponse = zUndeployRuntimeInstanceReply;
 
 export const zEnterpriseAppDeployConsoleGetAppInstanceSettingsPath = z.object({
     appInstanceId: z.string()
@@ -1819,27 +1819,27 @@ export const zEnterpriseAppDeployConsoleGetAppInstanceSettingsPath = z.object({
 /**
  * OK
  */
-export const zEnterpriseAppDeployConsoleGetAppInstanceSettingsResponse = zDifyEnterpriseApiEnterpriseGetAppInstanceSettingsReply;
+export const zEnterpriseAppDeployConsoleGetAppInstanceSettingsResponse = zGetAppInstanceSettingsReply;
 
 /**
  * OK
  */
-export const zEnterpriseAppDeployConsoleListDeploymentEnvironmentOptionsResponse = zDifyEnterpriseApiEnterpriseListDeploymentEnvironmentOptionsReply;
+export const zEnterpriseAppDeployConsoleListDeploymentEnvironmentOptionsResponse = zListDeploymentEnvironmentOptionsReply;
 
 /**
  * OK
  */
-export const zConsoleSsoOAuth2LoginResponse = zDifyEnterpriseApiEnterpriseOAuth2LoginReply;
+export const zConsoleSsoOAuth2LoginResponse = zOAuth2LoginReply;
 
 /**
  * OK
  */
-export const zConsoleSsoOidcLoginResponse = zDifyEnterpriseApiEnterpriseOidcReply;
+export const zConsoleSsoOidcLoginResponse = zOidcReply;
 
 /**
  * OK
  */
-export const zConsoleSsoSamlLoginResponse = zDifyEnterpriseApiEnterpriseSamlLoginReply;
+export const zConsoleSsoSamlLoginResponse = zSamlLoginReply;
 
 export const zWebAppAuthGetWebAppAccessModeQuery = z.object({
     appId: z.string().optional()
@@ -1848,14 +1848,14 @@ export const zWebAppAuthGetWebAppAccessModeQuery = z.object({
 /**
  * OK
  */
-export const zWebAppAuthGetWebAppAccessModeResponse = zDifyEnterpriseApiEnterpriseGetWebAppAccessModeRes;
+export const zWebAppAuthGetWebAppAccessModeResponse = zGetWebAppAccessModeRes;
 
-export const zWebAppAuthUpdateWebAppWhitelistSubjectsBody = zDifyEnterpriseApiEnterpriseUpdateWebAppWhitelistSubjectsReq;
+export const zWebAppAuthUpdateWebAppWhitelistSubjectsBody = zUpdateWebAppWhitelistSubjectsReq;
 
 /**
  * OK
  */
-export const zWebAppAuthUpdateWebAppWhitelistSubjectsResponse = zDifyEnterpriseApiEnterpriseUpdateWebAppWhitelistSubjectsRes;
+export const zWebAppAuthUpdateWebAppWhitelistSubjectsResponse = zUpdateWebAppWhitelistSubjectsRes;
 
 export const zWebAppAuthSearchForWhilteListCandidatesQuery = z.object({
     keyword: z.string().optional(),
@@ -1867,7 +1867,7 @@ export const zWebAppAuthSearchForWhilteListCandidatesQuery = z.object({
 /**
  * OK
  */
-export const zWebAppAuthSearchForWhilteListCandidatesResponse = zDifyEnterpriseApiEnterpriseSearchForWhilteListCandidatesRes;
+export const zWebAppAuthSearchForWhilteListCandidatesResponse = zSearchForWhilteListCandidatesRes;
 
 export const zWebAppAuthGetWebAppWhitelistSubjectsQuery = z.object({
     appId: z.string().optional()
@@ -1876,7 +1876,7 @@ export const zWebAppAuthGetWebAppWhitelistSubjectsQuery = z.object({
 /**
  * OK
  */
-export const zWebAppAuthGetWebAppWhitelistSubjectsResponse = zDifyEnterpriseApiEnterpriseGetWebAppWhitelistSubjectsRes;
+export const zWebAppAuthGetWebAppWhitelistSubjectsResponse = zGetWebAppWhitelistSubjectsRes;
 
 export const zWebAppAuthGetGroupSubjectsQuery = z.object({
     groupId: z.string().optional()
@@ -1885,7 +1885,7 @@ export const zWebAppAuthGetGroupSubjectsQuery = z.object({
 /**
  * OK
  */
-export const zWebAppAuthGetGroupSubjectsResponse = zDifyEnterpriseApiEnterpriseGetGroupSubjectsRes;
+export const zWebAppAuthGetGroupSubjectsResponse = zGetGroupSubjectsRes;
 
 export const zWebAppAuthIsUserAllowedToAccessWebAppQuery = z.object({
     appId: z.string().optional()
@@ -1894,7 +1894,7 @@ export const zWebAppAuthIsUserAllowedToAccessWebAppQuery = z.object({
 /**
  * OK
  */
-export const zWebAppAuthIsUserAllowedToAccessWebAppResponse = zDifyEnterpriseApiEnterpriseIsUserAllowedToAccessWebAppRes;
+export const zWebAppAuthIsUserAllowedToAccessWebAppResponse = zIsUserAllowedToAccessWebAppRes;
 
 export const zEnterpriseSsoSsoSettingsQuery = z.object({
     appid: z.string().optional(),
@@ -1904,19 +1904,19 @@ export const zEnterpriseSsoSsoSettingsQuery = z.object({
 /**
  * OK
  */
-export const zEnterpriseSsoSsoSettingsResponse = zDifyEnterpriseApiEnterpriseSsoSettingsReply;
+export const zEnterpriseSsoSsoSettingsResponse = zSsoSettingsReply;
 
-export const zEnterpriseWorkspaceInnerTryAddAccountToDefaultWorkspaceBody = zDifyEnterpriseApiEnterpriseInnerTryAddAccountToDefaultWorkspaceReq;
-
-/**
- * OK
- */
-export const zEnterpriseWorkspaceInnerTryAddAccountToDefaultWorkspaceResponse = zDifyEnterpriseApiEnterpriseInnerTryAddAccountToDefaultWorkspaceReply;
+export const zEnterpriseWorkspaceInnerTryAddAccountToDefaultWorkspaceBody = zInnerTryAddAccountToDefaultWorkspaceReq;
 
 /**
  * OK
  */
-export const zEnterpriseSsoInfoResponse = zDifyEnterpriseApiEnterpriseInfoConfigReply;
+export const zEnterpriseWorkspaceInnerTryAddAccountToDefaultWorkspaceResponse = zInnerTryAddAccountToDefaultWorkspaceReply;
+
+/**
+ * OK
+ */
+export const zEnterpriseSsoInfoResponse = zInfoConfigReply;
 
 /**
  * OK
@@ -1928,19 +1928,19 @@ export const zEnterpriseSsoInnerGetAppSsoLastUpdateTimeResponse = z.iso.datetime
  */
 export const zEnterpriseSsoInnerGetWorkspaceSsoLastUpdateTimeResponse = z.iso.datetime();
 
-export const zWebAppAuthInnerUpdateAccessModeBody = zDifyEnterpriseApiEnterpriseUpdateAccessModeReq;
+export const zWebAppAuthInnerUpdateAccessModeBody = zUpdateAccessModeReq;
 
 /**
  * OK
  */
-export const zWebAppAuthInnerUpdateAccessModeResponse = zDifyEnterpriseApiEnterpriseUpdateAccessModeRes;
+export const zWebAppAuthInnerUpdateAccessModeResponse = zUpdateAccessModeRes;
 
-export const zWebAppAuthInnerBatchGetWebAppAccessModesByIdBody = zDifyEnterpriseApiEnterpriseInnerBatchGetWebAppAccessModesByIdReq;
+export const zWebAppAuthInnerBatchGetWebAppAccessModesByIdBody = zInnerBatchGetWebAppAccessModesByIdReq;
 
 /**
  * OK
  */
-export const zWebAppAuthInnerBatchGetWebAppAccessModesByIdResponse = zDifyEnterpriseApiEnterpriseInnerBatchGetWebAppAccessModesByIdRes;
+export const zWebAppAuthInnerBatchGetWebAppAccessModesByIdResponse = zInnerBatchGetWebAppAccessModesByIdRes;
 
 export const zWebAppAuthInnerGetWebAppAccessModeByCodeQuery = z.object({
     appCode: z.string().optional()
@@ -1949,7 +1949,7 @@ export const zWebAppAuthInnerGetWebAppAccessModeByCodeQuery = z.object({
 /**
  * OK
  */
-export const zWebAppAuthInnerGetWebAppAccessModeByCodeResponse = zDifyEnterpriseApiEnterpriseInnerGetWebAppAccessModeByCodeRes;
+export const zWebAppAuthInnerGetWebAppAccessModeByCodeResponse = zInnerGetWebAppAccessModeByCodeRes;
 
 export const zWebAppAuthInnerGetWebAppAccessModeByIdQuery = z.object({
     appId: z.string().optional()
@@ -1958,7 +1958,7 @@ export const zWebAppAuthInnerGetWebAppAccessModeByIdQuery = z.object({
 /**
  * OK
  */
-export const zWebAppAuthInnerGetWebAppAccessModeByIdResponse = zDifyEnterpriseApiEnterpriseInnerGetWebAppAccessModeByIdRes;
+export const zWebAppAuthInnerGetWebAppAccessModeByIdResponse = zInnerGetWebAppAccessModeByIdRes;
 
 export const zWebAppAuthInnerCleanAppQuery = z.object({
     appId: z.string().optional()
@@ -1967,7 +1967,7 @@ export const zWebAppAuthInnerCleanAppQuery = z.object({
 /**
  * OK
  */
-export const zWebAppAuthInnerCleanAppResponse = zDifyEnterpriseApiEnterpriseInnerCleanAppRes;
+export const zWebAppAuthInnerCleanAppResponse = zInnerCleanAppRes;
 
 export const zWebAppAuthInnerIsUserAllowedToAccessWebAppQuery = z.object({
     appId: z.string().optional(),
@@ -1977,14 +1977,14 @@ export const zWebAppAuthInnerIsUserAllowedToAccessWebAppQuery = z.object({
 /**
  * OK
  */
-export const zWebAppAuthInnerIsUserAllowedToAccessWebAppResponse = zDifyEnterpriseApiEnterpriseInnerIsUserAllowedToAccessWebAppRes;
+export const zWebAppAuthInnerIsUserAllowedToAccessWebAppResponse = zInnerIsUserAllowedToAccessWebAppRes;
 
-export const zWebAppAuthInnerBatchIsUserAllowedToAccessWebAppBody = zDifyEnterpriseApiEnterpriseInnerBatchIsUserAllowedToAccessWebAppReq;
+export const zWebAppAuthInnerBatchIsUserAllowedToAccessWebAppBody = zInnerBatchIsUserAllowedToAccessWebAppReq;
 
 /**
  * OK
  */
-export const zWebAppAuthInnerBatchIsUserAllowedToAccessWebAppResponse = zDifyEnterpriseApiEnterpriseInnerBatchIsUserAllowedToAccessWebAppRes;
+export const zWebAppAuthInnerBatchIsUserAllowedToAccessWebAppResponse = zInnerBatchIsUserAllowedToAccessWebAppRes;
 
 export const zEnterpriseSsoWorkspaceInfoPath = z.object({
     workspaceId: z.string()
@@ -1993,7 +1993,7 @@ export const zEnterpriseSsoWorkspaceInfoPath = z.object({
 /**
  * OK
  */
-export const zEnterpriseSsoWorkspaceInfoResponse = zDifyEnterpriseApiEnterpriseWorkspaceInfoReply;
+export const zEnterpriseSsoWorkspaceInfoResponse = zWorkspaceInfoReply;
 
 export const zEnterpriseWorkspaceInnerGetWorkspacePermissionPath = z.object({
     id: z.string()
@@ -2002,28 +2002,28 @@ export const zEnterpriseWorkspaceInnerGetWorkspacePermissionPath = z.object({
 /**
  * OK
  */
-export const zEnterpriseWorkspaceInnerGetWorkspacePermissionResponse = zDifyEnterpriseApiEnterpriseGetWorkspacePermissionReply;
+export const zEnterpriseWorkspaceInnerGetWorkspacePermissionResponse = zGetWorkspacePermissionReply;
 
-export const zAppRunnerControlExchangeControlTokenBody = zDifyEnterpriseApiEnterpriseAppRunnerTokenExchangeRequest;
-
-/**
- * OK
- */
-export const zAppRunnerControlExchangeControlTokenResponse = zDifyEnterpriseApiEnterpriseAppRunnerTokenExchangeReply;
-
-export const zAppRunnerControlBootstrapRunnerBody = zDifyEnterpriseApiEnterpriseAppRunnerBootstrapRequest;
+export const zAppRunnerControlExchangeControlTokenBody = zAppRunnerTokenExchangeRequest;
 
 /**
  * OK
  */
-export const zAppRunnerControlBootstrapRunnerResponse = zDifyEnterpriseApiEnterpriseAppRunnerBootstrapReply;
+export const zAppRunnerControlExchangeControlTokenResponse = zAppRunnerTokenExchangeReply;
 
-export const zAppRunnerControlBatchResolveRuntimeArtifactsBody = zDifyEnterpriseApiEnterpriseAppRunnerBatchRuntimeArtifactRequest;
+export const zAppRunnerControlBootstrapRunnerBody = zAppRunnerBootstrapRequest;
 
 /**
  * OK
  */
-export const zAppRunnerControlBatchResolveRuntimeArtifactsResponse = zDifyEnterpriseApiEnterpriseAppRunnerBatchRuntimeArtifactReply;
+export const zAppRunnerControlBootstrapRunnerResponse = zAppRunnerBootstrapReply;
+
+export const zAppRunnerControlBatchResolveRuntimeArtifactsBody = zAppRunnerBatchRuntimeArtifactRequest;
+
+/**
+ * OK
+ */
+export const zAppRunnerControlBatchResolveRuntimeArtifactsResponse = zAppRunnerBatchRuntimeArtifactReply;
 
 export const zAdminSecretKeyListSecretKeysQuery = z.object({
     status: z.string().optional(),
@@ -2035,14 +2035,14 @@ export const zAdminSecretKeyListSecretKeysQuery = z.object({
 /**
  * OK
  */
-export const zAdminSecretKeyListSecretKeysResponse = zDifyEnterpriseApiEnterpriseListSecretKeysReply;
+export const zAdminSecretKeyListSecretKeysResponse = zListSecretKeysReply;
 
-export const zAdminSecretKeyCreateSecretKeyBody = zDifyEnterpriseApiEnterpriseCreateSecretKeyReq;
+export const zAdminSecretKeyCreateSecretKeyBody = zCreateSecretKeyReq;
 
 /**
  * OK
  */
-export const zAdminSecretKeyCreateSecretKeyResponse = zDifyEnterpriseApiEnterpriseCreateSecretKeyReply;
+export const zAdminSecretKeyCreateSecretKeyResponse = zCreateSecretKeyReply;
 
 export const zAdminSecretKeyDeleteSecretKeyPath = z.object({
     id: z.string()
@@ -2051,7 +2051,7 @@ export const zAdminSecretKeyDeleteSecretKeyPath = z.object({
 /**
  * OK
  */
-export const zAdminSecretKeyDeleteSecretKeyResponse = zDifyEnterpriseApiEnterpriseDeleteSecretKeyReply;
+export const zAdminSecretKeyDeleteSecretKeyResponse = zDeleteSecretKeyReply;
 
 export const zEnterpriseSsoDeleteAuthSettingsQuery = z.object({
     ssoType: z.string().optional(),
@@ -2077,51 +2077,51 @@ export const zEnterpriseSsoDeleteAuthSettingsQuery = z.object({
 /**
  * OK
  */
-export const zEnterpriseSsoDeleteAuthSettingsResponse = zDifyEnterpriseApiEnterpriseAuthSettingsReply;
+export const zEnterpriseSsoDeleteAuthSettingsResponse = zAuthSettingsReply;
 
 /**
  * OK
  */
-export const zEnterpriseSsoGetAuthSettingsResponse = zDifyEnterpriseApiEnterpriseAuthSettingsReply;
+export const zEnterpriseSsoGetAuthSettingsResponse = zAuthSettingsReply;
 
-export const zEnterpriseSsoUpdateAuthSettingsBody = zDifyEnterpriseApiEnterpriseAuthSettingsReq;
-
-/**
- * OK
- */
-export const zEnterpriseSsoUpdateAuthSettingsResponse = zDifyEnterpriseApiEnterpriseAuthSettingsReply;
+export const zEnterpriseSsoUpdateAuthSettingsBody = zAuthSettingsReq;
 
 /**
  * OK
  */
-export const zEnterpriseBrandingGetBrandingInfoResponse = zDifyEnterpriseApiEnterpriseBrandingInfo;
-
-export const zEnterpriseBrandingUpdateBrandingInfoBody = zDifyEnterpriseApiEnterpriseUpdateBrandingInfoReq;
+export const zEnterpriseSsoUpdateAuthSettingsResponse = zAuthSettingsReply;
 
 /**
  * OK
  */
-export const zEnterpriseBrandingUpdateBrandingInfoResponse = zDifyEnterpriseApiEnterpriseBrandingInfo;
+export const zEnterpriseBrandingGetBrandingInfoResponse = zBrandingInfo;
+
+export const zEnterpriseBrandingUpdateBrandingInfoBody = zUpdateBrandingInfoReq;
 
 /**
  * OK
  */
-export const zEnterpriseUserCurrentUserResponse = zDifyEnterpriseApiEnterpriseCurrentUserReply;
+export const zEnterpriseBrandingUpdateBrandingInfoResponse = zBrandingInfo;
 
 /**
  * OK
  */
-export const zEnterpriseWorkspaceClearDefaultWorkspaceResponse = zDifyEnterpriseApiEnterpriseClearDefaultWorkspaceReply;
+export const zEnterpriseUserCurrentUserResponse = zCurrentUserReply;
 
 /**
  * OK
  */
-export const zEnterpriseWorkspaceGetDefaultWorkspaceResponse = zDifyEnterpriseApiEnterpriseGetDefaultWorkspaceReply;
+export const zEnterpriseWorkspaceClearDefaultWorkspaceResponse = zClearDefaultWorkspaceReply;
 
 /**
  * OK
  */
-export const zEnterpriseSystemGetEnterpriseSystemUserSettingResponse = zDifyEnterpriseApiEnterpriseEnterpriseSystemUserSettingReply;
+export const zEnterpriseWorkspaceGetDefaultWorkspaceResponse = zGetDefaultWorkspaceReply;
+
+/**
+ * OK
+ */
+export const zEnterpriseSystemGetEnterpriseSystemUserSettingResponse = zEnterpriseSystemUserSettingReply;
 
 export const zEnterpriseEnvironmentListEnvironmentsQuery = z.object({
     name: z.string().optional(),
@@ -2134,14 +2134,14 @@ export const zEnterpriseEnvironmentListEnvironmentsQuery = z.object({
 /**
  * OK
  */
-export const zEnterpriseEnvironmentListEnvironmentsResponse = zDifyEnterpriseApiEnterpriseListEnvironmentsReply;
+export const zEnterpriseEnvironmentListEnvironmentsResponse = zListEnvironmentsReply;
 
-export const zEnterpriseEnvironmentCreateEnvironmentBody = zDifyEnterpriseApiEnterpriseCreateEnvironmentReq;
+export const zEnterpriseEnvironmentCreateEnvironmentBody = zCreateEnvironmentReq;
 
 /**
  * OK
  */
-export const zEnterpriseEnvironmentCreateEnvironmentResponse = zDifyEnterpriseApiEnterpriseCreateEnvironmentReply;
+export const zEnterpriseEnvironmentCreateEnvironmentResponse = zCreateEnvironmentReply;
 
 export const zEnterpriseEnvironmentDeleteEnvironmentPath = z.object({
     id: z.string()
@@ -2150,7 +2150,7 @@ export const zEnterpriseEnvironmentDeleteEnvironmentPath = z.object({
 /**
  * OK
  */
-export const zEnterpriseEnvironmentDeleteEnvironmentResponse = zDifyEnterpriseApiEnterpriseDeleteEnvironmentReply;
+export const zEnterpriseEnvironmentDeleteEnvironmentResponse = zDeleteEnvironmentReply;
 
 export const zEnterpriseEnvironmentGetEnvironmentPath = z.object({
     id: z.string()
@@ -2159,9 +2159,9 @@ export const zEnterpriseEnvironmentGetEnvironmentPath = z.object({
 /**
  * OK
  */
-export const zEnterpriseEnvironmentGetEnvironmentResponse = zDifyEnterpriseApiEnterpriseGetEnvironmentReply;
+export const zEnterpriseEnvironmentGetEnvironmentResponse = zGetEnvironmentReply;
 
-export const zEnterpriseEnvironmentUpdateEnvironmentBody = zDifyEnterpriseApiEnterpriseUpdateEnvironmentReq;
+export const zEnterpriseEnvironmentUpdateEnvironmentBody = zUpdateEnvironmentReq;
 
 export const zEnterpriseEnvironmentUpdateEnvironmentPath = z.object({
     id: z.string()
@@ -2170,9 +2170,9 @@ export const zEnterpriseEnvironmentUpdateEnvironmentPath = z.object({
 /**
  * OK
  */
-export const zEnterpriseEnvironmentUpdateEnvironmentResponse = zDifyEnterpriseApiEnterpriseUpdateEnvironmentReply;
+export const zEnterpriseEnvironmentUpdateEnvironmentResponse = zUpdateEnvironmentReply;
 
-export const zEnterpriseEnvironmentRetryEnvironmentBody = zDifyEnterpriseApiEnterpriseRetryEnvironmentReq;
+export const zEnterpriseEnvironmentRetryEnvironmentBody = zRetryEnvironmentReq;
 
 export const zEnterpriseEnvironmentRetryEnvironmentPath = z.object({
     id: z.string()
@@ -2181,9 +2181,9 @@ export const zEnterpriseEnvironmentRetryEnvironmentPath = z.object({
 /**
  * OK
  */
-export const zEnterpriseEnvironmentRetryEnvironmentResponse = zDifyEnterpriseApiEnterpriseRetryEnvironmentReply;
+export const zEnterpriseEnvironmentRetryEnvironmentResponse = zRetryEnvironmentReply;
 
-export const zEnterpriseEnvironmentTestEnvironmentConnectionBody = zDifyEnterpriseApiEnterpriseTestEnvironmentConnectionReq;
+export const zEnterpriseEnvironmentTestEnvironmentConnectionBody = zTestEnvironmentConnectionReq;
 
 export const zEnterpriseEnvironmentTestEnvironmentConnectionPath = z.object({
     id: z.string()
@@ -2192,48 +2192,48 @@ export const zEnterpriseEnvironmentTestEnvironmentConnectionPath = z.object({
 /**
  * OK
  */
-export const zEnterpriseEnvironmentTestEnvironmentConnectionResponse = zDifyEnterpriseApiEnterpriseTestEnvironmentConnectionReply;
+export const zEnterpriseEnvironmentTestEnvironmentConnectionResponse = zTestEnvironmentConnectionReply;
 
 /**
  * OK
  */
-export const zLicenseGetLicenseResponse = zDifyEnterpriseApiEnterpriseGetLicenseReply;
+export const zLicenseGetLicenseResponse = zGetLicenseReply;
 
-export const zLicenseUpdateLicenseBody = zDifyEnterpriseApiEnterpriseUpdateLicenseReq;
-
-/**
- * OK
- */
-export const zLicenseUpdateLicenseResponse = zDifyEnterpriseApiEnterpriseUpdateLicenseReply;
+export const zLicenseUpdateLicenseBody = zUpdateLicenseReq;
 
 /**
  * OK
  */
-export const zLicenseGetClusterInfoResponse = zDifyEnterpriseApiEnterpriseGetClusterInfoReply;
-
-export const zLicenseUpdateOfflineLicenseBody = zDifyEnterpriseApiEnterpriseUpdateOfflineLicenseReq;
+export const zLicenseUpdateLicenseResponse = zUpdateLicenseReply;
 
 /**
  * OK
  */
-export const zLicenseUpdateOfflineLicenseResponse = zDifyEnterpriseApiEnterpriseUpdateOfflineLicenseReply;
+export const zLicenseGetClusterInfoResponse = zGetClusterInfoReply;
+
+export const zLicenseUpdateOfflineLicenseBody = zUpdateOfflineLicenseReq;
 
 /**
  * OK
  */
-export const zLicenseGetLicenseStatusResponse = zDifyEnterpriseApiEnterpriseGetLicenseStatusReply;
+export const zLicenseUpdateOfflineLicenseResponse = zUpdateOfflineLicenseReply;
 
 /**
  * OK
  */
-export const zEnterpriseSsoGetLoginTypesResponse = zDifyEnterpriseApiEnterpriseLoginTypesReply;
-
-export const zEnterpriseSsoUpdateLoginTypesBody = zDifyEnterpriseApiEnterpriseLoginTypesReq;
+export const zLicenseGetLicenseStatusResponse = zGetLicenseStatusReply;
 
 /**
  * OK
  */
-export const zEnterpriseSsoUpdateLoginTypesResponse = zDifyEnterpriseApiEnterpriseLoginTypesReply;
+export const zEnterpriseSsoGetLoginTypesResponse = zLoginTypesReply;
+
+export const zEnterpriseSsoUpdateLoginTypesBody = zLoginTypesReq;
+
+/**
+ * OK
+ */
+export const zEnterpriseSsoUpdateLoginTypesResponse = zLoginTypesReply;
 
 export const zEnterpriseMemberListMembersQuery = z.object({
     email: z.string().optional(),
@@ -2248,14 +2248,14 @@ export const zEnterpriseMemberListMembersQuery = z.object({
 /**
  * OK
  */
-export const zEnterpriseMemberListMembersResponse = zDifyEnterpriseApiEnterpriseListMembersReply;
+export const zEnterpriseMemberListMembersResponse = zListMembersReply;
 
-export const zEnterpriseMemberCreateMemberBody = zDifyEnterpriseApiEnterpriseCreateMemberReq;
+export const zEnterpriseMemberCreateMemberBody = zCreateMemberReq;
 
 /**
  * OK
  */
-export const zEnterpriseMemberCreateMemberResponse = zDifyEnterpriseApiEnterpriseCreateMemberReply;
+export const zEnterpriseMemberCreateMemberResponse = zCreateMemberReply;
 
 export const zEnterpriseMemberDeleteMemberPath = z.object({
     id: z.string()
@@ -2264,7 +2264,7 @@ export const zEnterpriseMemberDeleteMemberPath = z.object({
 /**
  * OK
  */
-export const zEnterpriseMemberDeleteMemberResponse = zDifyEnterpriseApiEnterpriseDeleteMemberReply;
+export const zEnterpriseMemberDeleteMemberResponse = zDeleteMemberReply;
 
 export const zEnterpriseMemberGetMemberPath = z.object({
     id: z.string()
@@ -2273,9 +2273,9 @@ export const zEnterpriseMemberGetMemberPath = z.object({
 /**
  * OK
  */
-export const zEnterpriseMemberGetMemberResponse = zDifyEnterpriseApiEnterpriseGetMemberReply;
+export const zEnterpriseMemberGetMemberResponse = zGetMemberReply;
 
-export const zEnterpriseMemberUpdateMemberBody = zDifyEnterpriseApiEnterpriseUpdateMemberReq;
+export const zEnterpriseMemberUpdateMemberBody = zUpdateMemberReq;
 
 export const zEnterpriseMemberUpdateMemberPath = z.object({
     id: z.string()
@@ -2284,9 +2284,9 @@ export const zEnterpriseMemberUpdateMemberPath = z.object({
 /**
  * OK
  */
-export const zEnterpriseMemberUpdateMemberResponse = zDifyEnterpriseApiEnterpriseUpdateMemberReply;
+export const zEnterpriseMemberUpdateMemberResponse = zUpdateMemberReply;
 
-export const zEnterpriseMemberResetMemberPasswordBody = zDifyEnterpriseApiEnterpriseResetMemberPasswordReq;
+export const zEnterpriseMemberResetMemberPasswordBody = zResetMemberPasswordReq;
 
 export const zEnterpriseMemberResetMemberPasswordPath = z.object({
     id: z.string()
@@ -2295,202 +2295,202 @@ export const zEnterpriseMemberResetMemberPasswordPath = z.object({
 /**
  * OK
  */
-export const zEnterpriseMemberResetMemberPasswordResponse = zDifyEnterpriseApiEnterpriseResetMemberPasswordReply;
+export const zEnterpriseMemberResetMemberPasswordResponse = zResetMemberPasswordReply;
 
 /**
  * OK
  */
-export const zEnterpriseMfaMfaUnenrollResponse = zDifyEnterpriseApiEnterpriseMfaDeleteRes;
+export const zEnterpriseMfaMfaUnenrollResponse = zMfaDeleteRes;
 
-export const zEnterpriseMfaMfaModifyBody = zDifyEnterpriseApiEnterpriseMfaEnrollReq;
-
-/**
- * OK
- */
-export const zEnterpriseMfaMfaModifyResponse = zDifyEnterpriseApiEnterpriseMfaModifyRes;
+export const zEnterpriseMfaMfaModifyBody = zMfaEnrollReq;
 
 /**
  * OK
  */
-export const zEnterpriseMfaMfaDeleteBackupCodesResponse = zDifyEnterpriseApiEnterpriseMfaDeleteBackupCodesRes;
+export const zEnterpriseMfaMfaModifyResponse = zMfaModifyRes;
 
 /**
  * OK
  */
-export const zEnterpriseMfaMfaGetBackupCodesResponse = zDifyEnterpriseApiEnterpriseMfaBackupCodesRes;
+export const zEnterpriseMfaMfaDeleteBackupCodesResponse = zMfaDeleteBackupCodesRes;
 
 /**
  * OK
  */
-export const zEnterpriseMfaMfaGetNewBackupCodesResponse = zDifyEnterpriseApiEnterpriseMfaBackupCodesRes;
+export const zEnterpriseMfaMfaGetBackupCodesResponse = zMfaBackupCodesRes;
 
 /**
  * OK
  */
-export const zEnterpriseMfaMfaDownloadBackupCodesSummaryResponse = zDifyEnterpriseApiEnterpriseMfaDownloadBackupCodesSummaryRes;
-
-export const zEnterpriseMfaUpdateMfaStatusGlobalBody = zDifyEnterpriseApiEnterpriseUpdateMfaStatusReq;
+export const zEnterpriseMfaMfaGetNewBackupCodesResponse = zMfaBackupCodesRes;
 
 /**
  * OK
  */
-export const zEnterpriseMfaUpdateMfaStatusGlobalResponse = zDifyEnterpriseApiEnterpriseUpdateMfaStatusRes;
+export const zEnterpriseMfaMfaDownloadBackupCodesSummaryResponse = zMfaDownloadBackupCodesSummaryRes;
 
-export const zEnterpriseMfaUpdateMfaStatusUserBody = zDifyEnterpriseApiEnterpriseUpdateMfaStatusReq;
-
-/**
- * OK
- */
-export const zEnterpriseMfaUpdateMfaStatusUserResponse = zDifyEnterpriseApiEnterpriseUpdateMfaStatusRes;
+export const zEnterpriseMfaUpdateMfaStatusGlobalBody = zUpdateMfaStatusReq;
 
 /**
  * OK
  */
-export const zEnterpriseMfaGetMfaEnrollInfoResponse = zDifyEnterpriseApiEnterpriseMfaGetEnrollInfoRes;
+export const zEnterpriseMfaUpdateMfaStatusGlobalResponse = zUpdateMfaStatusRes;
 
-export const zEnterpriseMfaMfaEnrollBody = zDifyEnterpriseApiEnterpriseMfaEnrollReq;
-
-/**
- * OK
- */
-export const zEnterpriseMfaMfaEnrollResponse = zDifyEnterpriseApiEnterpriseMfaEnrollRes;
+export const zEnterpriseMfaUpdateMfaStatusUserBody = zUpdateMfaStatusReq;
 
 /**
  * OK
  */
-export const zEnterpriseMfaGetMfaInfoResponse = zDifyEnterpriseApiEnterpriseGetMfaInfoReply;
+export const zEnterpriseMfaUpdateMfaStatusUserResponse = zUpdateMfaStatusRes;
 
 /**
  * OK
  */
-export const zOtelExporterServiceGetOtelExporterEndpointResponse = zDifyEnterpriseApiEnterpriseEndpointReply;
+export const zEnterpriseMfaGetMfaEnrollInfoResponse = zMfaGetEnrollInfoRes;
 
-export const zOtelExporterServiceUpdateAllEndpointsBody = zDifyEnterpriseApiEnterpriseOtelExporterEndpoint;
-
-export const zOtelExporterServiceToggleAllEndpointsBody = zDifyEnterpriseApiEnterpriseToggleEndpointRequest;
+export const zEnterpriseMfaMfaEnrollBody = zMfaEnrollReq;
 
 /**
  * OK
  */
-export const zOtelExporterServiceGetMetricExporterStatusResponse = zDifyEnterpriseApiEnterpriseOtelExporterStatusReply;
-
-export const zOtelExporterServiceUpdateMetricsEndpointBody = zDifyEnterpriseApiEnterpriseOtelExporterEndpoint;
-
-export const zOtelExporterServiceToggleMetricsEndpointBody = zDifyEnterpriseApiEnterpriseToggleEndpointRequest;
+export const zEnterpriseMfaMfaEnrollResponse = zMfaEnrollRes;
 
 /**
  * OK
  */
-export const zOtelExporterServiceGetOtelExporterStatusResponse = zDifyEnterpriseApiEnterpriseOtelExporterStatusReply;
-
-export const zOtelExporterServiceTestConnectionBody = zDifyEnterpriseApiEnterpriseOtelExporterEndpoint;
+export const zEnterpriseMfaGetMfaInfoResponse = zGetMfaInfoReply;
 
 /**
  * OK
  */
-export const zOtelExporterServiceTestConnectionResponse = zDifyEnterpriseApiEnterpriseTestConnectionReply;
+export const zOtelExporterServiceGetOtelExporterEndpointResponse = zEndpointReply;
 
-export const zOtelExporterServiceTestConnectionForMetricsBody = zDifyEnterpriseApiEnterpriseOtelExporterEndpoint;
+export const zOtelExporterServiceUpdateAllEndpointsBody = zOtelExporterEndpoint;
 
-/**
- * OK
- */
-export const zOtelExporterServiceTestConnectionForMetricsResponse = zDifyEnterpriseApiEnterpriseTestConnectionReply;
-
-export const zOtelExporterServiceTestConnectionForTracesBody = zDifyEnterpriseApiEnterpriseOtelExporterEndpoint;
+export const zOtelExporterServiceToggleAllEndpointsBody = zToggleEndpointRequest;
 
 /**
  * OK
  */
-export const zOtelExporterServiceTestConnectionForTracesResponse = zDifyEnterpriseApiEnterpriseTestConnectionReply;
+export const zOtelExporterServiceGetMetricExporterStatusResponse = zOtelExporterStatusReply;
+
+export const zOtelExporterServiceUpdateMetricsEndpointBody = zOtelExporterEndpoint;
+
+export const zOtelExporterServiceToggleMetricsEndpointBody = zToggleEndpointRequest;
 
 /**
  * OK
  */
-export const zOtelExporterServiceGetTraceExporterStatusResponse = zDifyEnterpriseApiEnterpriseOtelExporterStatusReply;
+export const zOtelExporterServiceGetOtelExporterStatusResponse = zOtelExporterStatusReply;
 
-export const zOtelExporterServiceUpdateTracesEndpointBody = zDifyEnterpriseApiEnterpriseOtelExporterEndpoint;
-
-export const zOtelExporterServiceToggleTracesEndpointBody = zDifyEnterpriseApiEnterpriseToggleEndpointRequest;
+export const zOtelExporterServiceTestConnectionBody = zOtelExporterEndpoint;
 
 /**
  * OK
  */
-export const zEnterprisePasswordPolicyGetPasswordPolicyResponse = zDifyEnterpriseApiEnterprisePasswordPolicyConfig;
+export const zOtelExporterServiceTestConnectionResponse = zTestConnectionReply;
 
-export const zEnterprisePasswordPolicyUpdatePasswordPolicyBody = zDifyEnterpriseApiEnterprisePasswordPolicyConfig;
-
-/**
- * OK
- */
-export const zEnterprisePasswordPolicyUpdatePasswordPolicyResponse = zDifyEnterpriseApiEnterprisePasswordPolicyConfig;
+export const zOtelExporterServiceTestConnectionForMetricsBody = zOtelExporterEndpoint;
 
 /**
  * OK
  */
-export const zEnterpriseUserCheckPasswordStatusResponse = zDifyEnterpriseApiEnterpriseCheckPasswordStatusReply;
+export const zOtelExporterServiceTestConnectionForMetricsResponse = zTestConnectionReply;
 
-export const zEnterprisePasswordPolicyGetPasswordStrengthBody = zDifyEnterpriseApiEnterprisePasswordStrengthReq;
-
-/**
- * OK
- */
-export const zEnterprisePasswordPolicyGetPasswordStrengthResponse = zDifyEnterpriseApiEnterprisePasswordStrengthReply;
+export const zOtelExporterServiceTestConnectionForTracesBody = zOtelExporterEndpoint;
 
 /**
  * OK
  */
-export const zPluginGetPluginInstallationSettingsResponse = zDifyEnterpriseApiEnterprisePluginInstallationSettingsReply;
-
-export const zPluginUpdatePluginInstallationSettingsBody = zDifyEnterpriseApiEnterpriseUpdatePluginInstallationSettingsRequest;
+export const zOtelExporterServiceTestConnectionForTracesResponse = zTestConnectionReply;
 
 /**
  * OK
  */
-export const zPluginUpdatePluginInstallationSettingsResponse = zDifyEnterpriseApiEnterprisePluginInstallationSettingsReply;
+export const zOtelExporterServiceGetTraceExporterStatusResponse = zOtelExporterStatusReply;
 
-export const zEnterpriseUserResetPasswordBody = zDifyEnterpriseApiEnterpriseResetPasswordReq;
+export const zOtelExporterServiceUpdateTracesEndpointBody = zOtelExporterEndpoint;
 
-/**
- * OK
- */
-export const zEnterpriseUserResetPasswordResponse = zDifyEnterpriseApiEnterpriseResetPasswordReply;
+export const zOtelExporterServiceToggleTracesEndpointBody = zToggleEndpointRequest;
 
 /**
  * OK
  */
-export const zScimProvisioningGetSettingsResponse = zDifyEnterpriseApiEnterpriseScimSettings;
+export const zEnterprisePasswordPolicyGetPasswordPolicyResponse = zPasswordPolicyConfig;
 
-export const zScimProvisioningUpdateSettingsBody = zDifyEnterpriseApiEnterpriseScimSettings;
-
-/**
- * OK
- */
-export const zScimProvisioningUpdateSettingsResponse = zDifyEnterpriseApiEnterpriseScimSettings;
+export const zEnterprisePasswordPolicyUpdatePasswordPolicyBody = zPasswordPolicyConfig;
 
 /**
  * OK
  */
-export const zScimProvisioningGetBearerTokenResponse = zDifyEnterpriseApiEnterpriseGetBearerTokenResponse;
+export const zEnterprisePasswordPolicyUpdatePasswordPolicyResponse = zPasswordPolicyConfig;
+
+/**
+ * OK
+ */
+export const zEnterpriseUserCheckPasswordStatusResponse = zCheckPasswordStatusReply;
+
+export const zEnterprisePasswordPolicyGetPasswordStrengthBody = zPasswordStrengthReq;
+
+/**
+ * OK
+ */
+export const zEnterprisePasswordPolicyGetPasswordStrengthResponse = zPasswordStrengthReply;
+
+/**
+ * OK
+ */
+export const zPluginGetPluginInstallationSettingsResponse = zPluginInstallationSettingsReply;
+
+export const zPluginUpdatePluginInstallationSettingsBody = zUpdatePluginInstallationSettingsRequest;
+
+/**
+ * OK
+ */
+export const zPluginUpdatePluginInstallationSettingsResponse = zPluginInstallationSettingsReply;
+
+export const zEnterpriseUserResetPasswordBody = zResetPasswordReq;
+
+/**
+ * OK
+ */
+export const zEnterpriseUserResetPasswordResponse = zResetPasswordReply;
+
+/**
+ * OK
+ */
+export const zScimProvisioningGetSettingsResponse = zScimSettings;
+
+export const zScimProvisioningUpdateSettingsBody = zScimSettings;
+
+/**
+ * OK
+ */
+export const zScimProvisioningUpdateSettingsResponse = zScimSettings;
+
+/**
+ * OK
+ */
+export const zScimProvisioningGetBearerTokenResponse = zGetBearerTokenResponse;
 
 export const zScimProvisioningCreateBearerTokenBody = z.unknown();
 
 /**
  * OK
  */
-export const zScimProvisioningCreateBearerTokenResponse = zDifyEnterpriseApiEnterpriseCreateBearerTokenResponse;
+export const zScimProvisioningCreateBearerTokenResponse = zCreateBearerTokenResponse;
 
 /**
  * OK
  */
-export const zEnterpriseSsoGetSystemUserSettingResponse = zDifyEnterpriseApiEnterpriseSystemUserSettingReply;
+export const zEnterpriseSsoGetSystemUserSettingResponse = zSystemUserSettingReply;
 
-export const zEnterpriseSsoUpdateSystemUserSettingBody = zDifyEnterpriseApiEnterpriseSystemUserSettingReq;
+export const zEnterpriseSsoUpdateSystemUserSettingBody = zSystemUserSettingReq;
 
 /**
  * OK
  */
-export const zEnterpriseSsoUpdateSystemUserSettingResponse = zDifyEnterpriseApiEnterpriseSystemUserSettingReply;
+export const zEnterpriseSsoUpdateSystemUserSettingResponse = zSystemUserSettingReply;
 
 export const zEnterpriseUserListUsersQuery = z.object({
     email: z.string().optional(),
@@ -2503,14 +2503,14 @@ export const zEnterpriseUserListUsersQuery = z.object({
 /**
  * OK
  */
-export const zEnterpriseUserListUsersResponse = zDifyEnterpriseApiEnterpriseListUsersReply;
+export const zEnterpriseUserListUsersResponse = zListUsersReply;
 
-export const zEnterpriseUserCreateUserBody = zDifyEnterpriseApiEnterpriseCreateUserReq;
+export const zEnterpriseUserCreateUserBody = zCreateUserReq;
 
 /**
  * OK
  */
-export const zEnterpriseUserCreateUserResponse = zDifyEnterpriseApiEnterpriseCreateUserReply;
+export const zEnterpriseUserCreateUserResponse = zCreateUserReply;
 
 export const zEnterpriseUserDeleteUserPath = z.object({
     id: z.string()
@@ -2519,7 +2519,7 @@ export const zEnterpriseUserDeleteUserPath = z.object({
 /**
  * OK
  */
-export const zEnterpriseUserDeleteUserResponse = zDifyEnterpriseApiEnterpriseDeleteUserReply;
+export const zEnterpriseUserDeleteUserResponse = zDeleteUserReply;
 
 export const zEnterpriseUserGetUserPath = z.object({
     id: z.string()
@@ -2528,9 +2528,9 @@ export const zEnterpriseUserGetUserPath = z.object({
 /**
  * OK
  */
-export const zEnterpriseUserGetUserResponse = zDifyEnterpriseApiEnterpriseGetUserReply;
+export const zEnterpriseUserGetUserResponse = zGetUserReply;
 
-export const zEnterpriseUserUpdateUserBody = zDifyEnterpriseApiEnterpriseUpdateUserReq;
+export const zEnterpriseUserUpdateUserBody = zUpdateUserReq;
 
 export const zEnterpriseUserUpdateUserPath = z.object({
     id: z.string()
@@ -2539,9 +2539,9 @@ export const zEnterpriseUserUpdateUserPath = z.object({
 /**
  * OK
  */
-export const zEnterpriseUserUpdateUserResponse = zDifyEnterpriseApiEnterpriseUpdateUserReply;
+export const zEnterpriseUserUpdateUserResponse = zUpdateUserReply;
 
-export const zEnterpriseUserResetUserPasswordBody = zDifyEnterpriseApiEnterpriseResetUserPasswordReq;
+export const zEnterpriseUserResetUserPasswordBody = zResetUserPasswordReq;
 
 export const zEnterpriseUserResetUserPasswordPath = z.object({
     id: z.string()
@@ -2550,33 +2550,33 @@ export const zEnterpriseUserResetUserPasswordPath = z.object({
 /**
  * OK
  */
-export const zEnterpriseUserResetUserPasswordResponse = zDifyEnterpriseApiEnterpriseResetUserPasswordReply;
+export const zEnterpriseUserResetUserPasswordResponse = zResetUserPasswordReply;
 
 /**
  * OK
  */
-export const zWebAppAuthGetWebAppAuthInfoResponse = zDifyEnterpriseApiEnterpriseGetWebAppAuthInfoRes;
+export const zWebAppAuthGetWebAppAuthInfoResponse = zGetWebAppAuthInfoRes;
 
-export const zWebAppAuthUpdateWebAppAuthInfoBody = zDifyEnterpriseApiEnterpriseUpdateWebAppAuthInfoReq;
-
-/**
- * OK
- */
-export const zWebAppAuthUpdateWebAppAuthInfoResponse = zDifyEnterpriseApiEnterpriseUpdateWebAppAuthInfoRes;
-
-export const zWebAppAuthUpdateMembersInGroupsBody = zDifyEnterpriseApiEnterpriseUpdateMembersInGroupsReq;
+export const zWebAppAuthUpdateWebAppAuthInfoBody = zUpdateWebAppAuthInfoReq;
 
 /**
  * OK
  */
-export const zWebAppAuthUpdateMembersInGroupsResponse = zDifyEnterpriseApiEnterpriseUpdateMembersInGroupsRes;
+export const zWebAppAuthUpdateWebAppAuthInfoResponse = zUpdateWebAppAuthInfoRes;
 
-export const zWebAppAuthUpdateGroupSubjectsBody = zDifyEnterpriseApiEnterpriseUpdateGroupSubjectsReq;
+export const zWebAppAuthUpdateMembersInGroupsBody = zUpdateMembersInGroupsReq;
 
 /**
  * OK
  */
-export const zWebAppAuthUpdateGroupSubjectsResponse = zDifyEnterpriseApiEnterpriseUpdateGroupSubjectsRes;
+export const zWebAppAuthUpdateMembersInGroupsResponse = zUpdateMembersInGroupsRes;
+
+export const zWebAppAuthUpdateGroupSubjectsBody = zUpdateGroupSubjectsReq;
+
+/**
+ * OK
+ */
+export const zWebAppAuthUpdateGroupSubjectsResponse = zUpdateGroupSubjectsRes;
 
 export const zWebAppAuthDeleteGroupsQuery = z.object({
     groupIds: z.array(z.string()).optional()
@@ -2585,26 +2585,26 @@ export const zWebAppAuthDeleteGroupsQuery = z.object({
 /**
  * OK
  */
-export const zWebAppAuthDeleteGroupsResponse = zDifyEnterpriseApiEnterpriseDeleteGroupsRes;
+export const zWebAppAuthDeleteGroupsResponse = zDeleteGroupsRes;
 
 /**
  * OK
  */
-export const zWebAppAuthGetRootGroupsResponse = zDifyEnterpriseApiEnterpriseGetGroupsRes;
+export const zWebAppAuthGetRootGroupsResponse = zGetGroupsRes;
 
-export const zWebAppAuthCreateNewGroupsBody = zDifyEnterpriseApiEnterpriseCreateNewGroupsReq;
-
-/**
- * OK
- */
-export const zWebAppAuthCreateNewGroupsResponse = zDifyEnterpriseApiEnterpriseCreateNewGroupsRes;
-
-export const zWebAppAuthUpdateGroupsBody = zDifyEnterpriseApiEnterpriseUpdateGroupsReq;
+export const zWebAppAuthCreateNewGroupsBody = zCreateNewGroupsReq;
 
 /**
  * OK
  */
-export const zWebAppAuthUpdateGroupsResponse = zDifyEnterpriseApiEnterpriseUpdateGroupsRes;
+export const zWebAppAuthCreateNewGroupsResponse = zCreateNewGroupsRes;
+
+export const zWebAppAuthUpdateGroupsBody = zUpdateGroupsReq;
+
+/**
+ * OK
+ */
+export const zWebAppAuthUpdateGroupsResponse = zUpdateGroupsRes;
 
 export const zWebAppAuthGetJoinedGroupsQuery = z.object({
     accountId: z.string().optional()
@@ -2613,14 +2613,14 @@ export const zWebAppAuthGetJoinedGroupsQuery = z.object({
 /**
  * OK
  */
-export const zWebAppAuthGetJoinedGroupsResponse = zDifyEnterpriseApiEnterpriseGetJoinedGroupsRes;
+export const zWebAppAuthGetJoinedGroupsResponse = zGetJoinedGroupsRes;
 
-export const zWebAppAuthUpdateJoinedGroupsBody = zDifyEnterpriseApiEnterpriseUpdateJoinedGroupsReq;
+export const zWebAppAuthUpdateJoinedGroupsBody = zUpdateJoinedGroupsReq;
 
 /**
  * OK
  */
-export const zWebAppAuthUpdateJoinedGroupsResponse = zDifyEnterpriseApiEnterpriseUpdateJoinedGroupsRes;
+export const zWebAppAuthUpdateJoinedGroupsResponse = zUpdateJoinedGroupsRes;
 
 export const zEnterpriseWorkspaceListWorkSpacesQuery = z.object({
     name: z.string().optional(),
@@ -2634,14 +2634,14 @@ export const zEnterpriseWorkspaceListWorkSpacesQuery = z.object({
 /**
  * OK
  */
-export const zEnterpriseWorkspaceListWorkSpacesResponse = zDifyEnterpriseApiEnterpriseListWorkspacesReply;
+export const zEnterpriseWorkspaceListWorkSpacesResponse = zListWorkspacesReply;
 
-export const zEnterpriseWorkspaceCreateWorkspaceBody = zDifyEnterpriseApiEnterpriseCreateWorkspaceReq;
+export const zEnterpriseWorkspaceCreateWorkspaceBody = zCreateWorkspaceReq;
 
 /**
  * OK
  */
-export const zEnterpriseWorkspaceCreateWorkspaceResponse = zDifyEnterpriseApiEnterpriseCreateWorkspaceReply;
+export const zEnterpriseWorkspaceCreateWorkspaceResponse = zCreateWorkspaceReply;
 
 export const zEnterpriseWorkspaceDeleteWorkspacePath = z.object({
     id: z.string()
@@ -2650,7 +2650,7 @@ export const zEnterpriseWorkspaceDeleteWorkspacePath = z.object({
 /**
  * OK
  */
-export const zEnterpriseWorkspaceDeleteWorkspaceResponse = zDifyEnterpriseApiEnterpriseDeleteWorkspaceReply;
+export const zEnterpriseWorkspaceDeleteWorkspaceResponse = zDeleteWorkspaceReply;
 
 export const zEnterpriseWorkspaceGetWorkspacePath = z.object({
     id: z.string()
@@ -2659,9 +2659,9 @@ export const zEnterpriseWorkspaceGetWorkspacePath = z.object({
 /**
  * OK
  */
-export const zEnterpriseWorkspaceGetWorkspaceResponse = zDifyEnterpriseApiEnterpriseGetWorkspaceReply;
+export const zEnterpriseWorkspaceGetWorkspaceResponse = zGetWorkspaceReply;
 
-export const zEnterpriseWorkspaceUpdateWorkspaceBody = zDifyEnterpriseApiEnterpriseUpdateWorkspaceReq;
+export const zEnterpriseWorkspaceUpdateWorkspaceBody = zUpdateWorkspaceReq;
 
 export const zEnterpriseWorkspaceUpdateWorkspacePath = z.object({
     id: z.string()
@@ -2670,9 +2670,9 @@ export const zEnterpriseWorkspaceUpdateWorkspacePath = z.object({
 /**
  * OK
  */
-export const zEnterpriseWorkspaceUpdateWorkspaceResponse = zDifyEnterpriseApiEnterpriseUpdateWorkspaceReply;
+export const zEnterpriseWorkspaceUpdateWorkspaceResponse = zUpdateWorkspaceReply;
 
-export const zEnterpriseWorkspaceSetDefaultWorkspaceBody = zDifyEnterpriseApiEnterpriseSetDefaultWorkspaceReq;
+export const zEnterpriseWorkspaceSetDefaultWorkspaceBody = zSetDefaultWorkspaceReq;
 
 export const zEnterpriseWorkspaceSetDefaultWorkspacePath = z.object({
     id: z.string()
@@ -2681,9 +2681,9 @@ export const zEnterpriseWorkspaceSetDefaultWorkspacePath = z.object({
 /**
  * OK
  */
-export const zEnterpriseWorkspaceSetDefaultWorkspaceResponse = zDifyEnterpriseApiEnterpriseSetDefaultWorkspaceReply;
+export const zEnterpriseWorkspaceSetDefaultWorkspaceResponse = zSetDefaultWorkspaceReply;
 
-export const zEnterpriseWorkspaceJoinWorkspaceBody = zDifyEnterpriseApiEnterpriseJoinWorkspaceReq;
+export const zEnterpriseWorkspaceJoinWorkspaceBody = zJoinWorkspaceReq;
 
 export const zEnterpriseWorkspaceJoinWorkspacePath = z.object({
     id: z.string()
@@ -2692,7 +2692,7 @@ export const zEnterpriseWorkspaceJoinWorkspacePath = z.object({
 /**
  * OK
  */
-export const zEnterpriseWorkspaceJoinWorkspaceResponse = zDifyEnterpriseApiEnterpriseJoinWorkspaceReply;
+export const zEnterpriseWorkspaceJoinWorkspaceResponse = zJoinWorkspaceReply;
 
 export const zEnterpriseWorkspaceGetWorkspacePermissionPath = z.object({
     id: z.string()
@@ -2701,9 +2701,9 @@ export const zEnterpriseWorkspaceGetWorkspacePermissionPath = z.object({
 /**
  * OK
  */
-export const zEnterpriseWorkspaceGetWorkspacePermissionResponse = zDifyEnterpriseApiEnterpriseGetWorkspacePermissionReply;
+export const zEnterpriseWorkspaceGetWorkspacePermissionResponse = zGetWorkspacePermissionReply;
 
-export const zEnterpriseWorkspaceUpdateWorkspacePermissionBody = zDifyEnterpriseApiEnterpriseUpdateWorkspacePermissionReq;
+export const zEnterpriseWorkspaceUpdateWorkspacePermissionBody = zUpdateWorkspacePermissionReq;
 
 export const zEnterpriseWorkspaceUpdateWorkspacePermissionPath = z.object({
     id: z.string()
@@ -2712,43 +2712,43 @@ export const zEnterpriseWorkspaceUpdateWorkspacePermissionPath = z.object({
 /**
  * OK
  */
-export const zEnterpriseWorkspaceUpdateWorkspacePermissionResponse = zDifyEnterpriseApiEnterpriseUpdateWorkspacePermissionReply;
+export const zEnterpriseWorkspaceUpdateWorkspacePermissionResponse = zUpdateWorkspacePermissionReply;
 
 /**
  * OK
  */
-export const zDashboardSsoLoginOAuth2LoginResponse = zDifyEnterpriseApiEnterpriseDashboardSsoOauth2LoginReply;
+export const zDashboardSsoLoginOAuth2LoginResponse = zDashboardSsoOauth2LoginReply;
 
 /**
  * OK
  */
-export const zDashboardSsoLoginOidcLoginResponse = zDifyEnterpriseApiEnterpriseDashboardSsooidcLoginReply;
+export const zDashboardSsoLoginOidcLoginResponse = zDashboardSsooidcLoginReply;
 
 /**
  * OK
  */
-export const zDashboardSsoLoginSamlLoginResponse = zDifyEnterpriseApiEnterpriseDashboardSsosamlLoginReply;
+export const zDashboardSsoLoginSamlLoginResponse = zDashboardSsosamlLoginReply;
 
 /**
  * OK
  */
-export const zEnterpriseTelemetryHealthzResponse = zDifyEnterpriseApiEnterpriseHealthzReply;
+export const zEnterpriseTelemetryHealthzResponse = zHealthzReply;
 
-export const zInnerApiTokenRouterInnerGetTokenRouteBody = zDifyEnterpriseApiEnterpriseInnerGetTokenRouteReq;
-
-/**
- * OK
- */
-export const zInnerApiTokenRouterInnerGetTokenRouteResponse = zDifyEnterpriseApiEnterpriseInnerGetTokenRouteReply;
-
-export const zInnerAppDeployAccessInnerCheckAppDeployAccessBody = zDifyEnterpriseApiEnterpriseInnerCheckAppDeployAccessReq;
+export const zInnerApiTokenRouterInnerGetTokenRouteBody = zInnerGetTokenRouteReq;
 
 /**
  * OK
  */
-export const zInnerAppDeployAccessInnerCheckAppDeployAccessResponse = zDifyEnterpriseApiEnterpriseInnerCheckAppDeployAccessReply;
+export const zInnerApiTokenRouterInnerGetTokenRouteResponse = zInnerGetTokenRouteReply;
 
-export const zInnerAppRunnerAckDeploymentBody = zDifyEnterpriseApiEnterpriseAckDeploymentReq;
+export const zInnerAppDeployAccessInnerCheckAppDeployAccessBody = zInnerCheckAppDeployAccessReq;
+
+/**
+ * OK
+ */
+export const zInnerAppDeployAccessInnerCheckAppDeployAccessResponse = zInnerCheckAppDeployAccessReply;
+
+export const zInnerAppRunnerAckDeploymentBody = zAckDeploymentReq;
 
 export const zInnerAppRunnerAckDeploymentPath = z.object({
     deploymentId: z.string()
@@ -2757,7 +2757,7 @@ export const zInnerAppRunnerAckDeploymentPath = z.object({
 /**
  * OK
  */
-export const zInnerAppRunnerAckDeploymentResponse = zDifyEnterpriseApiEnterpriseAckDeploymentReply;
+export const zInnerAppRunnerAckDeploymentResponse = zAckDeploymentReply;
 
 export const zInnerAppRunnerGetInstancePath = z.object({
     instanceId: z.string()
@@ -2766,9 +2766,9 @@ export const zInnerAppRunnerGetInstancePath = z.object({
 /**
  * OK
  */
-export const zInnerAppRunnerGetInstanceResponse = zDifyEnterpriseApiEnterpriseGetInstanceReply;
+export const zInnerAppRunnerGetInstanceResponse = zGetInstanceReply;
 
-export const zInnerAppRunnerResolveCredentialsBody = zDifyEnterpriseApiEnterpriseResolveCredentialsReq;
+export const zInnerAppRunnerResolveCredentialsBody = zResolveCredentialsReq;
 
 export const zInnerAppRunnerResolveCredentialsPath = z.object({
     instanceId: z.string()
@@ -2777,4 +2777,4 @@ export const zInnerAppRunnerResolveCredentialsPath = z.object({
 /**
  * OK
  */
-export const zInnerAppRunnerResolveCredentialsResponse = zDifyEnterpriseApiEnterpriseResolveCredentialsReply;
+export const zInnerAppRunnerResolveCredentialsResponse = zResolveCredentialsReply;

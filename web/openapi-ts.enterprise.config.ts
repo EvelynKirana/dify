@@ -23,6 +23,12 @@ const stripConsoleApiPrefix = (routePath: string) => {
   return routePath
 }
 
+const stripSchemaNamePrefix = (schemaName: string) => {
+  return schemaName
+    .replace(/^dify\.enterprise\.api\.enterprise\./, '')
+    .replace(/^pagination\./, '')
+}
+
 const normalizeEnterpriseOpenApi = () => {
   const openApi = yaml.load(fs.readFileSync(enterpriseOpenApiPath, 'utf8'))
 
@@ -50,6 +56,11 @@ export default defineConfig({
       '/* eslint-disable */',
       ...ctx.defaultValue,
     ],
+  },
+  parser: {
+    transforms: {
+      schemaName: stripSchemaNamePrefix,
+    },
   },
   plugins: [
     {
