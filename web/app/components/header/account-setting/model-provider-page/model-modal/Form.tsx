@@ -28,6 +28,21 @@ import { FormTypeEnum } from '../declarations'
 import { useLanguage } from '../hooks'
 import Input from './Input'
 
+const radioGridColumnsClassNames: Record<number, string> = {
+  1: 'grid-cols-1',
+  2: 'grid-cols-2',
+  3: 'grid-cols-3',
+  4: 'grid-cols-4',
+  5: 'grid-cols-5',
+  6: 'grid-cols-6',
+  7: 'grid-cols-7',
+  8: 'grid-cols-8',
+  9: 'grid-cols-9',
+  10: 'grid-cols-10',
+  11: 'grid-cols-11',
+  12: 'grid-cols-12',
+}
+
 type FormProps<
   CustomFormSchema extends Omit<CredentialFormSchema, 'type'> & { type: string } = never,
 > = {
@@ -201,6 +216,7 @@ function Form<
         return null
 
       const disabled = isEditMode && (variable === '__model_type' || variable === '__model_name')
+      const gridColumnsClassName = radioGridColumnsClassNames[options.length] ?? 'grid-cols-1'
 
       return (
         <div key={variable} className={cn(itemClassName, 'py-3')}>
@@ -211,8 +227,7 @@ function Form<
             )}
             {tooltipContent}
           </div>
-          {/* eslint-disable-next-line tailwindcss/no-unknown-classes */}
-          <div className={cn('grid gap-3', `grid-cols-${options?.length}`)}>
+          <div className={cn('grid gap-3', gridColumnsClassName)}>
             {options.filter((option) => {
               if (option.show_on.length)
                 return option.show_on.every(showOnItem => value[showOnItem.variable] === showOnItem.value)
