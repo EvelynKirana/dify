@@ -26,6 +26,7 @@ describe('InputTypeSelectField', () => {
     expect(screen.getByText('Input type')).toBeInTheDocument()
     expect(screen.getByText('appDebug.variableConfig.text-input')).toBeInTheDocument()
     expect(container.querySelector('[role="combobox"] span > div')).not.toBeInTheDocument()
+    expect(container.querySelector('[role="combobox"] > span > span')).toHaveClass('flex', 'min-w-0', 'items-center', 'gap-x-0.5')
   })
 
   it('should update value when users choose another input type', async () => {

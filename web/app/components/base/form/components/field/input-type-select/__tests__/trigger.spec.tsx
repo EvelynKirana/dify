@@ -24,4 +24,19 @@ describe('InputTypeSelect Trigger', () => {
     expect(screen.getByText('Text Input')).toBeInTheDocument()
     expect(screen.getByText('string')).toBeInTheDocument()
   })
+
+  it('should keep selected option parts in one inline flex row', () => {
+    render(
+      <Trigger
+        option={{
+          value: 'text-input',
+          label: 'Text Input',
+          Icon: MockIcon,
+          type: 'string',
+        }}
+      />,
+    )
+
+    expect(screen.getByText('Text Input').parentElement).toHaveClass('flex', 'min-w-0', 'items-center', 'gap-x-0.5')
+  })
 })
