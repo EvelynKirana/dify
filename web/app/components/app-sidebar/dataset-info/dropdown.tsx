@@ -34,6 +34,25 @@ type DropDownProps = {
   expand: boolean
 }
 
+type JsonErrorResponse = {
+  json: () => Promise<{ message?: string }>
+}
+
+const isJsonErrorResponse = (error: unknown): error is JsonErrorResponse => {
+  return typeof error === 'object'
+    && error !== null
+    && 'json' in error
+    && typeof error.json === 'function'
+}
+
+const getErrorMessage = async (error: unknown) => {
+  if (!isJsonErrorResponse(error))
+    return 'Unknown error'
+
+  const res = await error.json()
+  return res?.message || 'Unknown error'
+}
+
 const DropDown = ({
   expand,
 }: DropDownProps) => {
@@ -78,7 +97,7 @@ const DropDown = ({
       downloadBlob({ data: file, fileName: `${name}.pipeline` })
     }
     catch {
-      toast(t('exportFailed', { ns: 'app' }), { type: 'error' })
+      toast.error(t('exportFailed', { ns: 'app' }))
     }
   }, [dataset, exportPipelineConfig, t])
 
@@ -90,18 +109,7 @@ const DropDown = ({
       setShowConfirmDelete(true)
     }
     catch (e: unknown) {
-      let message = 'Unknown error'
-      const errorWithJson = typeof e === 'object' && e !== null ? e as { json?: unknown } : null
-      if (e instanceof Response) {
-        const res = await e.json() as { message?: string }
-        message = res?.message || message
-      }
-      else if (typeof errorWithJson?.json === 'function') {
-        const parseErrorResponse = errorWithJson.json as () => Promise<{ message?: string }>
-        const res = await parseErrorResponse()
-        message = res?.message || message
-      }
-      toast(message, { type: 'error' })
+      toast.error(await getErrorMessage(e))
     }
   }, [dataset.id, t])
 
