@@ -4,7 +4,6 @@ import type { QueryClient, QueryKey } from '@tanstack/react-query'
 import type { ConsoleReleaseSummary } from '@/contract/console/deployments'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { consoleClient, consoleQuery } from '@/service/client'
-import { DEPLOYMENT_PAGE_SIZE } from '../data'
 import {
   deploymentAccessConfigQueryKey,
   deploymentAccessStateQueryKeys,
@@ -14,6 +13,7 @@ import {
   deploymentInstanceStateQueryKeys,
   deploymentReleaseHistoryQueryKey,
   deploymentsListQueryKey,
+  deploymentsListQueryOptions,
 } from '../queries'
 
 export type CreateDeploymentInstanceResult = {
@@ -22,7 +22,7 @@ export type CreateDeploymentInstanceResult = {
 }
 
 type CreateDeploymentParams = {
-  appId: string
+  appInstanceId: string
   environmentId: string
   releaseId?: string
   releaseNote?: string
@@ -35,7 +35,7 @@ type CreateInstanceParams = {
 }
 
 type UndeployDeploymentParams = {
-  appId: string
+  appInstanceId: string
   runtimeInstanceId: string
   isDeploying?: boolean
 }
@@ -106,12 +106,7 @@ export const useCreateDeploymentInstance = () => {
         if (delay > 0)
           await wait(delay)
 
-        const listResponse = await consoleClient.deployments.list({
-          query: {
-            pageNumber: 1,
-            resultsPerPage: DEPLOYMENT_PAGE_SIZE,
-          },
-        }).catch(() => undefined)
+        const listResponse = await queryClient.fetchQuery(deploymentsListQueryOptions()).catch(() => undefined)
         if (listResponse?.data?.some(app => app.id === response.appInstanceId))
           break
       }
@@ -153,7 +148,7 @@ export const useStartDeployment = () => {
   return useMutation({
     mutationKey: consoleQuery.deployments.createDeployment.mutationKey(),
     mutationFn: async ({
-      appId,
+      appInstanceId,
       environmentId,
       releaseId,
       releaseNote,
@@ -162,7 +157,7 @@ export const useStartDeployment = () => {
       let releaseWasCreated = false
       await consoleClient.deployments.previewRelease({
         params: {
-          appInstanceId: appId,
+          appInstanceId,
         },
         body: {
           releaseId: targetReleaseId,
@@ -174,7 +169,7 @@ export const useStartDeployment = () => {
           const trimmedReleaseNote = releaseNote?.trim()
           const response = await consoleClient.deployments.createRelease({
             params: {
-              appInstanceId: appId,
+              appInstanceId,
             },
             body: {
               name: trimmedReleaseNote || 'Release',
@@ -192,7 +187,7 @@ export const useStartDeployment = () => {
 
         return await consoleClient.deployments.createDeployment({
           params: {
-            appInstanceId: appId,
+            appInstanceId,
           },
           body: {
             environmentId,
@@ -203,14 +198,14 @@ export const useStartDeployment = () => {
       catch (error) {
         if (releaseWasCreated) {
           await queryClient.invalidateQueries({
-            queryKey: deploymentReleaseHistoryQueryKey(appId),
+            queryKey: deploymentReleaseHistoryQueryKey(appInstanceId),
           })
         }
         throw error
       }
     },
     onSuccess: (_data, variables) => {
-      return invalidateDeploymentState(queryClient, variables.appId)
+      return invalidateDeploymentState(queryClient, variables.appInstanceId)
     },
   })
 }
@@ -220,26 +215,26 @@ export const useUndeployDeployment = () => {
 
   return useMutation({
     mutationKey: consoleQuery.deployments.undeployEnvironment.mutationKey(),
-    mutationFn: ({ appId, runtimeInstanceId, isDeploying }: UndeployDeploymentParams) => {
+    mutationFn: ({ appInstanceId, runtimeInstanceId, isDeploying }: UndeployDeploymentParams) => {
       if (!runtimeInstanceId)
         throw new Error('runtimeInstanceId is required to undeploy a deployment.')
       if (isDeploying) {
         return consoleClient.deployments.cancelDeployment({
           params: {
-            appInstanceId: appId,
+            appInstanceId,
             runtimeInstanceId,
           },
         })
       }
       return consoleClient.deployments.undeployEnvironment({
         params: {
-          appInstanceId: appId,
+          appInstanceId,
           runtimeInstanceId,
         },
       })
     },
     onSuccess: (_data, variables) => {
-      return invalidateDeploymentState(queryClient, variables.appId)
+      return invalidateDeploymentState(queryClient, variables.appInstanceId)
     },
   })
 }

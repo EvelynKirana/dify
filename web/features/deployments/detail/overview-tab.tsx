@@ -146,7 +146,7 @@ const OverviewTab: FC<OverviewTabProps> = ({ instanceId }) => {
               <div className="flex flex-col items-center gap-3 rounded-lg border border-dashed border-components-panel-border bg-components-panel-bg-blur px-4 py-8 text-center">
                 <span className="i-ri-rocket-line h-5 w-5 text-text-quaternary" />
                 <div className="system-sm-regular text-text-tertiary">{t('overview.notDeployedYet')}</div>
-                <Button size="small" variant="primary" onClick={() => openDeployDrawer({ appId: app.id })}>
+                <Button size="small" variant="primary" onClick={() => openDeployDrawer({ appInstanceId: app.id })}>
                   {t('overview.deploy')}
                 </Button>
               </div>

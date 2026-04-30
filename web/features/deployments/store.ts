@@ -1,13 +1,13 @@
 import { create } from 'zustand'
 
 type OpenDeployDrawerParams = {
-  appId: string
+  appInstanceId: string
   environmentId?: string
   releaseId?: string
 }
 
 type OpenRollbackParams = {
-  appId: string
+  appInstanceId: string
   environmentId: string
   targetReleaseId: string
   deploymentId?: string
@@ -16,13 +16,13 @@ type OpenRollbackParams = {
 type DeploymentsStore = {
   deployDrawer: {
     open: boolean
-    appId?: string
+    appInstanceId?: string
     environmentId?: string
     releaseId?: string
   }
   rollbackModal: {
     open: boolean
-    appId?: string
+    appInstanceId?: string
     environmentId?: string
     deploymentId?: string
     targetReleaseId?: string
@@ -45,14 +45,14 @@ export const useDeploymentsStore = create<DeploymentsStore>()(set => ({
   openDeployDrawer: params => set({
     deployDrawer: {
       open: true,
-      appId: params.appId,
+      appInstanceId: params.appInstanceId,
       environmentId: params.environmentId,
       releaseId: params.releaseId,
     },
   }),
   closeDeployDrawer: () => set({ deployDrawer: { open: false } }),
-  openRollbackModal: ({ appId, environmentId, deploymentId, targetReleaseId }) => set({
-    rollbackModal: { open: true, appId, environmentId, deploymentId, targetReleaseId },
+  openRollbackModal: ({ appInstanceId, environmentId, deploymentId, targetReleaseId }) => set({
+    rollbackModal: { open: true, appInstanceId, environmentId, deploymentId, targetReleaseId },
   }),
   closeRollbackModal: () => set({ rollbackModal: { open: false } }),
   openCreateInstanceModal: () => set({ createInstanceModal: { open: true } }),

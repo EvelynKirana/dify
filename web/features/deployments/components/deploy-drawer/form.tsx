@@ -33,7 +33,7 @@ export type DeployFormSubmit = {
 }
 
 type DeployFormProps = {
-  appId: string
+  appInstanceId: string
   environments: EnvironmentOption[]
   releases: ConsoleReleaseSummary[]
   defaultReleaseId?: string
@@ -79,7 +79,7 @@ const RuntimeBindingGroup: FC<RuntimeBindingGroupProps> = ({ label, bindings, is
 }
 
 export const DeployForm: FC<DeployFormProps> = ({
-  appId,
+  appInstanceId,
   environments,
   releases,
   defaultReleaseId,
@@ -105,9 +105,9 @@ export const DeployForm: FC<DeployFormProps> = ({
   const canDeploy = Boolean(selectedEnvironmentId && selectedEnvironment && !selectedEnvironment.disabled && (!isPromote || displayedRelease?.id || defaultReleaseId))
   const previewReleaseId = isPromote ? displayedRelease?.id ?? defaultReleaseId : undefined
   const releasePreview = useQuery(consoleQuery.deployments.previewRelease.queryOptions({
-    input: appId && (!isPromote || previewReleaseId)
+    input: appInstanceId && (!isPromote || previewReleaseId)
       ? {
-          params: { appInstanceId: appId },
+          params: { appInstanceId },
           body: {
             releaseId: previewReleaseId,
           },

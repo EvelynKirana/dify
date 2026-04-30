@@ -15,13 +15,13 @@ import { DeployForm } from './deploy-drawer/form'
 const DeployDrawer: FC = () => {
   const { t } = useTranslation('deployments')
   const drawer = useDeploymentsStore(state => state.deployDrawer)
-  const drawerAppId = drawer.appId
+  const drawerAppInstanceId = drawer.appInstanceId
   const closeDeployDrawer = useDeploymentsStore(state => state.closeDeployDrawer)
   const startDeploy = useStartDeployment()
   const open = drawer.open
   const { data: releaseHistory } = useQuery({
-    ...deploymentReleaseHistoryQueryOptions(drawerAppId),
-    enabled: open && Boolean(drawerAppId),
+    ...deploymentReleaseHistoryQueryOptions(drawerAppInstanceId),
+    enabled: open && Boolean(drawerAppInstanceId),
   })
   const { data: environmentOptionsReply } = useQuery({
     ...consoleQuery.deployments.deploymentEnvironmentOptions.queryOptions(),
@@ -35,7 +35,7 @@ const DeployDrawer: FC = () => {
   const environments = environmentOptions
   const releases = releaseHistory?.data?.map(row => row.release ?? row).filter(release => release.id) ?? []
   const defaultReleaseId = releases[0]?.id
-  const formKey = `${drawer.appId ?? 'none'}-${drawer.environmentId ?? 'any'}-${drawer.releaseId ?? 'new'}-${open ? '1' : '0'}`
+  const formKey = `${drawer.appInstanceId ?? 'none'}-${drawer.environmentId ?? 'any'}-${drawer.releaseId ?? 'new'}-${open ? '1' : '0'}`
 
   return (
     <Dialog
@@ -44,7 +44,7 @@ const DeployDrawer: FC = () => {
     >
       <DialogContent className="w-[560px] max-w-[90vw]">
         <DialogCloseButton />
-        {!drawerAppId
+        {!drawerAppInstanceId
           ? <div className="p-4 text-text-tertiary">{t('deployDrawer.notFound')}</div>
           : (!releaseHistory || !environmentOptionsReply)
               ? (
@@ -56,7 +56,7 @@ const DeployDrawer: FC = () => {
               : (
                   <DeployForm
                     key={formKey}
-                    appId={drawerAppId}
+                    appInstanceId={drawerAppInstanceId}
                     environments={environments}
                     releases={releases}
                     defaultReleaseId={defaultReleaseId}
@@ -66,7 +66,7 @@ const DeployDrawer: FC = () => {
                     onSubmit={({ environmentId, releaseId, releaseNote }) => {
                       closeDeployDrawer()
                       startDeploy.mutate({
-                        appId: drawerAppId,
+                        appInstanceId: drawerAppInstanceId,
                         environmentId,
                         releaseId,
                         releaseNote,

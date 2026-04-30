@@ -99,7 +99,7 @@ const VersionsTab: FC<VersionsTabProps> = ({ instanceId: appId }) => {
                           </div>
                         </div>
                         <div className="flex shrink-0 justify-end gap-1">
-                          <DeployReleaseMenu releaseId={release.id!} appId={appId} />
+                          <DeployReleaseMenu releaseId={release.id!} appInstanceId={appId} />
                         </div>
                       </div>
                       <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
@@ -150,7 +150,7 @@ const VersionsTab: FC<VersionsTabProps> = ({ instanceId: appId }) => {
                             ))}
                       </div>
                       <div className="flex justify-end gap-1">
-                        <DeployReleaseMenu releaseId={release.id!} appId={appId} />
+                        <DeployReleaseMenu releaseId={release.id!} appInstanceId={appId} />
                       </div>
                     </div>
                   </div>

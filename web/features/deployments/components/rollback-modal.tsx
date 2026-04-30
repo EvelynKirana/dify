@@ -46,20 +46,20 @@ const RollbackModal: FC = () => {
   const closeRollbackModal = useDeploymentsStore(state => state.closeRollbackModal)
   const rollbackDeployment = useStartDeployment()
   const { data: overview } = useQuery({
-    ...deploymentOverviewQueryOptions(modal.appId),
-    enabled: modal.open && Boolean(modal.appId),
+    ...deploymentOverviewQueryOptions(modal.appInstanceId),
+    enabled: modal.open && Boolean(modal.appInstanceId),
   })
   const { data: environmentDeployments } = useQuery({
-    ...deploymentEnvironmentDeploymentsQueryOptions(modal.appId),
-    enabled: modal.open && Boolean(modal.appId),
+    ...deploymentEnvironmentDeploymentsQueryOptions(modal.appInstanceId),
+    enabled: modal.open && Boolean(modal.appInstanceId),
   })
   const { data: environmentOptionsReply } = useQuery({
     ...consoleQuery.deployments.deploymentEnvironmentOptions.queryOptions(),
     enabled: modal.open,
   })
   const { data: releaseHistory } = useQuery({
-    ...deploymentReleaseHistoryQueryOptions(modal.appId),
-    enabled: modal.open && Boolean(modal.appId),
+    ...deploymentReleaseHistoryQueryOptions(modal.appInstanceId),
+    enabled: modal.open && Boolean(modal.appInstanceId),
   })
   const environmentOptions = useMemo(
     () => environmentOptionsFromOptionsReply(environmentOptionsReply),
@@ -77,11 +77,11 @@ const RollbackModal: FC = () => {
   const app = toAppInfoFromOverview(overview?.instance)
 
   const confirm = () => {
-    if (!modal.appId || !modal.environmentId || !modal.targetReleaseId)
+    if (!modal.appInstanceId || !modal.environmentId || !modal.targetReleaseId)
       return
     closeRollbackModal()
     rollbackDeployment.mutate({
-      appId: modal.appId,
+      appInstanceId: modal.appInstanceId,
       environmentId: modal.environmentId,
       releaseId: modal.targetReleaseId,
     })

@@ -38,9 +38,9 @@ type DeployTabProps = {
   instanceId: string
 }
 
-const DeployTab: FC<DeployTabProps> = ({ instanceId: appId }) => {
+const DeployTab: FC<DeployTabProps> = ({ instanceId: appInstanceId }) => {
   const { t } = useTranslation('deployments')
-  const { data: environmentDeployments } = useQuery(deploymentEnvironmentDeploymentsQueryOptions(appId))
+  const { data: environmentDeployments } = useQuery(deploymentEnvironmentDeploymentsQueryOptions(appInstanceId))
   const { data: environmentOptionsReply } = useQuery(consoleQuery.deployments.deploymentEnvironmentOptions.queryOptions())
   const openDeployDrawer = useDeploymentsStore(state => state.openDeployDrawer)
   const undeployDeployment = useUndeployDeployment()
@@ -108,7 +108,7 @@ const DeployTab: FC<DeployTabProps> = ({ instanceId: appId }) => {
                 className="gap-2 px-3"
                 onClick={() => {
                   setDeployMenuOpen(false)
-                  openDeployDrawer({ appId })
+                  openDeployDrawer({ appInstanceId })
                 }}
               >
                 <span className="system-sm-regular text-text-secondary">{t('deployTab.deployToNewEnv')}</span>
@@ -125,7 +125,7 @@ const DeployTab: FC<DeployTabProps> = ({ instanceId: appId }) => {
                         if (env.disabled)
                           return
                         setDeployMenuOpen(false)
-                        openDeployDrawer({ appId, environmentId: env.id })
+                        openDeployDrawer({ appInstanceId, environmentId: env.id })
                       }}
                     >
                       <span className="system-sm-regular text-text-secondary">
@@ -170,7 +170,7 @@ const DeployTab: FC<DeployTabProps> = ({ instanceId: appId }) => {
                     onClick={e => e.stopPropagation()}
                     onKeyDown={e => e.stopPropagation()}
                   >
-                    <Button size="small" variant="secondary" onClick={() => openDeployDrawer({ appId, environmentId: envId })}>
+                    <Button size="small" variant="secondary" onClick={() => openDeployDrawer({ appInstanceId, environmentId: envId })}>
                       {isUndeployed
                         ? t('deployDrawer.deploy')
                         : status === 'ready'
@@ -191,7 +191,7 @@ const DeployTab: FC<DeployTabProps> = ({ instanceId: appId }) => {
                           <DropdownMenuItem
                             className="gap-2 px-3"
                             onClick={() => undeployDeployment.mutate({
-                              appId,
+                              appInstanceId,
                               runtimeInstanceId: deploymentId(row),
                               isDeploying: status === 'deploying',
                             })}

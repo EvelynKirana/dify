@@ -25,17 +25,17 @@ import {
 } from '../../utils'
 
 type DeployReleaseMenuProps = {
-  appId: string
+  appInstanceId: string
   releaseId: string
 }
 
-export const DeployReleaseMenu: FC<DeployReleaseMenuProps> = ({ appId, releaseId }) => {
+export const DeployReleaseMenu: FC<DeployReleaseMenuProps> = ({ appInstanceId, releaseId }) => {
   const { t } = useTranslation('deployments')
   const openDeployDrawer = useDeploymentsStore(state => state.openDeployDrawer)
   const openRollbackModal = useDeploymentsStore(state => state.openRollbackModal)
   const [open, setOpen] = useState(false)
   const { data: environmentDeployments } = useQuery({
-    ...deploymentEnvironmentDeploymentsQueryOptions(appId),
+    ...deploymentEnvironmentDeploymentsQueryOptions(appInstanceId),
     enabled: open,
   })
   const { data: environmentOptionsReply } = useQuery({
@@ -81,14 +81,14 @@ export const DeployReleaseMenu: FC<DeployReleaseMenuProps> = ({ appId, releaseId
                     return
                   if (row) {
                     openRollbackModal({
-                      appId,
+                      appInstanceId,
                       environmentId: envId,
                       deploymentId: deploymentId(row),
                       targetReleaseId: releaseId,
                     })
                     return
                   }
-                  openDeployDrawer({ appId, environmentId: envId, releaseId })
+                  openDeployDrawer({ appInstanceId, environmentId: envId, releaseId })
                 }}
               >
                 <span className="system-sm-regular text-text-secondary">

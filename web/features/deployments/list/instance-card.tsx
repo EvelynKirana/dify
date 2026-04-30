@@ -216,7 +216,7 @@ export const InstanceCard: FC<InstanceCardProps> = ({ app, summary }) => {
               <DropdownMenuContent placement="bottom-end" sideOffset={4} popupClassName="w-[216px]">
                 <DropdownMenuItem
                   className="gap-2 px-3"
-                  onClick={e => handleMenuAction(e, () => openDeployDrawer({ appId: app.id }))}
+                  onClick={e => handleMenuAction(e, () => openDeployDrawer({ appInstanceId: app.id }))}
                 >
                   <span className="system-sm-regular text-text-secondary">{t('card.menu.deploy')}</span>
                 </DropdownMenuItem>

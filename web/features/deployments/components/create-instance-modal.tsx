@@ -232,7 +232,7 @@ const CreateInstanceForm: FC<{ onClose: () => void }> = ({ onClose }) => {
       onClose()
       if (thenDeploy) {
         openDeployDrawer({
-          appId: result.appInstanceId,
+          appInstanceId: result.appInstanceId,
           releaseId: result.initialRelease?.id,
         })
         return
