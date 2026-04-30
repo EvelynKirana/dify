@@ -1,4 +1,4 @@
-import type * as EnterpriseContract from '@/contract/generated/enterprise/types.gen'
+import type * as EnterpriseContract from '@dify/contracts/enterprise/types.gen'
 import type { AppIconType } from '@/types/app'
 
 type Timestamp = string
