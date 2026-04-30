@@ -46,7 +46,7 @@ Importing from `@langgenius/dify-ui` (no subpath) is intentionally not supported
 Utilities:
 
 - `./cn` — `clsx` + `tailwind-merge` wrapper. Use this for conditional class composition.
-- `./styles.css` — the one CSS entry that ships the design tokens, theme variables, and base reset. Import it once from the app root.
+- `./styles.css` — the one CSS entry that ships the design tokens, theme variables, and project utilities/components. Import it once from the app root.
 
 ## Tailwind CSS v4 integration
 
