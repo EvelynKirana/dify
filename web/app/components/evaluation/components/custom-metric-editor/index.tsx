@@ -44,6 +44,7 @@ const getWorkflowOutputs = (nodes?: Array<Node>) => {
         .map(output => ({
           id: output.variable,
           valueType: typeof output.value_type === 'string' ? output.value_type : null,
+          nodeId: endNode.id,
           nodeTitle: typeof endNode.data.title === 'string' && endNode.data.title ? endNode.data.title : 'End',
         }))
     })
@@ -110,9 +111,10 @@ const CustomMetricEditorCard = ({
   ])
   const inputVariableIds = useMemo(() => inputVariables.map(variable => variable.id), [inputVariables])
   const isConfigured = isCustomMetricConfigured(metric)
+  const isSelectedWorkflowLoaded = !!selectedWorkflow
 
   useEffect(() => {
-    if (!metric.customConfig?.workflowId)
+    if (!metric.customConfig?.workflowId || !isSelectedWorkflowLoaded)
       return
 
     const currentInputVariableIds = metric.customConfig.mappings
@@ -125,10 +127,10 @@ const CustomMetricEditorCard = ({
     }
 
     syncCustomMetricMappings(resourceType, resourceId, metric.id, inputVariableIds)
-  }, [inputVariableIds, metric.customConfig?.mappings, metric.customConfig?.workflowId, metric.id, resourceId, resourceType, syncCustomMetricMappings])
+  }, [inputVariableIds, isSelectedWorkflowLoaded, metric.customConfig?.mappings, metric.customConfig?.workflowId, metric.id, resourceId, resourceType, syncCustomMetricMappings])
 
   useEffect(() => {
-    if (!metric.customConfig?.workflowId)
+    if (!metric.customConfig?.workflowId || !isSelectedWorkflowLoaded)
       return
 
     const currentOutputs = metric.customConfig.outputs
@@ -142,7 +144,7 @@ const CustomMetricEditorCard = ({
     }
 
     syncCustomMetricOutputs(resourceType, resourceId, metric.id, workflowOutputs)
-  }, [metric.customConfig?.outputs, metric.customConfig?.workflowId, metric.id, resourceId, resourceType, syncCustomMetricOutputs, workflowOutputs])
+  }, [isSelectedWorkflowLoaded, metric.customConfig?.outputs, metric.customConfig?.workflowId, metric.id, resourceId, resourceType, syncCustomMetricOutputs, workflowOutputs])
 
   if (!metric.customConfig)
     return null
@@ -197,7 +199,7 @@ const CustomMetricEditorCard = ({
           </div>
           <div className="flex flex-wrap items-center gap-y-1 px-2 py-2 system-xs-regular text-text-tertiary">
             {workflowOutputs.map((output, index) => (
-              <div key={`${output.nodeTitle}-${output.id}-${index}`} className="flex items-center">
+              <div key={`${output.nodeId}-${output.id}`} className="flex items-center">
                 <span className="px-1 system-xs-medium text-text-secondary">{output.id}</span>
                 {output.valueType && (
                   <span>{output.valueType}</span>
