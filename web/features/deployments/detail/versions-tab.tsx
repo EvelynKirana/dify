@@ -7,6 +7,7 @@ import { useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 import { consoleQuery } from '@/service/client'
 import { DEPLOYMENT_PAGE_SIZE } from '../data'
+import { deploymentEnvironmentDeploymentsQueryOptions } from '../queries'
 import {
   deployedRows,
   formatDate,
@@ -35,12 +36,7 @@ const VersionsTab: FC<VersionsTabProps> = ({ instanceId: appId }) => {
       query,
     },
   }))
-  const { data: environmentDeployments } = useQuery(consoleQuery.deployments.environmentDeployments.queryOptions({
-    input: {
-      params: { appInstanceId: appId },
-      query,
-    },
-  }))
+  const { data: environmentDeployments } = useQuery(deploymentEnvironmentDeploymentsQueryOptions(appId))
   const releaseRows = useMemo(
     () => releaseHistory?.data?.filter(row => (row.release ?? row).id) ?? [],
     [releaseHistory?.data],

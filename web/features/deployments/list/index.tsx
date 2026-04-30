@@ -7,13 +7,10 @@ import { debounce, parseAsString, useQueryState } from 'nuqs'
 import { useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 import Input from '@/app/components/base/input'
-import { consoleQuery } from '@/service/client'
 import CreateInstanceModal from '../components/create-instance-modal'
 import DeployDrawer from '../components/deploy-drawer'
 import RollbackModal from '../components/rollback-modal'
-import {
-  SOURCE_APPS_PAGE_SIZE,
-} from '../data'
+import { deploymentsListQueryOptions } from '../queries'
 import { useDeploymentsStore } from '../store'
 import {
   deploymentSummariesFromList,
@@ -50,16 +47,10 @@ const DeploymentsMain: FC = () => {
   const requestedEnvironmentId = envFilter !== 'all' && envFilter !== 'not-deployed'
     ? envFilter
     : undefined
-  const listQuery = useQuery(consoleQuery.deployments.list.queryOptions({
-    input: {
-      query: {
-        pageNumber: 1,
-        resultsPerPage: SOURCE_APPS_PAGE_SIZE,
-        ...(requestedEnvironmentId ? { environmentId: requestedEnvironmentId } : {}),
-        ...(envFilter === 'not-deployed' ? { notDeployed: true } : {}),
-        ...(queryKeywords.trim() ? { query: queryKeywords.trim() } : {}),
-      },
-    },
+  const listQuery = useQuery(deploymentsListQueryOptions({
+    ...(requestedEnvironmentId ? { environmentId: requestedEnvironmentId } : {}),
+    ...(envFilter === 'not-deployed' ? { notDeployed: true } : {}),
+    ...(queryKeywords.trim() ? { query: queryKeywords.trim() } : {}),
   }))
   const apps = useMemo(() => sourceAppsFromList(listQuery.data), [listQuery.data])
   const summaries = useMemo(() => deploymentSummariesFromList(listQuery.data), [listQuery.data])

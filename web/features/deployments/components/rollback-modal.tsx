@@ -15,20 +15,21 @@ import { useTranslation } from 'react-i18next'
 import { consoleQuery } from '@/service/client'
 import {
   DEPLOYMENT_PAGE_SIZE,
-  SOURCE_APPS_PAGE_SIZE,
 } from '../data'
 import { useStartDeployment } from '../hooks/use-deployment-mutations'
+import {
+  deploymentEnvironmentDeploymentsQueryOptions,
+  deploymentOverviewQueryOptions,
+} from '../queries'
 import { useDeploymentsStore } from '../store'
 import {
   activeRelease,
   deployedRows,
   environmentId,
   environmentName,
-  environmentOptionsFromList,
+  environmentOptionsFromDeploymentRows,
   releaseCommit,
   releaseLabel,
-  sourceAppMapFromApps,
-  sourceAppsFromList,
   toAppInfoFromOverview,
 } from '../utils'
 
@@ -58,30 +59,22 @@ const RollbackModal: FC = () => {
         },
       }
     : undefined
-  const { data: overview } = useQuery(consoleQuery.deployments.overview.queryOptions({
-    input: appInput ?? skipToken,
+  const { data: overview } = useQuery({
+    ...deploymentOverviewQueryOptions(modal.appId),
     enabled: modal.open && Boolean(modal.appId),
-  }))
-  const { data: environmentDeployments } = useQuery(consoleQuery.deployments.environmentDeployments.queryOptions({
-    input: pagedInput ?? skipToken,
+  })
+  const { data: environmentDeployments } = useQuery({
+    ...deploymentEnvironmentDeploymentsQueryOptions(modal.appId),
     enabled: modal.open && Boolean(modal.appId),
-  }))
+  })
   const { data: releaseHistory } = useQuery(consoleQuery.deployments.releaseHistory.queryOptions({
     input: pagedInput ?? skipToken,
     enabled: modal.open && Boolean(modal.appId),
   }))
-  const listQuery = useQuery(consoleQuery.deployments.list.queryOptions({
-    input: {
-      query: {
-        pageNumber: 1,
-        resultsPerPage: SOURCE_APPS_PAGE_SIZE,
-      },
-    },
-    enabled: modal.open,
-  }))
-  const sourceApps = useMemo(() => sourceAppsFromList(listQuery.data), [listQuery.data])
-  const appMap = useMemo(() => sourceAppMapFromApps(sourceApps), [sourceApps])
-  const environmentOptions = useMemo(() => environmentOptionsFromList(listQuery.data), [listQuery.data])
+  const environmentOptions = useMemo(
+    () => environmentOptionsFromDeploymentRows(environmentDeployments?.data),
+    [environmentDeployments?.data],
+  )
 
   const currentRow = deployedRows(environmentDeployments?.data)
     .find(row => environmentId(row.environment) === modal.environmentId)
@@ -92,7 +85,6 @@ const RollbackModal: FC = () => {
   const environment = currentRow?.environment
     ?? environmentOptions.find(env => env.id === modal.environmentId)
   const app = toAppInfoFromOverview(overview?.instance)
-    ?? (modal.appId ? appMap.get(modal.appId) : undefined)
 
   const confirm = () => {
     if (!modal.appId || !modal.environmentId || !modal.targetReleaseId)

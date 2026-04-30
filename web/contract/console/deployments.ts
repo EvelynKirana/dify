@@ -41,11 +41,6 @@ export type ConsoleUser = {
   displayName?: string
 }
 
-export type ConsoleWarning = {
-  code?: string
-  message?: string
-}
-
 export type DeploymentStatusCount = {
   status?: string
   count?: number
@@ -60,10 +55,8 @@ export type AppInstanceFilter = {
 export type AppDeploymentSummary = {
   id?: string
   name?: string
-  description?: string
   icon?: string
   mode?: string
-  sourceAppId?: string
   sourceAppName?: string
   statuses?: DeploymentStatusCount[]
   lastDeployedAt?: Timestamp | null
@@ -92,7 +85,6 @@ export type AppInstanceOverview = {
   sourceAppId?: string
   sourceAppName?: string
   mode?: string
-  icon?: string
   createdAt?: Timestamp
 }
 
@@ -114,7 +106,6 @@ export type GetDeploymentOverviewReply = {
   instance?: AppInstanceOverview
   deployments?: DeploymentSummaryRow[]
   access?: AccessSummary
-  warnings?: ConsoleWarning[]
 }
 
 export type RuntimeBindingDisplay = {
@@ -151,7 +142,6 @@ export type EnvironmentDeploymentRow = {
 
 export type ListEnvironmentDeploymentsReply = {
   data?: EnvironmentDeploymentRow[]
-  pagination?: Pagination
 }
 
 export type EnvironmentOption = ConsoleEnvironmentSummary & {
@@ -330,19 +320,21 @@ export type UpdateAppInstanceReply = GetAppInstanceSettingsReply
 
 export type DeleteAppInstanceReply = Record<string, never>
 
+export type ListAppDeploymentsQuery = {
+  environmentId?: string
+  notDeployed?: boolean
+  query?: string
+  pageNumber?: number
+  resultsPerPage?: number
+}
+
 export const listAppDeploymentsContract = base
   .route({
     path: '/enterprise/app-instances',
     method: 'GET',
   })
   .input(type<{
-    query?: {
-      environmentId?: string
-      notDeployed?: boolean
-      query?: string
-      pageNumber?: number
-      resultsPerPage?: number
-    }
+    query?: ListAppDeploymentsQuery
   }>())
   .output(type<ListAppDeploymentsReply>())
 
@@ -375,10 +367,6 @@ export const runtimeInstancesContract = base
   })
   .input(type<{
     params: { appInstanceId: string }
-    query?: {
-      pageNumber?: number
-      resultsPerPage?: number
-    }
   }>())
   .output(type<ListEnvironmentDeploymentsReply>())
 

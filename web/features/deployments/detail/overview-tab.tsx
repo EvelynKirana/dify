@@ -9,14 +9,10 @@ import { getAppModeLabel } from '@/app/components/app-sidebar/app-info/app-mode-
 import { useRouter } from '@/next/navigation'
 import { consoleQuery } from '@/service/client'
 import { StatusBadge } from '../components/status-badge'
-import {
-  SOURCE_APPS_PAGE_SIZE,
-} from '../data'
+import { deploymentOverviewQueryOptions } from '../queries'
 import { useDeploymentsStore } from '../store'
 import {
   releaseLabel,
-  sourceAppMapFromApps,
-  sourceAppsFromList,
   toAppInfoFromOverview,
   webappUrl,
 } from '../utils'
@@ -101,24 +97,12 @@ const OverviewTab: FC<OverviewTabProps> = ({ instanceId }) => {
   const { t: tCommon } = useTranslation()
   const router = useRouter()
   const input = { params: { appInstanceId: instanceId } }
-  const { data: overview } = useQuery(consoleQuery.deployments.overview.queryOptions({
-    input,
-  }))
+  const { data: overview } = useQuery(deploymentOverviewQueryOptions(instanceId))
   const { data: accessConfig } = useQuery(consoleQuery.deployments.accessConfig.queryOptions({
     input,
   }))
-  const listQuery = useQuery(consoleQuery.deployments.list.queryOptions({
-    input: {
-      query: {
-        pageNumber: 1,
-        resultsPerPage: SOURCE_APPS_PAGE_SIZE,
-      },
-    },
-  }))
   const openDeployDrawer = useDeploymentsStore(state => state.openDeployDrawer)
-  const sourceApps = useMemo(() => sourceAppsFromList(listQuery.data), [listQuery.data])
-  const appMap = useMemo(() => sourceAppMapFromApps(sourceApps), [sourceApps])
-  const app = toAppInfoFromOverview(overview?.instance) ?? appMap.get(instanceId)
+  const app = toAppInfoFromOverview(overview?.instance)
   const overviewApp = overview?.instance
   const deployments = useMemo(
     () => overview?.deployments?.filter(row => row.environment?.id && row.status?.toLowerCase() !== 'undeployed') ?? [],

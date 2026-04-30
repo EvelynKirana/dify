@@ -8,11 +8,11 @@ import { useTranslation } from 'react-i18next'
 import { consoleQuery } from '@/service/client'
 import {
   DEPLOYMENT_PAGE_SIZE,
-  SOURCE_APPS_PAGE_SIZE,
 } from '../data'
 import { useStartDeployment } from '../hooks/use-deployment-mutations'
+import { deploymentEnvironmentDeploymentsQueryOptions } from '../queries'
 import { useDeploymentsStore } from '../store'
-import { environmentOptionsFromList } from '../utils'
+import { environmentOptionsFromDeploymentRows } from '../utils'
 import { DeployForm } from './deploy-drawer/form'
 
 const DeployDrawer: FC = () => {
@@ -22,15 +22,6 @@ const DeployDrawer: FC = () => {
   const closeDeployDrawer = useDeploymentsStore(state => state.closeDeployDrawer)
   const startDeploy = useStartDeployment()
   const open = drawer.open
-  const listQuery = useQuery(consoleQuery.deployments.list.queryOptions({
-    input: {
-      query: {
-        pageNumber: 1,
-        resultsPerPage: SOURCE_APPS_PAGE_SIZE,
-      },
-    },
-    enabled: open,
-  }))
   const { data: releaseHistory } = useQuery(consoleQuery.deployments.releaseHistory.queryOptions({
     input: drawerAppId
       ? {
@@ -43,8 +34,15 @@ const DeployDrawer: FC = () => {
       : skipToken,
     enabled: open && Boolean(drawerAppId),
   }))
+  const { data: environmentDeployments } = useQuery({
+    ...deploymentEnvironmentDeploymentsQueryOptions(drawerAppId),
+    enabled: open && Boolean(drawerAppId),
+  })
 
-  const environmentOptions = useMemo(() => environmentOptionsFromList(listQuery.data), [listQuery.data])
+  const environmentOptions = useMemo(
+    () => environmentOptionsFromDeploymentRows(environmentDeployments?.data),
+    [environmentDeployments?.data],
+  )
   const environments = environmentOptions
   const releases = releaseHistory?.data?.map(row => row.release ?? row).filter(release => release.id) ?? []
   const defaultReleaseId = releases[0]?.id
@@ -59,7 +57,7 @@ const DeployDrawer: FC = () => {
         <DialogCloseButton />
         {!drawerAppId
           ? <div className="p-4 text-text-tertiary">{t('deployDrawer.notFound')}</div>
-          : !releaseHistory
+          : (!releaseHistory || !environmentDeployments)
               ? (
                   <div className="flex items-center gap-2 p-4 system-sm-regular text-text-tertiary">
                     <span className="h-4 w-4 animate-spin rounded-full border-2 border-components-panel-border border-t-transparent" />

@@ -19,17 +19,15 @@ import { useTranslation } from 'react-i18next'
 import { useRouter } from '@/next/navigation'
 import { consoleQuery } from '@/service/client'
 import {
-  DEPLOYMENT_PAGE_SIZE,
-  SOURCE_APPS_PAGE_SIZE,
-} from '../data'
-import {
   useDeleteDeploymentInstance,
   useUpdateDeploymentInstance,
 } from '../hooks/use-deployment-mutations'
 import {
+  deploymentEnvironmentDeploymentsQueryOptions,
+  deploymentOverviewQueryOptions,
+} from '../queries'
+import {
   deployedRows,
-  sourceAppMapFromApps,
-  sourceAppsFromList,
   toAppInfoFromOverview,
 } from '../utils'
 
@@ -190,29 +188,12 @@ const SettingsTab: FC<SettingsTabProps> = ({ instanceId }) => {
   const updateInstance = useUpdateDeploymentInstance()
   const deleteInstance = useDeleteDeploymentInstance()
   const appInput = { params: { appInstanceId: instanceId } }
-  const listQuery = useQuery(consoleQuery.deployments.list.queryOptions({
-    input: {
-      query: {
-        pageNumber: 1,
-        resultsPerPage: SOURCE_APPS_PAGE_SIZE,
-      },
-    },
-  }))
-  const { data: overview } = useQuery(consoleQuery.deployments.overview.queryOptions({
-    input: appInput,
-  }))
-  const { data: environmentDeployments } = useQuery(consoleQuery.deployments.environmentDeployments.queryOptions({
-    input: {
-      ...appInput,
-      query: {
-        pageNumber: 1,
-        resultsPerPage: DEPLOYMENT_PAGE_SIZE,
-      },
-    },
-  }))
-  const sourceApps = useMemo(() => sourceAppsFromList(listQuery.data), [listQuery.data])
-  const appMap = useMemo(() => sourceAppMapFromApps(sourceApps), [sourceApps])
-  const app = toAppInfoFromOverview(overview?.instance) ?? appMap.get(instanceId)
+  const { data: overview } = useQuery(deploymentOverviewQueryOptions(instanceId))
+  const { data: environmentDeployments } = useQuery(deploymentEnvironmentDeploymentsQueryOptions(instanceId))
+  const app = useMemo(
+    () => toAppInfoFromOverview(overview?.instance),
+    [overview?.instance],
+  )
   const settingsQuery = useQuery(consoleQuery.deployments.settings.queryOptions({
     input: appInput,
   }))

@@ -9,17 +9,13 @@ import { useTranslation } from 'react-i18next'
 import { getAppModeLabel } from '@/app/components/app-sidebar/app-info/app-mode-labels'
 import useDocumentTitle from '@/hooks/use-document-title'
 import { useRouter, useSelectedLayoutSegment } from '@/next/navigation'
-import { consoleQuery } from '@/service/client'
 import DeployDrawer from '../components/deploy-drawer'
 import RollbackModal from '../components/rollback-modal'
 import {
-  SOURCE_APPS_PAGE_SIZE,
-} from '../data'
-import {
-  deploymentSummariesFromList,
-  sourceAppMapFromApps,
-  sourceAppsFromList,
-} from '../utils'
+  deploymentEnvironmentDeploymentsQueryOptions,
+  deploymentOverviewQueryOptions,
+} from '../queries'
+import { deployedRows, deploymentStatus, toAppInfoFromOverview } from '../utils'
 import { DeploymentSidebar } from './deployment-sidebar'
 import { isInstanceDetailTabKey } from './tabs'
 
@@ -35,31 +31,20 @@ const InstanceDetail: FC<InstanceDetailProps> = ({ instanceId, children }) => {
   const selectedSegment = useSelectedLayoutSegment()
   const selectedTab = selectedSegment ?? undefined
   const activeTab: InstanceDetailTabKey = isInstanceDetailTabKey(selectedTab) ? selectedTab : 'overview'
-  const listQuery = useQuery(consoleQuery.deployments.list.queryOptions({
-    input: {
-      query: {
-        pageNumber: 1,
-        resultsPerPage: SOURCE_APPS_PAGE_SIZE,
-      },
-    },
-  }))
+  const overviewQuery = useQuery(deploymentOverviewQueryOptions(instanceId))
+  const { data: environmentDeployments } = useQuery(deploymentEnvironmentDeploymentsQueryOptions(instanceId))
   useDocumentTitle(t('documentTitle.detail'))
 
-  const apps = useMemo(() => sourceAppsFromList(listQuery.data), [listQuery.data])
-  const appMap = useMemo(() => sourceAppMapFromApps(apps), [apps])
-  const summaries = useMemo(() => deploymentSummariesFromList(listQuery.data), [listQuery.data])
   const app = useMemo(
-    () => appMap.get(instanceId),
-    [instanceId, appMap],
+    () => toAppInfoFromOverview(overviewQuery.data?.instance),
+    [overviewQuery.data?.instance],
   )
-  const summary = summaries[instanceId]
-  const statusCount = (status: string) =>
-    summary?.statuses?.find(item => item.status === status)?.count ?? 0
-  const envCount = summary?.statuses
-    ?.filter(item => item.status !== 'undeployed')
-    .reduce((total, item) => total + (item.count ?? 0), 0) ?? 0
+  const deploymentRows = useMemo(
+    () => deployedRows(environmentDeployments?.data),
+    [environmentDeployments?.data],
+  )
 
-  if (!app && listQuery.isLoading) {
+  if (!app && overviewQuery.isLoading) {
     return (
       <div className="flex h-full items-center justify-center bg-background-body">
         <span className="h-6 w-6 animate-spin rounded-full border-2 border-components-panel-border border-t-transparent" />
@@ -79,8 +64,9 @@ const InstanceDetail: FC<InstanceDetailProps> = ({ instanceId, children }) => {
     )
   }
 
-  const deployingCount = statusCount('deploying')
-  const failedCount = statusCount('failed') + statusCount('deploy_failed')
+  const deployingCount = deploymentRows.filter(row => deploymentStatus(row) === 'deploying').length
+  const failedCount = deploymentRows.filter(row => deploymentStatus(row) === 'deploy_failed').length
+  const envCount = deploymentRows.length
   const appModeLabel = app ? getAppModeLabel(app.mode, tCommon) : t('detail.sourceAppDeleted')
 
   return (

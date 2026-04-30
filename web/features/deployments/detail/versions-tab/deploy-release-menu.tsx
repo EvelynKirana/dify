@@ -11,11 +11,7 @@ import {
 import { useQuery } from '@tanstack/react-query'
 import { useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { consoleQuery } from '@/service/client'
-import {
-  DEPLOYMENT_PAGE_SIZE,
-  SOURCE_APPS_PAGE_SIZE,
-} from '../../data'
+import { deploymentEnvironmentDeploymentsQueryOptions } from '../../queries'
 import { useDeploymentsStore } from '../../store'
 import {
   activeRelease,
@@ -24,7 +20,7 @@ import {
   deploymentStatus,
   environmentId,
   environmentName,
-  environmentOptionsFromList,
+  environmentOptionsFromDeploymentRows,
 } from '../../utils'
 
 type DeployReleaseMenuProps = {
@@ -37,27 +33,15 @@ export const DeployReleaseMenu: FC<DeployReleaseMenuProps> = ({ appId, releaseId
   const openDeployDrawer = useDeploymentsStore(state => state.openDeployDrawer)
   const openRollbackModal = useDeploymentsStore(state => state.openRollbackModal)
   const [open, setOpen] = useState(false)
-  const listQuery = useQuery(consoleQuery.deployments.list.queryOptions({
-    input: {
-      query: {
-        pageNumber: 1,
-        resultsPerPage: SOURCE_APPS_PAGE_SIZE,
-      },
-    },
+  const { data: environmentDeployments } = useQuery({
+    ...deploymentEnvironmentDeploymentsQueryOptions(appId),
     enabled: open,
-  }))
-  const { data: environmentDeployments } = useQuery(consoleQuery.deployments.environmentDeployments.queryOptions({
-    input: {
-      params: { appInstanceId: appId },
-      query: {
-        pageNumber: 1,
-        resultsPerPage: DEPLOYMENT_PAGE_SIZE,
-      },
-    },
-    enabled: open,
-  }))
+  })
 
-  const environmentOptions = useMemo(() => environmentOptionsFromList(listQuery.data), [listQuery.data])
+  const environmentOptions = useMemo(
+    () => environmentOptionsFromDeploymentRows(environmentDeployments?.data),
+    [environmentDeployments?.data],
+  )
   const environments = environmentOptions.filter(env => env.id)
   const deploymentRows = deployedRows(environmentDeployments?.data)
 

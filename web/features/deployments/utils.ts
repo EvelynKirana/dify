@@ -125,8 +125,6 @@ export function toAppInfoFromSummary(summary: AppDeploymentSummary): AppInfo | u
     mode: (summary.mode || 'workflow') as AppMode,
     iconType: 'emoji',
     icon: summary.icon,
-    description: summary.description ?? undefined,
-    sourceAppId: summary.sourceAppId,
     sourceAppName: summary.sourceAppName,
   }
 }
@@ -140,7 +138,6 @@ export function toAppInfoFromOverview(instance?: AppInstanceOverview): AppInfo |
     name: instance.name ?? instance.id,
     mode: (instance.mode || 'workflow') as AppMode,
     iconType: 'emoji',
-    icon: instance.icon,
     description: instance.description ?? undefined,
     sourceAppId: instance.sourceAppId,
     sourceAppName: instance.sourceAppName,
@@ -151,10 +148,6 @@ export const sourceAppsFromList = (response?: ListAppDeploymentsReply) => {
   return (response?.data ?? [])
     .map(toAppInfoFromSummary)
     .filter((app): app is AppInfo => Boolean(app))
-}
-
-export const sourceAppMapFromApps = (apps: AppInfo[]) => {
-  return new Map(apps.map(app => [app.id, app]))
 }
 
 export const deploymentSummariesFromList = (response?: ListAppDeploymentsReply): Record<string, AppDeploymentSummary> => {
@@ -174,6 +167,13 @@ export const environmentOptionsFromList = (response?: ListAppDeploymentsReply): 
       disabled: filter.disabled,
       disabledReason: filter.disabledReason,
     }))
+}
+
+export const environmentOptionsFromDeploymentRows = (rows?: EnvironmentDeploymentRow[]): EnvironmentOption[] => {
+  return rows
+    ?.map(row => row.environment)
+    .filter((environment): environment is ConsoleEnvironmentSummary => Boolean(environment?.id))
+    .map(environment => ({ ...environment })) ?? []
 }
 
 export const accessModeToPermissionKey = (mode?: string): AccessPermissionKind => {

@@ -9,13 +9,13 @@ import type {
 import { useQuery } from '@tanstack/react-query'
 import { useMemo, useState } from 'react'
 import { consoleQuery } from '@/service/client'
-import { DEPLOYMENT_PAGE_SIZE } from '../data'
 import {
   useGenerateDeploymentApiKey,
   useRevokeDeploymentApiKey,
   useSetEnvironmentAccessPolicy,
   useToggleDeploymentAccessChannel,
 } from '../hooks/use-deployment-mutations'
+import { deploymentEnvironmentDeploymentsQueryOptions } from '../queries'
 import {
   deployedRows,
 } from '../utils'
@@ -43,15 +43,7 @@ const AccessTab: FC<AccessTabProps> = ({ instanceId: appId }) => {
   const { data: accessConfig } = useQuery(consoleQuery.deployments.accessConfig.queryOptions({
     input: appInput,
   }))
-  const { data: environmentDeployments } = useQuery(consoleQuery.deployments.environmentDeployments.queryOptions({
-    input: {
-      ...appInput,
-      query: {
-        pageNumber: 1,
-        resultsPerPage: DEPLOYMENT_PAGE_SIZE,
-      },
-    },
-  }))
+  const { data: environmentDeployments } = useQuery(deploymentEnvironmentDeploymentsQueryOptions(appId))
   const [createdApiToken, setCreatedApiToken] = useState<{
     appId: string
     token: string

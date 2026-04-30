@@ -11,12 +11,8 @@ import {
 import { useQuery } from '@tanstack/react-query'
 import { useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { consoleQuery } from '@/service/client'
-import {
-  DEPLOYMENT_PAGE_SIZE,
-  SOURCE_APPS_PAGE_SIZE,
-} from '../data'
 import { useUndeployDeployment } from '../hooks/use-deployment-mutations'
+import { deploymentEnvironmentDeploymentsQueryOptions } from '../queries'
 import { useDeploymentsStore } from '../store'
 import {
   activeRelease,
@@ -27,7 +23,7 @@ import {
   environmentId,
   environmentMode,
   environmentName,
-  environmentOptionsFromList,
+  environmentOptionsFromDeploymentRows,
   isUndeployedDeploymentRow,
   releaseCommit,
   releaseLabel,
@@ -43,26 +39,13 @@ type DeployTabProps = {
 
 const DeployTab: FC<DeployTabProps> = ({ instanceId: appId }) => {
   const { t } = useTranslation('deployments')
-  const { data: environmentDeployments } = useQuery(consoleQuery.deployments.environmentDeployments.queryOptions({
-    input: {
-      params: { appInstanceId: appId },
-      query: {
-        pageNumber: 1,
-        resultsPerPage: DEPLOYMENT_PAGE_SIZE,
-      },
-    },
-  }))
+  const { data: environmentDeployments } = useQuery(deploymentEnvironmentDeploymentsQueryOptions(appId))
   const openDeployDrawer = useDeploymentsStore(state => state.openDeployDrawer)
   const undeployDeployment = useUndeployDeployment()
-  const listQuery = useQuery(consoleQuery.deployments.list.queryOptions({
-    input: {
-      query: {
-        pageNumber: 1,
-        resultsPerPage: SOURCE_APPS_PAGE_SIZE,
-      },
-    },
-  }))
-  const environmentOptions = useMemo(() => environmentOptionsFromList(listQuery.data), [listQuery.data])
+  const environmentOptions = useMemo(
+    () => environmentOptionsFromDeploymentRows(environmentDeployments?.data),
+    [environmentDeployments?.data],
+  )
 
   const rows = useMemo(
     () => environmentDeployments?.data?.filter(row => row.environment?.id) ?? [],
