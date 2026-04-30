@@ -202,11 +202,6 @@
       "count": 1
     }
   },
-  "web/app/components/app-sidebar/dataset-info/dropdown.tsx": {
-    "ts/no-explicit-any": {
-      "count": 1
-    }
-  },
   "web/app/components/app-sidebar/index.tsx": {
     "ts/no-explicit-any": {
       "count": 1
