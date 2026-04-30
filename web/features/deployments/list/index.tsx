@@ -15,9 +15,6 @@ import { deploymentsListQueryOptions } from '../queries'
 import { useDeploymentsStore } from '../store'
 import {
   deploymentSummariesFromList,
-  environmentId,
-  environmentName,
-  environmentOptionsFromOptionsReply,
   sourceAppsFromList,
 } from '../utils'
 import { EnvironmentFilter } from './environment-filter'
@@ -56,21 +53,18 @@ const DeploymentsMain: FC = () => {
   const { data: environmentOptionsReply } = useQuery(consoleQuery.deployments.deploymentEnvironmentOptions.queryOptions())
   const apps = useMemo(() => sourceAppsFromList(listQuery.data), [listQuery.data])
   const summaries = useMemo(() => deploymentSummariesFromList(listQuery.data), [listQuery.data])
-  const environmentOptions = useMemo(
-    () => environmentOptionsFromOptionsReply(environmentOptionsReply),
-    [environmentOptionsReply],
-  )
-
   const environments = useMemo(() => {
-    return environmentOptions
-      .filter(env => environmentId(env))
-      .map(env => ({
-        id: environmentId(env),
-        name: environmentName(env),
-        disabled: env.disabled,
+    return environmentOptionsReply?.environments?.flatMap((env) => {
+      if (!env.id)
+        return []
+      return [{
+        id: env.id,
+        name: env.name || env.id,
+        disabled: env.deployable === false,
         disabledReason: env.disabledReason,
-      }))
-  }, [environmentOptions])
+      }]
+    }) ?? []
+  }, [environmentOptionsReply])
 
   const envIdSet = useMemo(() => new Set(environments.map(e => e.id)), [environments])
   const activeFilter = envFilter === 'all' || envFilter === 'not-deployed' || envIdSet.has(envFilter)
