@@ -18,6 +18,14 @@ export type Option = {
   value: string
 }
 
+const getSelectedValue = (value: string | undefined, options: Option[]) => {
+  return options.some(option => option.value === value) ? value : null
+}
+
+const getDisplayLabel = (value: string | null, options: Option[], placeholder: string) => {
+  return options.find(option => option.value === value)?.label ?? placeholder
+}
+
 type SelectFieldPopupProps = {
   className?: string
   title?: string
@@ -58,7 +66,7 @@ const SelectField = ({
       />
       <Select
         items={options}
-        value={field.state.value ?? null}
+        value={getSelectedValue(field.state.value, options)}
         disabled={disabled}
         onValueChange={(next) => {
           if (next == null)
@@ -68,7 +76,9 @@ const SelectField = ({
         }}
       >
         <SelectTrigger id={field.name} className="px-2">
-          <SelectValue placeholder={placeholderText} />
+          <SelectValue placeholder={placeholderText}>
+            {(nextValue: string | null) => getDisplayLabel(nextValue, options, placeholderText)}
+          </SelectValue>
         </SelectTrigger>
         <SelectContent popupClassName={cn('w-(--anchor-width) bg-components-panel-bg-blur', popupProps?.className)}>
           {popupProps?.title && (

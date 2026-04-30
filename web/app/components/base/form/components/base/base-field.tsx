@@ -51,6 +51,19 @@ const getTranslatedContent = ({ content, render }: {
   return ''
 }
 
+type SelectOption = {
+  label: string
+  value: string
+}
+
+const getSingleSelectValue = (value: unknown, options: SelectOption[]) => {
+  return options.find(option => option.value === value)?.value ?? null
+}
+
+const getSingleSelectLabel = (value: unknown, options: SelectOption[], placeholder: string | undefined) => {
+  return options.find(option => option.value === value)?.label ?? placeholder
+}
+
 const VALIDATE_STATUS_STYLE_MAP: Record<FormItemValidateStatusEnum, { componentClassName: string, textClassName: string, infoFieldName: string }> = {
   [FormItemValidateStatusEnum.Error]: {
     componentClassName: 'border-components-input-border-destructive focus:border-components-input-border-destructive',
@@ -267,7 +280,7 @@ const BaseField = ({
               : (
                   <Select
                     items={memorizedOptions}
-                    value={value || null}
+                    value={getSingleSelectValue(value, memorizedOptions)}
                     disabled={disabled}
                     onValueChange={(next) => {
                       if (next == null)
@@ -276,7 +289,9 @@ const BaseField = ({
                     }}
                   >
                     <SelectTrigger id={field.name} aria-label={translatedLabel || field.name} className="px-2">
-                      <SelectValue placeholder={translatedPlaceholder} />
+                      <SelectValue placeholder={translatedPlaceholder}>
+                        {nextValue => getSingleSelectLabel(nextValue, memorizedOptions, translatedPlaceholder)}
+                      </SelectValue>
                     </SelectTrigger>
                     <SelectContent popupClassName="max-h-[320px] w-(--anchor-width) bg-components-panel-bg-blur">
                       {memorizedOptions.map(option => (
@@ -339,7 +354,7 @@ const BaseField = ({
               : (
                   <Select
                     items={dynamicOptions}
-                    value={value || null}
+                    value={getSingleSelectValue(value, dynamicOptions)}
                     disabled={disabled || isDynamicOptionsLoading}
                     onValueChange={(next) => {
                       if (next == null)
@@ -348,7 +363,9 @@ const BaseField = ({
                     }}
                   >
                     <SelectTrigger id={field.name} aria-label={translatedLabel || field.name} className="px-2">
-                      <SelectValue placeholder={dynamicPlaceholder} />
+                      <SelectValue placeholder={dynamicPlaceholder}>
+                        {nextValue => getSingleSelectLabel(nextValue, dynamicOptions, dynamicPlaceholder)}
+                      </SelectValue>
                     </SelectTrigger>
                     <SelectContent popupClassName="w-(--anchor-width) bg-components-panel-bg-blur">
                       {dynamicNoticeTitle && (

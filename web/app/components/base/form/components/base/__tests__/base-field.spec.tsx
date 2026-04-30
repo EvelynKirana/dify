@@ -118,6 +118,25 @@ describe('BaseField', () => {
     expect(screen.queryByText('Beta')).not.toBeInTheDocument()
   })
 
+  it('should not render current select value when it is filtered out by show_on conditions', () => {
+    renderBaseField({
+      formSchema: {
+        type: FormTypeEnum.select,
+        name: 'mode',
+        label: 'Mode',
+        required: false,
+        options: [
+          { label: 'Alpha', value: 'alpha' },
+          { label: 'Beta', value: 'beta', show_on: [{ variable: 'enabled', value: 'yes' }] },
+        ],
+      },
+      defaultValues: { mode: 'beta', enabled: 'no' },
+    })
+
+    expect(screen.getByRole('combobox', { name: 'Mode' })).not.toHaveTextContent('beta')
+    expect(screen.getByRole('combobox', { name: 'Mode' })).toHaveTextContent('common.placeholder.input')
+  })
+
   it('should render dynamic select loading state', () => {
     mockDynamicOptions.mockReturnValue({
       data: undefined,

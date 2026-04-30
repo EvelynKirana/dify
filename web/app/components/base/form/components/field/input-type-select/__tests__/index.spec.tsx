@@ -21,10 +21,11 @@ describe('InputTypeSelectField', () => {
   })
 
   it('should render label and selected option', () => {
-    render(<InputTypeSelectField label="Input type" supportFile={true} />)
+    const { container } = render(<InputTypeSelectField label="Input type" supportFile={true} />)
 
     expect(screen.getByText('Input type')).toBeInTheDocument()
     expect(screen.getByText('appDebug.variableConfig.text-input')).toBeInTheDocument()
+    expect(container.querySelector('[role="combobox"] span > div')).not.toBeInTheDocument()
   })
 
   it('should update value when users choose another input type', async () => {

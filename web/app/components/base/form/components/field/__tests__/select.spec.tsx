@@ -33,6 +33,22 @@ describe('SelectField', () => {
     expect(screen.getByRole('combobox', { name: 'Mode' })).toHaveTextContent('Alpha')
   })
 
+  it('should render the option label when selected value is an empty string', () => {
+    mockField.state.value = ''
+
+    render(
+      <SelectField
+        label="Mode"
+        options={[
+          { label: 'No default selected', value: '' },
+          { label: 'Alpha', value: 'alpha' },
+        ]}
+      />,
+    )
+
+    expect(screen.getByRole('combobox', { name: 'Mode' })).toHaveTextContent('No default selected')
+  })
+
   it('should update value when users select another option', async () => {
     const user = userEvent.setup()
     render(
