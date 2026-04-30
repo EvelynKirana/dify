@@ -15,6 +15,20 @@ describe('EvaluationCell', () => {
       expect(screen.queryByRole('button', { name: 'appLog.table.header.evaluation' })).not.toBeInTheDocument()
     })
 
+    it('should render a placeholder when evaluation data is missing', () => {
+      render(<EvaluationCell />)
+
+      expect(screen.getByText('-')).toBeInTheDocument()
+      expect(screen.queryByRole('button', { name: 'appLog.table.header.evaluation' })).not.toBeInTheDocument()
+    })
+
+    it('should render a placeholder when evaluation data is null', () => {
+      render(<EvaluationCell evaluation={null} />)
+
+      expect(screen.getByText('-')).toBeInTheDocument()
+      expect(screen.queryByRole('button', { name: 'appLog.table.header.evaluation' })).not.toBeInTheDocument()
+    })
+
     it('should render a trigger button when evaluation data is available', () => {
       render(
         <EvaluationCell
