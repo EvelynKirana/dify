@@ -1,5 +1,6 @@
 from types import SimpleNamespace
 from typing import cast
+from unittest.mock import Mock
 
 import pytest
 from pytest_mock import MockerFixture
@@ -68,8 +69,9 @@ def test_check_moderation_returns_true_when_model_accepts_text(mocker: MockerFix
     mocker.patch("core.helper.moderation.secrets.choice", return_value="chunk")
 
     moderation_model = SimpleNamespace(invoke=lambda **invoke_kwargs: invoke_kwargs["text"] == "chunk")
-    factory = SimpleNamespace(get_model_type_instance=lambda **_factory_kwargs: moderation_model)
+    factory = Mock()
     mocker.patch("core.helper.moderation.create_plugin_model_provider_factory", return_value=factory)
+    mocker.patch("core.helper.moderation.create_model_type_instance", return_value=moderation_model)
 
     assert (
         check_moderation(
@@ -119,8 +121,9 @@ def test_check_moderation_returns_false_when_model_rejects_text(mocker: MockerFi
     mocker.patch("core.helper.moderation.secrets.choice", return_value="chunk")
 
     moderation_model = SimpleNamespace(invoke=lambda **_invoke_kwargs: False)
-    factory = SimpleNamespace(get_model_type_instance=lambda **_factory_kwargs: moderation_model)
+    factory = Mock()
     mocker.patch("core.helper.moderation.create_plugin_model_provider_factory", return_value=factory)
+    mocker.patch("core.helper.moderation.create_model_type_instance", return_value=moderation_model)
 
     assert (
         check_moderation(
@@ -147,8 +150,9 @@ def test_check_moderation_raises_bad_request_when_provider_call_fails(mocker: Mo
     failing_model = SimpleNamespace(
         invoke=lambda **_invoke_kwargs: (_ for _ in ()).throw(RuntimeError("boom")),
     )
-    factory = SimpleNamespace(get_model_type_instance=lambda **_factory_kwargs: failing_model)
+    factory = Mock()
     mocker.patch("core.helper.moderation.create_plugin_model_provider_factory", return_value=factory)
+    mocker.patch("core.helper.moderation.create_model_type_instance", return_value=failing_model)
 
     with pytest.raises(InvokeBadRequestError, match="Rate limit exceeded, please try again later."):
         check_moderation(

@@ -2,6 +2,7 @@ from unittest.mock import Mock
 
 import pytest
 
+from core.plugin.impl.model_runtime_factory import create_model_type_instance
 from graphon.model_runtime.entities.common_entities import I18nObject
 from graphon.model_runtime.entities.model_entities import AIModelEntity, FetchFrom, ModelType
 from graphon.model_runtime.entities.provider_entities import (
@@ -107,7 +108,7 @@ def test_model_provider_factory_resolves_canonical_short_name_independent_of_pro
 
 
 def test_model_provider_factory_requires_runtime() -> None:
-    with pytest.raises(ValueError, match="model_runtime is required"):
+    with pytest.raises(ValueError, match="runtime is required"):
         ModelProviderFactory(runtime=None)  # type: ignore[arg-type]
 
 
@@ -142,7 +143,7 @@ def test_model_provider_factory_get_provider_schema_delegates_to_provider_lookup
 
 def test_model_provider_factory_raises_for_unknown_provider() -> None:
     factory = ModelProviderFactory(
-        model_runtime=_FakeModelRuntime([
+        runtime=_FakeModelRuntime([
                 _build_provider(
                     provider="langgenius/openai/openai",
                     provider_name="openai",
@@ -384,7 +385,7 @@ def test_model_provider_factory_builds_model_type_instances(
     expected_type: type[object],
 ) -> None:
     factory = ModelProviderFactory(
-        model_runtime=_FakeModelRuntime([
+        runtime=_FakeModelRuntime([
                 _build_provider(
                     provider="langgenius/openai/openai",
                     provider_name="openai",
@@ -394,14 +395,14 @@ def test_model_provider_factory_builds_model_type_instances(
         )
     )
 
-    instance = factory.get_model_type_instance("openai", model_type)
+    instance = create_model_type_instance(factory=factory, provider="openai", model_type=model_type)
 
     assert isinstance(instance, expected_type)
 
 
 def test_model_provider_factory_rejects_unsupported_model_type() -> None:
     factory = ModelProviderFactory(
-        model_runtime=_FakeModelRuntime([
+        runtime=_FakeModelRuntime([
                 _build_provider(
                     provider="langgenius/openai/openai",
                     provider_name="openai",
@@ -412,4 +413,4 @@ def test_model_provider_factory_rejects_unsupported_model_type() -> None:
     )
 
     with pytest.raises(ValueError, match="Unsupported model type: unsupported"):
-        factory.get_model_type_instance("openai", "unsupported")  # type: ignore[arg-type]
+        create_model_type_instance(factory=factory, provider="openai", model_type="unsupported")  # type: ignore[arg-type]

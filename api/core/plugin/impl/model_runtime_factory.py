@@ -3,12 +3,29 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from core.plugin.impl.model import PluginModelClient
+from graphon.model_runtime.entities.model_entities import ModelType
+from graphon.model_runtime.model_providers.base.ai_model import AIModel
+from graphon.model_runtime.model_providers.base.large_language_model import LargeLanguageModel
+from graphon.model_runtime.model_providers.base.moderation_model import ModerationModel
+from graphon.model_runtime.model_providers.base.rerank_model import RerankModel
+from graphon.model_runtime.model_providers.base.speech2text_model import Speech2TextModel
+from graphon.model_runtime.model_providers.base.text_embedding_model import TextEmbeddingModel
+from graphon.model_runtime.model_providers.base.tts_model import TTSModel
 from graphon.model_runtime.model_providers.model_provider_factory import ModelProviderFactory
 
 if TYPE_CHECKING:
     from core.model_manager import ModelManager
     from core.plugin.impl.model_runtime import PluginModelRuntime
     from core.provider_manager import ProviderManager
+
+_MODEL_TYPE_CLASS_MAP: dict[ModelType, type[AIModel]] = {
+    ModelType.LLM: LargeLanguageModel,
+    ModelType.TEXT_EMBEDDING: TextEmbeddingModel,
+    ModelType.RERANK: RerankModel,
+    ModelType.SPEECH2TEXT: Speech2TextModel,
+    ModelType.MODERATION: ModerationModel,
+    ModelType.TTS: TTSModel,
+}
 
 
 class PluginModelAssembly:
@@ -87,3 +104,30 @@ def create_plugin_provider_manager(*, tenant_id: str, user_id: str | None = None
 def create_plugin_model_manager(*, tenant_id: str, user_id: str | None = None) -> ModelManager:
     """Create a tenant-bound model manager for service flows."""
     return create_plugin_model_assembly(tenant_id=tenant_id, user_id=user_id).model_manager
+
+
+def create_model_type_instance(
+    factory: ModelProviderFactory,
+    provider: str,
+    model_type: ModelType,
+) -> AIModel:
+    """Instantiate the AIModel subclass for *model_type* backed by *factory*'s runtime.
+
+    This replaces ``ModelProviderFactory.get_model_type_instance`` which was
+    removed in graphon 0.3.0.  The mapping from ModelType to concrete AIModel
+    subclass is maintained here so that callers do not need to know the
+    subclass constructors.
+
+    :param factory: factory whose ``runtime`` and provider resolution are used.
+    :param provider: provider identifier (canonical or short name).
+    :param model_type: the model type to instantiate.
+    :returns: an AIModel subclass instance wired to the factory's runtime.
+    :raises ValueError: if *model_type* is not supported.
+    """
+    model_class = _MODEL_TYPE_CLASS_MAP.get(model_type)
+    if model_class is None:
+        msg = f"Unsupported model type: {model_type}"
+        raise ValueError(msg)
+
+    provider_entity = factory.get_model_provider(provider)
+    return model_class(provider_schema=provider_entity, model_runtime=factory.runtime)

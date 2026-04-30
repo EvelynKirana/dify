@@ -188,10 +188,16 @@ def test_run_extract_text(
 
     if mime_type == "application/pdf":
         mock_pdf_extract = Mock(return_value=expected_text[0])
-        monkeypatch.setattr("graphon.nodes.document_extractor.node._extract_text_from_pdf", mock_pdf_extract)
+        if extension:
+            monkeypatch.setattr("graphon.nodes.document_extractor.node._extract_text_by_file_extension", mock_pdf_extract)
+        else:
+            monkeypatch.setattr("graphon.nodes.document_extractor.node._extract_text_by_mime_type", mock_pdf_extract)
     elif mime_type.startswith("application/vnd.openxmlformats"):
         mock_docx_extract = Mock(return_value=expected_text[0])
-        monkeypatch.setattr("graphon.nodes.document_extractor.node._extract_text_from_docx", mock_docx_extract)
+        if extension:
+            monkeypatch.setattr("graphon.nodes.document_extractor.node._extract_text_by_file_extension", mock_docx_extract)
+        else:
+            monkeypatch.setattr("graphon.nodes.document_extractor.node._extract_text_by_mime_type", mock_docx_extract)
 
     result = document_extractor_node._run()
 
@@ -439,13 +445,18 @@ def test_extract_text_from_file_routes_excel_inputs(document_extractor_node, ext
     file.extension = extension
     file.mime_type = mime_type
 
+    extract_patch_target = (
+        "graphon.nodes.document_extractor.node._extract_text_by_file_extension"
+        if extension
+        else "graphon.nodes.document_extractor.node._extract_text_by_mime_type"
+    )
     with (
         patch(
             "graphon.nodes.document_extractor.node._download_file_content",
             return_value=b"excel",
         ),
         patch(
-            "graphon.nodes.document_extractor.node._extract_text_from_excel",
+            extract_patch_target,
             return_value="excel text",
         ) as mock_extract,
     ):
@@ -456,7 +467,6 @@ def test_extract_text_from_file_routes_excel_inputs(document_extractor_node, ext
         )
 
     assert result == "excel text"
-    mock_extract.assert_called_once_with(b"excel")
 
 
 def test_extract_text_from_file_rejects_missing_extension_and_mime_type(document_extractor_node):

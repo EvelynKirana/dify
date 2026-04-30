@@ -15,7 +15,7 @@ from core.app.llm.model_access import (
 )
 from core.entities.provider_configuration import ProviderConfiguration, ProviderModelBundle
 from core.entities.provider_entities import CustomConfiguration, SystemConfiguration
-from core.plugin.impl.model_runtime_factory import create_plugin_model_runtime
+from core.plugin.impl.model_runtime_factory import create_model_type_instance, create_plugin_model_runtime
 from core.prompt.entities.advanced_prompt_entities import MemoryConfig
 from core.workflow.system_variables import default_system_variables
 from graphon.entities import GraphInitParams
@@ -243,7 +243,9 @@ def model_config(monkeypatch):
     # Create actual provider and model type instances
     model_provider_factory = ModelProviderFactory(runtime=create_plugin_model_runtime(tenant_id="test"))
     provider_instance = model_provider_factory.get_model_provider("openai")
-    model_type_instance = model_provider_factory.get_model_type_instance("openai", ModelType.LLM)
+    model_type_instance = create_model_type_instance(
+        factory=model_provider_factory, provider="openai", model_type=ModelType.LLM,
+    )
 
     # Create a ProviderModelBundle
     provider_model_bundle = ProviderModelBundle(

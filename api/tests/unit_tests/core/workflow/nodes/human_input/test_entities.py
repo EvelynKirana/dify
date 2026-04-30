@@ -250,7 +250,7 @@ class TestUserAction:
         ("field_name", "value"),
         [
             ("id", "a" * 21),
-            ("title", "b" * 21),
+            ("title", "b" * 101),
         ],
     )
     def test_user_action_length_limits(self, field_name: str, value: str):

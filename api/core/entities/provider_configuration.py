@@ -24,6 +24,7 @@ from core.entities.provider_entities import (
 from core.helper import encrypter
 from core.helper.model_provider_cache import ProviderCredentialsCache, ProviderCredentialsCacheType
 from core.plugin.impl.model_runtime_factory import create_plugin_model_provider_factory
+from graphon.model_runtime import ModelRuntime
 from graphon.model_runtime.entities.model_entities import AIModelEntity, FetchFrom, ModelType
 from graphon.model_runtime.entities.provider_entities import (
     ConfigurateMethod,
@@ -33,7 +34,6 @@ from graphon.model_runtime.entities.provider_entities import (
 )
 from graphon.model_runtime.model_providers.base.ai_model import AIModel
 from graphon.model_runtime.model_providers.model_provider_factory import ModelProviderFactory
-from graphon.model_runtime import ModelRuntime
 from libs.datetime_utils import naive_utc_now
 from models.engine import db
 from models.enums import CredentialSourceType
@@ -1392,10 +1392,12 @@ class ProviderConfiguration(BaseModel):
         :param model_type: model type
         :return:
         """
-        model_provider_factory = self.get_model_provider_factory()
+        from core.plugin.impl.model_runtime_factory import create_model_type_instance
 
-        # Get model instance of LLM
-        return model_provider_factory.get_model_type_instance(provider=self.provider.provider, model_type=model_type)
+        model_provider_factory = self.get_model_provider_factory()
+        return create_model_type_instance(
+            factory=model_provider_factory, provider=self.provider.provider, model_type=model_type
+        )
 
     def get_model_schema(
         self, model_type: ModelType, model: str, credentials: dict[str, Any] | None
