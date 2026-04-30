@@ -1,4 +1,5 @@
-import { fireEvent, render, screen } from '@testing-library/react'
+import { render, screen } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
 import InputTypeSelectField from '../index'
 
 const mockField = {
@@ -26,11 +27,12 @@ describe('InputTypeSelectField', () => {
     expect(screen.getByText('appDebug.variableConfig.text-input')).toBeInTheDocument()
   })
 
-  it('should update value when users choose another input type', () => {
+  it('should update value when users choose another input type', async () => {
+    const user = userEvent.setup()
     render(<InputTypeSelectField label="Input type" supportFile={true} />)
 
-    fireEvent.click(screen.getByText('appDebug.variableConfig.text-input'))
-    fireEvent.click(screen.getByText('appDebug.variableConfig.number'))
+    await user.click(screen.getByRole('combobox', { name: 'Input type' }))
+    await user.click(screen.getByRole('option', { name: /appDebug.variableConfig.number/ }))
 
     expect(mockField.handleChange).toHaveBeenCalledWith('number')
   })

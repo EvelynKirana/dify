@@ -1,9 +1,28 @@
-import type { Option, PureSelectProps } from '../../../select/pure'
 import type { LabelProps } from '../label'
 import { cn } from '@langgenius/dify-ui/cn'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectItemIndicator,
+  SelectItemText,
+  SelectTrigger,
+  SelectValue,
+} from '@langgenius/dify-ui/select'
+import { useTranslation } from 'react-i18next'
 import { useFieldContext } from '../..'
-import PureSelect from '../../../select/pure'
 import Label from '../label'
+
+export type Option = {
+  label: string
+  value: string
+}
+
+export type SelectFieldPopupProps = {
+  className?: string
+  title?: string
+  titleClassName?: string
+}
 
 type SelectFieldProps = {
   label: string
@@ -11,8 +30,9 @@ type SelectFieldProps = {
   options: Option[]
   onChange?: (value: string) => void
   className?: string
-} & Omit<PureSelectProps, 'options' | 'value' | 'onChange' | 'multiple'> & {
-  multiple?: false
+  placeholder?: string
+  disabled?: boolean
+  popupProps?: SelectFieldPopupProps
 }
 
 const SelectField = ({
@@ -21,9 +41,13 @@ const SelectField = ({
   options,
   onChange,
   className,
-  ...selectProps
+  placeholder,
+  disabled,
+  popupProps,
 }: SelectFieldProps) => {
+  const { t } = useTranslation()
   const field = useFieldContext<string>()
+  const placeholderText = placeholder || t('placeholder.select', { ns: 'common' })
 
   return (
     <div className={cn('flex flex-col gap-y-0.5', className)}>
@@ -32,15 +56,39 @@ const SelectField = ({
         label={label}
         {...(labelOptions ?? {})}
       />
-      <PureSelect
-        value={field.state.value}
-        options={options}
-        onChange={(value) => {
-          field.handleChange(value)
-          onChange?.(value)
+      <Select
+        items={options}
+        value={field.state.value ?? null}
+        disabled={disabled}
+        onValueChange={(next) => {
+          if (next == null)
+            return
+          field.handleChange(next)
+          onChange?.(next)
         }}
-        {...selectProps}
-      />
+      >
+        <SelectTrigger id={field.name} className="px-2">
+          <SelectValue placeholder={placeholderText} />
+        </SelectTrigger>
+        <SelectContent popupClassName={cn('w-(--anchor-width) bg-components-panel-bg-blur', popupProps?.className)}>
+          {popupProps?.title && (
+            <div
+              className={cn(
+                'flex h-[22px] items-center px-3 system-xs-medium-uppercase text-text-tertiary',
+                popupProps.titleClassName,
+              )}
+            >
+              {popupProps.title}
+            </div>
+          )}
+          {options.map(option => (
+            <SelectItem key={option.value} value={option.value}>
+              <SelectItemText>{option.label}</SelectItemText>
+              <SelectItemIndicator />
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
     </div>
   )
 }

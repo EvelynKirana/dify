@@ -2,6 +2,7 @@ import type { AnyFieldApi } from '@tanstack/react-form'
 import type { FormSchema } from '@/app/components/base/form/types'
 import { useForm } from '@tanstack/react-form'
 import { act, fireEvent, render, screen } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
 import { FormItemValidateStatusEnum, FormTypeEnum } from '@/app/components/base/form/types'
 import BaseField from '../base-field'
 
@@ -238,6 +239,7 @@ describe('BaseField', () => {
   })
 
   it('should render dynamic options and allow selecting one', async () => {
+    const user = userEvent.setup()
     mockDynamicOptions.mockReturnValue({
       data: {
         options: [
@@ -258,13 +260,42 @@ describe('BaseField', () => {
       defaultValues: { plugin_option: '' },
     })
 
-    await act(async () => {
-      fireEvent.click(screen.getByText('common.placeholder.input'))
+    await user.click(screen.getByRole('combobox', { name: 'Plugin option' }))
+    await user.click(screen.getByRole('option', { name: 'Option A' }))
+    expect(screen.getByRole('combobox', { name: 'Plugin option' })).toHaveTextContent('Option A')
+  })
+
+  it('should preserve multiple dynamic select values', async () => {
+    const user = userEvent.setup()
+    mockDynamicOptions.mockReturnValue({
+      data: {
+        options: [
+          { label: { en_US: 'Option A', zh_Hans: '选项A' }, value: 'a' },
+          { label: { en_US: 'Option B', zh_Hans: '选项B' }, value: 'b' },
+        ],
+      },
+      isLoading: false,
+      error: null,
     })
-    await act(async () => {
-      fireEvent.click(screen.getByText('Option A'))
+
+    renderBaseField({
+      formSchema: {
+        type: FormTypeEnum.dynamicSelect,
+        name: 'plugin_options',
+        label: 'Plugin options',
+        required: false,
+        multiple: true,
+      },
+      defaultValues: { plugin_options: ['a'] },
+      showCurrentValue: true,
     })
-    expect(screen.getByText('Option A')).toBeInTheDocument()
+
+    expect(screen.getByRole('combobox', { name: 'Plugin options' })).toHaveTextContent('common.dynamicSelect.selected')
+
+    await user.click(screen.getByRole('combobox', { name: 'Plugin options' }))
+    await user.click(screen.getByRole('option', { name: 'Option B' }))
+
+    expect(screen.getByTestId('field-value')).toHaveTextContent('a,b')
   })
 
   it('should update boolean field when users choose false', async () => {

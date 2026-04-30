@@ -5,7 +5,7 @@ const MockIcon = () => <svg aria-label="mock icon" />
 
 describe('InputTypeSelect Trigger', () => {
   it('should show placeholder text when no option is selected', () => {
-    render(<Trigger option={undefined} open={false} />)
+    render(<Trigger option={undefined} />)
     expect(screen.getByText('common.placeholder.select')).toBeInTheDocument()
   })
 
@@ -18,7 +18,6 @@ describe('InputTypeSelect Trigger', () => {
           Icon: MockIcon,
           type: 'string',
         }}
-        open={false}
       />,
     )
 
