@@ -15,7 +15,7 @@ import { DeployReleaseMenu } from './versions-tab/deploy-release-menu'
 import { DeployedToBadge } from './versions-tab/deployed-to-badge'
 import { getReleaseDeployments } from './versions-tab/release-deployments'
 
-const GRID_TEMPLATE = 'grid-cols-[0.9fr_1fr_0.8fr_1.5fr_auto]'
+const GRID_TEMPLATE = 'grid-cols-[minmax(0,0.9fr)_minmax(0,1fr)_minmax(0,0.8fr)_minmax(0,1.5fr)_96px]'
 
 type VersionsTabProps = {
   instanceId: string
@@ -56,7 +56,7 @@ const VersionsTab: FC<VersionsTabProps> = ({ instanceId: appId }) => {
         : (
             <div className="overflow-hidden rounded-xl border border-components-panel-border bg-components-panel-bg">
               <div className={cn(
-                'hidden items-center gap-4 border-b border-divider-subtle px-4 py-3 system-xs-medium-uppercase text-text-tertiary lg:grid',
+                'hidden items-center gap-4 border-b border-divider-subtle px-4 py-3 system-xs-medium-uppercase text-text-tertiary pc:grid',
                 GRID_TEMPLATE,
               )}
               >
@@ -72,16 +72,13 @@ const VersionsTab: FC<VersionsTabProps> = ({ instanceId: appId }) => {
                 const releaseDeployments = getReleaseDeployments(row, deploymentRows)
                 return (
                   <div key={release.id} className="border-b border-divider-subtle last:border-b-0">
-                    <div className="flex flex-col gap-3 px-4 py-3 lg:hidden">
+                    <div className="flex flex-col gap-3 p-4 pc:hidden">
                       <div className="flex items-start justify-between gap-3">
                         <div className="min-w-0">
-                          <div className="system-xs-medium-uppercase text-text-tertiary">
-                            {t('versions.col.release')}
-                          </div>
                           <Tooltip>
                             <TooltipTrigger
                               render={(
-                                <span className="mt-1 inline-flex max-w-full cursor-default truncate font-mono system-sm-medium text-text-primary">
+                                <span className="inline-flex max-w-full cursor-default truncate font-mono system-sm-medium text-text-primary">
                                   {releaseLabel(release)}
                                 </span>
                               )}
@@ -90,7 +87,7 @@ const VersionsTab: FC<VersionsTabProps> = ({ instanceId: appId }) => {
                               {t('versions.commitTooltip', { commit: releaseCommit(release) })}
                             </TooltipContent>
                           </Tooltip>
-                          <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 system-xs-regular text-text-tertiary">
+                          <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 system-xs-regular text-text-secondary">
                             <span>{formatDate(release.createdAt)}</span>
                             <span aria-hidden>·</span>
                             <span>{row.createdBy?.displayName ?? row.createdBy?.name ?? '—'}</span>
@@ -100,11 +97,11 @@ const VersionsTab: FC<VersionsTabProps> = ({ instanceId: appId }) => {
                           <DeployReleaseMenu releaseId={release.id!} appId={appId} />
                         </div>
                       </div>
-                      <div>
-                        <div className="system-xs-medium-uppercase text-text-tertiary">
+                      <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
+                        <div className="shrink-0 system-xs-medium-uppercase text-text-tertiary">
                           {t('versions.col.deployedTo')}
                         </div>
-                        <div className="mt-1 flex flex-wrap gap-1">
+                        <div className="flex min-w-0 flex-wrap gap-1">
                           {releaseDeployments.length === 0
                             ? <span className="system-sm-regular text-text-quaternary">—</span>
                             : releaseDeployments.map(item => (
@@ -117,7 +114,7 @@ const VersionsTab: FC<VersionsTabProps> = ({ instanceId: appId }) => {
                       </div>
                     </div>
                     <div className={cn(
-                      'hidden items-center gap-4 px-4 py-3 lg:grid',
+                      'hidden items-center gap-4 px-4 py-3 pc:grid',
                       GRID_TEMPLATE,
                     )}
                     >
