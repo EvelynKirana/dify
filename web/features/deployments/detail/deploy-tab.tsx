@@ -41,7 +41,7 @@ type DeployTabProps = {
 const DeployTab: FC<DeployTabProps> = ({ instanceId: appInstanceId }) => {
   const { t } = useTranslation('deployments')
   const { data: environmentDeployments } = useQuery(deploymentEnvironmentDeploymentsQueryOptions(appInstanceId))
-  const { data: environmentOptionsReply } = useQuery(consoleQuery.enterprise.enterpriseAppDeployConsoleListDeploymentEnvironmentOptions.queryOptions())
+  const { data: environmentOptionsReply } = useQuery(consoleQuery.enterprise.enterpriseAppDeployConsole.listDeploymentEnvironmentOptions.queryOptions())
   const openDeployDrawer = useDeploymentsStore(state => state.openDeployDrawer)
   const undeployDeployment = useUndeployDeployment()
   const environmentOptions = useMemo(

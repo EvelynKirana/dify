@@ -194,7 +194,7 @@ const SettingsTab: FC<SettingsTabProps> = ({ instanceId }) => {
     () => toAppInfoFromOverview(overview?.instance),
     [overview?.instance],
   )
-  const settingsQuery = useQuery(consoleQuery.enterprise.enterpriseAppDeployConsoleGetAppInstanceSettings.queryOptions({
+  const settingsQuery = useQuery(consoleQuery.enterprise.enterpriseAppDeployConsole.getAppInstanceSettings.queryOptions({
     input: appInput,
   }))
 

@@ -190,7 +190,7 @@ const SubjectPicker: FC<SubjectPickerProps> = ({
     () => new Set(selectedSubjects.map(subjectKey)),
     [selectedSubjects],
   )
-  const subjectsQuery = useQuery(consoleQuery.enterprise.enterpriseAppDeployConsoleSearchAccessSubjects.queryOptions({
+  const subjectsQuery = useQuery(consoleQuery.enterprise.enterpriseAppDeployConsole.searchAccessSubjects.queryOptions({
     input: open
       ? {
           params: { appInstanceId: appId },
@@ -316,7 +316,7 @@ export const EnvironmentPermissionRow: FC<EnvironmentPermissionRowProps> = ({
 }) => {
   const { t } = useTranslation('deployments')
   const environmentId = environment.id
-  const policyQuery = useQuery(consoleQuery.enterprise.enterpriseAppDeployConsoleGetEnvironmentAccessPolicy.queryOptions({
+  const policyQuery = useQuery(consoleQuery.enterprise.enterpriseAppDeployConsole.getEnvironmentAccessPolicy.queryOptions({
     input: environmentId
       ? {
           params: {

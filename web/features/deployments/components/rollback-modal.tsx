@@ -54,7 +54,7 @@ const RollbackModal: FC = () => {
     enabled: modal.open && Boolean(modal.appInstanceId),
   })
   const { data: environmentOptionsReply } = useQuery({
-    ...consoleQuery.enterprise.enterpriseAppDeployConsoleListDeploymentEnvironmentOptions.queryOptions(),
+    ...consoleQuery.enterprise.enterpriseAppDeployConsole.listDeploymentEnvironmentOptions.queryOptions(),
     enabled: modal.open,
   })
   const { data: releaseHistory } = useQuery({
