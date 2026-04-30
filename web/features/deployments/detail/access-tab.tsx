@@ -6,8 +6,10 @@ import type {
   AccessSubject,
   ConsoleEnvironmentSummary,
 } from '@/contract/console/deployments'
+import { useQuery } from '@tanstack/react-query'
 import { useMemo, useState } from 'react'
-import { useCachedDeploymentAppData } from '../hooks/use-deployment-data'
+import { consoleQuery } from '@/service/client'
+import { DEPLOYMENT_PAGE_SIZE } from '../data'
 import {
   useGenerateDeploymentApiKey,
   useRevokeDeploymentApiKey,
@@ -37,7 +39,19 @@ type AccessTabProps = {
 }
 
 const AccessTab: FC<AccessTabProps> = ({ instanceId: appId }) => {
-  const { data: appData } = useCachedDeploymentAppData(appId)
+  const appInput = { params: { appInstanceId: appId } }
+  const { data: accessConfig } = useQuery(consoleQuery.deployments.accessConfig.queryOptions({
+    input: appInput,
+  }))
+  const { data: environmentDeployments } = useQuery(consoleQuery.deployments.environmentDeployments.queryOptions({
+    input: {
+      ...appInput,
+      query: {
+        pageNumber: 1,
+        resultsPerPage: DEPLOYMENT_PAGE_SIZE,
+      },
+    },
+  }))
   const [createdApiToken, setCreatedApiToken] = useState<{
     appId: string
     token: string
@@ -47,10 +61,9 @@ const AccessTab: FC<AccessTabProps> = ({ instanceId: appId }) => {
   const toggleAccessChannel = useToggleDeploymentAccessChannel()
   const setEnvironmentAccessPolicy = useSetEnvironmentAccessPolicy()
 
-  const accessConfig = appData?.accessConfig
   const deploymentRows = useMemo(
-    () => deployedRows(appData?.environmentDeployments.data),
-    [appData?.environmentDeployments.data],
+    () => deployedRows(environmentDeployments?.data),
+    [environmentDeployments?.data],
   )
   const policies = accessConfig?.permissions ?? EMPTY_ACCESS_PERMISSIONS
   const deployedEnvs = useMemo(
@@ -63,9 +76,17 @@ const AccessTab: FC<AccessTabProps> = ({ instanceId: appId }) => {
   )
   const apiEnabled = accessConfig?.developerApi?.enabled ?? false
   const apiKeys = accessConfig?.developerApi?.apiKeys ?? []
+  const createApiKeyLabel = (environmentId: string) => {
+    const existingCount = apiKeys.filter(key =>
+      (key.environmentId ?? key.environment?.id) === environmentId,
+    ).length
+    const name = deployedEnvs.find(env => env.id === environmentId)?.name ?? 'env'
+
+    return `${name}-key-${String(existingCount + 1).padStart(3, '0')}`
+  }
   const handleGenerateApiKey = (environmentId: string) => {
     generateApiKey.mutate(
-      { appId, environmentId },
+      { appId, environmentId, name: createApiKeyLabel(environmentId) },
       {
         onSuccess: (response) => {
           if (response.apiToken?.token)

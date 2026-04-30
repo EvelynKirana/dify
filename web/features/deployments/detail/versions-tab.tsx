@@ -2,9 +2,11 @@
 import type { FC } from 'react'
 import { cn } from '@langgenius/dify-ui/cn'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@langgenius/dify-ui/tooltip'
+import { useQuery } from '@tanstack/react-query'
 import { useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
-import { useCachedDeploymentAppData } from '../hooks/use-deployment-data'
+import { consoleQuery } from '@/service/client'
+import { DEPLOYMENT_PAGE_SIZE } from '../data'
 import {
   deployedRows,
   formatDate,
@@ -23,14 +25,29 @@ type VersionsTabProps = {
 
 const VersionsTab: FC<VersionsTabProps> = ({ instanceId: appId }) => {
   const { t } = useTranslation('deployments')
-  const { data: appData } = useCachedDeploymentAppData(appId)
+  const query = {
+    pageNumber: 1,
+    resultsPerPage: DEPLOYMENT_PAGE_SIZE,
+  }
+  const { data: releaseHistory } = useQuery(consoleQuery.deployments.releaseHistory.queryOptions({
+    input: {
+      params: { appInstanceId: appId },
+      query,
+    },
+  }))
+  const { data: environmentDeployments } = useQuery(consoleQuery.deployments.environmentDeployments.queryOptions({
+    input: {
+      params: { appInstanceId: appId },
+      query,
+    },
+  }))
   const releaseRows = useMemo(
-    () => appData?.releaseHistory.data?.filter(row => (row.release ?? row).id) ?? [],
-    [appData?.releaseHistory.data],
+    () => releaseHistory?.data?.filter(row => (row.release ?? row).id) ?? [],
+    [releaseHistory?.data],
   )
   const deploymentRows = useMemo(
-    () => deployedRows(appData?.environmentDeployments.data),
-    [appData?.environmentDeployments.data],
+    () => deployedRows(environmentDeployments?.data),
+    [environmentDeployments?.data],
   )
 
   return (

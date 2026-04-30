@@ -8,11 +8,15 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@langgenius/dify-ui/dropdown-menu'
+import { useQuery } from '@tanstack/react-query'
 import { useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { useCachedDeploymentAppData } from '../hooks/use-deployment-data'
+import { consoleQuery } from '@/service/client'
+import {
+  DEPLOYMENT_PAGE_SIZE,
+  SOURCE_APPS_PAGE_SIZE,
+} from '../data'
 import { useUndeployDeployment } from '../hooks/use-deployment-mutations'
-import { useSourceApps } from '../hooks/use-source-apps'
 import { useDeploymentsStore } from '../store'
 import {
   activeRelease,
@@ -23,6 +27,7 @@ import {
   environmentId,
   environmentMode,
   environmentName,
+  environmentOptionsFromList,
   isUndeployedDeploymentRow,
   releaseCommit,
   releaseLabel,
@@ -38,18 +43,34 @@ type DeployTabProps = {
 
 const DeployTab: FC<DeployTabProps> = ({ instanceId: appId }) => {
   const { t } = useTranslation('deployments')
-  const { data: appData } = useCachedDeploymentAppData(appId)
+  const { data: environmentDeployments } = useQuery(consoleQuery.deployments.environmentDeployments.queryOptions({
+    input: {
+      params: { appInstanceId: appId },
+      query: {
+        pageNumber: 1,
+        resultsPerPage: DEPLOYMENT_PAGE_SIZE,
+      },
+    },
+  }))
   const openDeployDrawer = useDeploymentsStore(state => state.openDeployDrawer)
   const undeployDeployment = useUndeployDeployment()
-  const { environmentOptions } = useSourceApps()
+  const listQuery = useQuery(consoleQuery.deployments.list.queryOptions({
+    input: {
+      query: {
+        pageNumber: 1,
+        resultsPerPage: SOURCE_APPS_PAGE_SIZE,
+      },
+    },
+  }))
+  const environmentOptions = useMemo(() => environmentOptionsFromList(listQuery.data), [listQuery.data])
 
   const rows = useMemo(
-    () => appData?.environmentDeployments.data?.filter(row => row.environment?.id) ?? [],
-    [appData?.environmentDeployments.data],
+    () => environmentDeployments?.data?.filter(row => row.environment?.id) ?? [],
+    [environmentDeployments?.data],
   )
   const deployedRuntimeRows = useMemo(
-    () => deployedRows(appData?.environmentDeployments.data),
-    [appData?.environmentDeployments.data],
+    () => deployedRows(environmentDeployments?.data),
+    [environmentDeployments?.data],
   )
 
   const deployedEnvIds = new Set(deployedRuntimeRows.map(row => environmentId(row.environment)))

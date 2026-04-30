@@ -200,7 +200,6 @@ const SubjectPicker: FC<SubjectPickerProps> = ({
           },
         }
       : skipToken,
-    staleTime: 30 * 1000,
   }))
   const subjects = useMemo(
     () => subjectsQuery.data?.data
@@ -326,7 +325,6 @@ export const EnvironmentPermissionRow: FC<EnvironmentPermissionRowProps> = ({
           },
         }
       : skipToken,
-    staleTime: 30 * 1000,
   }))
   const detailPolicy = policyQuery.data?.policy
   const policyKind = accessModeToPermissionKey(detailPolicy?.accessMode ?? summaryPolicy?.accessMode)

@@ -9,19 +9,27 @@ import {
   AlertDialogDescription,
   AlertDialogTitle,
 } from '@langgenius/dify-ui/alert-dialog'
+import { skipToken, useQuery } from '@tanstack/react-query'
+import { useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
-import { toAppInfoFromOverview } from '../data'
-import { useCachedDeploymentAppData } from '../hooks/use-deployment-data'
+import { consoleQuery } from '@/service/client'
+import {
+  DEPLOYMENT_PAGE_SIZE,
+  SOURCE_APPS_PAGE_SIZE,
+} from '../data'
 import { useStartDeployment } from '../hooks/use-deployment-mutations'
-import { useSourceApps } from '../hooks/use-source-apps'
 import { useDeploymentsStore } from '../store'
 import {
   activeRelease,
   deployedRows,
   environmentId,
   environmentName,
+  environmentOptionsFromList,
   releaseCommit,
   releaseLabel,
+  sourceAppMapFromApps,
+  sourceAppsFromList,
+  toAppInfoFromOverview,
 } from '../utils'
 
 const InfoRow: FC<{ label: string, value: string }> = ({ label, value }) => {
@@ -36,20 +44,54 @@ const InfoRow: FC<{ label: string, value: string }> = ({ label, value }) => {
 const RollbackModal: FC = () => {
   const { t } = useTranslation('deployments')
   const modal = useDeploymentsStore(state => state.rollbackModal)
-  const { data: appData } = useCachedDeploymentAppData(modal.appId)
   const closeRollbackModal = useDeploymentsStore(state => state.closeRollbackModal)
   const rollbackDeployment = useStartDeployment()
-  const { appMap, environmentOptions } = useSourceApps()
+  const appInput = modal.appId
+    ? { params: { appInstanceId: modal.appId } }
+    : undefined
+  const pagedInput = appInput
+    ? {
+        ...appInput,
+        query: {
+          pageNumber: 1,
+          resultsPerPage: DEPLOYMENT_PAGE_SIZE,
+        },
+      }
+    : undefined
+  const { data: overview } = useQuery(consoleQuery.deployments.overview.queryOptions({
+    input: appInput ?? skipToken,
+    enabled: modal.open && Boolean(modal.appId),
+  }))
+  const { data: environmentDeployments } = useQuery(consoleQuery.deployments.environmentDeployments.queryOptions({
+    input: pagedInput ?? skipToken,
+    enabled: modal.open && Boolean(modal.appId),
+  }))
+  const { data: releaseHistory } = useQuery(consoleQuery.deployments.releaseHistory.queryOptions({
+    input: pagedInput ?? skipToken,
+    enabled: modal.open && Boolean(modal.appId),
+  }))
+  const listQuery = useQuery(consoleQuery.deployments.list.queryOptions({
+    input: {
+      query: {
+        pageNumber: 1,
+        resultsPerPage: SOURCE_APPS_PAGE_SIZE,
+      },
+    },
+    enabled: modal.open,
+  }))
+  const sourceApps = useMemo(() => sourceAppsFromList(listQuery.data), [listQuery.data])
+  const appMap = useMemo(() => sourceAppMapFromApps(sourceApps), [sourceApps])
+  const environmentOptions = useMemo(() => environmentOptionsFromList(listQuery.data), [listQuery.data])
 
-  const currentRow = deployedRows(appData?.environmentDeployments.data)
+  const currentRow = deployedRows(environmentDeployments?.data)
     .find(row => environmentId(row.environment) === modal.environmentId)
   const targetRelease = [
-    ...(appData?.releaseHistory.data?.map(row => row.release ?? row).filter(release => !!release?.id) ?? []),
+    ...(releaseHistory?.data?.map(row => row.release ?? row).filter(release => !!release?.id) ?? []),
   ].find(release => release?.id === modal.targetReleaseId)
   const currentRelease = activeRelease(currentRow)
   const environment = currentRow?.environment
     ?? environmentOptions.find(env => env.id === modal.environmentId)
-  const app = toAppInfoFromOverview(appData?.overview.instance)
+  const app = toAppInfoFromOverview(overview?.instance)
     ?? (modal.appId ? appMap.get(modal.appId) : undefined)
 
   const confirm = () => {

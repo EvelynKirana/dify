@@ -2,11 +2,17 @@
 
 import type { FC } from 'react'
 import { Dialog, DialogCloseButton, DialogContent } from '@langgenius/dify-ui/dialog'
+import { skipToken, useQuery } from '@tanstack/react-query'
+import { useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
-import { useDeploymentAppData } from '../hooks/use-deployment-data'
+import { consoleQuery } from '@/service/client'
+import {
+  DEPLOYMENT_PAGE_SIZE,
+  SOURCE_APPS_PAGE_SIZE,
+} from '../data'
 import { useStartDeployment } from '../hooks/use-deployment-mutations'
-import { useSourceApps } from '../hooks/use-source-apps'
 import { useDeploymentsStore } from '../store'
+import { environmentOptionsFromList } from '../utils'
 import { DeployForm } from './deploy-drawer/form'
 
 const DeployDrawer: FC = () => {
@@ -16,13 +22,31 @@ const DeployDrawer: FC = () => {
   const closeDeployDrawer = useDeploymentsStore(state => state.closeDeployDrawer)
   const startDeploy = useStartDeployment()
   const open = drawer.open
-  const { environmentOptions } = useSourceApps({ enabled: open })
-  const { data: appData } = useDeploymentAppData(drawerAppId, {
+  const listQuery = useQuery(consoleQuery.deployments.list.queryOptions({
+    input: {
+      query: {
+        pageNumber: 1,
+        resultsPerPage: SOURCE_APPS_PAGE_SIZE,
+      },
+    },
+    enabled: open,
+  }))
+  const { data: releaseHistory } = useQuery(consoleQuery.deployments.releaseHistory.queryOptions({
+    input: drawerAppId
+      ? {
+          params: { appInstanceId: drawerAppId },
+          query: {
+            pageNumber: 1,
+            resultsPerPage: DEPLOYMENT_PAGE_SIZE,
+          },
+        }
+      : skipToken,
     enabled: open && Boolean(drawerAppId),
-  })
+  }))
 
+  const environmentOptions = useMemo(() => environmentOptionsFromList(listQuery.data), [listQuery.data])
   const environments = environmentOptions
-  const releases = appData?.releaseHistory.data?.map(row => row.release ?? row).filter(release => release.id) ?? []
+  const releases = releaseHistory?.data?.map(row => row.release ?? row).filter(release => release.id) ?? []
   const defaultReleaseId = releases[0]?.id
   const formKey = `${drawer.appId ?? 'none'}-${drawer.environmentId ?? 'any'}-${drawer.releaseId ?? 'new'}-${open ? '1' : '0'}`
 
@@ -35,7 +59,7 @@ const DeployDrawer: FC = () => {
         <DialogCloseButton />
         {!drawerAppId
           ? <div className="p-4 text-text-tertiary">{t('deployDrawer.notFound')}</div>
-          : !appData
+          : !releaseHistory
               ? (
                   <div className="flex items-center gap-2 p-4 system-sm-regular text-text-tertiary">
                     <span className="h-4 w-4 animate-spin rounded-full border-2 border-components-panel-border border-t-transparent" />

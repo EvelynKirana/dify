@@ -1,9 +1,12 @@
-import type { AccessPermissionKind } from './types'
+import type { AccessPermissionKind, AppInfo, AppMode } from './types'
 import type {
+  AppDeploymentSummary,
+  AppInstanceOverview,
   ConsoleEnvironmentSummary,
   ConsoleReleaseSummary,
   EnvironmentDeploymentRow,
   EnvironmentOption,
+  ListAppDeploymentsReply,
   RuntimeBindingDisplay,
 } from '@/contract/console/deployments'
 import { PUBLIC_API_PREFIX } from '@/config'
@@ -103,6 +106,75 @@ export const deployedRows = (rows?: EnvironmentDeploymentRow[]) =>
       && !isUndeployedDeploymentRow(row)
       && (row.id || runtimeStatus || row.currentRelease || row.detail)
   }) ?? []
+
+type DeploymentEnvironmentFilter = {
+  id?: string
+  name?: string
+  kind?: string
+  disabled?: boolean
+  disabledReason?: string
+}
+
+export function toAppInfoFromSummary(summary: AppDeploymentSummary): AppInfo | undefined {
+  if (!summary.id || !summary.name)
+    return undefined
+
+  return {
+    id: summary.id,
+    name: summary.name,
+    mode: (summary.mode || 'workflow') as AppMode,
+    iconType: 'emoji',
+    icon: summary.icon,
+    description: summary.description ?? undefined,
+    sourceAppId: summary.sourceAppId,
+    sourceAppName: summary.sourceAppName,
+  }
+}
+
+export function toAppInfoFromOverview(instance?: AppInstanceOverview): AppInfo | undefined {
+  if (!instance?.id)
+    return undefined
+
+  return {
+    id: instance.id,
+    name: instance.name ?? instance.id,
+    mode: (instance.mode || 'workflow') as AppMode,
+    iconType: 'emoji',
+    icon: instance.icon,
+    description: instance.description ?? undefined,
+    sourceAppId: instance.sourceAppId,
+    sourceAppName: instance.sourceAppName,
+  }
+}
+
+export const sourceAppsFromList = (response?: ListAppDeploymentsReply) => {
+  return (response?.data ?? [])
+    .map(toAppInfoFromSummary)
+    .filter((app): app is AppInfo => Boolean(app))
+}
+
+export const sourceAppMapFromApps = (apps: AppInfo[]) => {
+  return new Map(apps.map(app => [app.id, app]))
+}
+
+export const deploymentSummariesFromList = (response?: ListAppDeploymentsReply): Record<string, AppDeploymentSummary> => {
+  return Object.fromEntries(
+    (response?.data ?? [])
+      .filter(summary => summary.id)
+      .map(summary => [summary.id!, summary]),
+  )
+}
+
+export const environmentOptionsFromList = (response?: ListAppDeploymentsReply): EnvironmentOption[] => {
+  return ((response?.filters ?? []) as DeploymentEnvironmentFilter[])
+    .filter(filter => filter.kind === 'environment' && filter.id)
+    .map(filter => ({
+      id: filter.id,
+      name: filter.name,
+      disabled: filter.disabled,
+      disabledReason: filter.disabledReason,
+    }))
+}
 
 export const accessModeToPermissionKey = (mode?: string): AccessPermissionKind => {
   const normalized = mode?.toLowerCase() ?? ''

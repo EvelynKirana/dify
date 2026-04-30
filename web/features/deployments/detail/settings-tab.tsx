@@ -14,18 +14,24 @@ import {
 import { Button } from '@langgenius/dify-ui/button'
 import { toast } from '@langgenius/dify-ui/toast'
 import { useQuery } from '@tanstack/react-query'
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useRouter } from '@/next/navigation'
 import { consoleQuery } from '@/service/client'
-import { toAppInfoFromOverview } from '../data'
-import { useCachedDeploymentAppData } from '../hooks/use-deployment-data'
+import {
+  DEPLOYMENT_PAGE_SIZE,
+  SOURCE_APPS_PAGE_SIZE,
+} from '../data'
 import {
   useDeleteDeploymentInstance,
   useUpdateDeploymentInstance,
 } from '../hooks/use-deployment-mutations'
-import { useSourceApps } from '../hooks/use-source-apps'
-import { deployedRows } from '../utils'
+import {
+  deployedRows,
+  sourceAppMapFromApps,
+  sourceAppsFromList,
+  toAppInfoFromOverview,
+} from '../utils'
 
 type SettingsTabProps = {
   instanceId: string
@@ -181,24 +187,40 @@ const SettingsForm: FC<SettingsFormProps> = ({ app, settings, hasDeployments, on
 
 const SettingsTab: FC<SettingsTabProps> = ({ instanceId }) => {
   const router = useRouter()
-  const { data: appData } = useCachedDeploymentAppData(instanceId)
   const updateInstance = useUpdateDeploymentInstance()
   const deleteInstance = useDeleteDeploymentInstance()
-  const { appMap } = useSourceApps()
-  const app = toAppInfoFromOverview(appData?.overview.instance) ?? appMap.get(instanceId)
-  const settingsQuery = useQuery(consoleQuery.deployments.settings.queryOptions({
+  const appInput = { params: { appInstanceId: instanceId } }
+  const listQuery = useQuery(consoleQuery.deployments.list.queryOptions({
     input: {
-      params: {
-        appInstanceId: instanceId,
+      query: {
+        pageNumber: 1,
+        resultsPerPage: SOURCE_APPS_PAGE_SIZE,
       },
     },
-    staleTime: 30 * 1000,
+  }))
+  const { data: overview } = useQuery(consoleQuery.deployments.overview.queryOptions({
+    input: appInput,
+  }))
+  const { data: environmentDeployments } = useQuery(consoleQuery.deployments.environmentDeployments.queryOptions({
+    input: {
+      ...appInput,
+      query: {
+        pageNumber: 1,
+        resultsPerPage: DEPLOYMENT_PAGE_SIZE,
+      },
+    },
+  }))
+  const sourceApps = useMemo(() => sourceAppsFromList(listQuery.data), [listQuery.data])
+  const appMap = useMemo(() => sourceAppMapFromApps(sourceApps), [sourceApps])
+  const app = toAppInfoFromOverview(overview?.instance) ?? appMap.get(instanceId)
+  const settingsQuery = useQuery(consoleQuery.deployments.settings.queryOptions({
+    input: appInput,
   }))
 
   if (!app)
     return null
 
-  const hasDeployments = deployedRows(appData?.environmentDeployments.data).length > 0
+  const hasDeployments = deployedRows(environmentDeployments?.data).length > 0
   const formKey = `${app.id}-${settingsQuery.data?.name ?? app.name}-${settingsQuery.data?.description ?? app.description ?? ''}`
 
   return (

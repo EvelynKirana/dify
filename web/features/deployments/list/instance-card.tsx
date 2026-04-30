@@ -13,15 +13,13 @@ import {
   DropdownMenuTrigger,
 } from '@langgenius/dify-ui/dropdown-menu'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@langgenius/dify-ui/tooltip'
-import { useMemo, useState } from 'react'
+import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { AppTypeIcon } from '@/app/components/app/type-selector'
 import AppIcon from '@/app/components/base/app-icon'
 import { useFormatTimeFromNow } from '@/hooks/use-format-time-from-now'
 import { useRouter } from '@/next/navigation'
-import { useCachedDeploymentAppData } from '../hooks/use-deployment-data'
 import { useDeploymentsStore } from '../store'
-import { deployedRows, deploymentStatus, environmentId, environmentName, releaseLabel } from '../utils'
 
 type InstanceCardProps = {
   app: AppInfo
@@ -33,7 +31,6 @@ export const InstanceCard: FC<InstanceCardProps> = ({ app, summary }) => {
   const router = useRouter()
   const { formatTimeFromNow } = useFormatTimeFromNow()
   const [menuOpen, setMenuOpen] = useState(false)
-  const { data: appData } = useCachedDeploymentAppData(app.id)
   const openDeployDrawer = useDeploymentsStore(state => state.openDeployDrawer)
 
   const navigateToDetail = () => router.push(`/deployments/${app.id}/overview`)
@@ -45,36 +42,16 @@ export const InstanceCard: FC<InstanceCardProps> = ({ app, summary }) => {
     action()
   }
 
-  const deployments = useMemo(
-    () => deployedRows(appData?.environmentDeployments.data),
-    [appData?.environmentDeployments.data],
-  )
   const statusCount = (status: string) =>
     summary?.statuses?.find(item => item.status === status)?.count ?? 0
-  const hasSummary = Boolean(summary)
-  const failedCount = hasSummary
-    ? statusCount('failed') + statusCount('deploy_failed')
-    : deployments.filter(row => deploymentStatus(row) === 'deploy_failed').length
-  const deployingCount = hasSummary
-    ? statusCount('deploying')
-    : deployments.filter(row => deploymentStatus(row) === 'deploying').length
-  const readyCount = hasSummary
-    ? statusCount('ready')
-    : deployments.filter(row => deploymentStatus(row) === 'ready').length
-  const envCount = hasSummary
-    ? failedCount + deployingCount + readyCount
-    : deployments.length
+  const failedCount = statusCount('failed') + statusCount('deploy_failed')
+  const deployingCount = statusCount('deploying')
+  const readyCount = statusCount('ready')
+  const envCount = failedCount + deployingCount + readyCount
 
-  const lastDeployedAt = useMemo(() => {
-    if (summary?.lastDeployedAt)
-      return new Date(summary.lastDeployedAt).getTime()
-    if (deployments.length === 0)
-      return null
-    return deployments.reduce((latest, row) => {
-      const t = new Date(row.currentRelease?.createdAt || '').getTime()
-      return t > latest ? t : latest
-    }, 0)
-  }, [deployments, summary?.lastDeployedAt])
+  const lastDeployedAt = summary?.lastDeployedAt
+    ? new Date(summary.lastDeployedAt).getTime()
+    : null
 
   const primaryStatus: 'none' | 'failed' | 'deploying' | 'ready' = envCount === 0
     ? 'none'
@@ -98,11 +75,6 @@ export const InstanceCard: FC<InstanceCardProps> = ({ app, summary }) => {
   if ((primaryStatus === 'failed' || primaryStatus === 'deploying') && readyCount > 0)
     secondaryParts.push(t('card.ready', { count: readyCount }))
 
-  const statusLabel = (status: ReturnType<typeof deploymentStatus>) => {
-    if (status === 'deploy_failed')
-      return t('status.deployFailed')
-    return t(`status.${status}`)
-  }
   const statusSummaryLabel = (status?: string) => {
     if (status === 'failed' || status === 'deploy_failed')
       return t('status.deployFailed')
@@ -116,38 +88,17 @@ export const InstanceCard: FC<InstanceCardProps> = ({ app, summary }) => {
   const statusSummaryTooltip = summary?.statuses?.filter(item => item.count && item.status !== 'undeployed') ?? []
   const statusTooltip = primaryStatus === 'none'
     ? t('card.tooltip.notDeployed')
-    : deployments.length > 0
-      ? (
-          <div className="flex min-w-[220px] flex-col gap-1">
-            <div className="system-xs-medium text-text-secondary">{t('overview.deploymentStatus')}</div>
-            {deployments.map((deployment) => {
-              const status = deploymentStatus(deployment)
-              return (
-                <div key={environmentId(deployment.environment)} className="flex min-w-0 items-center justify-between gap-3">
-                  <span className="min-w-0 truncate text-text-tertiary">
-                    {environmentName(deployment.environment)}
-                  </span>
-                  <span className="shrink-0 text-text-secondary">
-                    {statusLabel(status)}
-                    {' · '}
-                    {releaseLabel(deployment.currentRelease)}
-                  </span>
-                </div>
-              )
-            })}
-          </div>
-        )
-      : (
-          <div className="flex min-w-[180px] flex-col gap-1">
-            <div className="system-xs-medium text-text-secondary">{t('overview.deploymentStatus')}</div>
-            {statusSummaryTooltip.map(item => (
-              <div key={item.status} className="flex justify-between gap-3">
-                <span className="text-text-tertiary">{statusSummaryLabel(item.status)}</span>
-                <span className="text-text-secondary">{item.count}</span>
-              </div>
-            ))}
-          </div>
-        )
+    : (
+        <div className="flex min-w-[180px] flex-col gap-1">
+          <div className="system-xs-medium text-text-secondary">{t('overview.deploymentStatus')}</div>
+          {statusSummaryTooltip.map(item => (
+            <div key={item.status} className="flex justify-between gap-3">
+              <span className="text-text-tertiary">{statusSummaryLabel(item.status)}</span>
+              <span className="text-text-secondary">{item.count}</span>
+            </div>
+          ))}
+        </div>
+      )
 
   const healthPillClass = primaryStatus === 'none'
     ? 'text-text-tertiary bg-background-section-burn'

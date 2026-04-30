@@ -112,7 +112,6 @@ export const DeployForm: FC<DeployFormProps> = ({
           },
         }
       : skipToken,
-    staleTime: 30 * 1000,
   }))
   const previewBindings = releasePreview.data?.bindings ?? []
   const modelBindings = previewBindings.filter(isRuntimeModelBinding)

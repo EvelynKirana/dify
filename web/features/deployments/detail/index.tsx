@@ -3,17 +3,23 @@
 import type { FC, ReactNode } from 'react'
 import type { InstanceDetailTabKey } from './tabs'
 import { Button } from '@langgenius/dify-ui/button'
+import { useQuery } from '@tanstack/react-query'
 import { useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 import { getAppModeLabel } from '@/app/components/app-sidebar/app-info/app-mode-labels'
 import useDocumentTitle from '@/hooks/use-document-title'
 import { useRouter, useSelectedLayoutSegment } from '@/next/navigation'
+import { consoleQuery } from '@/service/client'
 import DeployDrawer from '../components/deploy-drawer'
 import RollbackModal from '../components/rollback-modal'
-import { toAppInfoFromOverview } from '../data'
-import { useDeploymentAppData } from '../hooks/use-deployment-data'
-import { useSourceApps } from '../hooks/use-source-apps'
-import { deployedRows, deploymentStatus } from '../utils'
+import {
+  SOURCE_APPS_PAGE_SIZE,
+} from '../data'
+import {
+  deploymentSummariesFromList,
+  sourceAppMapFromApps,
+  sourceAppsFromList,
+} from '../utils'
 import { DeploymentSidebar } from './deployment-sidebar'
 import { isInstanceDetailTabKey } from './tabs'
 
@@ -29,25 +35,31 @@ const InstanceDetail: FC<InstanceDetailProps> = ({ instanceId, children }) => {
   const selectedSegment = useSelectedLayoutSegment()
   const selectedTab = selectedSegment ?? undefined
   const activeTab: InstanceDetailTabKey = isInstanceDetailTabKey(selectedTab) ? selectedTab : 'overview'
-  const detailQuery = useDeploymentAppData(instanceId, { enabled: Boolean(instanceId) })
-  const appData = detailQuery.data
-  const { appMap, isLoading: isLoadingApps } = useSourceApps()
+  const listQuery = useQuery(consoleQuery.deployments.list.queryOptions({
+    input: {
+      query: {
+        pageNumber: 1,
+        resultsPerPage: SOURCE_APPS_PAGE_SIZE,
+      },
+    },
+  }))
   useDocumentTitle(t('documentTitle.detail'))
 
-  const detailApp = useMemo(
-    () => toAppInfoFromOverview(appData?.overview.instance),
-    [appData?.overview.instance],
-  )
+  const apps = useMemo(() => sourceAppsFromList(listQuery.data), [listQuery.data])
+  const appMap = useMemo(() => sourceAppMapFromApps(apps), [apps])
+  const summaries = useMemo(() => deploymentSummariesFromList(listQuery.data), [listQuery.data])
   const app = useMemo(
-    () => detailApp ?? appMap.get(instanceId),
-    [detailApp, instanceId, appMap],
+    () => appMap.get(instanceId),
+    [instanceId, appMap],
   )
-  const appDeployments = useMemo(
-    () => deployedRows(appData?.environmentDeployments.data),
-    [appData?.environmentDeployments.data],
-  )
+  const summary = summaries[instanceId]
+  const statusCount = (status: string) =>
+    summary?.statuses?.find(item => item.status === status)?.count ?? 0
+  const envCount = summary?.statuses
+    ?.filter(item => item.status !== 'undeployed')
+    .reduce((total, item) => total + (item.count ?? 0), 0) ?? 0
 
-  if (!app && (isLoadingApps || detailQuery.isLoading || detailQuery.isFetching)) {
+  if (!app && listQuery.isLoading) {
     return (
       <div className="flex h-full items-center justify-center bg-background-body">
         <span className="h-6 w-6 animate-spin rounded-full border-2 border-components-panel-border border-t-transparent" />
@@ -67,8 +79,8 @@ const InstanceDetail: FC<InstanceDetailProps> = ({ instanceId, children }) => {
     )
   }
 
-  const deployingCount = appDeployments.filter(row => deploymentStatus(row) === 'deploying').length
-  const failedCount = appDeployments.filter(row => deploymentStatus(row) === 'deploy_failed').length
+  const deployingCount = statusCount('deploying')
+  const failedCount = statusCount('failed') + statusCount('deploy_failed')
   const appModeLabel = app ? getAppModeLabel(app.mode, tCommon) : t('detail.sourceAppDeleted')
 
   return (
@@ -92,7 +104,7 @@ const InstanceDetail: FC<InstanceDetailProps> = ({ instanceId, children }) => {
                 <div className="system-xs-regular text-text-tertiary">{t(`tabs.${activeTab}.description`)}</div>
               </div>
               <div className="flex items-center gap-2 system-xs-regular text-text-tertiary">
-                <span>{t('detail.envCount', { count: appDeployments.length })}</span>
+                <span>{t('detail.envCount', { count: envCount })}</span>
                 {deployingCount > 0 && (
                   <>
                     <span>·</span>

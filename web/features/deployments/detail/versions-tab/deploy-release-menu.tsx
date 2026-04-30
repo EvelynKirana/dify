@@ -8,10 +8,14 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@langgenius/dify-ui/dropdown-menu'
-import { useState } from 'react'
+import { useQuery } from '@tanstack/react-query'
+import { useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { useCachedDeploymentAppData } from '../../hooks/use-deployment-data'
-import { useSourceApps } from '../../hooks/use-source-apps'
+import { consoleQuery } from '@/service/client'
+import {
+  DEPLOYMENT_PAGE_SIZE,
+  SOURCE_APPS_PAGE_SIZE,
+} from '../../data'
 import { useDeploymentsStore } from '../../store'
 import {
   activeRelease,
@@ -20,6 +24,7 @@ import {
   deploymentStatus,
   environmentId,
   environmentName,
+  environmentOptionsFromList,
 } from '../../utils'
 
 type DeployReleaseMenuProps = {
@@ -29,14 +34,32 @@ type DeployReleaseMenuProps = {
 
 export const DeployReleaseMenu: FC<DeployReleaseMenuProps> = ({ appId, releaseId }) => {
   const { t } = useTranslation('deployments')
-  const { data: appData } = useCachedDeploymentAppData(appId)
   const openDeployDrawer = useDeploymentsStore(state => state.openDeployDrawer)
   const openRollbackModal = useDeploymentsStore(state => state.openRollbackModal)
   const [open, setOpen] = useState(false)
-  const { environmentOptions } = useSourceApps({ enabled: open })
+  const listQuery = useQuery(consoleQuery.deployments.list.queryOptions({
+    input: {
+      query: {
+        pageNumber: 1,
+        resultsPerPage: SOURCE_APPS_PAGE_SIZE,
+      },
+    },
+    enabled: open,
+  }))
+  const { data: environmentDeployments } = useQuery(consoleQuery.deployments.environmentDeployments.queryOptions({
+    input: {
+      params: { appInstanceId: appId },
+      query: {
+        pageNumber: 1,
+        resultsPerPage: DEPLOYMENT_PAGE_SIZE,
+      },
+    },
+    enabled: open,
+  }))
 
+  const environmentOptions = useMemo(() => environmentOptionsFromList(listQuery.data), [listQuery.data])
   const environments = environmentOptions.filter(env => env.id)
-  const deploymentRows = deployedRows(appData?.environmentDeployments.data)
+  const deploymentRows = deployedRows(environmentDeployments?.data)
 
   return (
     <DropdownMenu modal={false} open={open} onOpenChange={setOpen}>

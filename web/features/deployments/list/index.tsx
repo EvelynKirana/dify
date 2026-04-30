@@ -1,17 +1,27 @@
 'use client'
 
 import type { FC } from 'react'
+import { useQuery } from '@tanstack/react-query'
 import { useDebounce } from 'ahooks'
 import { debounce, parseAsString, useQueryState } from 'nuqs'
 import { useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 import Input from '@/app/components/base/input'
+import { consoleQuery } from '@/service/client'
 import CreateInstanceModal from '../components/create-instance-modal'
 import DeployDrawer from '../components/deploy-drawer'
 import RollbackModal from '../components/rollback-modal'
-import { useSourceApps } from '../hooks/use-source-apps'
+import {
+  SOURCE_APPS_PAGE_SIZE,
+} from '../data'
 import { useDeploymentsStore } from '../store'
-import { environmentId, environmentName } from '../utils'
+import {
+  deploymentSummariesFromList,
+  environmentId,
+  environmentName,
+  environmentOptionsFromList,
+  sourceAppsFromList,
+} from '../utils'
 import { EnvironmentFilter } from './environment-filter'
 import { InstanceCard } from './instance-card'
 import { NewInstanceCard } from './new-instance-card'
@@ -40,15 +50,20 @@ const DeploymentsMain: FC = () => {
   const requestedEnvironmentId = envFilter !== 'all' && envFilter !== 'not-deployed'
     ? envFilter
     : undefined
-  const {
-    apps,
-    summaries,
-    environmentOptions,
-  } = useSourceApps({
-    environmentId: requestedEnvironmentId,
-    notDeployed: envFilter === 'not-deployed',
-    keyword: queryKeywords.trim() || undefined,
-  })
+  const listQuery = useQuery(consoleQuery.deployments.list.queryOptions({
+    input: {
+      query: {
+        pageNumber: 1,
+        resultsPerPage: SOURCE_APPS_PAGE_SIZE,
+        ...(requestedEnvironmentId ? { environmentId: requestedEnvironmentId } : {}),
+        ...(envFilter === 'not-deployed' ? { notDeployed: true } : {}),
+        ...(queryKeywords.trim() ? { query: queryKeywords.trim() } : {}),
+      },
+    },
+  }))
+  const apps = useMemo(() => sourceAppsFromList(listQuery.data), [listQuery.data])
+  const summaries = useMemo(() => deploymentSummariesFromList(listQuery.data), [listQuery.data])
+  const environmentOptions = useMemo(() => environmentOptionsFromList(listQuery.data), [listQuery.data])
 
   const environments = useMemo(() => {
     return environmentOptions

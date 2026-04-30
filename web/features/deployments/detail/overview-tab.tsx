@@ -2,16 +2,24 @@
 import type { FC, ReactNode } from 'react'
 import { Button } from '@langgenius/dify-ui/button'
 import { cn } from '@langgenius/dify-ui/cn'
+import { useQuery } from '@tanstack/react-query'
 import { useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 import { getAppModeLabel } from '@/app/components/app-sidebar/app-info/app-mode-labels'
 import { useRouter } from '@/next/navigation'
+import { consoleQuery } from '@/service/client'
 import { StatusBadge } from '../components/status-badge'
-import { toAppInfoFromOverview } from '../data'
-import { useCachedDeploymentAppData } from '../hooks/use-deployment-data'
-import { useSourceApps } from '../hooks/use-source-apps'
+import {
+  SOURCE_APPS_PAGE_SIZE,
+} from '../data'
 import { useDeploymentsStore } from '../store'
-import { releaseLabel, webappUrl } from '../utils'
+import {
+  releaseLabel,
+  sourceAppMapFromApps,
+  sourceAppsFromList,
+  toAppInfoFromOverview,
+  webappUrl,
+} from '../utils'
 
 type OverviewTabProps = {
   instanceId: string
@@ -92,10 +100,24 @@ const OverviewTab: FC<OverviewTabProps> = ({ instanceId }) => {
   const { t } = useTranslation('deployments')
   const { t: tCommon } = useTranslation()
   const router = useRouter()
-  const { data: appData } = useCachedDeploymentAppData(instanceId)
+  const input = { params: { appInstanceId: instanceId } }
+  const { data: overview } = useQuery(consoleQuery.deployments.overview.queryOptions({
+    input,
+  }))
+  const { data: accessConfig } = useQuery(consoleQuery.deployments.accessConfig.queryOptions({
+    input,
+  }))
+  const listQuery = useQuery(consoleQuery.deployments.list.queryOptions({
+    input: {
+      query: {
+        pageNumber: 1,
+        resultsPerPage: SOURCE_APPS_PAGE_SIZE,
+      },
+    },
+  }))
   const openDeployDrawer = useDeploymentsStore(state => state.openDeployDrawer)
-  const { appMap } = useSourceApps()
-  const overview = appData?.overview
+  const sourceApps = useMemo(() => sourceAppsFromList(listQuery.data), [listQuery.data])
+  const appMap = useMemo(() => sourceAppMapFromApps(sourceApps), [sourceApps])
   const app = toAppInfoFromOverview(overview?.instance) ?? appMap.get(instanceId)
   const overviewApp = overview?.instance
   const deployments = useMemo(
@@ -113,7 +135,7 @@ const OverviewTab: FC<OverviewTabProps> = ({ instanceId }) => {
   const appModeLabel = getAppModeLabel(overviewApp?.mode ?? app.mode, tCommon)
   const webappAccessUrl = webappUrl(overview?.access?.webappUrl)
   const cliUrl = overview?.access?.cliUrl
-  const apiKeysCount = overview?.access?.apiKeyCount ?? appData?.accessConfig.developerApi?.apiKeys?.length ?? 0
+  const apiKeysCount = overview?.access?.apiKeyCount ?? accessConfig?.developerApi?.apiKeys?.length ?? 0
 
   return (
     <div className="flex flex-col gap-5 p-6">
