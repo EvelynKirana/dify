@@ -254,7 +254,7 @@ class PluginModelRuntime(ModelRuntime):
             stop=list(stop) if stop else None,
             stream=stream,
         )
-    
+
     @overload
     def invoke_llm_with_structured_output(
         self,
@@ -294,10 +294,7 @@ class PluginModelRuntime(ModelRuntime):
         prompt_messages: Sequence[PromptMessage],
         stop: Sequence[str] | None,
         stream: bool,
-    ) -> (
-        LLMResultWithStructuredOutput
-        | Generator[LLMResultChunkWithStructuredOutput, None, None]
-    ): 
+    ) -> LLMResultWithStructuredOutput | Generator[LLMResultChunkWithStructuredOutput, None, None]:
         # TODO: added to pass type check.
         # it is a new method from upstream that is not invoked at all.
         raise NotImplementedError
