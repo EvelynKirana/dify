@@ -298,6 +298,8 @@ class PluginModelRuntime(ModelRuntime):
         LLMResultWithStructuredOutput
         | Generator[LLMResultChunkWithStructuredOutput, None, None]
     ): 
+        # TODO: added to pass type check.
+        # it is a new method from upstream that is not invoked at all.
         raise NotImplementedError
 
     def get_llm_num_tokens(

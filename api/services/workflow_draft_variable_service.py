@@ -5,7 +5,7 @@ from collections.abc import Mapping, Sequence
 from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime
 from enum import StrEnum
-from typing import Any, ClassVar, NotRequired, TypedDict, cast
+from typing import Any, ClassVar, NotRequired, TypedDict
 
 from sqlalchemy import Engine, delete, orm, select
 from sqlalchemy.dialects.mysql import insert as mysql_insert
@@ -32,7 +32,7 @@ from graphon.file import File
 from graphon.nodes import BuiltinNodeTypes
 from graphon.nodes.variable_assigner.common.helpers import get_updated_variables
 from graphon.variable_loader import VariableLoader
-from graphon.variables import Segment, StringSegment, VariableBase
+from graphon.variables import Segment, StringSegment, Variable, VariableBase
 from graphon.variables.consts import SELECTORS_LENGTH
 from graphon.variables.segments import (
     ArrayFileSegment,
@@ -162,7 +162,7 @@ class DraftVarLoader(VariableLoader):
 
         return list(variable_by_selector.values())
 
-    def _load_offloaded_variable(self, draft_var: WorkflowDraftVariable) -> tuple[tuple[str, str], VariableBase]:
+    def _load_offloaded_variable(self, draft_var: WorkflowDraftVariable) -> tuple[tuple[str, str], Variable]:
         # This logic is closely tied to `WorkflowDraftVaribleService._try_offload_large_variable`
         # and must remain synchronized with it.
         # Ideally, these should be co-located for better maintainability.
