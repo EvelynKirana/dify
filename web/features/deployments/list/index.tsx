@@ -50,7 +50,7 @@ const DeploymentsMain: FC = () => {
     ...(envFilter === 'not-deployed' ? { notDeployed: true } : {}),
     ...(queryKeywords.trim() ? { query: queryKeywords.trim() } : {}),
   }))
-  const { data: environmentOptionsReply } = useQuery(consoleQuery.deployments.deploymentEnvironmentOptions.queryOptions())
+  const { data: environmentOptionsReply } = useQuery(consoleQuery.enterprise.enterpriseAppDeployConsoleListDeploymentEnvironmentOptions.queryOptions())
   const apps = useMemo(() => sourceAppsFromList(listQuery.data), [listQuery.data])
   const summaries = useMemo(() => deploymentSummariesFromList(listQuery.data), [listQuery.data])
   const environments = useMemo(() => {

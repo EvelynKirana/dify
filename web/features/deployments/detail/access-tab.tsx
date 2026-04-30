@@ -41,7 +41,7 @@ type AccessTabProps = {
 
 const AccessTab: FC<AccessTabProps> = ({ instanceId: appId }) => {
   const appInput = { params: { appInstanceId: appId } }
-  const { data: accessConfig } = useQuery(consoleQuery.deployments.accessConfig.queryOptions({
+  const { data: accessConfig } = useQuery(consoleQuery.enterprise.enterpriseAppDeployConsoleGetAppInstanceAccess.queryOptions({
     input: appInput,
   }))
   const { data: environmentDeployments } = useQuery(deploymentEnvironmentDeploymentsQueryOptions(appId))

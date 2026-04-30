@@ -98,7 +98,7 @@ const OverviewTab: FC<OverviewTabProps> = ({ instanceId }) => {
   const router = useRouter()
   const input = { params: { appInstanceId: instanceId } }
   const { data: overview } = useQuery(deploymentOverviewQueryOptions(instanceId))
-  const { data: accessConfig } = useQuery(consoleQuery.deployments.accessConfig.queryOptions({
+  const { data: accessConfig } = useQuery(consoleQuery.enterprise.enterpriseAppDeployConsoleGetAppInstanceAccess.queryOptions({
     input,
   }))
   const openDeployDrawer = useDeploymentsStore(state => state.openDeployDrawer)

@@ -42,30 +42,7 @@ import {
   workflowDraftUpdateFeaturesContract,
 } from './console/workflow'
 import { workflowCommentContracts } from './console/workflow-comment'
-import {
-  enterpriseAppDeployConsoleCancelRuntimeDeployment,
-  enterpriseAppDeployConsoleCreateAppInstance,
-  enterpriseAppDeployConsoleCreateDeployment,
-  enterpriseAppDeployConsoleCreateDeveloperApiKey,
-  enterpriseAppDeployConsoleCreateRelease,
-  enterpriseAppDeployConsoleDeleteAppInstance,
-  enterpriseAppDeployConsoleDeleteDeveloperApiKey,
-  enterpriseAppDeployConsoleGetAppInstanceAccess,
-  enterpriseAppDeployConsoleGetAppInstanceOverview,
-  enterpriseAppDeployConsoleGetAppInstanceSettings,
-  enterpriseAppDeployConsoleGetEnvironmentAccessPolicy,
-  enterpriseAppDeployConsoleListAppInstances,
-  enterpriseAppDeployConsoleListDeploymentEnvironmentOptions,
-  enterpriseAppDeployConsoleListReleases,
-  enterpriseAppDeployConsoleListRuntimeInstances,
-  enterpriseAppDeployConsolePreviewRelease,
-  enterpriseAppDeployConsoleSearchAccessSubjects,
-  enterpriseAppDeployConsoleUndeployRuntimeInstance,
-  enterpriseAppDeployConsoleUpdateAccessChannels,
-  enterpriseAppDeployConsoleUpdateAppInstance,
-  enterpriseAppDeployConsoleUpdateDeveloperApi,
-  enterpriseAppDeployConsoleUpdateEnvironmentAccessPolicy,
-} from './generated/enterprise/orpc.gen'
+import { contract as enterpriseContract } from './generated/enterprise/orpc.gen'
 import { collectionPluginsContract, collectionsContract, searchAdvancedContract, templateDetailContract } from './marketplace'
 
 export const marketplaceRouterContract = {
@@ -78,6 +55,7 @@ export const marketplaceRouterContract = {
 export type MarketPlaceInputs = InferContractRouterInputs<typeof marketplaceRouterContract>
 
 export const consoleRouterContract = {
+  enterprise: enterpriseContract,
   account: {
     avatar: accountAvatarContract,
   },
@@ -114,30 +92,6 @@ export const consoleRouterContract = {
   billing: {
     invoices: invoicesContract,
     bindPartnerStack: bindPartnerStackContract,
-  },
-  deployments: {
-    list: enterpriseAppDeployConsoleListAppInstances,
-    createInstance: enterpriseAppDeployConsoleCreateAppInstance,
-    overview: enterpriseAppDeployConsoleGetAppInstanceOverview,
-    environmentDeployments: enterpriseAppDeployConsoleListRuntimeInstances,
-    deploymentEnvironmentOptions: enterpriseAppDeployConsoleListDeploymentEnvironmentOptions,
-    previewRelease: enterpriseAppDeployConsolePreviewRelease,
-    releaseHistory: enterpriseAppDeployConsoleListReleases,
-    accessConfig: enterpriseAppDeployConsoleGetAppInstanceAccess,
-    environmentAccessPolicy: enterpriseAppDeployConsoleGetEnvironmentAccessPolicy,
-    updateEnvironmentAccessPolicy: enterpriseAppDeployConsoleUpdateEnvironmentAccessPolicy,
-    searchAccessSubjects: enterpriseAppDeployConsoleSearchAccessSubjects,
-    patchAccessChannel: enterpriseAppDeployConsoleUpdateAccessChannels,
-    patchDeveloperAPI: enterpriseAppDeployConsoleUpdateDeveloperApi,
-    createRelease: enterpriseAppDeployConsoleCreateRelease,
-    createDeployment: enterpriseAppDeployConsoleCreateDeployment,
-    cancelDeployment: enterpriseAppDeployConsoleCancelRuntimeDeployment,
-    undeployEnvironment: enterpriseAppDeployConsoleUndeployRuntimeInstance,
-    createEnvironmentAPIToken: enterpriseAppDeployConsoleCreateDeveloperApiKey,
-    deleteEnvironmentAPIToken: enterpriseAppDeployConsoleDeleteDeveloperApiKey,
-    settings: enterpriseAppDeployConsoleGetAppInstanceSettings,
-    updateInstance: enterpriseAppDeployConsoleUpdateAppInstance,
-    deleteInstance: enterpriseAppDeployConsoleDeleteAppInstance,
   },
   workflowDraft: {
     environmentVariables: workflowDraftEnvironmentVariablesContract,

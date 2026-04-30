@@ -24,7 +24,7 @@ const DeployDrawer: FC = () => {
     enabled: open && Boolean(drawerAppInstanceId),
   })
   const { data: environmentOptionsReply } = useQuery({
-    ...consoleQuery.deployments.deploymentEnvironmentOptions.queryOptions(),
+    ...consoleQuery.enterprise.enterpriseAppDeployConsoleListDeploymentEnvironmentOptions.queryOptions(),
     enabled: open,
   })
 

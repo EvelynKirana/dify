@@ -4,7 +4,7 @@ import { consoleQuery } from '@/service/client'
 import { DEPLOYMENT_PAGE_SIZE, SOURCE_APPS_PAGE_SIZE } from './data'
 
 export const deploymentsListQueryOptions = (query: ListAppDeploymentsQuery = {}) =>
-  consoleQuery.deployments.list.queryOptions({
+  consoleQuery.enterprise.enterpriseAppDeployConsoleListAppInstances.queryOptions({
     input: {
       query: {
         pageNumber: 1,
@@ -15,7 +15,7 @@ export const deploymentsListQueryOptions = (query: ListAppDeploymentsQuery = {})
   })
 
 export const deploymentsListQueryKey = () =>
-  consoleQuery.deployments.list.key({ type: 'query' })
+  consoleQuery.enterprise.enterpriseAppDeployConsoleListAppInstances.key({ type: 'query' })
 
 export const deploymentAppInstanceInput = (appInstanceId: string) => ({
   params: { appInstanceId },
@@ -40,30 +40,30 @@ export const deploymentEnvironmentAccessPolicyQueryKey = (
 })
 
 export const deploymentOverviewQueryKey = (appInstanceId: string) =>
-  consoleQuery.deployments.overview.key(deploymentAppInstanceQueryKey(appInstanceId))
+  consoleQuery.enterprise.enterpriseAppDeployConsoleGetAppInstanceOverview.key(deploymentAppInstanceQueryKey(appInstanceId))
 
 export const deploymentSettingsQueryKey = (appInstanceId: string) =>
-  consoleQuery.deployments.settings.key(deploymentAppInstanceQueryKey(appInstanceId))
+  consoleQuery.enterprise.enterpriseAppDeployConsoleGetAppInstanceSettings.key(deploymentAppInstanceQueryKey(appInstanceId))
 
 export const deploymentEnvironmentDeploymentsQueryKey = (appInstanceId: string) =>
-  consoleQuery.deployments.environmentDeployments.key(deploymentAppInstanceQueryKey(appInstanceId))
+  consoleQuery.enterprise.enterpriseAppDeployConsoleListRuntimeInstances.key(deploymentAppInstanceQueryKey(appInstanceId))
 
 export const deploymentReleaseHistoryQueryKey = (appInstanceId: string) =>
-  consoleQuery.deployments.releaseHistory.key(deploymentAppInstanceQueryKey(appInstanceId))
+  consoleQuery.enterprise.enterpriseAppDeployConsoleListReleases.key(deploymentAppInstanceQueryKey(appInstanceId))
 
 export const deploymentAccessConfigQueryKey = (appInstanceId: string) =>
-  consoleQuery.deployments.accessConfig.key(deploymentAppInstanceQueryKey(appInstanceId))
+  consoleQuery.enterprise.enterpriseAppDeployConsoleGetAppInstanceAccess.key(deploymentAppInstanceQueryKey(appInstanceId))
 
 export const deploymentEnvironmentAccessPolicyQueryKeyForEnvironment = (
   appInstanceId: string,
   environmentId: string,
 ) =>
-  consoleQuery.deployments.environmentAccessPolicy.key(
+  consoleQuery.enterprise.enterpriseAppDeployConsoleGetEnvironmentAccessPolicy.key(
     deploymentEnvironmentAccessPolicyQueryKey(appInstanceId, environmentId),
   )
 
 export const deploymentEnvironmentAccessPoliciesQueryKey = (appInstanceId: string) =>
-  consoleQuery.deployments.environmentAccessPolicy.key(deploymentAppInstanceQueryKey(appInstanceId))
+  consoleQuery.enterprise.enterpriseAppDeployConsoleGetEnvironmentAccessPolicy.key(deploymentAppInstanceQueryKey(appInstanceId))
 
 export const deploymentInstanceIdentityQueryKeys = (appInstanceId: string) => [
   deploymentsListQueryKey(),
@@ -94,21 +94,21 @@ export const deploymentAccessStateQueryKeys = (appInstanceId: string) => [
 ]
 
 export const deploymentOverviewQueryOptions = (appInstanceId?: string) =>
-  consoleQuery.deployments.overview.queryOptions({
+  consoleQuery.enterprise.enterpriseAppDeployConsoleGetAppInstanceOverview.queryOptions({
     input: appInstanceId
       ? { params: { appInstanceId } }
       : skipToken,
   })
 
 export const deploymentEnvironmentDeploymentsQueryOptions = (appInstanceId?: string) =>
-  consoleQuery.deployments.environmentDeployments.queryOptions({
+  consoleQuery.enterprise.enterpriseAppDeployConsoleListRuntimeInstances.queryOptions({
     input: appInstanceId
       ? { params: { appInstanceId } }
       : skipToken,
   })
 
 export const deploymentReleaseHistoryQueryOptions = (appInstanceId?: string) =>
-  consoleQuery.deployments.releaseHistory.queryOptions({
+  consoleQuery.enterprise.enterpriseAppDeployConsoleListReleases.queryOptions({
     input: appInstanceId
       ? {
           params: { appInstanceId },
