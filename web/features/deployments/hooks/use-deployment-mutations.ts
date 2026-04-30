@@ -5,7 +5,6 @@ import type { ConsoleReleaseSummary } from '@/contract/console/deployments'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { consoleClient, consoleQuery } from '@/service/client'
 import { DEPLOYMENT_PAGE_SIZE } from '../data'
-import { deploymentReleaseHistoryQueryOptions } from '../queries'
 
 export type CreateDeploymentInstanceResult = {
   appInstanceId: string
@@ -31,23 +30,21 @@ type UndeployDeploymentParams = {
   isDeploying?: boolean
 }
 
-type ToggleAccessChannelParams = {
-  appId: string
-  channel: string
-  enabled: boolean
-}
-
 const DEPLOYMENT_READINESS_RETRY_DELAYS = [0, 300, 700, 1200]
 
 const wait = (delay: number) => new Promise(resolve => setTimeout(resolve, delay))
 
-const appInstanceInput = (appInstanceId: string) => ({
-  input: {
-    params: { appInstanceId },
-  },
+const appInstanceQueryInput = (appInstanceId: string) => ({
+  params: { appInstanceId },
 })
 
-const environmentAccessPolicyInput = (appInstanceId: string, environmentId: string) => ({
+const appInstanceQueryKey = (appInstanceId: string) => ({
+  type: 'query' as const,
+  input: appInstanceQueryInput(appInstanceId),
+})
+
+const environmentAccessPolicyQueryKey = (appInstanceId: string, environmentId: string) => ({
+  type: 'query' as const,
   input: {
     params: {
       appInstanceId,
@@ -56,38 +53,38 @@ const environmentAccessPolicyInput = (appInstanceId: string, environmentId: stri
   },
 })
 
-const invalidateQueries = (queryClient: QueryClient, queryKeys: QueryKey[]) => {
-  void Promise.all(queryKeys.map(queryKey => queryClient.invalidateQueries({ queryKey })))
+const invalidateQueries = async (queryClient: QueryClient, queryKeys: QueryKey[]): Promise<void> => {
+  await Promise.all(queryKeys.map(queryKey => queryClient.invalidateQueries({ queryKey })))
 }
 
-const invalidateInstanceList = (queryClient: QueryClient) => {
-  void queryClient.invalidateQueries({
-    queryKey: consoleQuery.deployments.list.key(),
+const invalidateInstanceList = (queryClient: QueryClient): Promise<void> => {
+  return queryClient.invalidateQueries({
+    queryKey: consoleQuery.deployments.list.key({ type: 'query' }),
   })
 }
 
-const invalidateInstanceIdentity = (queryClient: QueryClient, appInstanceId: string) => {
-  invalidateQueries(queryClient, [
-    consoleQuery.deployments.list.key(),
-    consoleQuery.deployments.overview.queryKey(appInstanceInput(appInstanceId)),
-    consoleQuery.deployments.settings.queryKey(appInstanceInput(appInstanceId)),
+const invalidateInstanceIdentity = (queryClient: QueryClient, appInstanceId: string): Promise<void> => {
+  return invalidateQueries(queryClient, [
+    consoleQuery.deployments.list.key({ type: 'query' }),
+    consoleQuery.deployments.overview.key(appInstanceQueryKey(appInstanceId)),
+    consoleQuery.deployments.settings.key(appInstanceQueryKey(appInstanceId)),
   ])
 }
 
-const invalidateDeploymentState = (queryClient: QueryClient, appInstanceId: string) => {
-  invalidateQueries(queryClient, [
-    consoleQuery.deployments.list.key(),
-    consoleQuery.deployments.overview.queryKey(appInstanceInput(appInstanceId)),
-    consoleQuery.deployments.environmentDeployments.queryKey(appInstanceInput(appInstanceId)),
-    deploymentReleaseHistoryQueryOptions(appInstanceId).queryKey,
-    consoleQuery.deployments.accessConfig.queryKey(appInstanceInput(appInstanceId)),
+const invalidateDeploymentState = (queryClient: QueryClient, appInstanceId: string): Promise<void> => {
+  return invalidateQueries(queryClient, [
+    consoleQuery.deployments.list.key({ type: 'query' }),
+    consoleQuery.deployments.overview.key(appInstanceQueryKey(appInstanceId)),
+    consoleQuery.deployments.environmentDeployments.key(appInstanceQueryKey(appInstanceId)),
+    consoleQuery.deployments.releaseHistory.key(appInstanceQueryKey(appInstanceId)),
+    consoleQuery.deployments.accessConfig.key(appInstanceQueryKey(appInstanceId)),
   ])
 }
 
-const invalidateAccessState = (queryClient: QueryClient, appInstanceId: string) => {
-  invalidateQueries(queryClient, [
-    consoleQuery.deployments.overview.queryKey(appInstanceInput(appInstanceId)),
-    consoleQuery.deployments.accessConfig.queryKey(appInstanceInput(appInstanceId)),
+const invalidateAccessState = (queryClient: QueryClient, appInstanceId: string): Promise<void> => {
+  return invalidateQueries(queryClient, [
+    consoleQuery.deployments.overview.key(appInstanceQueryKey(appInstanceId)),
+    consoleQuery.deployments.accessConfig.key(appInstanceQueryKey(appInstanceId)),
   ])
 }
 
@@ -95,11 +92,11 @@ const invalidateEnvironmentAccessPolicy = (
   queryClient: QueryClient,
   appInstanceId: string,
   environmentId: string,
-) => {
-  invalidateQueries(queryClient, [
-    consoleQuery.deployments.accessConfig.queryKey(appInstanceInput(appInstanceId)),
-    consoleQuery.deployments.environmentAccessPolicy.queryKey(
-      environmentAccessPolicyInput(appInstanceId, environmentId),
+): Promise<void> => {
+  return invalidateQueries(queryClient, [
+    consoleQuery.deployments.accessConfig.key(appInstanceQueryKey(appInstanceId)),
+    consoleQuery.deployments.environmentAccessPolicy.key(
+      environmentAccessPolicyQueryKey(appInstanceId, environmentId),
     ),
   ])
 }
@@ -140,7 +137,7 @@ export const useCreateDeploymentInstance = () => {
       }
     },
     onSuccess: () => {
-      invalidateInstanceList(queryClient)
+      return invalidateInstanceList(queryClient)
     },
   })
 }
@@ -150,7 +147,7 @@ export const useUpdateDeploymentInstance = () => {
 
   return useMutation(consoleQuery.deployments.updateInstance.mutationOptions({
     onSuccess: (_data, variables) => {
-      invalidateInstanceIdentity(queryClient, variables.params.appInstanceId)
+      return invalidateInstanceIdentity(queryClient, variables.params.appInstanceId)
     },
   }))
 }
@@ -160,7 +157,7 @@ export const useDeleteDeploymentInstance = () => {
 
   return useMutation(consoleQuery.deployments.deleteInstance.mutationOptions({
     onSuccess: () => {
-      invalidateInstanceList(queryClient)
+      return invalidateInstanceList(queryClient)
     },
   }))
 }
@@ -216,7 +213,7 @@ export const useStartDeployment = () => {
       })
     },
     onSuccess: (_data, variables) => {
-      invalidateDeploymentState(queryClient, variables.appId)
+      return invalidateDeploymentState(queryClient, variables.appId)
     },
   })
 }
@@ -245,7 +242,7 @@ export const useUndeployDeployment = () => {
       })
     },
     onSuccess: (_data, variables) => {
-      invalidateDeploymentState(queryClient, variables.appId)
+      return invalidateDeploymentState(queryClient, variables.appId)
     },
   })
 }
@@ -255,7 +252,7 @@ export const useGenerateDeploymentApiKey = () => {
 
   return useMutation(consoleQuery.deployments.createEnvironmentAPIToken.mutationOptions({
     onSuccess: (_data, variables) => {
-      invalidateAccessState(queryClient, variables.params.appInstanceId)
+      return invalidateAccessState(queryClient, variables.params.appInstanceId)
     },
   }))
 }
@@ -265,7 +262,7 @@ export const useRevokeDeploymentApiKey = () => {
 
   return useMutation(consoleQuery.deployments.deleteEnvironmentAPIToken.mutationOptions({
     onSuccess: (_data, variables) => {
-      invalidateAccessState(queryClient, variables.params.appInstanceId)
+      return invalidateAccessState(queryClient, variables.params.appInstanceId)
     },
   }))
 }
@@ -273,32 +270,21 @@ export const useRevokeDeploymentApiKey = () => {
 export const useToggleDeploymentAccessChannel = () => {
   const queryClient = useQueryClient()
 
-  return useMutation({
-    mutationKey: consoleQuery.deployments.patchAccessChannel.mutationKey(),
-    mutationFn: ({ appId, channel, enabled }: ToggleAccessChannelParams) => {
-      if (channel === 'api') {
-        return consoleClient.deployments.patchDeveloperAPI({
-          params: {
-            appInstanceId: appId,
-          },
-          body: {
-            enabled,
-          },
-        })
-      }
-      return consoleClient.deployments.patchAccessChannel({
-        params: {
-          appInstanceId: appId,
-        },
-        body: {
-          enabled,
-        },
-      })
-    },
+  return useMutation(consoleQuery.deployments.patchAccessChannel.mutationOptions({
     onSuccess: (_data, variables) => {
-      invalidateAccessState(queryClient, variables.appId)
+      return invalidateAccessState(queryClient, variables.params.appInstanceId)
     },
-  })
+  }))
+}
+
+export const useToggleDeploymentDeveloperAPI = () => {
+  const queryClient = useQueryClient()
+
+  return useMutation(consoleQuery.deployments.patchDeveloperAPI.mutationOptions({
+    onSuccess: (_data, variables) => {
+      return invalidateAccessState(queryClient, variables.params.appInstanceId)
+    },
+  }))
 }
 
 export const useSetEnvironmentAccessPolicy = () => {
@@ -306,7 +292,7 @@ export const useSetEnvironmentAccessPolicy = () => {
 
   return useMutation(consoleQuery.deployments.updateEnvironmentAccessPolicy.mutationOptions({
     onSuccess: (_data, variables) => {
-      invalidateEnvironmentAccessPolicy(
+      return invalidateEnvironmentAccessPolicy(
         queryClient,
         variables.params.appInstanceId,
         variables.params.environmentId,

@@ -14,6 +14,7 @@ import {
   useRevokeDeploymentApiKey,
   useSetEnvironmentAccessPolicy,
   useToggleDeploymentAccessChannel,
+  useToggleDeploymentDeveloperAPI,
 } from '../hooks/use-deployment-mutations'
 import { deploymentEnvironmentDeploymentsQueryOptions } from '../queries'
 import {
@@ -51,6 +52,7 @@ const AccessTab: FC<AccessTabProps> = ({ instanceId: appId }) => {
   const generateApiKey = useGenerateDeploymentApiKey()
   const revokeApiKey = useRevokeDeploymentApiKey()
   const toggleAccessChannel = useToggleDeploymentAccessChannel()
+  const toggleDeveloperAPI = useToggleDeploymentDeveloperAPI()
   const setEnvironmentAccessPolicy = useSetEnvironmentAccessPolicy()
 
   const deploymentRows = useMemo(
@@ -141,14 +143,20 @@ const AccessTab: FC<AccessTabProps> = ({ instanceId: appId }) => {
         webappRows={webappRows}
         cliDomain={cliDomain}
         cliDocsUrl={cliDocsUrl}
-        onToggle={enabled => toggleAccessChannel.mutate({ appId, channel: 'webapp', enabled })}
+        onToggle={enabled => toggleAccessChannel.mutate({
+          params: { appInstanceId: appId },
+          body: { enabled },
+        })}
       />
       <DeveloperApiSection
         apiEnabled={apiEnabled}
         environments={deployedEnvs}
         apiKeys={apiKeys}
         createdToken={visibleCreatedApiToken}
-        onToggle={enabled => toggleAccessChannel.mutate({ appId, channel: 'api', enabled })}
+        onToggle={enabled => toggleDeveloperAPI.mutate({
+          params: { appInstanceId: appId },
+          body: { enabled },
+        })}
         onGenerate={handleGenerateApiKey}
         onRevoke={handleRevokeApiKey}
         onClearCreatedToken={() => setCreatedApiToken(undefined)}
