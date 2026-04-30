@@ -18,7 +18,7 @@ export type Option = {
   value: string
 }
 
-export type SelectFieldPopupProps = {
+type SelectFieldPopupProps = {
   className?: string
   title?: string
   titleClassName?: string
