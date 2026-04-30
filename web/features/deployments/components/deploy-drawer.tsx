@@ -2,30 +2,25 @@
 
 import type { FC } from 'react'
 import { Dialog, DialogCloseButton, DialogContent } from '@langgenius/dify-ui/dialog'
-import { useQuery } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
-import { deploymentAppDataQueryOptions } from '../data'
+import { useDeploymentAppData } from '../hooks/use-deployment-data'
+import { useStartDeployment } from '../hooks/use-deployment-mutations'
 import { useSourceApps } from '../hooks/use-source-apps'
-import { useDeploymentAppData, useDeploymentsStore } from '../store'
+import { useDeploymentsStore } from '../store'
 import { DeployForm } from './deploy-drawer/form'
 
 const DeployDrawer: FC = () => {
   const { t } = useTranslation('deployments')
   const drawer = useDeploymentsStore(state => state.deployDrawer)
   const drawerAppId = drawer.appId
-  const storedAppData = useDeploymentAppData(drawerAppId)
   const closeDeployDrawer = useDeploymentsStore(state => state.closeDeployDrawer)
-  const startDeploy = useDeploymentsStore(state => state.startDeploy)
+  const startDeploy = useStartDeployment()
   const open = drawer.open
   const { environmentOptions } = useSourceApps({ enabled: open })
-
-  useQuery({
-    ...deploymentAppDataQueryOptions(drawerAppId ?? ''),
-    queryFn: () => useDeploymentsStore.getState().fetchAppData(drawerAppId!),
-    enabled: open && Boolean(drawerAppId) && !storedAppData,
+  const { data: appData } = useDeploymentAppData(drawerAppId, {
+    enabled: open && Boolean(drawerAppId),
   })
 
-  const appData = storedAppData
   const environments = environmentOptions
   const releases = appData?.releaseHistory.data?.map(row => row.release ?? row).filter(release => release.id) ?? []
   const defaultReleaseId = releases[0]?.id
@@ -57,13 +52,15 @@ const DeployDrawer: FC = () => {
                     lockedEnvId={drawer.environmentId}
                     presetReleaseId={drawer.releaseId}
                     onCancel={closeDeployDrawer}
-                    onSubmit={({ environmentId, releaseId, releaseNote }) =>
-                      startDeploy({
+                    onSubmit={({ environmentId, releaseId, releaseNote }) => {
+                      closeDeployDrawer()
+                      startDeploy.mutate({
                         appId: drawerAppId,
                         environmentId,
                         releaseId,
                         releaseNote,
-                      })}
+                      })
+                    }}
                   />
                 )}
       </DialogContent>

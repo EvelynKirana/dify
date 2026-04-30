@@ -4,7 +4,7 @@ import { cn } from '@langgenius/dify-ui/cn'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@langgenius/dify-ui/tooltip'
 import { useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
-import { useDeploymentAppData } from '../store'
+import { useCachedDeploymentAppData } from '../hooks/use-deployment-data'
 import {
   deployedRows,
   formatDate,
@@ -23,7 +23,7 @@ type VersionsTabProps = {
 
 const VersionsTab: FC<VersionsTabProps> = ({ instanceId: appId }) => {
   const { t } = useTranslation('deployments')
-  const appData = useDeploymentAppData(appId)
+  const { data: appData } = useCachedDeploymentAppData(appId)
   const releaseRows = useMemo(
     () => appData?.releaseHistory.data?.filter(row => (row.release ?? row).id) ?? [],
     [appData?.releaseHistory.data],

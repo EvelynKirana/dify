@@ -1,7 +1,6 @@
 'use client'
 
 import type { FC, ReactNode } from 'react'
-import type { AppInfo } from '../types'
 import type { InstanceDetailTabKey } from './tabs'
 import { Button } from '@langgenius/dify-ui/button'
 import { useMemo } from 'react'
@@ -11,9 +10,9 @@ import useDocumentTitle from '@/hooks/use-document-title'
 import { useRouter, useSelectedLayoutSegment } from '@/next/navigation'
 import DeployDrawer from '../components/deploy-drawer'
 import RollbackModal from '../components/rollback-modal'
-import { useDeploymentData } from '../hooks/use-deployment-data'
+import { toAppInfoFromOverview } from '../data'
+import { useDeploymentAppData } from '../hooks/use-deployment-data'
 import { useSourceApps } from '../hooks/use-source-apps'
-import { useDeploymentAppData, useDeploymentInstance } from '../store'
 import { deployedRows, deploymentStatus } from '../utils'
 import { DeploymentSidebar } from './deployment-sidebar'
 import { isInstanceDetailTabKey } from './tabs'
@@ -30,23 +29,19 @@ const InstanceDetail: FC<InstanceDetailProps> = ({ instanceId, children }) => {
   const selectedSegment = useSelectedLayoutSegment()
   const selectedTab = selectedSegment ?? undefined
   const activeTab: InstanceDetailTabKey = isInstanceDetailTabKey(selectedTab) ? selectedTab : 'overview'
-  const storedApp = useDeploymentInstance(instanceId)
-  const appData = useDeploymentAppData(instanceId)
+  const detailQuery = useDeploymentAppData(instanceId, { enabled: Boolean(instanceId) })
+  const appData = detailQuery.data
   const { appMap, isLoading: isLoadingApps } = useSourceApps()
   useDocumentTitle(t('documentTitle.detail'))
 
-  const app = useMemo(
-    () => storedApp ?? appMap.get(instanceId),
-    [storedApp, instanceId, appMap],
+  const detailApp = useMemo(
+    () => toAppInfoFromOverview(appData?.overview.instance),
+    [appData?.overview.instance],
   )
-  const detailApps = useMemo<AppInfo[]>(() => [
-    app ?? {
-      id: instanceId,
-      name: instanceId,
-      mode: 'workflow',
-    },
-  ], [app, instanceId])
-  const detailQuery = useDeploymentData(detailApps, { enabled: Boolean(instanceId) })
+  const app = useMemo(
+    () => detailApp ?? appMap.get(instanceId),
+    [detailApp, instanceId, appMap],
+  )
   const appDeployments = useMemo(
     () => deployedRows(appData?.environmentDeployments.data),
     [appData?.environmentDeployments.data],

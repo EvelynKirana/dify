@@ -10,8 +10,11 @@ import {
   AlertDialogTitle,
 } from '@langgenius/dify-ui/alert-dialog'
 import { useTranslation } from 'react-i18next'
+import { toAppInfoFromOverview } from '../data'
+import { useCachedDeploymentAppData } from '../hooks/use-deployment-data'
+import { useStartDeployment } from '../hooks/use-deployment-mutations'
 import { useSourceApps } from '../hooks/use-source-apps'
-import { useDeploymentAppData, useDeploymentInstance, useDeploymentsStore } from '../store'
+import { useDeploymentsStore } from '../store'
 import {
   activeRelease,
   deployedRows,
@@ -33,10 +36,9 @@ const InfoRow: FC<{ label: string, value: string }> = ({ label, value }) => {
 const RollbackModal: FC = () => {
   const { t } = useTranslation('deployments')
   const modal = useDeploymentsStore(state => state.rollbackModal)
-  const appData = useDeploymentAppData(modal.appId)
-  const storedApp = useDeploymentInstance(modal.appId)
+  const { data: appData } = useCachedDeploymentAppData(modal.appId)
   const closeRollbackModal = useDeploymentsStore(state => state.closeRollbackModal)
-  const rollbackDeployment = useDeploymentsStore(state => state.rollbackDeployment)
+  const rollbackDeployment = useStartDeployment()
   const { appMap, environmentOptions } = useSourceApps()
 
   const currentRow = deployedRows(appData?.environmentDeployments.data)
@@ -47,12 +49,18 @@ const RollbackModal: FC = () => {
   const currentRelease = activeRelease(currentRow)
   const environment = currentRow?.environment
     ?? environmentOptions.find(env => env.id === modal.environmentId)
-  const app = storedApp ?? (modal.appId ? appMap.get(modal.appId) : undefined)
+  const app = toAppInfoFromOverview(appData?.overview.instance)
+    ?? (modal.appId ? appMap.get(modal.appId) : undefined)
 
   const confirm = () => {
     if (!modal.appId || !modal.environmentId || !modal.targetReleaseId)
       return
-    rollbackDeployment(modal.appId, modal.environmentId, modal.targetReleaseId)
+    closeRollbackModal()
+    rollbackDeployment.mutate({
+      appId: modal.appId,
+      environmentId: modal.environmentId,
+      releaseId: modal.targetReleaseId,
+    })
   }
 
   return (

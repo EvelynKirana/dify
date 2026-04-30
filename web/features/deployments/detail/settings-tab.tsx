@@ -18,8 +18,13 @@ import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useRouter } from '@/next/navigation'
 import { consoleQuery } from '@/service/client'
+import { toAppInfoFromOverview } from '../data'
+import { useCachedDeploymentAppData } from '../hooks/use-deployment-data'
+import {
+  useDeleteDeploymentInstance,
+  useUpdateDeploymentInstance,
+} from '../hooks/use-deployment-mutations'
 import { useSourceApps } from '../hooks/use-source-apps'
-import { useDeploymentAppData, useDeploymentInstance, useDeploymentsStore } from '../store'
 import { deployedRows } from '../utils'
 
 type SettingsTabProps = {
@@ -176,12 +181,11 @@ const SettingsForm: FC<SettingsFormProps> = ({ app, settings, hasDeployments, on
 
 const SettingsTab: FC<SettingsTabProps> = ({ instanceId }) => {
   const router = useRouter()
-  const storedApp = useDeploymentInstance(instanceId)
-  const appData = useDeploymentAppData(instanceId)
-  const updateInstance = useDeploymentsStore(state => state.updateInstance)
-  const deleteInstance = useDeploymentsStore(state => state.deleteInstance)
+  const { data: appData } = useCachedDeploymentAppData(instanceId)
+  const updateInstance = useUpdateDeploymentInstance()
+  const deleteInstance = useDeleteDeploymentInstance()
   const { appMap } = useSourceApps()
-  const app = storedApp ?? appMap.get(instanceId)
+  const app = toAppInfoFromOverview(appData?.overview.instance) ?? appMap.get(instanceId)
   const settingsQuery = useQuery(consoleQuery.deployments.settings.queryOptions({
     input: {
       params: {
@@ -204,11 +208,13 @@ const SettingsTab: FC<SettingsTabProps> = ({ instanceId }) => {
       settings={settingsQuery.data}
       hasDeployments={hasDeployments}
       onSave={async (patch) => {
-        await updateInstance(instanceId, patch)
-        await settingsQuery.refetch()
+        await updateInstance.mutateAsync({
+          appId: instanceId,
+          ...patch,
+        })
       }}
       onDelete={async () => {
-        await deleteInstance(instanceId)
+        await deleteInstance.mutateAsync(instanceId)
         router.push('/deployments')
       }}
     />

@@ -14,6 +14,7 @@ import AppIcon from '@/app/components/base/app-icon'
 import Input from '@/app/components/base/input'
 import { useRouter } from '@/next/navigation'
 import { useAppList } from '@/service/use-apps'
+import { useCreateDeploymentInstance } from '../hooks/use-deployment-mutations'
 import { useDeploymentsStore } from '../store'
 
 const MAX_STUDIO_SOURCE_APPS = 100
@@ -202,7 +203,7 @@ export const AppPicker: FC<AppPickerProps> = ({ apps, isLoading, value, onChange
 const CreateInstanceForm: FC<{ onClose: () => void }> = ({ onClose }) => {
   const { t } = useTranslation('deployments')
   const router = useRouter()
-  const createInstance = useDeploymentsStore(state => state.createInstance)
+  const createInstance = useCreateDeploymentInstance()
   const openDeployDrawer = useDeploymentsStore(state => state.openDeployDrawer)
   const { data: appList, isLoading } = useAppList({ page: 1, limit: MAX_STUDIO_SOURCE_APPS, name: '' })
   const apps = useMemo<AppInfo[]>(() => {
@@ -223,11 +224,12 @@ const CreateInstanceForm: FC<{ onClose: () => void }> = ({ onClose }) => {
 
     setIsSubmitting(true)
     try {
-      const result = await createInstance({
+      const result = await createInstance.mutateAsync({
         sourceAppId: appId,
         name: name.trim(),
         description: description.trim() || undefined,
       })
+      onClose()
       if (thenDeploy) {
         openDeployDrawer({
           appId: result.appInstanceId,

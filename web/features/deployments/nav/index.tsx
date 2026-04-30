@@ -6,8 +6,9 @@ import { useCallback, useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 import Nav from '@/app/components/header/nav'
 import { useParams, useRouter, useSelectedLayoutSegment } from '@/next/navigation'
+import { useDeploymentAppInfo } from '../hooks/use-deployment-data'
 import { useSourceApps } from '../hooks/use-source-apps'
-import { useDeploymentInstance, useDeploymentsStore } from '../store'
+import { useDeploymentsStore } from '../store'
 
 const DeploymentsNav = () => {
   const { t } = useTranslation()
@@ -18,7 +19,9 @@ const DeploymentsNav = () => {
   const instanceId = params?.instanceId
 
   const openCreateInstanceModal = useDeploymentsStore(state => state.openCreateInstanceModal)
-  const currentInstance = useDeploymentInstance(instanceId)
+  const { data: currentInstance } = useDeploymentAppInfo(instanceId, {
+    enabled: isActive && Boolean(instanceId),
+  })
 
   const { apps } = useSourceApps({ enabled: isActive })
 

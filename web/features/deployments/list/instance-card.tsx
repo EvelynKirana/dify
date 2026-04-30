@@ -19,7 +19,8 @@ import { AppTypeIcon } from '@/app/components/app/type-selector'
 import AppIcon from '@/app/components/base/app-icon'
 import { useFormatTimeFromNow } from '@/hooks/use-format-time-from-now'
 import { useRouter } from '@/next/navigation'
-import { useDeploymentAppData, useDeploymentsStore } from '../store'
+import { useCachedDeploymentAppData } from '../hooks/use-deployment-data'
+import { useDeploymentsStore } from '../store'
 import { deployedRows, deploymentStatus, environmentId, environmentName, releaseLabel } from '../utils'
 
 type InstanceCardProps = {
@@ -32,7 +33,7 @@ export const InstanceCard: FC<InstanceCardProps> = ({ app, summary }) => {
   const router = useRouter()
   const { formatTimeFromNow } = useFormatTimeFromNow()
   const [menuOpen, setMenuOpen] = useState(false)
-  const appData = useDeploymentAppData(app.id)
+  const { data: appData } = useCachedDeploymentAppData(app.id)
   const openDeployDrawer = useDeploymentsStore(state => state.openDeployDrawer)
 
   const navigateToDetail = () => router.push(`/deployments/${app.id}/overview`)

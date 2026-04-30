@@ -7,8 +7,10 @@ import { useTranslation } from 'react-i18next'
 import { getAppModeLabel } from '@/app/components/app-sidebar/app-info/app-mode-labels'
 import { useRouter } from '@/next/navigation'
 import { StatusBadge } from '../components/status-badge'
+import { toAppInfoFromOverview } from '../data'
+import { useCachedDeploymentAppData } from '../hooks/use-deployment-data'
 import { useSourceApps } from '../hooks/use-source-apps'
-import { useDeploymentAppData, useDeploymentInstance, useDeploymentsStore } from '../store'
+import { useDeploymentsStore } from '../store'
 import { releaseLabel, webappUrl } from '../utils'
 
 type OverviewTabProps = {
@@ -90,12 +92,11 @@ const OverviewTab: FC<OverviewTabProps> = ({ instanceId }) => {
   const { t } = useTranslation('deployments')
   const { t: tCommon } = useTranslation()
   const router = useRouter()
-  const appData = useDeploymentAppData(instanceId)
+  const { data: appData } = useCachedDeploymentAppData(instanceId)
   const openDeployDrawer = useDeploymentsStore(state => state.openDeployDrawer)
-  const storedApp = useDeploymentInstance(instanceId)
   const { appMap } = useSourceApps()
-  const app = storedApp ?? appMap.get(instanceId)
   const overview = appData?.overview
+  const app = toAppInfoFromOverview(overview?.instance) ?? appMap.get(instanceId)
   const overviewApp = overview?.instance
   const deployments = useMemo(
     () => overview?.deployments?.filter(row => row.environment?.id && row.status?.toLowerCase() !== 'undeployed') ?? [],

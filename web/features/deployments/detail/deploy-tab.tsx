@@ -10,8 +10,10 @@ import {
 } from '@langgenius/dify-ui/dropdown-menu'
 import { useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
+import { useCachedDeploymentAppData } from '../hooks/use-deployment-data'
+import { useUndeployDeployment } from '../hooks/use-deployment-mutations'
 import { useSourceApps } from '../hooks/use-source-apps'
-import { useDeploymentAppData, useDeploymentsStore } from '../store'
+import { useDeploymentsStore } from '../store'
 import {
   activeRelease,
   deployedRows,
@@ -36,9 +38,9 @@ type DeployTabProps = {
 
 const DeployTab: FC<DeployTabProps> = ({ instanceId: appId }) => {
   const { t } = useTranslation('deployments')
-  const appData = useDeploymentAppData(appId)
+  const { data: appData } = useCachedDeploymentAppData(appId)
   const openDeployDrawer = useDeploymentsStore(state => state.openDeployDrawer)
-  const undeployDeployment = useDeploymentsStore(state => state.undeployDeployment)
+  const undeployDeployment = useUndeployDeployment()
   const { environmentOptions } = useSourceApps()
 
   const rows = useMemo(
@@ -179,7 +181,11 @@ const DeployTab: FC<DeployTabProps> = ({ instanceId: appId }) => {
                         <DropdownMenuContent placement="bottom-end" sideOffset={4} popupClassName="w-[200px]">
                           <DropdownMenuItem
                             className="gap-2 px-3"
-                            onClick={() => undeployDeployment(appId, envId, deploymentId(row), status === 'deploying')}
+                            onClick={() => undeployDeployment.mutate({
+                              appId,
+                              runtimeInstanceId: deploymentId(row),
+                              isDeploying: status === 'deploying',
+                            })}
                           >
                             <span className="system-sm-regular text-text-destructive">
                               {status === 'deploying' ? t('deployTab.cancelDeployment') : t('deployTab.undeploy')}

@@ -1,28 +1,41 @@
 'use client'
 
-import type { AppInfo } from '../types'
-import { useQueries } from '@tanstack/react-query'
-import { deploymentAppDataQueryOptions } from '../data'
-import { useDeploymentsStore } from '../store'
+import { useQuery } from '@tanstack/react-query'
+import { useMemo } from 'react'
+import {
+  deploymentAppDataQueryOptions,
+  toAppInfoFromOverview,
+} from '../data'
 
 type UseDeploymentDataOptions = {
   enabled?: boolean
 }
 
-export function useDeploymentData(apps: AppInfo[], options: UseDeploymentDataOptions = {}) {
+export function useDeploymentAppData(appId?: string, options: UseDeploymentDataOptions = {}) {
   const { enabled = true } = options
 
-  const queries = useQueries({
-    queries: apps.map(app => ({
-      ...deploymentAppDataQueryOptions(app.id),
-      queryFn: () => useDeploymentsStore.getState().fetchAppData(app.id),
-      enabled: enabled && Boolean(app.id),
-    })),
+  return useQuery({
+    ...deploymentAppDataQueryOptions(appId ?? ''),
+    enabled: enabled && Boolean(appId),
   })
+}
+
+export function useCachedDeploymentAppData(appId?: string) {
+  return useQuery({
+    ...deploymentAppDataQueryOptions(appId ?? ''),
+    enabled: false,
+  })
+}
+
+export function useDeploymentAppInfo(appId?: string, options: UseDeploymentDataOptions = {}) {
+  const query = useDeploymentAppData(appId, options)
+  const app = useMemo(
+    () => toAppInfoFromOverview(query.data?.overview.instance),
+    [query.data?.overview.instance],
+  )
 
   return {
-    isLoading: queries.some(query => query.isLoading),
-    isFetching: queries.some(query => query.isFetching),
-    isError: queries.some(query => query.isError),
+    ...query,
+    data: app,
   }
 }

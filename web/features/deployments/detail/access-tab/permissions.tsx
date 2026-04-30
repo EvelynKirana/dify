@@ -363,7 +363,6 @@ export const EnvironmentPermissionRow: FC<EnvironmentPermissionRowProps> = ({
         permissionKeyToAccessMode(nextKind),
         nextKind === 'specific' ? policySubjects(nextSubjects) : [],
       )
-      await policyQuery.refetch()
       setDraft({})
     }
     catch {
