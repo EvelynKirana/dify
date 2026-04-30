@@ -39,7 +39,7 @@ const Header = () => {
           value={locale}
           items={languages.filter(item => item.supported)}
           onChange={(value) => {
-            setLocaleOnClient(value as Locale)
+            setLocaleOnClient(value as Locale, false)
           }}
         />
         <Divider type="vertical" className="mx-0 ml-2 h-4" />
