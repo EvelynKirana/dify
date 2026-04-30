@@ -1,5 +1,4 @@
 import { Button } from '@langgenius/dify-ui/button'
-import { cn } from '@langgenius/dify-ui/cn'
 import { Popover, PopoverContent, PopoverTrigger } from '@langgenius/dify-ui/popover'
 import { RiArrowDownSLine } from '@remixicon/react'
 import { useBoolean } from 'ahooks'
@@ -50,7 +49,7 @@ const Publisher = () => {
         placement="bottom-end"
         sideOffset={4}
         alignOffset={40}
-        popupClassName={cn('border-none bg-transparent shadow-none', confirmVisible && 'hidden')}
+        popupClassName="border-none bg-transparent shadow-none"
       >
         <Popup
           onRequestClose={closePopover}
