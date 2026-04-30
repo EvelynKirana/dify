@@ -104,7 +104,7 @@ export const DeployForm: FC<DeployFormProps> = ({
   const [releaseNote, setReleaseNote] = useState<string>('')
   const canDeploy = Boolean(selectedEnvironmentId && selectedEnvironment && !selectedEnvironment.disabled && (!isPromote || displayedRelease?.id || defaultReleaseId))
   const previewReleaseId = isPromote ? displayedRelease?.id ?? defaultReleaseId : undefined
-  const releasePreview = useQuery(consoleQuery.enterprise.enterpriseAppDeployConsole.previewRelease.queryOptions({
+  const releasePreview = useQuery(consoleQuery.enterprise.appDeploy.previewRelease.queryOptions({
     input: appInstanceId && (!isPromote || previewReleaseId)
       ? {
           params: { appInstanceId },

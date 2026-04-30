@@ -90,9 +90,9 @@ export const useCreateDeploymentInstance = () => {
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationKey: consoleQuery.enterprise.enterpriseAppDeployConsole.createAppInstance.mutationKey(),
+    mutationKey: consoleQuery.enterprise.appDeploy.createAppInstance.mutationKey(),
     mutationFn: async (params: CreateInstanceParams): Promise<CreateDeploymentInstanceResult> => {
-      const response = await consoleClient.enterprise.enterpriseAppDeployConsole.createAppInstance({
+      const response = await consoleClient.enterprise.appDeploy.createAppInstance({
         body: {
           sourceAppId: params.sourceAppId,
           name: params.name,
@@ -125,7 +125,7 @@ export const useCreateDeploymentInstance = () => {
 export const useUpdateDeploymentInstance = () => {
   const queryClient = useQueryClient()
 
-  return useMutation(consoleQuery.enterprise.enterpriseAppDeployConsole.updateAppInstance.mutationOptions({
+  return useMutation(consoleQuery.enterprise.appDeploy.updateAppInstance.mutationOptions({
     onSuccess: (_data, variables) => {
       return invalidateInstanceIdentity(queryClient, variables.params.appInstanceId)
     },
@@ -135,7 +135,7 @@ export const useUpdateDeploymentInstance = () => {
 export const useDeleteDeploymentInstance = () => {
   const queryClient = useQueryClient()
 
-  return useMutation(consoleQuery.enterprise.enterpriseAppDeployConsole.deleteAppInstance.mutationOptions({
+  return useMutation(consoleQuery.enterprise.appDeploy.deleteAppInstance.mutationOptions({
     onSuccess: (_data, variables) => {
       return removeDeletedInstanceState(queryClient, variables.params.appInstanceId)
     },
@@ -146,7 +146,7 @@ export const useStartDeployment = () => {
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationKey: consoleQuery.enterprise.enterpriseAppDeployConsole.createDeployment.mutationKey(),
+    mutationKey: consoleQuery.enterprise.appDeploy.createDeployment.mutationKey(),
     mutationFn: async ({
       appInstanceId,
       environmentId,
@@ -155,7 +155,7 @@ export const useStartDeployment = () => {
     }: CreateDeploymentParams) => {
       let targetReleaseId = releaseId
       let releaseWasCreated = false
-      await consoleClient.enterprise.enterpriseAppDeployConsole.previewRelease({
+      await consoleClient.enterprise.appDeploy.previewRelease({
         params: {
           appInstanceId,
         },
@@ -167,7 +167,7 @@ export const useStartDeployment = () => {
       try {
         if (!targetReleaseId) {
           const trimmedReleaseNote = releaseNote?.trim()
-          const response = await consoleClient.enterprise.enterpriseAppDeployConsole.createRelease({
+          const response = await consoleClient.enterprise.appDeploy.createRelease({
             params: {
               appInstanceId,
             },
@@ -185,7 +185,7 @@ export const useStartDeployment = () => {
         if (!targetReleaseId)
           throw new Error('Failed to create a deployable release.')
 
-        return await consoleClient.enterprise.enterpriseAppDeployConsole.createDeployment({
+        return await consoleClient.enterprise.appDeploy.createDeployment({
           params: {
             appInstanceId,
           },
@@ -214,12 +214,12 @@ export const useUndeployDeployment = () => {
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationKey: consoleQuery.enterprise.enterpriseAppDeployConsole.undeployRuntimeInstance.mutationKey(),
+    mutationKey: consoleQuery.enterprise.appDeploy.undeployRuntimeInstance.mutationKey(),
     mutationFn: ({ appInstanceId, runtimeInstanceId, isDeploying }: UndeployDeploymentParams) => {
       if (!runtimeInstanceId)
         throw new Error('runtimeInstanceId is required to undeploy a deployment.')
       if (isDeploying) {
-        return consoleClient.enterprise.enterpriseAppDeployConsole.cancelRuntimeDeployment({
+        return consoleClient.enterprise.appDeploy.cancelRuntimeDeployment({
           params: {
             appInstanceId,
             runtimeInstanceId,
@@ -230,7 +230,7 @@ export const useUndeployDeployment = () => {
           },
         })
       }
-      return consoleClient.enterprise.enterpriseAppDeployConsole.undeployRuntimeInstance({
+      return consoleClient.enterprise.appDeploy.undeployRuntimeInstance({
         params: {
           appInstanceId,
           runtimeInstanceId,
@@ -250,7 +250,7 @@ export const useUndeployDeployment = () => {
 export const useGenerateDeploymentApiKey = () => {
   const queryClient = useQueryClient()
 
-  return useMutation(consoleQuery.enterprise.enterpriseAppDeployConsole.createDeveloperApiKey.mutationOptions({
+  return useMutation(consoleQuery.enterprise.appDeploy.createDeveloperApiKey.mutationOptions({
     onSuccess: (_data, variables) => {
       return invalidateAccessState(queryClient, variables.params.appInstanceId)
     },
@@ -260,7 +260,7 @@ export const useGenerateDeploymentApiKey = () => {
 export const useRevokeDeploymentApiKey = () => {
   const queryClient = useQueryClient()
 
-  return useMutation(consoleQuery.enterprise.enterpriseAppDeployConsole.deleteDeveloperApiKey.mutationOptions({
+  return useMutation(consoleQuery.enterprise.appDeploy.deleteDeveloperApiKey.mutationOptions({
     onSuccess: (_data, variables) => {
       return invalidateAccessState(queryClient, variables.params.appInstanceId)
     },
@@ -270,7 +270,7 @@ export const useRevokeDeploymentApiKey = () => {
 export const useToggleDeploymentAccessChannel = () => {
   const queryClient = useQueryClient()
 
-  return useMutation(consoleQuery.enterprise.enterpriseAppDeployConsole.updateAccessChannels.mutationOptions({
+  return useMutation(consoleQuery.enterprise.appDeploy.updateAccessChannels.mutationOptions({
     onSuccess: (_data, variables) => {
       return invalidateAccessState(queryClient, variables.params.appInstanceId)
     },
@@ -280,7 +280,7 @@ export const useToggleDeploymentAccessChannel = () => {
 export const useToggleDeploymentDeveloperAPI = () => {
   const queryClient = useQueryClient()
 
-  return useMutation(consoleQuery.enterprise.enterpriseAppDeployConsole.updateDeveloperApi.mutationOptions({
+  return useMutation(consoleQuery.enterprise.appDeploy.updateDeveloperApi.mutationOptions({
     onSuccess: (_data, variables) => {
       return invalidateAccessState(queryClient, variables.params.appInstanceId)
     },
@@ -290,7 +290,7 @@ export const useToggleDeploymentDeveloperAPI = () => {
 export const useSetEnvironmentAccessPolicy = () => {
   const queryClient = useQueryClient()
 
-  return useMutation(consoleQuery.enterprise.enterpriseAppDeployConsole.updateEnvironmentAccessPolicy.mutationOptions({
+  return useMutation(consoleQuery.enterprise.appDeploy.updateEnvironmentAccessPolicy.mutationOptions({
     onSuccess: (_data, variables) => {
       return invalidateEnvironmentAccessPolicy(
         queryClient,

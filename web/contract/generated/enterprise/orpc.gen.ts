@@ -390,7 +390,7 @@ export const listDeploymentEnvironmentOptions = oc
   })
   .output(zEnterpriseAppDeployConsoleListDeploymentEnvironmentOptionsResponse)
 
-export const enterpriseAppDeployConsole = {
+export const appDeploy = {
   listAppInstances,
   createAppInstance,
   deleteAppInstance,
@@ -528,7 +528,7 @@ export const webAppAuth = {
 }
 
 export const contract = {
-  enterpriseAppDeployConsole,
+  appDeploy,
   consoleSso,
   webAppAuth,
 }

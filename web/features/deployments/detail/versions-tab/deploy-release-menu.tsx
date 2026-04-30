@@ -39,7 +39,7 @@ export const DeployReleaseMenu: FC<DeployReleaseMenuProps> = ({ appInstanceId, r
     enabled: open,
   })
   const { data: environmentOptionsReply } = useQuery({
-    ...consoleQuery.enterprise.enterpriseAppDeployConsole.listDeploymentEnvironmentOptions.queryOptions(),
+    ...consoleQuery.enterprise.appDeploy.listDeploymentEnvironmentOptions.queryOptions(),
     enabled: open,
   })
 

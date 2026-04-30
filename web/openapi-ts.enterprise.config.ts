@@ -37,6 +37,13 @@ const stripSchemaNamePrefix = (schemaName: string) => {
     .replace(/^pagination\./, '')
 }
 
+const contractTagSegment = (tag?: string) => {
+  if (tag === 'EnterpriseAppDeployConsole')
+    return 'AppDeploy'
+
+  return tag || 'default'
+}
+
 const contractNameSegments = (operation: ContractOperation) => {
   const operationId = operation.operationId || operation.id
   const tag = operation.tags?.[0]
@@ -48,7 +55,7 @@ const contractNameSegments = (operation: ContractOperation) => {
 }
 
 const contractPathSegments = (operation: ContractOperation) => {
-  return [operation.tags?.[0] || 'default', ...contractNameSegments(operation)]
+  return [contractTagSegment(operation.tags?.[0]), ...contractNameSegments(operation)]
 }
 
 const normalizeEnterpriseOpenApi = () => {
