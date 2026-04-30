@@ -10,9 +10,8 @@ import {
   DEPLOYMENT_PAGE_SIZE,
 } from '../data'
 import { useStartDeployment } from '../hooks/use-deployment-mutations'
-import { deploymentEnvironmentDeploymentsQueryOptions } from '../queries'
 import { useDeploymentsStore } from '../store'
-import { environmentOptionsFromDeploymentRows } from '../utils'
+import { environmentOptionsFromOptionsReply } from '../utils'
 import { DeployForm } from './deploy-drawer/form'
 
 const DeployDrawer: FC = () => {
@@ -34,14 +33,14 @@ const DeployDrawer: FC = () => {
       : skipToken,
     enabled: open && Boolean(drawerAppId),
   }))
-  const { data: environmentDeployments } = useQuery({
-    ...deploymentEnvironmentDeploymentsQueryOptions(drawerAppId),
-    enabled: open && Boolean(drawerAppId),
+  const { data: environmentOptionsReply } = useQuery({
+    ...consoleQuery.deployments.deploymentEnvironmentOptions.queryOptions(),
+    enabled: open,
   })
 
   const environmentOptions = useMemo(
-    () => environmentOptionsFromDeploymentRows(environmentDeployments?.data),
-    [environmentDeployments?.data],
+    () => environmentOptionsFromOptionsReply(environmentOptionsReply),
+    [environmentOptionsReply],
   )
   const environments = environmentOptions
   const releases = releaseHistory?.data?.map(row => row.release ?? row).filter(release => release.id) ?? []
@@ -57,7 +56,7 @@ const DeployDrawer: FC = () => {
         <DialogCloseButton />
         {!drawerAppId
           ? <div className="p-4 text-text-tertiary">{t('deployDrawer.notFound')}</div>
-          : (!releaseHistory || !environmentDeployments)
+          : (!releaseHistory || !environmentOptionsReply)
               ? (
                   <div className="flex items-center gap-2 p-4 system-sm-regular text-text-tertiary">
                     <span className="h-4 w-4 animate-spin rounded-full border-2 border-components-panel-border border-t-transparent" />

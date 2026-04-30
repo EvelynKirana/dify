@@ -24,7 +24,12 @@ export const Field: FC<FieldProps> = ({ label, hint, children }) => (
   </div>
 )
 
-type SelectOption = { value: string, label: string }
+type SelectOption = {
+  value: string
+  label: string
+  disabled?: boolean
+  disabledReason?: string
+}
 
 type SelectProps = {
   value: string
@@ -57,7 +62,12 @@ export const DeploymentSelect: FC<SelectProps> = ({ value, onChange, options, pl
       </SelectTrigger>
       <SelectContent popupClassName="w-(--anchor-width)">
         {options.map(opt => (
-          <SelectItem key={opt.value} value={opt.value}>
+          <SelectItem
+            key={opt.value}
+            value={opt.value}
+            disabled={opt.disabled}
+            title={opt.disabled ? opt.disabledReason : undefined}
+          >
             <SelectItemText>{opt.label}</SelectItemText>
             <SelectItemIndicator />
           </SelectItem>

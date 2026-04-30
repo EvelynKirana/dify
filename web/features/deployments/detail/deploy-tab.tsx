@@ -11,6 +11,7 @@ import {
 import { useQuery } from '@tanstack/react-query'
 import { useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
+import { consoleQuery } from '@/service/client'
 import { useUndeployDeployment } from '../hooks/use-deployment-mutations'
 import { deploymentEnvironmentDeploymentsQueryOptions } from '../queries'
 import { useDeploymentsStore } from '../store'
@@ -23,7 +24,7 @@ import {
   environmentId,
   environmentMode,
   environmentName,
-  environmentOptionsFromDeploymentRows,
+  environmentOptionsFromOptionsReply,
   isUndeployedDeploymentRow,
   releaseCommit,
   releaseLabel,
@@ -40,11 +41,12 @@ type DeployTabProps = {
 const DeployTab: FC<DeployTabProps> = ({ instanceId: appId }) => {
   const { t } = useTranslation('deployments')
   const { data: environmentDeployments } = useQuery(deploymentEnvironmentDeploymentsQueryOptions(appId))
+  const { data: environmentOptionsReply } = useQuery(consoleQuery.deployments.deploymentEnvironmentOptions.queryOptions())
   const openDeployDrawer = useDeploymentsStore(state => state.openDeployDrawer)
   const undeployDeployment = useUndeployDeployment()
   const environmentOptions = useMemo(
-    () => environmentOptionsFromDeploymentRows(environmentDeployments?.data),
-    [environmentDeployments?.data],
+    () => environmentOptionsFromOptionsReply(environmentOptionsReply),
+    [environmentOptionsReply],
   )
 
   const rows = useMemo(
@@ -118,7 +120,10 @@ const DeployTab: FC<DeployTabProps> = ({ instanceId: appId }) => {
                     <DropdownMenuItem
                       key={env.id}
                       className="gap-2 px-3"
+                      disabled={env.disabled}
                       onClick={() => {
+                        if (env.disabled)
+                          return
                         setDeployMenuOpen(false)
                         openDeployDrawer({ appId, environmentId: env.id })
                       }}

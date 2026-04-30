@@ -27,7 +27,7 @@ import {
   deployedRows,
   environmentId,
   environmentName,
-  environmentOptionsFromDeploymentRows,
+  environmentOptionsFromOptionsReply,
   releaseCommit,
   releaseLabel,
   toAppInfoFromOverview,
@@ -67,13 +67,17 @@ const RollbackModal: FC = () => {
     ...deploymentEnvironmentDeploymentsQueryOptions(modal.appId),
     enabled: modal.open && Boolean(modal.appId),
   })
+  const { data: environmentOptionsReply } = useQuery({
+    ...consoleQuery.deployments.deploymentEnvironmentOptions.queryOptions(),
+    enabled: modal.open,
+  })
   const { data: releaseHistory } = useQuery(consoleQuery.deployments.releaseHistory.queryOptions({
     input: pagedInput ?? skipToken,
     enabled: modal.open && Boolean(modal.appId),
   }))
   const environmentOptions = useMemo(
-    () => environmentOptionsFromDeploymentRows(environmentDeployments?.data),
-    [environmentDeployments?.data],
+    () => environmentOptionsFromOptionsReply(environmentOptionsReply),
+    [environmentOptionsReply],
   )
 
   const currentRow = deployedRows(environmentDeployments?.data)

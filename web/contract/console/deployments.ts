@@ -46,12 +46,6 @@ export type DeploymentStatusCount = {
   count?: number
 }
 
-export type AppInstanceFilter = {
-  id?: string
-  name?: string
-  kind?: 'all' | 'environment' | 'not_deployed' | (string & {})
-}
-
 export type AppDeploymentSummary = {
   id?: string
   name?: string
@@ -73,7 +67,6 @@ export type Pagination = {
 }
 
 export type ListAppDeploymentsReply = {
-  filters?: AppInstanceFilter[]
   data?: AppDeploymentSummary[]
   pagination?: Pagination
 }
@@ -144,9 +137,18 @@ export type ListEnvironmentDeploymentsReply = {
   data?: EnvironmentDeploymentRow[]
 }
 
-export type EnvironmentOption = ConsoleEnvironmentSummary & {
-  disabled?: boolean
+export type DeploymentEnvironmentOption = ConsoleEnvironmentSummary & {
+  managedBy?: string
+  deployable?: boolean
   disabledReason?: string
+}
+
+export type ListDeploymentEnvironmentOptionsReply = {
+  environments?: DeploymentEnvironmentOption[]
+}
+
+export type EnvironmentOption = DeploymentEnvironmentOption & {
+  disabled?: boolean
 }
 
 export type ReleaseRuntimePreviewReply = {
@@ -369,6 +371,13 @@ export const runtimeInstancesContract = base
     params: { appInstanceId: string }
   }>())
   .output(type<ListEnvironmentDeploymentsReply>())
+
+export const deploymentEnvironmentOptionsContract = base
+  .route({
+    path: '/enterprise/deployment-environment-options',
+    method: 'GET',
+  })
+  .output(type<ListDeploymentEnvironmentOptionsReply>())
 
 export const previewReleaseContract = base
   .route({

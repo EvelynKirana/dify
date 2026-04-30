@@ -97,11 +97,12 @@ export const DeployForm: FC<DeployFormProps> = ({
   const isPromote = Boolean(presetReleaseId)
 
   const [selectedEnvId, setSelectedEnvId] = useState<string>(
-    () => lockedEnvId ?? environments[0]?.id ?? '',
+    () => lockedEnvId ?? environments.find(env => !env.disabled)?.id ?? environments[0]?.id ?? '',
   )
   const selectedEnvironmentId = selectedEnvId || lockedEnvId || environments[0]?.id || ''
+  const selectedEnvironment = environments.find(env => env.id === selectedEnvironmentId)
   const [releaseNote, setReleaseNote] = useState<string>('')
-  const canDeploy = Boolean(selectedEnvironmentId && (!isPromote || displayedRelease?.id || defaultReleaseId))
+  const canDeploy = Boolean(selectedEnvironmentId && selectedEnvironment && !selectedEnvironment.disabled && (!isPromote || displayedRelease?.id || defaultReleaseId))
   const previewReleaseId = isPromote ? displayedRelease?.id ?? defaultReleaseId : undefined
   const releasePreview = useQuery(consoleQuery.deployments.previewRelease.queryOptions({
     input: appId && (!isPromote || previewReleaseId)
@@ -193,6 +194,8 @@ export const DeployForm: FC<DeployFormProps> = ({
                 options={environments.filter(env => env.id).map(env => ({
                   value: env.id!,
                   label: `${environmentName(env)} · ${t(environmentMode(env) === 'isolated' ? 'mode.isolated' : 'mode.shared')} · ${(env.type ?? 'env').toUpperCase()}`,
+                  disabled: env.disabled,
+                  disabledReason: env.disabledReason,
                 }))}
                 placeholder={t('deployDrawer.selectEnv')}
               />

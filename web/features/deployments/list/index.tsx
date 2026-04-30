@@ -7,6 +7,7 @@ import { debounce, parseAsString, useQueryState } from 'nuqs'
 import { useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 import Input from '@/app/components/base/input'
+import { consoleQuery } from '@/service/client'
 import CreateInstanceModal from '../components/create-instance-modal'
 import DeployDrawer from '../components/deploy-drawer'
 import RollbackModal from '../components/rollback-modal'
@@ -16,7 +17,7 @@ import {
   deploymentSummariesFromList,
   environmentId,
   environmentName,
-  environmentOptionsFromList,
+  environmentOptionsFromOptionsReply,
   sourceAppsFromList,
 } from '../utils'
 import { EnvironmentFilter } from './environment-filter'
@@ -52,9 +53,13 @@ const DeploymentsMain: FC = () => {
     ...(envFilter === 'not-deployed' ? { notDeployed: true } : {}),
     ...(queryKeywords.trim() ? { query: queryKeywords.trim() } : {}),
   }))
+  const { data: environmentOptionsReply } = useQuery(consoleQuery.deployments.deploymentEnvironmentOptions.queryOptions())
   const apps = useMemo(() => sourceAppsFromList(listQuery.data), [listQuery.data])
   const summaries = useMemo(() => deploymentSummariesFromList(listQuery.data), [listQuery.data])
-  const environmentOptions = useMemo(() => environmentOptionsFromList(listQuery.data), [listQuery.data])
+  const environmentOptions = useMemo(
+    () => environmentOptionsFromOptionsReply(environmentOptionsReply),
+    [environmentOptionsReply],
+  )
 
   const environments = useMemo(() => {
     return environmentOptions

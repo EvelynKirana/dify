@@ -7,6 +7,7 @@ import type {
   EnvironmentDeploymentRow,
   EnvironmentOption,
   ListAppDeploymentsReply,
+  ListDeploymentEnvironmentOptionsReply,
   RuntimeBindingDisplay,
 } from '@/contract/console/deployments'
 import { PUBLIC_API_PREFIX } from '@/config'
@@ -107,14 +108,6 @@ export const deployedRows = (rows?: EnvironmentDeploymentRow[]) =>
       && (row.id || runtimeStatus || row.currentRelease || row.detail)
   }) ?? []
 
-type DeploymentEnvironmentFilter = {
-  id?: string
-  name?: string
-  kind?: string
-  disabled?: boolean
-  disabledReason?: string
-}
-
 export function toAppInfoFromSummary(summary: AppDeploymentSummary): AppInfo | undefined {
   if (!summary.id || !summary.name)
     return undefined
@@ -158,22 +151,13 @@ export const deploymentSummariesFromList = (response?: ListAppDeploymentsReply):
   )
 }
 
-export const environmentOptionsFromList = (response?: ListAppDeploymentsReply): EnvironmentOption[] => {
-  return ((response?.filters ?? []) as DeploymentEnvironmentFilter[])
-    .filter(filter => filter.kind === 'environment' && filter.id)
-    .map(filter => ({
-      id: filter.id,
-      name: filter.name,
-      disabled: filter.disabled,
-      disabledReason: filter.disabledReason,
-    }))
-}
-
-export const environmentOptionsFromDeploymentRows = (rows?: EnvironmentDeploymentRow[]): EnvironmentOption[] => {
-  return rows
-    ?.map(row => row.environment)
-    .filter((environment): environment is ConsoleEnvironmentSummary => Boolean(environment?.id))
-    .map(environment => ({ ...environment })) ?? []
+export const environmentOptionsFromOptionsReply = (response?: ListDeploymentEnvironmentOptionsReply): EnvironmentOption[] => {
+  return response?.environments
+    ?.filter(environment => environment.id)
+    .map(environment => ({
+      ...environment,
+      disabled: environment.deployable === false,
+    })) ?? []
 }
 
 export const accessModeToPermissionKey = (mode?: string): AccessPermissionKind => {

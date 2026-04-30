@@ -11,6 +11,7 @@ import {
 import { useQuery } from '@tanstack/react-query'
 import { useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
+import { consoleQuery } from '@/service/client'
 import { deploymentEnvironmentDeploymentsQueryOptions } from '../../queries'
 import { useDeploymentsStore } from '../../store'
 import {
@@ -20,7 +21,7 @@ import {
   deploymentStatus,
   environmentId,
   environmentName,
-  environmentOptionsFromDeploymentRows,
+  environmentOptionsFromOptionsReply,
 } from '../../utils'
 
 type DeployReleaseMenuProps = {
@@ -37,10 +38,14 @@ export const DeployReleaseMenu: FC<DeployReleaseMenuProps> = ({ appId, releaseId
     ...deploymentEnvironmentDeploymentsQueryOptions(appId),
     enabled: open,
   })
+  const { data: environmentOptionsReply } = useQuery({
+    ...consoleQuery.deployments.deploymentEnvironmentOptions.queryOptions(),
+    enabled: open,
+  })
 
   const environmentOptions = useMemo(
-    () => environmentOptionsFromDeploymentRows(environmentDeployments?.data),
-    [environmentDeployments?.data],
+    () => environmentOptionsFromOptionsReply(environmentOptionsReply),
+    [environmentOptionsReply],
   )
   const environments = environmentOptions.filter(env => env.id)
   const deploymentRows = deployedRows(environmentDeployments?.data)
