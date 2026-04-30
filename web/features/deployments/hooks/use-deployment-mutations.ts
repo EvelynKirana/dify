@@ -1,12 +1,11 @@
 'use client'
 
-import type {
-  AccessSubject,
-  ConsoleReleaseSummary,
-} from '@/contract/console/deployments'
+import type { QueryClient, QueryKey } from '@tanstack/react-query'
+import type { ConsoleReleaseSummary } from '@/contract/console/deployments'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { consoleClient, consoleQuery } from '@/service/client'
 import { DEPLOYMENT_PAGE_SIZE } from '../data'
+import { deploymentReleaseHistoryQueryOptions } from '../queries'
 
 export type CreateDeploymentInstanceResult = {
   appInstanceId: string
@@ -26,31 +25,10 @@ type CreateInstanceParams = {
   description?: string
 }
 
-type UpdateInstanceParams = {
-  name: string
-  description?: string
-}
-
-type UpdateDeploymentInstanceParams = {
-  appId: string
-} & UpdateInstanceParams
-
 type UndeployDeploymentParams = {
   appId: string
-  runtimeInstanceId?: string
+  runtimeInstanceId: string
   isDeploying?: boolean
-}
-
-type GenerateApiKeyParams = {
-  appId: string
-  environmentId: string
-  name: string
-}
-
-type RevokeApiKeyParams = {
-  appId: string
-  environmentId: string
-  apiKeyId: string
 }
 
 type ToggleAccessChannelParams = {
@@ -59,16 +37,72 @@ type ToggleAccessChannelParams = {
   enabled: boolean
 }
 
-type SetEnvironmentAccessPolicyParams = {
-  appId: string
-  environmentId: string
-  accessMode: string
-  subjects: AccessSubject[]
-}
-
 const DEPLOYMENT_READINESS_RETRY_DELAYS = [0, 300, 700, 1200]
 
 const wait = (delay: number) => new Promise(resolve => setTimeout(resolve, delay))
+
+const appInstanceInput = (appInstanceId: string) => ({
+  input: {
+    params: { appInstanceId },
+  },
+})
+
+const environmentAccessPolicyInput = (appInstanceId: string, environmentId: string) => ({
+  input: {
+    params: {
+      appInstanceId,
+      environmentId,
+    },
+  },
+})
+
+const invalidateQueries = (queryClient: QueryClient, queryKeys: QueryKey[]) => {
+  void Promise.all(queryKeys.map(queryKey => queryClient.invalidateQueries({ queryKey })))
+}
+
+const invalidateInstanceList = (queryClient: QueryClient) => {
+  void queryClient.invalidateQueries({
+    queryKey: consoleQuery.deployments.list.key(),
+  })
+}
+
+const invalidateInstanceIdentity = (queryClient: QueryClient, appInstanceId: string) => {
+  invalidateQueries(queryClient, [
+    consoleQuery.deployments.list.key(),
+    consoleQuery.deployments.overview.queryKey(appInstanceInput(appInstanceId)),
+    consoleQuery.deployments.settings.queryKey(appInstanceInput(appInstanceId)),
+  ])
+}
+
+const invalidateDeploymentState = (queryClient: QueryClient, appInstanceId: string) => {
+  invalidateQueries(queryClient, [
+    consoleQuery.deployments.list.key(),
+    consoleQuery.deployments.overview.queryKey(appInstanceInput(appInstanceId)),
+    consoleQuery.deployments.environmentDeployments.queryKey(appInstanceInput(appInstanceId)),
+    deploymentReleaseHistoryQueryOptions(appInstanceId).queryKey,
+    consoleQuery.deployments.accessConfig.queryKey(appInstanceInput(appInstanceId)),
+  ])
+}
+
+const invalidateAccessState = (queryClient: QueryClient, appInstanceId: string) => {
+  invalidateQueries(queryClient, [
+    consoleQuery.deployments.overview.queryKey(appInstanceInput(appInstanceId)),
+    consoleQuery.deployments.accessConfig.queryKey(appInstanceInput(appInstanceId)),
+  ])
+}
+
+const invalidateEnvironmentAccessPolicy = (
+  queryClient: QueryClient,
+  appInstanceId: string,
+  environmentId: string,
+) => {
+  invalidateQueries(queryClient, [
+    consoleQuery.deployments.accessConfig.queryKey(appInstanceInput(appInstanceId)),
+    consoleQuery.deployments.environmentAccessPolicy.queryKey(
+      environmentAccessPolicyInput(appInstanceId, environmentId),
+    ),
+  ])
+}
 
 export const useCreateDeploymentInstance = () => {
   const queryClient = useQueryClient()
@@ -105,10 +139,8 @@ export const useCreateDeploymentInstance = () => {
         initialRelease: response.initialRelease,
       }
     },
-    onSuccess: async () => {
-      await queryClient.invalidateQueries({
-        queryKey: consoleQuery.deployments.key(),
-      })
+    onSuccess: () => {
+      invalidateInstanceList(queryClient)
     },
   })
 }
@@ -116,42 +148,21 @@ export const useCreateDeploymentInstance = () => {
 export const useUpdateDeploymentInstance = () => {
   const queryClient = useQueryClient()
 
-  return useMutation({
-    mutationKey: consoleQuery.deployments.updateInstance.mutationKey(),
-    mutationFn: ({ appId, ...patch }: UpdateDeploymentInstanceParams) =>
-      consoleClient.deployments.updateInstance({
-        params: {
-          appInstanceId: appId,
-        },
-        body: {
-          name: patch.name,
-          description: patch.description,
-        },
-      }),
-    onSuccess: async () => {
-      await queryClient.invalidateQueries({
-        queryKey: consoleQuery.deployments.key(),
-      })
+  return useMutation(consoleQuery.deployments.updateInstance.mutationOptions({
+    onSuccess: (_data, variables) => {
+      invalidateInstanceIdentity(queryClient, variables.params.appInstanceId)
     },
-  })
+  }))
 }
 
 export const useDeleteDeploymentInstance = () => {
   const queryClient = useQueryClient()
 
-  return useMutation({
-    mutationKey: consoleQuery.deployments.deleteInstance.mutationKey(),
-    mutationFn: (appId: string) => consoleClient.deployments.deleteInstance({
-      params: {
-        appInstanceId: appId,
-      },
-    }),
-    onSuccess: async () => {
-      await queryClient.invalidateQueries({
-        queryKey: consoleQuery.deployments.key(),
-      })
+  return useMutation(consoleQuery.deployments.deleteInstance.mutationOptions({
+    onSuccess: () => {
+      invalidateInstanceList(queryClient)
     },
-  })
+  }))
 }
 
 export const useStartDeployment = () => {
@@ -204,10 +215,8 @@ export const useStartDeployment = () => {
         },
       })
     },
-    onSuccess: async () => {
-      await queryClient.invalidateQueries({
-        queryKey: consoleQuery.deployments.key(),
-      })
+    onSuccess: (_data, variables) => {
+      invalidateDeploymentState(queryClient, variables.appId)
     },
   })
 }
@@ -219,7 +228,7 @@ export const useUndeployDeployment = () => {
     mutationKey: consoleQuery.deployments.undeployEnvironment.mutationKey(),
     mutationFn: ({ appId, runtimeInstanceId, isDeploying }: UndeployDeploymentParams) => {
       if (!runtimeInstanceId)
-        return Promise.resolve(undefined)
+        throw new Error('runtimeInstanceId is required to undeploy a deployment.')
       if (isDeploying) {
         return consoleClient.deployments.cancelDeployment({
           params: {
@@ -235,10 +244,8 @@ export const useUndeployDeployment = () => {
         },
       })
     },
-    onSuccess: async () => {
-      await queryClient.invalidateQueries({
-        queryKey: consoleQuery.deployments.key(),
-      })
+    onSuccess: (_data, variables) => {
+      invalidateDeploymentState(queryClient, variables.appId)
     },
   })
 }
@@ -246,43 +253,21 @@ export const useUndeployDeployment = () => {
 export const useGenerateDeploymentApiKey = () => {
   const queryClient = useQueryClient()
 
-  return useMutation({
-    mutationKey: consoleQuery.deployments.createEnvironmentAPIToken.mutationKey(),
-    mutationFn: ({ appId, environmentId, name }: GenerateApiKeyParams) =>
-      consoleClient.deployments.createEnvironmentAPIToken({
-        params: {
-          appInstanceId: appId,
-        },
-        body: {
-          environmentId,
-          name,
-        },
-      }),
-    onSuccess: async () => {
-      await queryClient.invalidateQueries({
-        queryKey: consoleQuery.deployments.key(),
-      })
+  return useMutation(consoleQuery.deployments.createEnvironmentAPIToken.mutationOptions({
+    onSuccess: (_data, variables) => {
+      invalidateAccessState(queryClient, variables.params.appInstanceId)
     },
-  })
+  }))
 }
 
 export const useRevokeDeploymentApiKey = () => {
   const queryClient = useQueryClient()
 
-  return useMutation({
-    mutationKey: consoleQuery.deployments.deleteEnvironmentAPIToken.mutationKey(),
-    mutationFn: ({ appId, apiKeyId }: RevokeApiKeyParams) => consoleClient.deployments.deleteEnvironmentAPIToken({
-      params: {
-        appInstanceId: appId,
-        apiKeyId,
-      },
-    }),
-    onSuccess: async () => {
-      await queryClient.invalidateQueries({
-        queryKey: consoleQuery.deployments.key(),
-      })
+  return useMutation(consoleQuery.deployments.deleteEnvironmentAPIToken.mutationOptions({
+    onSuccess: (_data, variables) => {
+      invalidateAccessState(queryClient, variables.params.appInstanceId)
     },
-  })
+  }))
 }
 
 export const useToggleDeploymentAccessChannel = () => {
@@ -310,10 +295,8 @@ export const useToggleDeploymentAccessChannel = () => {
         },
       })
     },
-    onSuccess: async () => {
-      await queryClient.invalidateQueries({
-        queryKey: consoleQuery.deployments.key(),
-      })
+    onSuccess: (_data, variables) => {
+      invalidateAccessState(queryClient, variables.appId)
     },
   })
 }
@@ -321,27 +304,13 @@ export const useToggleDeploymentAccessChannel = () => {
 export const useSetEnvironmentAccessPolicy = () => {
   const queryClient = useQueryClient()
 
-  return useMutation({
-    mutationKey: consoleQuery.deployments.updateEnvironmentAccessPolicy.mutationKey(),
-    mutationFn: ({
-      appId,
-      environmentId,
-      accessMode,
-      subjects,
-    }: SetEnvironmentAccessPolicyParams) => consoleClient.deployments.updateEnvironmentAccessPolicy({
-      params: {
-        appInstanceId: appId,
-        environmentId,
-      },
-      body: {
-        accessMode,
-        subjects,
-      },
-    }),
-    onSuccess: async () => {
-      await queryClient.invalidateQueries({
-        queryKey: consoleQuery.deployments.key(),
-      })
+  return useMutation(consoleQuery.deployments.updateEnvironmentAccessPolicy.mutationOptions({
+    onSuccess: (_data, variables) => {
+      invalidateEnvironmentAccessPolicy(
+        queryClient,
+        variables.params.appInstanceId,
+        variables.params.environmentId,
+      )
     },
-  })
+  }))
 }

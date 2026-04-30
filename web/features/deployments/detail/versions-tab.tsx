@@ -5,9 +5,10 @@ import { Tooltip, TooltipContent, TooltipTrigger } from '@langgenius/dify-ui/too
 import { useQuery } from '@tanstack/react-query'
 import { useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
-import { consoleQuery } from '@/service/client'
-import { DEPLOYMENT_PAGE_SIZE } from '../data'
-import { deploymentEnvironmentDeploymentsQueryOptions } from '../queries'
+import {
+  deploymentEnvironmentDeploymentsQueryOptions,
+  deploymentReleaseHistoryQueryOptions,
+} from '../queries'
 import {
   deployedRows,
   formatDate,
@@ -26,16 +27,7 @@ type VersionsTabProps = {
 
 const VersionsTab: FC<VersionsTabProps> = ({ instanceId: appId }) => {
   const { t } = useTranslation('deployments')
-  const query = {
-    pageNumber: 1,
-    resultsPerPage: DEPLOYMENT_PAGE_SIZE,
-  }
-  const { data: releaseHistory } = useQuery(consoleQuery.deployments.releaseHistory.queryOptions({
-    input: {
-      params: { appInstanceId: appId },
-      query,
-    },
-  }))
+  const { data: releaseHistory } = useQuery(deploymentReleaseHistoryQueryOptions(appId))
   const { data: environmentDeployments } = useQuery(deploymentEnvironmentDeploymentsQueryOptions(appId))
   const releaseRows = useMemo(
     () => releaseHistory?.data?.filter(row => (row.release ?? row).id) ?? [],

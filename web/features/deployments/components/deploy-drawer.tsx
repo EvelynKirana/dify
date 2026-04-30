@@ -2,14 +2,12 @@
 
 import type { FC } from 'react'
 import { Dialog, DialogCloseButton, DialogContent } from '@langgenius/dify-ui/dialog'
-import { skipToken, useQuery } from '@tanstack/react-query'
+import { useQuery } from '@tanstack/react-query'
 import { useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 import { consoleQuery } from '@/service/client'
-import {
-  DEPLOYMENT_PAGE_SIZE,
-} from '../data'
 import { useStartDeployment } from '../hooks/use-deployment-mutations'
+import { deploymentReleaseHistoryQueryOptions } from '../queries'
 import { useDeploymentsStore } from '../store'
 import { environmentOptionsFromOptionsReply } from '../utils'
 import { DeployForm } from './deploy-drawer/form'
@@ -21,18 +19,10 @@ const DeployDrawer: FC = () => {
   const closeDeployDrawer = useDeploymentsStore(state => state.closeDeployDrawer)
   const startDeploy = useStartDeployment()
   const open = drawer.open
-  const { data: releaseHistory } = useQuery(consoleQuery.deployments.releaseHistory.queryOptions({
-    input: drawerAppId
-      ? {
-          params: { appInstanceId: drawerAppId },
-          query: {
-            pageNumber: 1,
-            resultsPerPage: DEPLOYMENT_PAGE_SIZE,
-          },
-        }
-      : skipToken,
+  const { data: releaseHistory } = useQuery({
+    ...deploymentReleaseHistoryQueryOptions(drawerAppId),
     enabled: open && Boolean(drawerAppId),
-  }))
+  })
   const { data: environmentOptionsReply } = useQuery({
     ...consoleQuery.deployments.deploymentEnvironmentOptions.queryOptions(),
     enabled: open,

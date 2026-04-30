@@ -9,17 +9,15 @@ import {
   AlertDialogDescription,
   AlertDialogTitle,
 } from '@langgenius/dify-ui/alert-dialog'
-import { skipToken, useQuery } from '@tanstack/react-query'
+import { useQuery } from '@tanstack/react-query'
 import { useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 import { consoleQuery } from '@/service/client'
-import {
-  DEPLOYMENT_PAGE_SIZE,
-} from '../data'
 import { useStartDeployment } from '../hooks/use-deployment-mutations'
 import {
   deploymentEnvironmentDeploymentsQueryOptions,
   deploymentOverviewQueryOptions,
+  deploymentReleaseHistoryQueryOptions,
 } from '../queries'
 import { useDeploymentsStore } from '../store'
 import {
@@ -47,18 +45,6 @@ const RollbackModal: FC = () => {
   const modal = useDeploymentsStore(state => state.rollbackModal)
   const closeRollbackModal = useDeploymentsStore(state => state.closeRollbackModal)
   const rollbackDeployment = useStartDeployment()
-  const appInput = modal.appId
-    ? { params: { appInstanceId: modal.appId } }
-    : undefined
-  const pagedInput = appInput
-    ? {
-        ...appInput,
-        query: {
-          pageNumber: 1,
-          resultsPerPage: DEPLOYMENT_PAGE_SIZE,
-        },
-      }
-    : undefined
   const { data: overview } = useQuery({
     ...deploymentOverviewQueryOptions(modal.appId),
     enabled: modal.open && Boolean(modal.appId),
@@ -71,10 +57,10 @@ const RollbackModal: FC = () => {
     ...consoleQuery.deployments.deploymentEnvironmentOptions.queryOptions(),
     enabled: modal.open,
   })
-  const { data: releaseHistory } = useQuery(consoleQuery.deployments.releaseHistory.queryOptions({
-    input: pagedInput ?? skipToken,
+  const { data: releaseHistory } = useQuery({
+    ...deploymentReleaseHistoryQueryOptions(modal.appId),
     enabled: modal.open && Boolean(modal.appId),
-  }))
+  })
   const environmentOptions = useMemo(
     () => environmentOptionsFromOptionsReply(environmentOptionsReply),
     [environmentOptionsReply],

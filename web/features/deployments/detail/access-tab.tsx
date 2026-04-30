@@ -78,7 +78,15 @@ const AccessTab: FC<AccessTabProps> = ({ instanceId: appId }) => {
   }
   const handleGenerateApiKey = (environmentId: string) => {
     generateApiKey.mutate(
-      { appId, environmentId, name: createApiKeyLabel(environmentId) },
+      {
+        params: {
+          appInstanceId: appId,
+        },
+        body: {
+          environmentId,
+          name: createApiKeyLabel(environmentId),
+        },
+      },
       {
         onSuccess: (response) => {
           if (response.apiToken?.token)
@@ -87,8 +95,13 @@ const AccessTab: FC<AccessTabProps> = ({ instanceId: appId }) => {
       },
     )
   }
-  const handleRevokeApiKey = (environmentId: string, apiKeyId: string) => {
-    revokeApiKey.mutate({ appId, environmentId, apiKeyId })
+  const handleRevokeApiKey = (_environmentId: string, apiKeyId: string) => {
+    revokeApiKey.mutate({
+      params: {
+        appInstanceId: appId,
+        apiKeyId,
+      },
+    })
   }
   const handleSetEnvironmentAccessPolicy = async (
     appId: string,
@@ -97,10 +110,14 @@ const AccessTab: FC<AccessTabProps> = ({ instanceId: appId }) => {
     subjects: AccessSubject[],
   ) => {
     await setEnvironmentAccessPolicy.mutateAsync({
-      appId,
-      environmentId,
-      accessMode,
-      subjects,
+      params: {
+        appInstanceId: appId,
+        environmentId,
+      },
+      body: {
+        accessMode,
+        subjects,
+      },
     })
   }
   const webappRows = accessConfig?.accessChannels?.webappRows?.filter(row => row.url) ?? []

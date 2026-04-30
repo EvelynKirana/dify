@@ -212,12 +212,18 @@ const SettingsTab: FC<SettingsTabProps> = ({ instanceId }) => {
       hasDeployments={hasDeployments}
       onSave={async (patch) => {
         await updateInstance.mutateAsync({
-          appId: instanceId,
-          ...patch,
+          params: {
+            appInstanceId: instanceId,
+          },
+          body: patch,
         })
       }}
       onDelete={async () => {
-        await deleteInstance.mutateAsync(instanceId)
+        await deleteInstance.mutateAsync({
+          params: {
+            appInstanceId: instanceId,
+          },
+        })
         router.push('/deployments')
       }}
     />
