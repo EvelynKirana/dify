@@ -15,9 +15,9 @@ import type {
 import { cn } from '@langgenius/dify-ui/cn'
 import { Select, SelectContent, SelectItem, SelectItemIndicator, SelectItemText, SelectTrigger } from '@langgenius/dify-ui/select'
 import { useCallback, useState } from 'react'
+import { Infotip } from '@/app/components/base/infotip'
 import Radio from '@/app/components/base/radio'
 import RadioE from '@/app/components/base/radio/ui'
-import Tooltip from '@/app/components/base/tooltip'
 import AppSelector from '@/app/components/plugins/plugin-detail-panel/app-selector'
 import ModelParameterModal from '@/app/components/plugins/plugin-detail-panel/model-selector'
 import MultipleToolSelector from '@/app/components/plugins/plugin-detail-panel/multiple-tool-selector'
@@ -42,6 +42,8 @@ const radioGridColumnsClassNames: Record<number, string> = {
   11: 'grid-cols-11',
   12: 'grid-cols-12',
 }
+
+type ModelSelectorValue = Record<string, unknown>
 
 type FormProps<
   CustomFormSchema extends Omit<CredentialFormSchema, 'type'> & { type: string } = never,
@@ -115,7 +117,7 @@ function Form<
     fieldMoreInfo,
   }
 
-  const handleFormChange = (key: string, val: string | boolean) => {
+  const handleFormChange = (key: string, val: FormValue[string]) => {
     if (isEditMode && (key === '__model_type' || key === '__model_name'))
       return
 
@@ -130,7 +132,7 @@ function Form<
     onChange({ ...value, [key]: val, ...shouldClearVariable })
   }
 
-  const handleModelChanged = useCallback((key: string, model: any) => {
+  const handleModelChanged = useCallback((key: string, model: ModelSelectorValue) => {
     const newValue = {
       ...value[key],
       ...model,
@@ -141,16 +143,15 @@ function Form<
 
   const renderField = (formSchema: CredentialFormSchema | CustomFormSchema) => {
     const tooltip = formSchema.tooltip
-    const tooltipContent = (tooltip && (
-      <Tooltip
-        popupContent={(
-          <div className="w-[200px]">
-            {tooltip[language] || tooltip.en_US}
-          </div>
-        )}
-        triggerClassName="ml-1 w-4 h-4"
-        asChild={false}
-      />
+    const tooltipText = tooltip?.[language] || tooltip?.en_US
+    const tooltipContent = (tooltipText && (
+      <Infotip
+        aria-label={tooltipText}
+        className="ml-1"
+        popupClassName="w-[200px] max-w-[200px]"
+      >
+        {tooltipText}
+      </Infotip>
     ))
     if (override) {
       const [overrideTypes, overrideRender] = override
@@ -407,8 +408,8 @@ function Form<
             disabled={readonly}
             value={value[variable]}
             // selectedTools={value[variable] ? [value[variable]] : []}
-            onSelect={item => handleFormChange(variable, item as any)}
-            onDelete={() => handleFormChange(variable, null as any)}
+            onSelect={item => handleFormChange(variable, item)}
+            onDelete={() => handleFormChange(variable, null)}
           />
           {fieldMoreInfo?.(formSchema)}
           {validating && changeKey === variable && <ValidatingTip />}
@@ -437,7 +438,7 @@ function Form<
             required={required}
             tooltip={tooltip?.[language] || tooltip?.en_US}
             value={value[variable] || []}
-            onChange={item => handleFormChange(variable, item as any)}
+            onChange={item => handleFormChange(variable, item)}
             supportCollapse
           />
           {fieldMoreInfo?.(formSchema)}
@@ -467,7 +468,7 @@ function Form<
             disabled={readonly}
             scope={scope}
             value={value[variable]}
-            onSelect={item => handleFormChange(variable, { ...item, type: FormTypeEnum.appSelector } as any)}
+            onSelect={item => handleFormChange(variable, { ...item, type: FormTypeEnum.appSelector })}
           />
           {fieldMoreInfo?.(formSchema)}
           {validating && changeKey === variable && <ValidatingTip />}
@@ -498,7 +499,7 @@ function Form<
             isShowNodeName
             nodeId={nodeId || ''}
             value={value[variable] || []}
-            onChange={item => handleFormChange(variable, item as any)}
+            onChange={item => handleFormChange(variable, item)}
             filterVar={(varPayload) => {
               if (!scope)
                 return true
