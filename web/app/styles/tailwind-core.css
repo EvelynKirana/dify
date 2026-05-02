@@ -113,14 +113,6 @@
 
 /* ---------- App-level component CSS ----------------------------------- */
 @layer components {
-  html {
-    color-scheme: light;
-  }
-
-  html[data-theme='dark'] {
-    color-scheme: dark;
-  }
-
   [class*='code-'] {
     @apply font-mono;
   }
