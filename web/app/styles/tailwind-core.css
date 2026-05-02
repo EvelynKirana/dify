@@ -121,10 +121,6 @@
     color-scheme: dark;
   }
 
-  html[data-changing-theme] * {
-    transition: none !important;
-  }
-
   [class*='code-'] {
     @apply font-mono;
   }
