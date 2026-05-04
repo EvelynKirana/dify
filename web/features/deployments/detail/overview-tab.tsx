@@ -9,7 +9,10 @@ import { getAppModeLabel } from '@/app/components/app-sidebar/app-info/app-mode-
 import { useRouter } from '@/next/navigation'
 import { consoleQuery } from '@/service/client'
 import { StatusBadge } from '../components/status-badge'
-import { deploymentOverviewQueryOptions } from '../queries'
+import {
+  deploymentOverviewQueryOptions,
+  deploymentReleaseHistoryQueryOptions,
+} from '../queries'
 import { useDeploymentsStore } from '../store'
 import {
   releaseLabel,
@@ -56,16 +59,18 @@ type AccessOverviewRowProps = {
   label: string
   enabled: boolean
   hint?: string
+  meta?: string
 }
 
-const AccessOverviewRow: FC<AccessOverviewRowProps> = ({ label, enabled, hint }) => {
+const AccessOverviewRow: FC<AccessOverviewRowProps> = ({ label, enabled, hint, meta }) => {
   const { t } = useTranslation('deployments')
 
   return (
     <div className="flex items-center justify-between gap-3 py-1.5">
       <div className="flex min-w-0 flex-col">
         <span className="system-sm-medium text-text-primary">{label}</span>
-        {hint && <span className="truncate system-xs-regular text-text-tertiary">{hint}</span>}
+        {hint && <span className="system-xs-regular break-all text-text-tertiary">{hint}</span>}
+        {meta && <span className="system-xs-regular text-text-quaternary">{meta}</span>}
       </div>
       <span className={cn(
         'inline-flex shrink-0 items-center gap-1.5 system-xs-medium',
@@ -98,6 +103,7 @@ const OverviewTab: FC<OverviewTabProps> = ({ instanceId }) => {
   const router = useRouter()
   const input = { params: { appInstanceId: instanceId } }
   const { data: overview } = useQuery(deploymentOverviewQueryOptions(instanceId))
+  const { data: releaseHistory } = useQuery(deploymentReleaseHistoryQueryOptions(instanceId))
   const { data: accessConfig } = useQuery(consoleQuery.enterprise.appDeploy.getAppInstanceAccess.queryOptions({
     input,
   }))
@@ -108,6 +114,8 @@ const OverviewTab: FC<OverviewTabProps> = ({ instanceId }) => {
     () => overview?.deployments?.filter(row => row.environment?.id && row.status?.toLowerCase() !== 'undeployed') ?? [],
     [overview?.deployments],
   )
+  const releaseRows = releaseHistory?.data?.filter(row => row.id) ?? []
+  const canCreateRelease = overviewApp?.canCreateRelease ?? true
 
   if (!app)
     return null
@@ -119,6 +127,7 @@ const OverviewTab: FC<OverviewTabProps> = ({ instanceId }) => {
   const appModeLabel = getAppModeLabel(overviewApp?.mode ?? app.mode, tCommon)
   const webappAccessUrl = webappUrl(overview?.access?.webappUrl)
   const cliUrl = overview?.access?.cliUrl
+  const apiUrl = overview?.access?.apiUrl ?? accessConfig?.developerApi?.apiUrl
   const apiKeysCount = overview?.access?.apiKeyCount ?? accessConfig?.developerApi?.apiKeys?.length ?? 0
 
   return (
@@ -145,9 +154,24 @@ const OverviewTab: FC<OverviewTabProps> = ({ instanceId }) => {
           ? (
               <div className="flex flex-col items-center gap-3 rounded-lg border border-dashed border-components-panel-border bg-components-panel-bg-blur px-4 py-8 text-center">
                 <span className="i-ri-rocket-line h-5 w-5 text-text-quaternary" />
-                <div className="system-sm-regular text-text-tertiary">{t('overview.notDeployedYet')}</div>
-                <Button size="small" variant="primary" onClick={() => openDeployDrawer({ appInstanceId: app.id })}>
-                  {t('overview.deploy')}
+                <div className="system-sm-regular text-text-tertiary">
+                  {releaseRows.length === 0
+                    ? t(canCreateRelease ? 'overview.noReleaseYet' : 'overview.noReleaseSourceUnavailable')
+                    : t('overview.notDeployedYet')}
+                </div>
+                <Button
+                  size="small"
+                  variant="primary"
+                  disabled={releaseRows.length === 0 && !canCreateRelease}
+                  onClick={() => {
+                    if (releaseRows.length === 0) {
+                      switchTab('versions')
+                      return
+                    }
+                    openDeployDrawer({ appInstanceId: app.id })
+                  }}
+                >
+                  {releaseRows.length === 0 ? t('overview.createRelease') : t('overview.deploy')}
                 </Button>
               </div>
             )
@@ -195,8 +219,11 @@ const OverviewTab: FC<OverviewTabProps> = ({ instanceId }) => {
             label={t('overview.api')}
             enabled={overview?.access?.developerApiEnabled ?? false}
             hint={overview?.access?.developerApiEnabled
-              ? t('overview.apiKeysCount', { count: apiKeysCount })
+              ? apiUrl || t('overview.notConfigured')
               : t('overview.notConfigured')}
+            meta={overview?.access?.developerApiEnabled
+              ? t('overview.apiKeysCount', { count: apiKeysCount })
+              : undefined}
           />
         </div>
       </Section>

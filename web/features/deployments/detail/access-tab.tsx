@@ -8,7 +8,7 @@ import type {
 } from '@/features/deployments/types'
 import { useQuery } from '@tanstack/react-query'
 import { useMemo, useState } from 'react'
-import { consoleQuery } from '@/service/client'
+import { consoleClient, consoleQuery } from '@/service/client'
 import {
   useGenerateDeploymentApiKey,
   useRevokeDeploymentApiKey,
@@ -105,6 +105,17 @@ const AccessTab: FC<AccessTabProps> = ({ instanceId: appId }) => {
       },
     })
   }
+  const handleCopyApiKey = async (apiKeyId: string) => {
+    const response = await consoleClient.enterprise.appDeploy.revealDeveloperApiKey({
+      params: {
+        appInstanceId: appId,
+        apiKeyId,
+      },
+    })
+    if (!response.token)
+      throw new Error('Reveal developer API key did not return a token.')
+    return response.token
+  }
   const handleSetEnvironmentAccessPolicy = async (
     appId: string,
     environmentId: string,
@@ -150,6 +161,7 @@ const AccessTab: FC<AccessTabProps> = ({ instanceId: appId }) => {
       />
       <DeveloperApiSection
         apiEnabled={apiEnabled}
+        apiUrl={accessConfig?.developerApi?.apiUrl}
         environments={deployedEnvs}
         apiKeys={apiKeys}
         createdToken={visibleCreatedApiToken}
@@ -158,6 +170,7 @@ const AccessTab: FC<AccessTabProps> = ({ instanceId: appId }) => {
           body: { enabled },
         })}
         onGenerate={handleGenerateApiKey}
+        onCopyApiKey={handleCopyApiKey}
         onRevoke={handleRevokeApiKey}
         onClearCreatedToken={() => setCreatedApiToken(undefined)}
       />

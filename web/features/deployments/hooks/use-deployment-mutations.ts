@@ -1,7 +1,7 @@
 'use client'
 
+import type { DeploymentRuntimeBinding } from '@dify/contracts/enterprise/types.gen'
 import type { QueryClient, QueryKey } from '@tanstack/react-query'
-import type { ConsoleReleaseSummary } from '@/features/deployments/types'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { consoleClient, consoleQuery } from '@/service/client'
 import {
@@ -11,6 +11,7 @@ import {
   deploymentInstanceDetailQueryKeys,
   deploymentInstanceIdentityQueryKeys,
   deploymentInstanceStateQueryKeys,
+  deploymentOverviewQueryKey,
   deploymentReleaseHistoryQueryKey,
   deploymentsListQueryKey,
   deploymentsListQueryOptions,
@@ -18,14 +19,19 @@ import {
 
 export type CreateDeploymentInstanceResult = {
   appInstanceId: string
-  initialRelease?: ConsoleReleaseSummary
 }
 
 type CreateDeploymentParams = {
   appInstanceId: string
   environmentId: string
-  releaseId?: string
-  releaseNote?: string
+  releaseId: string
+  bindings: DeploymentRuntimeBinding[]
+}
+
+type CreateReleaseParams = {
+  appInstanceId: string
+  name: string
+  description?: string
 }
 
 type CreateInstanceParams = {
@@ -113,11 +119,39 @@ export const useCreateDeploymentInstance = () => {
 
       return {
         appInstanceId: response.appInstanceId,
-        initialRelease: response.initialRelease,
       }
     },
     onSuccess: () => {
       return invalidateInstanceList(queryClient)
+    },
+  })
+}
+
+export const useCreateDeploymentRelease = () => {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationKey: consoleQuery.enterprise.appDeploy.createRelease.mutationKey(),
+    mutationFn: async ({ appInstanceId, name, description }: CreateReleaseParams) => {
+      const response = await consoleClient.enterprise.appDeploy.createRelease({
+        params: {
+          appInstanceId,
+        },
+        body: {
+          name,
+          description,
+        },
+      })
+      if (!response.release?.id)
+        throw new Error('Create release did not return a release.')
+
+      return response.release
+    },
+    onSuccess: (_data, variables) => {
+      return invalidateQueries(queryClient, [
+        deploymentReleaseHistoryQueryKey(variables.appInstanceId),
+        deploymentOverviewQueryKey(variables.appInstanceId),
+      ])
     },
   })
 }
@@ -151,58 +185,21 @@ export const useStartDeployment = () => {
       appInstanceId,
       environmentId,
       releaseId,
-      releaseNote,
+      bindings,
     }: CreateDeploymentParams) => {
-      let targetReleaseId = releaseId
-      let releaseWasCreated = false
-      await consoleClient.enterprise.appDeploy.previewRelease({
+      if (!releaseId)
+        throw new Error('releaseId is required to start a deployment.')
+
+      return consoleClient.enterprise.appDeploy.createDeployment({
         params: {
           appInstanceId,
         },
         body: {
-          releaseId: targetReleaseId,
+          environmentId,
+          releaseId,
+          bindings,
         },
       })
-
-      try {
-        if (!targetReleaseId) {
-          const trimmedReleaseNote = releaseNote?.trim()
-          const response = await consoleClient.enterprise.appDeploy.createRelease({
-            params: {
-              appInstanceId,
-            },
-            body: {
-              name: trimmedReleaseNote || 'Release',
-              description: trimmedReleaseNote || undefined,
-            },
-          })
-          releaseWasCreated = true
-          if (!response.release)
-            throw new Error('Create release did not return a release.')
-          targetReleaseId = response.release.id
-        }
-
-        if (!targetReleaseId)
-          throw new Error('Failed to create a deployable release.')
-
-        return await consoleClient.enterprise.appDeploy.createDeployment({
-          params: {
-            appInstanceId,
-          },
-          body: {
-            environmentId,
-            releaseId: targetReleaseId,
-          },
-        })
-      }
-      catch (error) {
-        if (releaseWasCreated) {
-          await queryClient.invalidateQueries({
-            queryKey: deploymentReleaseHistoryQueryKey(appInstanceId),
-          })
-        }
-        throw error
-      }
     },
     onSuccess: (_data, variables) => {
       return invalidateDeploymentState(queryClient, variables.appInstanceId)

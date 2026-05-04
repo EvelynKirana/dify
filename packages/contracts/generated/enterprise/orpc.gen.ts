@@ -36,6 +36,7 @@ import {
   zEnterpriseAppDeployConsoleListAppInstancesQuery,
   zEnterpriseAppDeployConsoleListAppInstancesResponse,
   zEnterpriseAppDeployConsoleListDeploymentBindingOptionsPath,
+  zEnterpriseAppDeployConsoleListDeploymentBindingOptionsQuery,
   zEnterpriseAppDeployConsoleListDeploymentBindingOptionsResponse,
   zEnterpriseAppDeployConsoleListDeploymentEnvironmentOptionsResponse,
   zEnterpriseAppDeployConsoleListReleasesPath,
@@ -46,6 +47,8 @@ import {
   zEnterpriseAppDeployConsolePreviewReleaseBody,
   zEnterpriseAppDeployConsolePreviewReleasePath,
   zEnterpriseAppDeployConsolePreviewReleaseResponse,
+  zEnterpriseAppDeployConsoleRevealDeveloperApiKeyPath,
+  zEnterpriseAppDeployConsoleRevealDeveloperApiKeyResponse,
   zEnterpriseAppDeployConsoleSearchAccessSubjectsPath,
   zEnterpriseAppDeployConsoleSearchAccessSubjectsQuery,
   zEnterpriseAppDeployConsoleSearchAccessSubjectsResponse,
@@ -197,6 +200,17 @@ export const deleteDeveloperApiKey = oc
   .input(z.object({ params: zEnterpriseAppDeployConsoleDeleteDeveloperApiKeyPath }))
   .output(zEnterpriseAppDeployConsoleDeleteDeveloperApiKeyResponse)
 
+export const revealDeveloperApiKey = oc
+  .route({
+    inputStructure: 'detailed',
+    method: 'POST',
+    operationId: 'EnterpriseAppDeployConsole_RevealDeveloperApiKey',
+    path: '/enterprise/app-instances/{appInstanceId}/api-keys/{apiKeyId}:reveal',
+    tags: ['EnterpriseAppDeployConsole'],
+  })
+  .input(z.object({ params: zEnterpriseAppDeployConsoleRevealDeveloperApiKeyPath }))
+  .output(zEnterpriseAppDeployConsoleRevealDeveloperApiKeyResponse)
+
 export const listDeploymentBindingOptions = oc
   .route({
     inputStructure: 'detailed',
@@ -205,7 +219,12 @@ export const listDeploymentBindingOptions = oc
     path: '/enterprise/app-instances/{appInstanceId}/deployment-binding-options',
     tags: ['EnterpriseAppDeployConsole'],
   })
-  .input(z.object({ params: zEnterpriseAppDeployConsoleListDeploymentBindingOptionsPath }))
+  .input(
+    z.object({
+      params: zEnterpriseAppDeployConsoleListDeploymentBindingOptionsPath,
+      query: zEnterpriseAppDeployConsoleListDeploymentBindingOptionsQuery.optional(),
+    }),
+  )
   .output(zEnterpriseAppDeployConsoleListDeploymentBindingOptionsResponse)
 
 export const createDeployment = oc
@@ -400,6 +419,7 @@ export const appDeploy = {
   searchAccessSubjects,
   createDeveloperApiKey,
   deleteDeveloperApiKey,
+  revealDeveloperApiKey,
   listDeploymentBindingOptions,
   createDeployment,
   updateDeveloperApi,

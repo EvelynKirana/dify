@@ -1,12 +1,17 @@
 'use client'
 import type { FC } from 'react'
+import { Button } from '@langgenius/dify-ui/button'
 import { cn } from '@langgenius/dify-ui/cn'
+import { toast } from '@langgenius/dify-ui/toast'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@langgenius/dify-ui/tooltip'
 import { useQuery } from '@tanstack/react-query'
-import { useMemo } from 'react'
+import { useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
+import Input from '@/app/components/base/input'
+import { useCreateDeploymentRelease } from '../hooks/use-deployment-mutations'
 import {
   deploymentEnvironmentDeploymentsQueryOptions,
+  deploymentOverviewQueryOptions,
   deploymentReleaseHistoryQueryOptions,
 } from '../queries'
 import {
@@ -27,8 +32,13 @@ type VersionsTabProps = {
 
 const VersionsTab: FC<VersionsTabProps> = ({ instanceId: appId }) => {
   const { t } = useTranslation('deployments')
+  const { data: overview } = useQuery(deploymentOverviewQueryOptions(appId))
   const { data: releaseHistory } = useQuery(deploymentReleaseHistoryQueryOptions(appId))
   const { data: environmentDeployments } = useQuery(deploymentEnvironmentDeploymentsQueryOptions(appId))
+  const createRelease = useCreateDeploymentRelease()
+  const [isCreating, setIsCreating] = useState(false)
+  const [releaseName, setReleaseName] = useState('')
+  const [releaseDescription, setReleaseDescription] = useState('')
   const releaseRows = useMemo(
     () => releaseHistory?.data?.filter(row => row.id) ?? [],
     [releaseHistory?.data],
@@ -37,10 +47,32 @@ const VersionsTab: FC<VersionsTabProps> = ({ instanceId: appId }) => {
     () => deployedRows(environmentDeployments?.data),
     [environmentDeployments?.data],
   )
+  const canCreateRelease = overview?.instance?.canCreateRelease ?? true
+  const trimmedReleaseName = releaseName.trim()
+  const canSubmitRelease = Boolean(canCreateRelease && trimmedReleaseName && !createRelease.isPending)
+
+  const handleCreateRelease = async () => {
+    if (!canSubmitRelease)
+      return
+
+    try {
+      await createRelease.mutateAsync({
+        appInstanceId: appId,
+        name: trimmedReleaseName,
+        description: releaseDescription.trim() || undefined,
+      })
+      setReleaseName('')
+      setReleaseDescription('')
+      setIsCreating(false)
+    }
+    catch {
+      toast.error(t('versions.createFailed'))
+    }
+  }
 
   return (
     <div className="flex flex-col gap-4 p-6">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between gap-3">
         <div className="system-sm-semibold text-text-primary">
           {t('versions.releaseHistory')}
           {' '}
@@ -50,12 +82,55 @@ const VersionsTab: FC<VersionsTabProps> = ({ instanceId: appId }) => {
             )
           </span>
         </div>
+        <Button
+          size="small"
+          variant="primary"
+          disabled={!canCreateRelease}
+          onClick={() => setIsCreating(prev => !prev)}
+        >
+          <span className="i-ri-add-line h-3.5 w-3.5" />
+          {t('versions.createRelease')}
+        </Button>
       </div>
+
+      {!canCreateRelease && (
+        <div className="rounded-lg border border-divider-subtle bg-background-default-subtle px-3 py-2 system-sm-regular text-text-tertiary">
+          {t('versions.sourceAppUnavailable')}
+        </div>
+      )}
+
+      {isCreating && (
+        <div className="rounded-xl border border-components-panel-border bg-components-panel-bg p-4">
+          <div className="mb-3 system-sm-semibold text-text-primary">{t('versions.createRelease')}</div>
+          <div className="flex flex-col gap-3">
+            <Input
+              value={releaseName}
+              onChange={e => setReleaseName(e.target.value)}
+              placeholder={t('versions.releaseNamePlaceholder')}
+              maxLength={128}
+            />
+            <Input
+              value={releaseDescription}
+              onChange={e => setReleaseDescription(e.target.value)}
+              placeholder={t('versions.releaseDescriptionPlaceholder')}
+              maxLength={512}
+            />
+            <div className="flex justify-end gap-2">
+              <Button size="small" variant="secondary" onClick={() => setIsCreating(false)}>
+                {t('versions.cancelCreate')}
+              </Button>
+              <Button size="small" variant="primary" disabled={!canSubmitRelease} onClick={() => void handleCreateRelease()}>
+                {createRelease.isPending ? t('versions.creating') : t('versions.create')}
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {releaseRows.length === 0
         ? (
             <div className="rounded-xl border border-dashed border-components-panel-border bg-components-panel-bg-blur px-4 py-12 text-center system-sm-regular text-text-tertiary">
-              {t('versions.empty')}
+              {canCreateRelease ? t('versions.emptyWithCreate') : t('versions.emptySourceUnavailable')}
             </div>
           )
         : (

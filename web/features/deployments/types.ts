@@ -23,6 +23,8 @@ export type AppInfo = {
   description?: string
   sourceAppId?: string
   sourceAppName?: string
+  sourceAppAvailable?: boolean
+  canCreateRelease?: boolean
 }
 
 export type ConsoleEnvironmentSummary = EnterpriseContract.ConsoleEnvironment & {

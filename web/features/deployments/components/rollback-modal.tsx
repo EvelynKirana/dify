@@ -84,6 +84,7 @@ const RollbackModal: FC = () => {
       appInstanceId: modal.appInstanceId,
       environmentId: modal.environmentId,
       releaseId: modal.targetReleaseId,
+      bindings: [],
     })
   }
 

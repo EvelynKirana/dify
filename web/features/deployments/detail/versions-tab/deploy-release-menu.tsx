@@ -17,7 +17,6 @@ import { useDeploymentsStore } from '../../store'
 import {
   activeRelease,
   deployedRows,
-  deploymentId,
   deploymentStatus,
   environmentId,
   environmentName,
@@ -32,7 +31,6 @@ type DeployReleaseMenuProps = {
 export const DeployReleaseMenu: FC<DeployReleaseMenuProps> = ({ appInstanceId, releaseId }) => {
   const { t } = useTranslation('deployments')
   const openDeployDrawer = useDeploymentsStore(state => state.openDeployDrawer)
-  const openRollbackModal = useDeploymentsStore(state => state.openRollbackModal)
   const [open, setOpen] = useState(false)
   const { data: environmentDeployments } = useQuery({
     ...deploymentEnvironmentDeploymentsQueryOptions(appInstanceId),
@@ -79,15 +77,6 @@ export const DeployReleaseMenu: FC<DeployReleaseMenuProps> = ({ appInstanceId, r
                   setOpen(false)
                   if (disabled)
                     return
-                  if (row) {
-                    openRollbackModal({
-                      appInstanceId,
-                      environmentId: envId,
-                      deploymentId: deploymentId(row),
-                      targetReleaseId: releaseId,
-                    })
-                    return
-                  }
                   openDeployDrawer({ appInstanceId, environmentId: envId, releaseId })
                 }}
               >

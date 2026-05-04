@@ -16,18 +16,23 @@ import { environmentName } from '../../utils'
 
 type ApiKeyRowProps = {
   apiKey: DeveloperAPIKeySummary
+  onCopy: (apiKeyId: string) => Promise<string>
   onRevoke: () => void
 }
 
-export const ApiKeyRow: FC<ApiKeyRowProps> = ({ apiKey, onRevoke }) => {
+export const ApiKeyRow: FC<ApiKeyRowProps> = ({ apiKey, onCopy, onRevoke }) => {
   const { t } = useTranslation('deployments')
   const [copied, setCopied] = useState(false)
   const displayValue = apiKey.maskedKey || apiKey.maskedPrefix || apiKey.id || '—'
   const environmentLabel = apiKey.environment?.name || apiKey.environmentName || apiKey.environmentId || apiKey.environment?.id
 
   const handleCopy = async () => {
+    if (!apiKey.id)
+      return
+
     try {
-      await navigator.clipboard.writeText(displayValue)
+      const token = await onCopy(apiKey.id)
+      await navigator.clipboard.writeText(token)
       setCopied(true)
       toast.success(t('access.copyToast'))
       window.setTimeout(() => setCopied(false), 1500)

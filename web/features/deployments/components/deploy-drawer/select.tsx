@@ -54,7 +54,7 @@ export const DeploymentSelect: FC<SelectProps> = ({ value, onChange, options, pl
     >
       <SelectTrigger
         className={cn(
-          'h-8 border-[0.5px] border-components-input-border-active px-2 system-sm-medium',
+          'h-8 min-w-0 border-[0.5px] border-components-input-border-active px-2 text-left system-sm-medium',
           !selectedOption && 'text-text-quaternary',
         )}
       >

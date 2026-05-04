@@ -123,7 +123,10 @@ export function toAppInfoFromSummary(summary: AppDeploymentSummary): AppInfo | u
     mode: (summary.mode || 'workflow') as AppMode,
     iconType: 'emoji',
     icon: summary.icon,
+    iconBackground: summary.iconBackground,
     sourceAppName: summary.sourceAppName,
+    sourceAppAvailable: summary.sourceAppAvailable,
+    canCreateRelease: summary.canCreateRelease,
   }
 }
 
@@ -136,9 +139,13 @@ export function toAppInfoFromOverview(instance?: AppInstanceOverview): AppInfo |
     name: instance.name ?? instance.id,
     mode: (instance.mode || 'workflow') as AppMode,
     iconType: 'emoji',
+    icon: instance.icon,
+    iconBackground: instance.iconBackground,
     description: instance.description ?? undefined,
     sourceAppId: instance.sourceAppId,
     sourceAppName: instance.sourceAppName,
+    sourceAppAvailable: instance.sourceAppAvailable,
+    canCreateRelease: instance.canCreateRelease,
   }
 }
 

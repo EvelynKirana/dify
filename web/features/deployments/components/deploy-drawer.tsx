@@ -2,6 +2,7 @@
 
 import type { FC } from 'react'
 import { Dialog, DialogCloseButton, DialogContent } from '@langgenius/dify-ui/dialog'
+import { toast } from '@langgenius/dify-ui/toast'
 import { useQuery } from '@tanstack/react-query'
 import { useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
@@ -62,15 +63,21 @@ const DeployDrawer: FC = () => {
                     defaultReleaseId={defaultReleaseId}
                     lockedEnvId={drawer.environmentId}
                     presetReleaseId={drawer.releaseId}
+                    isSubmitting={startDeploy.isPending}
                     onCancel={closeDeployDrawer}
-                    onSubmit={({ environmentId, releaseId, releaseNote }) => {
-                      closeDeployDrawer()
-                      startDeploy.mutate({
-                        appInstanceId: drawerAppInstanceId,
-                        environmentId,
-                        releaseId,
-                        releaseNote,
-                      })
+                    onSubmit={async ({ environmentId, releaseId, bindings }) => {
+                      try {
+                        await startDeploy.mutateAsync({
+                          appInstanceId: drawerAppInstanceId,
+                          environmentId,
+                          releaseId,
+                          bindings,
+                        })
+                        closeDeployDrawer()
+                      }
+                      catch {
+                        toast.error(t('deployDrawer.deployFailed'))
+                      }
                     }}
                   />
                 )}

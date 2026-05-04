@@ -29,6 +29,7 @@ export type AccessStatus = {
   cliUrl?: string
   developerApiEnabled?: boolean
   apiKeyCount?: number
+  apiUrl?: string
 }
 
 export type AccessSubject = {
@@ -92,6 +93,10 @@ export type AppInstanceBasicInfo = {
   sourceAppName?: string
   mode?: string
   createdAt?: string
+  sourceAppAvailable?: boolean
+  canCreateRelease?: boolean
+  icon?: string
+  iconBackground?: string
 }
 
 export type AppInstanceCard = {
@@ -102,6 +107,9 @@ export type AppInstanceCard = {
   sourceAppName?: string
   statuses?: Array<StatusCount>
   lastDeployedAt?: string
+  sourceAppAvailable?: boolean
+  canCreateRelease?: boolean
+  iconBackground?: string
 }
 
 export type AppRunnerBatchRuntimeArtifactReply = {
@@ -256,7 +264,6 @@ export type ConsoleUser = {
 
 export type CreateAppInstanceReply = {
   appInstanceId?: string
-  initialRelease?: ConsoleRelease
 }
 
 export type CreateAppInstanceReq = {
@@ -486,6 +493,7 @@ export type DeploymentStatusRow = {
 export type DeveloperApiAccess = {
   enabled?: boolean
   apiKeys?: Array<DeveloperApiKeyRow>
+  apiUrl?: string
 }
 
 export type DeveloperApiKeyRow = {
@@ -1065,6 +1073,10 @@ export type RetryEnvironmentReq = {
   id?: string
 }
 
+export type RevealDeveloperApiKeyReply = {
+  token?: string
+}
+
 export type RuntimeEndpoints = {
   run?: string
   health?: string
@@ -1609,12 +1621,31 @@ export type EnterpriseAppDeployConsoleDeleteDeveloperApiKeyResponses = {
 export type EnterpriseAppDeployConsoleDeleteDeveloperApiKeyResponse
   = EnterpriseAppDeployConsoleDeleteDeveloperApiKeyResponses[keyof EnterpriseAppDeployConsoleDeleteDeveloperApiKeyResponses]
 
+export type EnterpriseAppDeployConsoleRevealDeveloperApiKeyData = {
+  body?: never
+  path: {
+    appInstanceId: string
+    apiKeyId: string
+  }
+  query?: never
+  url: '/enterprise/app-instances/{appInstanceId}/api-keys/{apiKeyId}:reveal'
+}
+
+export type EnterpriseAppDeployConsoleRevealDeveloperApiKeyResponses = {
+  200: RevealDeveloperApiKeyReply
+}
+
+export type EnterpriseAppDeployConsoleRevealDeveloperApiKeyResponse
+  = EnterpriseAppDeployConsoleRevealDeveloperApiKeyResponses[keyof EnterpriseAppDeployConsoleRevealDeveloperApiKeyResponses]
+
 export type EnterpriseAppDeployConsoleListDeploymentBindingOptionsData = {
   body?: never
   path: {
     appInstanceId: string
   }
-  query?: never
+  query?: {
+    releaseId?: string
+  }
   url: '/enterprise/app-instances/{appInstanceId}/deployment-binding-options'
 }
 

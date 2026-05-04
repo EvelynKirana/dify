@@ -1,24 +1,19 @@
 'use client'
 
+import type { DeploymentBindingOptionSlot, DeploymentRuntimeBinding } from '@dify/contracts/enterprise/types.gen'
 import type { FC } from 'react'
-import type { ConsoleReleaseSummary, EnvironmentOption, RuntimeBindingDisplay } from '@/features/deployments/types'
+import type { ConsoleReleaseSummary, EnvironmentOption } from '@/features/deployments/types'
 import { Button } from '@langgenius/dify-ui/button'
 import { DialogDescription, DialogTitle } from '@langgenius/dify-ui/dialog'
 import { skipToken, useQuery } from '@tanstack/react-query'
 import { useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import Input from '@/app/components/base/input'
 import { consoleQuery } from '@/service/client'
 import {
   environmentMode,
   environmentName,
-  isRuntimeEnvVarBinding,
-  isRuntimeModelBinding,
-  isRuntimePluginBinding,
   releaseCommit,
   releaseLabel,
-  runtimeBindingLabel,
-  runtimeBindingValue,
 } from '../../utils'
 import {
   DeploymentSelect,
@@ -28,8 +23,8 @@ import {
 
 export type DeployFormSubmit = {
   environmentId: string
-  releaseId?: string
-  releaseNote?: string
+  releaseId: string
+  bindings: DeploymentRuntimeBinding[]
 }
 
 type DeployFormProps = {
@@ -39,41 +34,160 @@ type DeployFormProps = {
   defaultReleaseId?: string
   lockedEnvId?: string
   presetReleaseId?: string
+  isSubmitting?: boolean
   onCancel: () => void
-  onSubmit: (params: DeployFormSubmit) => void
+  onSubmit: (params: DeployFormSubmit) => void | Promise<void>
 }
 
-type RuntimeBindingGroupProps = {
+type BindingSelections = Record<string, string>
+
+type BindingSelectOption = {
+  value: string
   label: string
-  bindings: RuntimeBindingDisplay[]
-  isLoading: boolean
 }
 
-const RuntimeBindingGroup: FC<RuntimeBindingGroupProps> = ({ label, bindings, isLoading }) => {
+type BindingOptionsPanelProps = {
+  slots: DeploymentBindingOptionSlot[]
+  selections: BindingSelections
+  isLoading: boolean
+  hasError: boolean
+  onChange: (slot: string, value: string) => void
+}
+
+const isEnvBindingSlot = (slot: DeploymentBindingOptionSlot) =>
+  (slot.kind?.toLowerCase() ?? '').includes('env')
+
+const bindingSlotKey = (slot: DeploymentBindingOptionSlot) => slot.slot ?? ''
+
+const bindingCandidateOptions = (slot: DeploymentBindingOptionSlot): BindingSelectOption[] => {
+  if (isEnvBindingSlot(slot)) {
+    return (slot.envVarCandidates ?? [])
+      .filter(candidate => candidate.envVarId)
+      .map(candidate => ({
+        value: candidate.envVarId!,
+        label: [
+          candidate.name,
+          candidate.displayValue,
+        ].filter(Boolean).join(' · ') || candidate.envVarId!,
+      }))
+  }
+
+  return (slot.candidates ?? [])
+    .filter(candidate => candidate.credentialId)
+    .map(candidate => ({
+      value: candidate.credentialId!,
+      label: [
+        candidate.displayName,
+        candidate.pluginName || candidate.pluginId,
+        candidate.pluginVersion,
+      ].filter(Boolean).join(' · ') || candidate.credentialId!,
+    }))
+}
+
+const hasMissingRequiredBinding = (slot: DeploymentBindingOptionSlot, selectedValue?: string) =>
+  Boolean(slot.required && !selectedValue)
+
+const selectedDeploymentBindings = (
+  slots: DeploymentBindingOptionSlot[],
+  selections: BindingSelections,
+): DeploymentRuntimeBinding[] => {
+  return slots
+    .map((slot): DeploymentRuntimeBinding | undefined => {
+      const slotKey = bindingSlotKey(slot)
+      const selectedValue = selections[slotKey]
+      if (!slotKey || !selectedValue)
+        return undefined
+
+      return isEnvBindingSlot(slot)
+        ? { slot: slotKey, envVarId: selectedValue }
+        : { slot: slotKey, credentialId: selectedValue }
+    })
+    .filter((binding): binding is DeploymentRuntimeBinding => Boolean(binding))
+}
+
+const BindingOptionsPanel: FC<BindingOptionsPanelProps> = ({
+  slots,
+  selections,
+  isLoading,
+  hasError,
+  onChange,
+}) => {
   const { t } = useTranslation('deployments')
 
-  return (
-    <div className="flex items-start gap-3 border-t border-divider-subtle px-3 py-2.5 first:border-t-0">
-      <div className="w-36 shrink-0 system-xs-medium-uppercase text-text-tertiary">{label}</div>
-      <div className="flex min-w-0 flex-1 flex-col gap-1.5">
-        {isLoading
-          ? <span className="system-sm-regular text-text-quaternary">{t('deployDrawer.loadingBindings')}</span>
-          : bindings.length === 0
-            ? <span className="system-sm-regular text-text-quaternary">{t('deployDrawer.noBindingRequired')}</span>
-            : bindings.map(binding => (
-                <div
-                  key={`${binding.kind}-${runtimeBindingLabel(binding)}-${runtimeBindingValue(binding)}-${binding.valueType ?? ''}`}
-                  className="flex min-w-0 items-center justify-between gap-3"
-                >
-                  <span className="min-w-0 truncate system-sm-medium text-text-secondary" title={runtimeBindingLabel(binding)}>
-                    {runtimeBindingLabel(binding)}
-                  </span>
-                  <span className="max-w-[240px] truncate rounded-md bg-background-default px-2 py-0.5 font-mono system-xs-medium text-text-tertiary" title={runtimeBindingValue(binding)}>
-                    {runtimeBindingValue(binding)}
-                  </span>
-                </div>
-              ))}
+  if (isLoading) {
+    return (
+      <div className="rounded-xl border border-divider-subtle bg-background-default-subtle px-3 py-4 system-sm-regular text-text-quaternary">
+        {t('deployDrawer.loadingBindings')}
       </div>
+    )
+  }
+
+  if (hasError) {
+    return (
+      <div className="rounded-xl border border-divider-subtle bg-background-default-subtle px-3 py-4 system-sm-regular text-text-destructive">
+        {t('deployDrawer.bindingOptionsFailed')}
+      </div>
+    )
+  }
+
+  return (
+    <div className="overflow-hidden rounded-xl border border-divider-subtle bg-background-default-subtle">
+      <div className="flex min-w-0 flex-col gap-0.5 px-3 py-2.5">
+        <div className="system-xs-medium-uppercase text-text-tertiary">{t('deployDrawer.runtimeCredentials')}</div>
+        <span className="system-xs-regular text-text-quaternary">{t('deployDrawer.bindingSelectionHint')}</span>
+      </div>
+      {slots.length === 0
+        ? (
+            <div className="border-t border-divider-subtle px-3 py-3 system-sm-regular text-text-quaternary">
+              {t('deployDrawer.noBindingRequired')}
+            </div>
+          )
+        : slots.map((slot) => {
+            const slotKey = bindingSlotKey(slot)
+            const candidates = bindingCandidateOptions(slot)
+            const selectedValue = selections[slotKey] ?? ''
+            const missing = hasMissingRequiredBinding(slot, selectedValue)
+            return (
+              <div key={slotKey} className="flex flex-col gap-2 border-t border-divider-subtle px-3 py-3">
+                <div className="grid min-w-0 gap-2 sm:grid-cols-[minmax(0,1fr)_minmax(220px,0.9fr)] sm:items-start">
+                  <div className="flex min-w-0 flex-col gap-1">
+                    <div className="flex min-w-0 items-center gap-2">
+                      <span className="truncate system-sm-medium text-text-secondary" title={slot.label || slotKey}>
+                        {slot.label || slotKey}
+                      </span>
+                      {slot.required && (
+                        <span className="shrink-0 rounded-md bg-background-default px-1.5 py-0.5 system-2xs-medium-uppercase text-text-tertiary">
+                          {t('deployDrawer.requiredBinding')}
+                        </span>
+                      )}
+                    </div>
+                    <span className="font-mono system-xs-regular break-all text-text-quaternary" title={slotKey}>
+                      {slotKey}
+                    </span>
+                  </div>
+                  {candidates.length === 0
+                    ? (
+                        <div className="rounded-lg border border-divider-subtle bg-background-default px-2 py-1.5 system-sm-regular text-text-quaternary">
+                          {t('deployDrawer.noCredentialCandidates')}
+                        </div>
+                      )
+                    : (
+                        <DeploymentSelect
+                          value={selectedValue}
+                          onChange={value => onChange(slotKey, value)}
+                          options={candidates}
+                          placeholder={t('deployDrawer.selectCredential')}
+                        />
+                      )}
+                </div>
+                {missing && (
+                  <div className="system-xs-regular text-text-destructive">
+                    {t('deployDrawer.missingRequiredBinding')}
+                  </div>
+                )}
+              </div>
+            )
+          })}
     </div>
   )
 }
@@ -85,6 +199,7 @@ export const DeployForm: FC<DeployFormProps> = ({
   defaultReleaseId,
   lockedEnvId,
   presetReleaseId,
+  isSubmitting,
   onCancel,
   onSubmit,
 }) => {
@@ -101,34 +216,71 @@ export const DeployForm: FC<DeployFormProps> = ({
   )
   const selectedEnvironmentId = selectedEnvId || lockedEnvId || environments[0]?.id || ''
   const selectedEnvironment = environments.find(env => env.id === selectedEnvironmentId)
-  const [releaseNote, setReleaseNote] = useState<string>('')
-  const canDeploy = Boolean(selectedEnvironmentId && selectedEnvironment && !selectedEnvironment.disabled && (!isPromote || displayedRelease?.id || defaultReleaseId))
-  const previewReleaseId = isPromote ? displayedRelease?.id ?? defaultReleaseId : undefined
-  const releasePreview = useQuery(consoleQuery.enterprise.appDeploy.previewRelease.queryOptions({
-    input: appInstanceId && (!isPromote || previewReleaseId)
+  const [selectedReleaseId, setSelectedReleaseId] = useState<string>(
+    () => displayedRelease?.id ?? defaultReleaseId ?? '',
+  )
+  const selectedRelease = releases.find(release => release.id === selectedReleaseId)
+  const targetReleaseId = displayedRelease?.id ?? selectedRelease?.id ?? selectedReleaseId
+  const bindingOptions = useQuery(consoleQuery.enterprise.appDeploy.listDeploymentBindingOptions.queryOptions({
+    input: appInstanceId && targetReleaseId
       ? {
           params: { appInstanceId },
-          body: {
-            releaseId: previewReleaseId,
+          query: {
+            releaseId: targetReleaseId,
           },
         }
       : skipToken,
   }))
-  const previewBindings = releasePreview.data?.bindings ?? []
-  const modelBindings = previewBindings.filter(isRuntimeModelBinding)
-  const pluginBindings = previewBindings.filter(isRuntimePluginBinding)
-  const envVarBindings = previewBindings.filter(isRuntimeEnvVarBinding)
+  const bindingSlots = useMemo(
+    () => bindingOptions.data?.slots?.filter(slot => slot.slot) ?? [],
+    [bindingOptions.data?.slots],
+  )
+  const [manualBindings, setManualBindings] = useState<BindingSelections>({})
+  const selectedBindings = useMemo(() => {
+    const next: BindingSelections = {}
+    for (const slot of bindingSlots) {
+      const slotKey = bindingSlotKey(slot)
+      const candidates = bindingCandidateOptions(slot)
+      const existing = manualBindings[slotKey]
+      if (existing && candidates.some(candidate => candidate.value === existing))
+        next[slotKey] = existing
+      else if (candidates.length === 1 && candidates[0])
+        next[slotKey] = candidates[0].value
+    }
+    return next
+  }, [bindingSlots, manualBindings])
+  const deploymentBindings = useMemo(
+    () => selectedDeploymentBindings(bindingSlots, selectedBindings),
+    [bindingSlots, selectedBindings],
+  )
+  const bindingOptionsLoading = Boolean(targetReleaseId && (bindingOptions.isLoading || bindingOptions.isFetching))
+  const bindingOptionsReady = Boolean(targetReleaseId && bindingOptions.data && !bindingOptionsLoading && !bindingOptions.isError)
+  const requiredBindingsReady = bindingSlots.every(slot => !hasMissingRequiredBinding(slot, selectedBindings[bindingSlotKey(slot)]))
+  const canDeploy = Boolean(
+    selectedEnvironmentId
+    && selectedEnvironment
+    && !selectedEnvironment.disabled
+    && targetReleaseId
+    && bindingOptionsReady
+    && requiredBindingsReady
+    && !isSubmitting,
+  )
 
   const lockedEnv = lockedEnvId ? environments.find(e => e.id === lockedEnvId) : undefined
+  const submitLabel = isSubmitting
+    ? t('deployDrawer.deploying')
+    : isPromote
+      ? t('deployDrawer.promote')
+      : t('deployDrawer.deploy')
 
   const handleDeploy = () => {
-    if (!canDeploy)
+    if (!canDeploy || !targetReleaseId)
       return
 
     onSubmit({
       environmentId: selectedEnvironmentId,
-      releaseId: displayedRelease?.id ?? (isPromote ? defaultReleaseId : undefined),
-      releaseNote: isPromote ? undefined : releaseNote,
+      releaseId: targetReleaseId,
+      bindings: deploymentBindings,
     })
   }
 
@@ -143,7 +295,7 @@ export const DeployForm: FC<DeployFormProps> = ({
         </DialogDescription>
       </div>
 
-      <Field label={isPromote ? t('deployDrawer.releaseLabel') : t('deployDrawer.noteLabel')}>
+      <Field label={t('deployDrawer.releaseLabel')}>
         {isPromote && displayedRelease
           ? (
               <div className="flex flex-col gap-1">
@@ -166,19 +318,23 @@ export const DeployForm: FC<DeployFormProps> = ({
                 </span>
               </div>
             )
-          : (
-              <div className="flex flex-col gap-2">
-                <Input
-                  value={releaseNote}
-                  onChange={e => setReleaseNote(e.target.value)}
-                  placeholder={t('deployDrawer.notePlaceholder')}
-                  maxLength={80}
+          : releases.length === 0
+            ? (
+                <div className="rounded-lg border border-dashed border-components-panel-border bg-components-panel-bg-blur px-3 py-3 system-sm-regular text-text-tertiary">
+                  {t('deployDrawer.noReleaseAvailable')}
+                </div>
+              )
+            : (
+                <DeploymentSelect
+                  value={selectedReleaseId}
+                  onChange={setSelectedReleaseId}
+                  options={releases.filter(release => release.id).map(release => ({
+                    value: release.id!,
+                    label: `${releaseLabel(release)} · ${releaseCommit(release)}`,
+                  }))}
+                  placeholder={t('deployDrawer.selectRelease')}
                 />
-                <span className="system-xs-regular text-text-tertiary">
-                  {t('deployDrawer.newReleaseHint')}
-                </span>
-              </div>
-            )}
+              )}
       </Field>
 
       <Field
@@ -202,39 +358,22 @@ export const DeployForm: FC<DeployFormProps> = ({
             )}
       </Field>
 
-      <div className="overflow-hidden rounded-xl border border-divider-subtle bg-background-default-subtle">
-        <div className="flex items-start justify-between gap-3 px-3 py-2.5">
-          <div className="flex min-w-0 flex-col gap-0.5">
-            <div className="system-xs-medium-uppercase text-text-tertiary">{t('deployDrawer.runtimeCredentials')}</div>
-            <span className="system-xs-regular text-text-quaternary">{t('deployDrawer.bindingsDisabled')}</span>
-          </div>
-          <span className="shrink-0 rounded-md bg-background-default px-2 py-0.5 system-xs-medium text-text-tertiary">
-            {t('deployDrawer.readOnly')}
-          </span>
-        </div>
-        <RuntimeBindingGroup
-          label={t('deployDrawer.modelCreds')}
-          bindings={modelBindings}
-          isLoading={releasePreview.isFetching}
+      {targetReleaseId && (
+        <BindingOptionsPanel
+          slots={bindingSlots}
+          selections={selectedBindings}
+          isLoading={bindingOptionsLoading}
+          hasError={bindingOptions.isError}
+          onChange={(slot, value) => setManualBindings(prev => ({ ...prev, [slot]: value }))}
         />
-        <RuntimeBindingGroup
-          label={t('deployDrawer.pluginCreds')}
-          bindings={pluginBindings}
-          isLoading={releasePreview.isFetching}
-        />
-        <RuntimeBindingGroup
-          label={t('deployDrawer.envVars')}
-          bindings={envVarBindings}
-          isLoading={releasePreview.isFetching}
-        />
-      </div>
+      )}
 
       <div className="flex justify-end gap-2">
         <Button variant="secondary" onClick={onCancel}>
           {t('deployDrawer.cancel')}
         </Button>
         <Button variant="primary" disabled={!canDeploy} onClick={handleDeploy}>
-          {isPromote ? t('deployDrawer.promote') : t('deployDrawer.deploy')}
+          {submitLabel}
         </Button>
       </div>
     </div>

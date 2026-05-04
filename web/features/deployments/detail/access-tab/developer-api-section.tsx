@@ -9,22 +9,26 @@ import { CopyPill, Section } from './common'
 
 type DeveloperApiSectionProps = {
   apiEnabled: boolean
+  apiUrl?: string
   environments: ConsoleEnvironmentSummary[]
   apiKeys: DeveloperAPIKeySummary[]
   createdToken?: string
   onToggle: (enabled: boolean) => void
   onGenerate: (environmentId: string) => void
+  onCopyApiKey: (apiKeyId: string) => Promise<string>
   onRevoke: (environmentId: string, apiKeyId: string) => void
   onClearCreatedToken: () => void
 }
 
 export const DeveloperApiSection: FC<DeveloperApiSectionProps> = ({
   apiEnabled,
+  apiUrl,
   environments,
   apiKeys,
   createdToken,
   onToggle,
   onGenerate,
+  onCopyApiKey,
   onRevoke,
   onClearCreatedToken,
 }) => {
@@ -44,6 +48,12 @@ export const DeveloperApiSection: FC<DeveloperApiSectionProps> = ({
       {apiEnabled
         ? (
             <div className="flex flex-col gap-2">
+              {apiUrl && (
+                <CopyPill
+                  label={t('access.api.endpoint')}
+                  value={apiUrl}
+                />
+              )}
               <div className="flex items-center justify-between gap-3">
                 <div className="flex min-w-0 flex-col">
                   <span className="system-sm-medium text-text-primary">
@@ -102,6 +112,7 @@ export const DeveloperApiSection: FC<DeveloperApiSectionProps> = ({
                           <ApiKeyRow
                             key={apiKey.id}
                             apiKey={apiKey}
+                            onCopy={onCopyApiKey}
                             onRevoke={() => onRevoke(environmentId, apiKey.id!)}
                           />
                         )

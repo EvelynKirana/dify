@@ -19,6 +19,7 @@ export const zAccessStatus = z.object({
     .min(-2147483648, { error: 'Invalid value: Expected int32 to be >= -2147483648' })
     .max(2147483647, { error: 'Invalid value: Expected int32 to be <= 2147483647' })
     .optional(),
+  apiUrl: z.string().optional(),
 })
 
 export const zAccessSubject = z.object({
@@ -88,6 +89,10 @@ export const zAppInstanceBasicInfo = z.object({
   sourceAppName: z.string().optional(),
   mode: z.string().optional(),
   createdAt: z.iso.datetime().optional(),
+  sourceAppAvailable: z.boolean().optional(),
+  canCreateRelease: z.boolean().optional(),
+  icon: z.string().optional(),
+  iconBackground: z.string().optional(),
 })
 
 export const zAppRunnerBootstrapAssignment = z.object({
@@ -228,7 +233,6 @@ export const zConsoleUser = z.object({
 
 export const zCreateAppInstanceReply = z.object({
   appInstanceId: z.string().optional(),
-  initialRelease: zConsoleRelease.optional(),
 })
 
 export const zCreateAppInstanceReq = z.object({
@@ -445,6 +449,7 @@ export const zCreateDeveloperApiKeyReply = z.object({
 export const zDeveloperApiAccess = z.object({
   enabled: z.boolean().optional(),
   apiKeys: z.array(zDeveloperApiKeyRow).optional(),
+  apiUrl: z.string().optional(),
 })
 
 /**
@@ -1010,6 +1015,10 @@ export const zRetryEnvironmentReq = z.object({
   id: z.string().optional(),
 })
 
+export const zRevealDeveloperApiKeyReply = z.object({
+  token: z.string().optional(),
+})
+
 export const zRuntimeEndpoints = z.object({
   run: z.string().optional(),
   health: z.string().optional(),
@@ -1139,6 +1148,9 @@ export const zAppInstanceCard = z.object({
   sourceAppName: z.string().optional(),
   statuses: z.array(zStatusCount).optional(),
   lastDeployedAt: z.iso.datetime().optional(),
+  sourceAppAvailable: z.boolean().optional(),
+  canCreateRelease: z.boolean().optional(),
+  iconBackground: z.string().optional(),
 })
 
 export const zSubjectAccountData = z.object({
@@ -1711,8 +1723,22 @@ export const zEnterpriseAppDeployConsoleDeleteDeveloperApiKeyPath = z.object({
  */
 export const zEnterpriseAppDeployConsoleDeleteDeveloperApiKeyResponse = zDeleteDeveloperApiKeyReply
 
+export const zEnterpriseAppDeployConsoleRevealDeveloperApiKeyPath = z.object({
+  appInstanceId: z.string(),
+  apiKeyId: z.string(),
+})
+
+/**
+ * OK
+ */
+export const zEnterpriseAppDeployConsoleRevealDeveloperApiKeyResponse = zRevealDeveloperApiKeyReply
+
 export const zEnterpriseAppDeployConsoleListDeploymentBindingOptionsPath = z.object({
   appInstanceId: z.string(),
+})
+
+export const zEnterpriseAppDeployConsoleListDeploymentBindingOptionsQuery = z.object({
+  releaseId: z.string().optional(),
 })
 
 /**

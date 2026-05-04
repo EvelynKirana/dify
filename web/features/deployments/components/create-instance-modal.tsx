@@ -204,7 +204,6 @@ const CreateInstanceForm: FC<{ onClose: () => void }> = ({ onClose }) => {
   const { t } = useTranslation('deployments')
   const router = useRouter()
   const createInstance = useCreateDeploymentInstance()
-  const openDeployDrawer = useDeploymentsStore(state => state.openDeployDrawer)
   const { data: appList, isLoading } = useAppList({ page: 1, limit: MAX_STUDIO_SOURCE_APPS, name: '' })
   const apps = useMemo<AppInfo[]>(() => {
     return (appList?.data ?? []).map(toStudioSourceAppInfo)
@@ -218,7 +217,7 @@ const CreateInstanceForm: FC<{ onClose: () => void }> = ({ onClose }) => {
   const selectedApp = apps.find(a => a.id === appId)
   const canCreate = Boolean(appId && name.trim() && !isSubmitting)
 
-  const handleCreate = async (thenDeploy: boolean) => {
+  const handleCreate = async () => {
     if (!canCreate)
       return
 
@@ -230,13 +229,6 @@ const CreateInstanceForm: FC<{ onClose: () => void }> = ({ onClose }) => {
         description: description.trim() || undefined,
       })
       onClose()
-      if (thenDeploy) {
-        openDeployDrawer({
-          appInstanceId: result.appInstanceId,
-          releaseId: result.initialRelease?.id,
-        })
-        return
-      }
       router.push(`/deployments/${result.appInstanceId}/overview`)
     }
     catch {
@@ -299,11 +291,8 @@ const CreateInstanceForm: FC<{ onClose: () => void }> = ({ onClose }) => {
         <Button variant="secondary" onClick={onClose}>
           {t('createModal.cancel')}
         </Button>
-        <Button variant="secondary" disabled={!canCreate} onClick={() => void handleCreate(false)}>
+        <Button variant="primary" disabled={!canCreate} onClick={() => void handleCreate()}>
           {t('createModal.create')}
-        </Button>
-        <Button variant="primary" disabled={!canCreate} onClick={() => void handleCreate(true)}>
-          {t('createModal.createAndDeploy')}
         </Button>
       </div>
     </div>
