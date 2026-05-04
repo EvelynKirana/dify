@@ -53,6 +53,9 @@ export const runtimeBindingLabel = (binding?: RuntimeBindingDisplay) =>
 export const runtimeBindingValue = (binding?: RuntimeBindingDisplay) =>
   binding?.displayValue || binding?.maskedValue || binding?.displayName || '—'
 
+export const runtimeBindingSummary = (binding?: RuntimeBindingDisplay) =>
+  binding?.label || binding?.slot || binding?.displayName || binding?.displayValue || binding?.maskedValue || binding?.kind || '—'
+
 export const isRuntimeEnvVarBinding = (binding?: RuntimeBindingDisplay) =>
   (binding?.kind?.toLowerCase() ?? '').includes('env')
 

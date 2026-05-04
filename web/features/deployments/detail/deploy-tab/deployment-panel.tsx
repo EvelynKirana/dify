@@ -1,7 +1,7 @@
 'use client'
 
 import type { FC, ReactNode } from 'react'
-import type { EnvironmentDeploymentRow } from '@/features/deployments/types'
+import type { EnvironmentDeploymentRow, RuntimeBindingDisplay } from '@/features/deployments/types'
 import { cn } from '@langgenius/dify-ui/cn'
 import { useTranslation } from 'react-i18next'
 import {
@@ -15,8 +15,7 @@ import {
   isRuntimePluginBinding,
   releaseCommit,
   releaseLabel,
-  runtimeBindingLabel,
-  runtimeBindingValue,
+  runtimeBindingSummary,
 } from '../../utils'
 
 type InfoBlockProps = {
@@ -39,14 +38,30 @@ type InfoRowProps = {
 }
 
 const InfoRow: FC<InfoRowProps> = ({ label, value, mono, suffix }) => (
-  <div className="grid min-w-0 grid-cols-[120px_minmax(0,1fr)] items-start gap-2">
+  <div className="grid min-w-0 grid-cols-[minmax(88px,0.35fr)_minmax(0,1fr)] items-start gap-2">
     <span className="system-xs-regular text-text-tertiary">{label}</span>
-    <span className={cn('min-w-0 system-sm-regular break-words text-text-primary', mono && 'font-mono')}>
+    <span className={cn('min-w-0 system-sm-regular break-all text-text-primary', mono && 'font-mono')}>
       {value}
       {suffix && <span className="system-xs-regular text-text-tertiary">{suffix}</span>}
     </span>
   </div>
 )
+
+type RuntimeBindingItemProps = {
+  binding: RuntimeBindingDisplay
+}
+
+const RuntimeBindingItem: FC<RuntimeBindingItemProps> = ({ binding }) => {
+  const summary = runtimeBindingSummary(binding)
+
+  return (
+    <div className="min-w-0">
+      <span className="block min-w-0 truncate system-xs-regular text-text-tertiary" title={summary}>
+        {summary}
+      </span>
+    </div>
+  )
+}
 
 type DeploymentPanelProps = {
   row: EnvironmentDeploymentRow
@@ -86,29 +101,23 @@ export const DeploymentPanel: FC<DeploymentPanelProps> = ({ row }) => {
         {(modelCredentials.length > 0 || pluginCredentials.length > 0 || envVars.length > 0) && (
           <div className="xl:col-span-2">
             <InfoBlock title={t('deployTab.panel.runtimeBindings')}>
-              <div className="grid grid-cols-1 gap-2 lg:grid-cols-3">
+              <div className="grid grid-cols-1 gap-2 md:grid-cols-2">
                 {modelCredentials.map(c => (
-                  <InfoRow
+                  <RuntimeBindingItem
                     key={`${c.kind}-${c.slot}-${c.label}-${c.displayName}-${c.displayValue}-${c.maskedValue}`}
-                    label={runtimeBindingLabel(c)}
-                    value={runtimeBindingValue(c)}
-                    mono
+                    binding={c}
                   />
                 ))}
                 {pluginCredentials.map(c => (
-                  <InfoRow
+                  <RuntimeBindingItem
                     key={`${c.kind}-${c.slot}-${c.label}-${c.displayName}-${c.displayValue}-${c.maskedValue}`}
-                    label={runtimeBindingLabel(c)}
-                    value={runtimeBindingValue(c)}
-                    mono
+                    binding={c}
                   />
                 ))}
                 {envVars.map(v => (
-                  <InfoRow
+                  <RuntimeBindingItem
                     key={`${v.kind}-${v.slot}-${v.label}-${v.displayName}-${v.displayValue}`}
-                    label={runtimeBindingLabel(v)}
-                    value={runtimeBindingValue(v)}
-                    mono
+                    binding={v}
                   />
                 ))}
               </div>
