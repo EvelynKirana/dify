@@ -4,7 +4,7 @@
   "batch.emptyHistory": "No test history yet.",
   "batch.example": "Example:",
   "batch.fileRequired": "Upload an evaluation dataset file before running the test.",
-  "batch.loadingInputFields": "Loading input fields...",
+  "batch.loadingInputFields": "Loading template columns...",
   "batch.noInputFields": "No published start node input fields found.",
   "batch.noSnippetInputFields": "No published snippet input fields found.",
   "batch.noTemplateColumns": "No template columns found.",

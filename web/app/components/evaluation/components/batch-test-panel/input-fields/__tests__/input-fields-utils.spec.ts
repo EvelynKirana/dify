@@ -4,16 +4,16 @@ describe('input fields utils', () => {
   describe('buildTemplateCsvContent', () => {
     it('should build CSV content from API columns without injecting columns', () => {
       expect(buildTemplateCsvContent([
-        'index',
-        'query',
-        'expected_output',
+        { name: 'index', type: 'number' },
+        { name: 'query', type: 'string' },
+        { name: 'expected_output', type: 'string' },
       ])).toBe('index,query,expected_output\n')
     })
 
     it('should escape CSV column names', () => {
       expect(buildTemplateCsvContent([
-        'query,text',
-        'answer "draft"',
+        { name: 'query,text', type: 'string' },
+        { name: 'answer "draft"', type: 'string' },
       ])).toBe('"query,text","answer ""draft"""\n')
     })
   })

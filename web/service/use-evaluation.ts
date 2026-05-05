@@ -1,5 +1,5 @@
 import type { EvaluationResourceType, NonPipelineEvaluationResourceType } from '@/app/components/evaluation/types'
-import type { AvailableEvaluationWorkflowsResponse, EvaluationConfig } from '@/types/evaluation'
+import type { AvailableEvaluationWorkflowsResponse, EvaluationConfig, EvaluationConfigData } from '@/types/evaluation'
 import {
   keepPreviousData,
   skipToken,
@@ -131,8 +131,25 @@ export const useStartEvaluationRunMutation = () => {
   }))
 }
 
-export const useEvaluationTemplateColumnsMutation = () => {
-  return useMutation(consoleQuery.evaluation.templateColumns.mutationOptions())
+export const useEvaluationTemplateColumns = (
+  resourceType: EvaluationResourceType,
+  resourceId: string,
+  configPayload: EvaluationConfigData | null,
+  enabled = true,
+) => {
+  return useQuery(consoleQuery.evaluation.templateColumns.queryOptions({
+    input: resourceId && configPayload
+      ? {
+          params: {
+            targetType: resourceType,
+            targetId: resourceId,
+          },
+          body: configPayload,
+        }
+      : skipToken,
+    enabled: !!resourceId && !!configPayload && enabled,
+    refetchOnWindowFocus: false,
+  }))
 }
 
 export const useAvailableEvaluationWorkflows = (

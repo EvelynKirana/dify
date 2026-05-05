@@ -1,5 +1,6 @@
 import type { StartNodeType } from '@/app/components/workflow/nodes/start/types'
 import type { InputVar, Node } from '@/app/components/workflow/types'
+import type { EvaluationTemplateColumn } from '@/types/evaluation'
 import type { SnippetInputField } from '@/types/snippet'
 import { inputVarTypeToVarType } from '@/app/components/workflow/nodes/_base/components/variable/utils'
 import { BlockEnum, InputVarType } from '@/app/components/workflow/types'
@@ -64,8 +65,8 @@ const escapeCsvCell = (value: string) => {
   return `"${value.replace(/"/g, '""')}"`
 }
 
-export const buildTemplateCsvContent = (columns: string[]) => {
-  return `${columns.map(escapeCsvCell).join(',')}\n`
+export const buildTemplateCsvContent = (columns: EvaluationTemplateColumn[]) => {
+  return `${columns.map(column => escapeCsvCell(column.name)).join(',')}\n`
 }
 
 export const getFileExtension = (fileName: string) => {

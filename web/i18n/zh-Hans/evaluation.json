@@ -4,7 +4,7 @@
   "batch.emptyHistory": "还没有测试历史。",
   "batch.example": "示例：",
   "batch.fileRequired": "请先上传评估数据集文件，再运行测试。",
-  "batch.loadingInputFields": "正在加载输入字段...",
+  "batch.loadingInputFields": "正在加载模板列...",
   "batch.noInputFields": "未找到已发布 Start 节点的输入字段。",
   "batch.noSnippetInputFields": "未找到已发布的片段输入字段。",
   "batch.noTemplateColumns": "未找到模板列。",
