@@ -77,6 +77,7 @@ RUN \
     # Install dependencies
     && apt-get install -y --no-install-recommends \
         # basic environment
+        git \
         nodejs=${NODE_PACKAGE_VERSION} \
         # for gmpy2 \
         libgmp-dev libmpfr-dev libmpc-dev \
