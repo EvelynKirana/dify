@@ -131,6 +131,10 @@ export const useStartEvaluationRunMutation = () => {
   }))
 }
 
+export const useEvaluationTemplateColumnsMutation = () => {
+  return useMutation(consoleQuery.evaluation.templateColumns.mutationOptions())
+}
+
 export const useAvailableEvaluationWorkflows = (
   params: AvailableEvaluationWorkflowsParams = {},
   options?: { enabled?: boolean },

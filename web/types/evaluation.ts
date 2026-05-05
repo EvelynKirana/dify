@@ -59,6 +59,10 @@ export type EvaluationRunRequest = EvaluationConfigData & {
   file_id: string
 }
 
+export type EvaluationTemplateColumnsResponse = {
+  columns: string[]
+}
+
 export type EvaluationRunStatus = 'pending' | 'running' | 'completed' | 'failed' | 'cancelled'
 
 export type EvaluationJudgmentMetricsSummary = {

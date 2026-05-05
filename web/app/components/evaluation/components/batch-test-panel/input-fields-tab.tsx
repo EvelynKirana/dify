@@ -23,7 +23,6 @@ const InputFieldsTab = ({
   const actions = useInputFieldsActions({
     resourceType,
     resourceId,
-    inputFields,
     isInputFieldsLoading,
     isPanelReady,
     isRunnable,

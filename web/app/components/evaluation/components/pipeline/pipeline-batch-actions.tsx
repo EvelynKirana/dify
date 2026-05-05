@@ -14,7 +14,6 @@ const PIPELINE_INPUT_FIELDS: InputField[] = [
   { name: 'query', type: 'string' },
   { name: 'expected_output', type: 'string' },
 ]
-const PIPELINE_TEMPLATE_CONTENT = 'index,query,expected_output\n'
 
 const PipelineBatchActions = ({
   resourceType,
@@ -27,11 +26,9 @@ const PipelineBatchActions = ({
   const actions = useInputFieldsActions({
     resourceType,
     resourceId,
-    inputFields: PIPELINE_INPUT_FIELDS,
     isInputFieldsLoading: false,
     isPanelReady: isConfigReady,
     isRunnable,
-    templateContent: PIPELINE_TEMPLATE_CONTENT,
     templateFileName: EVALUATION_TEMPLATE_FILE_NAMES[resourceType],
   })
 

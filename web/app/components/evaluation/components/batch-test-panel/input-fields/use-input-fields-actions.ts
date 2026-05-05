@@ -1,14 +1,13 @@
 import type { EvaluationResourceProps } from '../../../types'
-import type { InputField } from './input-fields-utils'
 import { toast } from '@langgenius/dify-ui/toast'
 import { useMutation } from '@tanstack/react-query'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { upload } from '@/service/base'
-import { useStartEvaluationRunMutation } from '@/service/use-evaluation'
+import { useEvaluationTemplateColumnsMutation, useStartEvaluationRunMutation } from '@/service/use-evaluation'
 import { formatFileSize } from '@/utils/format'
 import { useEvaluationResource, useEvaluationStore } from '../../../store'
-import { buildEvaluationRunRequest } from '../../../store-utils'
+import { buildEvaluationConfigPayload, buildEvaluationRunRequest } from '../../../store-utils'
 import { buildTemplateCsvContent, getFileExtension } from './input-fields-utils'
 
 type UploadedFileMeta = {
@@ -17,22 +16,18 @@ type UploadedFileMeta = {
 }
 
 type UseInputFieldsActionsParams = EvaluationResourceProps & {
-  inputFields: InputField[]
   isInputFieldsLoading: boolean
   isPanelReady: boolean
   isRunnable: boolean
-  templateContent?: string
   templateFileName: string
 }
 
 export const useInputFieldsActions = ({
   resourceType,
   resourceId,
-  inputFields,
   isInputFieldsLoading,
   isPanelReady,
   isRunnable,
-  templateContent,
   templateFileName,
 }: UseInputFieldsActionsParams) => {
   const { t } = useTranslation('evaluation')
@@ -42,6 +37,7 @@ export const useInputFieldsActions = ({
   const setUploadedFile = useEvaluationStore(state => state.setUploadedFile)
   const setUploadedFileName = useEvaluationStore(state => state.setUploadedFileName)
   const startRunMutation = useStartEvaluationRunMutation()
+  const templateColumnsMutation = useEvaluationTemplateColumnsMutation()
   const [isUploadPopoverOpen, setIsUploadPopoverOpen] = useState(false)
   const [uploadedFileMeta, setUploadedFileMeta] = useState<UploadedFileMeta | null>(null)
   const uploadMutation = useMutation({
@@ -71,21 +67,41 @@ export const useInputFieldsActions = ({
   const isRunning = startRunMutation.isPending
   const uploadedFileId = resource.uploadedFileId
   const currentFileName = uploadedFileMeta?.name ?? resource.uploadedFileName
-  const canDownloadTemplate = isPanelReady && !isInputFieldsLoading && inputFields.length > 0
+  const canDownloadTemplate = isPanelReady && !templateColumnsMutation.isPending
   const isRunDisabled = !isRunnable || !uploadedFileId || isFileUploading || isRunning
   const uploadButtonDisabled = !isPanelReady || isInputFieldsLoading || isRunning
 
   const handleDownloadTemplate = () => {
-    if (!inputFields.length) {
-      toast.warning(t('batch.noInputFields'))
+    const body = buildEvaluationConfigPayload(resource, resourceType)
+
+    if (!body) {
+      toast.warning(t('batch.validation'))
       return
     }
 
-    const content = templateContent ?? buildTemplateCsvContent(inputFields)
-    const link = document.createElement('a')
-    link.href = `data:text/csv;charset=utf-8,${encodeURIComponent(content)}`
-    link.download = templateFileName
-    link.click()
+    templateColumnsMutation.mutate({
+      params: {
+        targetType: resourceType,
+        targetId: resourceId,
+      },
+      body,
+    }, {
+      onSuccess: ({ columns }) => {
+        if (!columns.length) {
+          toast.warning(t('batch.noTemplateColumns'))
+          return
+        }
+
+        const content = buildTemplateCsvContent(columns)
+        const link = document.createElement('a')
+        link.href = `data:text/csv;charset=utf-8,${encodeURIComponent(content)}`
+        link.download = templateFileName
+        link.click()
+      },
+      onError: () => {
+        toast.error(t('batch.templateColumnsError'))
+      },
+    })
   }
 
   const handleRun = () => {

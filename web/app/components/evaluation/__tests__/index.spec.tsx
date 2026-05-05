@@ -11,6 +11,7 @@ const mockUseDefaultEvaluationMetrics = vi.hoisted(() => vi.fn())
 const mockUseEvaluationConfig = vi.hoisted(() => vi.fn())
 const mockUseSaveEvaluationConfigMutation = vi.hoisted(() => vi.fn())
 const mockUseStartEvaluationRunMutation = vi.hoisted(() => vi.fn())
+const mockUseEvaluationTemplateColumnsMutation = vi.hoisted(() => vi.fn())
 const mockUsePublishedPipelineInfo = vi.hoisted(() => vi.fn())
 const mockUseSnippetPublishedWorkflow = vi.hoisted(() => vi.fn())
 
@@ -55,6 +56,7 @@ vi.mock('@/service/use-evaluation', () => ({
   useDefaultEvaluationMetrics: (...args: unknown[]) => mockUseDefaultEvaluationMetrics(...args),
   useSaveEvaluationConfigMutation: (...args: unknown[]) => mockUseSaveEvaluationConfigMutation(...args),
   useStartEvaluationRunMutation: (...args: unknown[]) => mockUseStartEvaluationRunMutation(...args),
+  useEvaluationTemplateColumnsMutation: (...args: unknown[]) => mockUseEvaluationTemplateColumnsMutation(...args),
 }))
 
 vi.mock('@/service/use-pipeline', () => ({
@@ -167,6 +169,10 @@ describe('Evaluation', () => {
       mutate: vi.fn(),
     })
     mockUseStartEvaluationRunMutation.mockReturnValue({
+      isPending: false,
+      mutate: vi.fn(),
+    })
+    mockUseEvaluationTemplateColumnsMutation.mockReturnValue({
       isPending: false,
       mutate: vi.fn(),
     })
@@ -624,6 +630,15 @@ describe('Evaluation', () => {
 
   it('should download the fixed pipeline template columns', () => {
     const createElement = document.createElement.bind(document)
+    const getTemplateColumns = vi.fn((_input: unknown, options?: { onSuccess?: (value: { columns: string[] }) => void }) => {
+      options?.onSuccess?.({
+        columns: ['index', 'query', 'expected_output'],
+      })
+    })
+    mockUseEvaluationTemplateColumnsMutation.mockReturnValue({
+      isPending: false,
+      mutate: getTemplateColumns,
+    })
     let downloadLink: HTMLAnchorElement | undefined
     const createElementSpy = vi.spyOn(document, 'createElement').mockImplementation((tagName, options) => {
       const element = createElement(tagName, options)
@@ -645,6 +660,16 @@ describe('Evaluation', () => {
     const templateContent = decodeURIComponent(downloadLink?.href ?? '').replace('data:text/csv;charset=utf-8,', '')
     expect(downloadLink?.download).toBe('pipeline-evaluation-template.csv')
     expect(templateContent.trim().split(',')).toEqual(['index', 'query', 'expected_output'])
+    expect(getTemplateColumns).toHaveBeenCalledWith({
+      params: {
+        targetType: 'datasets',
+        targetId: 'dataset-template',
+      },
+      body: expect.objectContaining({
+        evaluation_model: 'gpt-4o-mini',
+        evaluation_model_provider: 'openai',
+      }),
+    }, expect.any(Object))
 
     createElementSpy.mockRestore()
   })
