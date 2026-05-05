@@ -1,4 +1,5 @@
 import type { CreateSnippetDialogPayload } from './create-snippet-dialog'
+import type { WorkflowShortcutId } from './shortcuts/definitions'
 import type { Edge, Node } from './types'
 import type { SnippetCanvasData } from '@/models/snippet'
 import { cn } from '@langgenius/dify-ui/cn'
@@ -28,7 +29,7 @@ import CreateSnippetDialog from './create-snippet-dialog'
 import { useNodesInteractions, useNodesReadOnly, useNodesSyncDraft } from './hooks'
 import { useSelectionInteractions } from './hooks/use-selection-interactions'
 import { useWorkflowHistory, WorkflowHistoryEvent } from './hooks/use-workflow-history'
-import ShortcutsName from './shortcuts-name'
+import { ShortcutKbd } from './shortcuts/shortcut-kbd'
 import { useStore, useWorkflowStore } from './store'
 import { BlockEnum, TRIGGER_NODE_TYPES } from './types'
 
@@ -64,6 +65,7 @@ type ActionMenuItem = {
   disabled?: boolean
   shortcutKeys?: string[]
   translationKey: string
+  workflowShortcutId?: WorkflowShortcutId
 }
 
 const DEFAULT_SNIPPET_VIEWPORT: SnippetCanvasData['viewport'] = { x: 0, y: 0, zoom: 1 }
@@ -467,16 +469,19 @@ const SelectionContextmenu = () => {
         action: 'copy',
         shortcutKeys: ['ctrl', 'c'],
         translationKey: 'common.copy',
+        workflowShortcutId: 'workflow.copy',
       },
       {
         action: 'duplicate',
         shortcutKeys: ['ctrl', 'd'],
         translationKey: 'common.duplicate',
+        workflowShortcutId: 'workflow.duplicate',
       },
       {
         action: 'delete',
         shortcutKeys: ['del'],
         translationKey: 'operation.delete',
+        workflowShortcutId: 'workflow.delete',
       },
     )
 
@@ -631,9 +636,9 @@ const SelectionContextmenu = () => {
                   onClick={() => handleMenuAction(item.action)}
                 >
                   <span>{getActionLabel(item.translationKey)}</span>
-                  {item.shortcutKeys && (
-                    <ShortcutsName
-                      keys={item.shortcutKeys}
+                  {item.workflowShortcutId && (
+                    <ShortcutKbd
+                      shortcut={item.workflowShortcutId}
                       textColor="secondary"
                     />
                   )}
