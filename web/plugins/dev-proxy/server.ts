@@ -14,7 +14,11 @@ type DevProxyEnv = Partial<Record<
 type DevProxyTargets = {
   consoleApiTarget: string
   publicApiTarget: string
+<<<<<<< HEAD
   enterpriseApiTarget: string
+=======
+  enterpriseApiTarget?: string
+>>>>>>> main
 }
 
 type DevProxyAppOptions = DevProxyTargets & {
@@ -189,7 +193,6 @@ export const resolveDevProxyTargets = (env: DevProxyEnv = {}): DevProxyTargets =
   const publicApiTarget = env.HONO_PUBLIC_API_PROXY_TARGET
     || consoleApiTarget
   const enterpriseApiTarget = env.HONO_ENTERPRISE_API_PROXY_TARGET
-    || DEFAULT_ENTERPRISE_PROXY_TARGET
 
   return {
     consoleApiTarget,
@@ -236,7 +239,12 @@ export const createDevProxyApp = (options: DevProxyAppOptions) => {
     applyCorsHeaders(context.res.headers, context.req.header('origin'))
   })
 
+<<<<<<< HEAD
   registerProxyRoutes(app, ENTERPRISE_API_ROUTES, options.enterpriseApiTarget, fetchImpl)
+=======
+  if (options.enterpriseApiTarget)
+    registerProxyRoutes(app, ENTERPRISE_API_ROUTES, options.enterpriseApiTarget, fetchImpl)
+>>>>>>> main
   registerProxyRoutes(app, CONSOLE_API_ROUTES, options.consoleApiTarget, fetchImpl)
   registerProxyRoutes(app, PUBLIC_API_ROUTES, options.publicApiTarget, fetchImpl)
 
