@@ -17,7 +17,7 @@ FROM base AS packages
 RUN apt-get update \
     && apt-get install -y --no-install-recommends \
           # basic environment
-          g++ \
+          git g++ \
           # for building gmpy2
           libmpfr-dev libmpc-dev
 
@@ -76,8 +76,6 @@ RUN \
     && apt-get update \
     # Install dependencies
     && apt-get install -y --no-install-recommends \
-        # for install dependecies served by Git
-        git \
         # basic environment
         nodejs=${NODE_PACKAGE_VERSION} \
         # for gmpy2 \
