@@ -209,7 +209,6 @@
   "mode.isolated": "独立",
   "mode.shared": "共享",
   "newInstance.comingSoon": "即将支持",
-  "newInstance.fromGitHub": "从 GitHub 创建",
   "newInstance.fromStudio": "从 Studio 选择",
   "newInstance.importDSL": "导入 DSL",
   "newInstance.title": "创建应用实例",

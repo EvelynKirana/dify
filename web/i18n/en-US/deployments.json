@@ -209,7 +209,6 @@
   "mode.isolated": "Isolated",
   "mode.shared": "Shared",
   "newInstance.comingSoon": "Coming soon",
-  "newInstance.fromGitHub": "Create from GitHub",
   "newInstance.fromStudio": "Select from Studio",
   "newInstance.importDSL": "Import DSL",
   "newInstance.title": "Create app instance",

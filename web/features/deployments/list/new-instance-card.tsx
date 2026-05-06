@@ -56,11 +56,6 @@ export const NewInstanceCard: FC<NewInstanceCardProps> = ({ onOpen }) => {
           onClick={onOpen}
         />
         <NewInstanceAction
-          icon="i-ri-github-fill"
-          label={t('newInstance.fromGitHub')}
-          disabled
-        />
-        <NewInstanceAction
           icon="i-ri-file-code-line"
           label={t('newInstance.importDSL')}
           disabled
