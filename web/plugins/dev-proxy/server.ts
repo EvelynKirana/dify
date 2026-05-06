@@ -2,8 +2,6 @@ import type { Context, Hono } from 'hono'
 import { Hono as HonoApp } from 'hono'
 import { DEFAULT_PROXY_TARGET, rewriteCookieHeaderForUpstream, rewriteSetCookieHeadersForLocal } from './cookies'
 
-const DEFAULT_ENTERPRISE_PROXY_TARGET = 'https://enterprise-platform-dev.dify.dev'
-
 type DevProxyEnv = Partial<Record<
   | 'HONO_CONSOLE_API_PROXY_TARGET'
   | 'HONO_PUBLIC_API_PROXY_TARGET'
@@ -14,11 +12,7 @@ type DevProxyEnv = Partial<Record<
 type DevProxyTargets = {
   consoleApiTarget: string
   publicApiTarget: string
-<<<<<<< HEAD
-  enterpriseApiTarget: string
-=======
   enterpriseApiTarget?: string
->>>>>>> main
 }
 
 type DevProxyAppOptions = DevProxyTargets & {
@@ -239,12 +233,8 @@ export const createDevProxyApp = (options: DevProxyAppOptions) => {
     applyCorsHeaders(context.res.headers, context.req.header('origin'))
   })
 
-<<<<<<< HEAD
-  registerProxyRoutes(app, ENTERPRISE_API_ROUTES, options.enterpriseApiTarget, fetchImpl)
-=======
   if (options.enterpriseApiTarget)
     registerProxyRoutes(app, ENTERPRISE_API_ROUTES, options.enterpriseApiTarget, fetchImpl)
->>>>>>> main
   registerProxyRoutes(app, CONSOLE_API_ROUTES, options.consoleApiTarget, fetchImpl)
   registerProxyRoutes(app, PUBLIC_API_ROUTES, options.publicApiTarget, fetchImpl)
 
