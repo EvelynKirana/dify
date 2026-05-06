@@ -142,7 +142,7 @@ const AccessTab: FC<AccessTabProps> = ({ instanceId: appId }) => {
   const cliDocsUrl = cliDomain ? `${cliDomain}/cli` : undefined
 
   return (
-    <div className="flex flex-col gap-5 p-6">
+    <div className="flex w-full max-w-[960px] flex-col gap-5 p-6">
       <AccessPermissionsSection
         appId={appId}
         environments={deployedEnvs}

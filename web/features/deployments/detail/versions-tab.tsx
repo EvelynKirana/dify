@@ -73,7 +73,7 @@ const VersionsTab: FC<VersionsTabProps> = ({ instanceId: appId }) => {
   }
 
   return (
-    <div className="flex flex-col gap-4 p-6">
+    <div className="flex w-full max-w-[960px] flex-col gap-4 p-6">
       <div className="flex items-center justify-between gap-3">
         <div className="system-sm-semibold text-text-primary">
           {t('versions.releaseHistory')}

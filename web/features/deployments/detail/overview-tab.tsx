@@ -131,7 +131,7 @@ const OverviewTab: FC<OverviewTabProps> = ({ instanceId }) => {
   const apiKeysCount = overview?.access?.apiKeyCount ?? accessConfig?.developerApi?.apiKeys?.length ?? 0
 
   return (
-    <div className="flex flex-col gap-5 p-6">
+    <div className="flex w-full max-w-[960px] flex-col gap-5 p-6">
       <Section title={t('overview.basicInfo')}>
         <div className="flex flex-col divide-y divide-divider-subtle">
           <InfoRow label={t('overview.name')} value={overviewApp?.name ?? app.name} />

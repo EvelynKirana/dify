@@ -79,7 +79,7 @@ const DeployTab: FC<DeployTabProps> = ({ instanceId: appInstanceId }) => {
   const [deployMenuOpen, setDeployMenuOpen] = useState(false)
 
   return (
-    <div className="flex flex-col gap-4 p-6">
+    <div className="flex w-full max-w-[960px] flex-col gap-4 p-6">
       <div className="flex items-center justify-between">
         <div className="system-sm-semibold text-text-primary">
           {t('deployTab.envCount')}
