@@ -2,12 +2,14 @@
 import type { FC } from 'react'
 import { Button } from '@langgenius/dify-ui/button'
 import { cn } from '@langgenius/dify-ui/cn'
+import { Dialog, DialogCloseButton, DialogContent, DialogDescription, DialogTitle } from '@langgenius/dify-ui/dialog'
 import { toast } from '@langgenius/dify-ui/toast'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@langgenius/dify-ui/tooltip'
 import { useQuery } from '@tanstack/react-query'
 import { useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import Input from '@/app/components/base/input'
+import Textarea from '@/app/components/base/textarea'
 import { useCreateDeploymentRelease } from '../hooks/use-deployment-mutations'
 import {
   deploymentEnvironmentDeploymentsQueryOptions,
@@ -86,7 +88,7 @@ const VersionsTab: FC<VersionsTabProps> = ({ instanceId: appId }) => {
           size="small"
           variant="primary"
           disabled={!canCreateRelease}
-          onClick={() => setIsCreating(prev => !prev)}
+          onClick={() => setIsCreating(true)}
         >
           <span className="i-ri-add-line h-3.5 w-3.5" />
           {t('versions.createRelease')}
@@ -99,33 +101,91 @@ const VersionsTab: FC<VersionsTabProps> = ({ instanceId: appId }) => {
         </div>
       )}
 
-      {isCreating && (
-        <div className="rounded-xl border border-components-panel-border bg-components-panel-bg p-4">
-          <div className="mb-3 system-sm-semibold text-text-primary">{t('versions.createRelease')}</div>
-          <div className="flex flex-col gap-3">
-            <Input
-              value={releaseName}
-              onChange={e => setReleaseName(e.target.value)}
-              placeholder={t('versions.releaseNamePlaceholder')}
-              maxLength={128}
-            />
-            <Input
-              value={releaseDescription}
-              onChange={e => setReleaseDescription(e.target.value)}
-              placeholder={t('versions.releaseDescriptionPlaceholder')}
-              maxLength={512}
-            />
-            <div className="flex justify-end gap-2">
-              <Button size="small" variant="secondary" onClick={() => setIsCreating(false)}>
-                {t('versions.cancelCreate')}
-              </Button>
-              <Button size="small" variant="primary" disabled={!canSubmitRelease} onClick={() => void handleCreateRelease()}>
-                {createRelease.isPending ? t('versions.creating') : t('versions.create')}
-              </Button>
+      <Dialog open={isCreating} onOpenChange={setIsCreating}>
+        <DialogContent className="w-[560px] overflow-hidden p-0">
+          <DialogCloseButton />
+          <form
+            onSubmit={(event) => {
+              event.preventDefault()
+              void handleCreateRelease()
+            }}
+          >
+            <div className="flex items-start gap-3 border-b border-divider-subtle px-6 py-5 pr-14">
+              <div className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-state-accent-hover text-text-accent">
+                <span className="i-ri-rocket-2-line size-5" />
+              </div>
+              <div className="min-w-0">
+                <DialogTitle className="title-xl-semi-bold text-text-primary">
+                  {t('versions.createRelease')}
+                </DialogTitle>
+                <DialogDescription className="mt-1 system-sm-regular text-text-tertiary">
+                  {t('versions.createReleaseDescription')}
+                </DialogDescription>
+              </div>
             </div>
-          </div>
-        </div>
-      )}
+
+            <div className="flex flex-col gap-5 px-6 py-5">
+              <div className="flex flex-col gap-2">
+                <label className="system-xs-medium-uppercase text-text-tertiary" htmlFor="release-name">
+                  {t('versions.releaseNameLabel')}
+                </label>
+                <Input
+                  id="release-name"
+                  value={releaseName}
+                  onChange={e => setReleaseName(e.target.value)}
+                  placeholder={t('versions.releaseNamePlaceholder')}
+                  maxLength={128}
+                  autoFocus
+                  className="h-9"
+                />
+              </div>
+
+              <div className="flex flex-col gap-2">
+                <div className="flex items-center justify-between gap-3">
+                  <label className="system-xs-medium-uppercase text-text-tertiary" htmlFor="release-description">
+                    {t('versions.releaseDescriptionLabel')}
+                  </label>
+                  <span className="system-xs-regular text-text-quaternary">
+                    {t('versions.optional')}
+                  </span>
+                </div>
+                <Textarea
+                  id="release-description"
+                  value={releaseDescription}
+                  onChange={e => setReleaseDescription(e.target.value)}
+                  placeholder={t('versions.releaseDescriptionPlaceholder')}
+                  maxLength={512}
+                  className="min-h-[96px] resize-none"
+                />
+              </div>
+            </div>
+
+            <div className="flex items-center justify-between gap-4 border-t border-divider-subtle bg-background-default-subtle px-6 py-4">
+              <div className="system-xs-regular text-text-tertiary">
+                {t('versions.createReleaseHint')}
+              </div>
+              <div className="flex shrink-0 justify-end gap-2">
+                <Button
+                  type="button"
+                  variant="secondary"
+                  disabled={createRelease.isPending}
+                  onClick={() => setIsCreating(false)}
+                >
+                  {t('versions.cancelCreate')}
+                </Button>
+                <Button
+                  type="submit"
+                  variant="primary"
+                  className="min-w-[88px]"
+                  disabled={!canSubmitRelease}
+                >
+                  {createRelease.isPending ? t('versions.creating') : t('versions.create')}
+                </Button>
+              </div>
+            </div>
+          </form>
+        </DialogContent>
+      </Dialog>
 
       {releaseRows.length === 0
         ? (
