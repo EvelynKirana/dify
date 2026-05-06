@@ -22,7 +22,6 @@ dependencies = [
     "redis[hiredis]>=7.4.0",
     "sendgrid>=6.12.5",
     "sseclient-py>=1.8.0",
-
     # Stable: production-proven, cap below the next major
     "aliyun-log-python-sdk>=0.9.44,<1.0.0",
     "azure-identity>=1.25.3,<2.0.0",
@@ -42,7 +41,6 @@ dependencies = [
     "opentelemetry-propagator-b3>=1.41.1,<2.0.0",
     "readabilipy>=0.3.0,<1.0.0",
     "resend>=2.27.0,<3.0.0",
-
     # Emerging: newer and fast-moving, use compatible pins
     "fastopenapi[flask]~=0.7.0",
     "graphon~=0.2.2",
@@ -98,6 +96,7 @@ dify-trace-mlflow = { workspace = true }
 dify-trace-opik = { workspace = true }
 dify-trace-tencent = { workspace = true }
 dify-trace-weave = { workspace = true }
+graphon = { git = "https://github.com/langgenius/graphon", branch = "fix/file-serde-backport-0.2.2" }
 
 [tool.uv]
 default-groups = ["storage", "tools", "vdb-all", "trace-all"]
