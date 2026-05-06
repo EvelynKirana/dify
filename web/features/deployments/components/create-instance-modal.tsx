@@ -64,8 +64,12 @@ export const AppPicker: FC<AppPickerProps> = ({ apps, isLoading, value, onChange
 
   if (isLoading) {
     return (
-      <div className="rounded-lg border border-dashed border-components-panel-border bg-components-panel-bg-blur px-4 py-6 text-center system-sm-regular text-text-tertiary">
-        {t('createModal.loadingApps')}
+      <div
+        className="flex h-10 w-full items-center justify-between rounded-lg border-[0.5px] border-components-input-border-active bg-components-input-bg-normal pr-2 pl-2 text-left"
+        aria-busy="true"
+      >
+        <span className="truncate system-sm-regular text-text-quaternary">{t('createModal.loadingApps')}</span>
+        <span aria-hidden className="h-4 w-4 shrink-0" />
       </div>
     )
   }
@@ -74,8 +78,8 @@ export const AppPicker: FC<AppPickerProps> = ({ apps, isLoading, value, onChange
 
   if (apps.length === 0) {
     return (
-      <div className="rounded-lg border border-dashed border-components-panel-border bg-components-panel-bg-blur px-4 py-6 text-center system-sm-regular text-text-tertiary">
-        {t('createModal.noApps')}
+      <div className="flex h-10 w-full items-center rounded-lg border-[0.5px] border-components-input-border-active bg-components-input-bg-normal px-3 system-sm-regular text-text-tertiary">
+        <span className="truncate">{t('createModal.noApps')}</span>
       </div>
     )
   }
