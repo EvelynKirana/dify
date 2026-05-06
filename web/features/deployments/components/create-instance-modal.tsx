@@ -7,13 +7,14 @@ import { cn } from '@langgenius/dify-ui/cn'
 import { Dialog, DialogCloseButton, DialogContent, DialogDescription, DialogTitle } from '@langgenius/dify-ui/dialog'
 import { Popover, PopoverContent, PopoverTrigger } from '@langgenius/dify-ui/popover'
 import { toast } from '@langgenius/dify-ui/toast'
+import { useQuery } from '@tanstack/react-query'
 import { useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { AppTypeIcon } from '@/app/components/app/type-selector'
 import AppIcon from '@/app/components/base/app-icon'
 import Input from '@/app/components/base/input'
 import { useRouter } from '@/next/navigation'
-import { useAppList } from '@/service/use-apps'
+import { consoleQuery } from '@/service/client'
 import { useCreateDeploymentInstance } from '../hooks/use-deployment-mutations'
 import { useDeploymentsStore } from '../store'
 
@@ -204,7 +205,15 @@ const CreateInstanceForm: FC<{ onClose: () => void }> = ({ onClose }) => {
   const { t } = useTranslation('deployments')
   const router = useRouter()
   const createInstance = useCreateDeploymentInstance()
-  const { data: appList, isLoading } = useAppList({ page: 1, limit: MAX_STUDIO_SOURCE_APPS, name: '' })
+  const { data: appList, isLoading } = useQuery(consoleQuery.apps.list.queryOptions({
+    input: {
+      query: {
+        page: 1,
+        limit: MAX_STUDIO_SOURCE_APPS,
+        name: '',
+      },
+    },
+  }))
   const apps = useMemo<AppInfo[]>(() => {
     return (appList?.data ?? []).map(toStudioSourceAppInfo)
   }, [appList?.data])
