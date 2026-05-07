@@ -355,7 +355,7 @@ export type HumanInputFilledFormData = {
   action_text: string
   form_content?: string
   inputs?: FormInputItem[]
-  form_data?: Record<string, HumanInputFormValue>
+  submitted_data?: Record<string, HumanInputFormValue>
 }
 
 export type HumanInputFormFilledResponse = {
@@ -460,7 +460,7 @@ export const VarInInspectType = {
 } as const
 export type VarInInspectType = typeof VarInInspectType[keyof typeof VarInInspectType]
 
-export type FullContent = {
+type FullContent = {
   size_bytes: number
   download_url: string
 }

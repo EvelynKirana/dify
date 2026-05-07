@@ -9,11 +9,11 @@ from typing import Any, NotRequired, TypedDict
 
 from flask import Response, request
 from flask_restx import Resource
-from pydantic import BaseModel
 from sqlalchemy import select
 from werkzeug.exceptions import Forbidden
 
 from configs import dify_config
+from controllers.common.human_input import HumanInputFormSubmitPayload
 from controllers.common.schema import register_schema_models
 from controllers.web import web_ns
 from controllers.web.error import NotFoundError, WebFormRateLimitExceededError
@@ -26,11 +26,6 @@ from services.human_input_file_upload_service import HumanInputFileUploadService
 from services.human_input_service import Form, FormNotFoundError, HumanInputService
 
 logger = logging.getLogger(__name__)
-
-
-class HumanInputFormSubmitPayload(BaseModel):
-    inputs: dict
-    action: str
 
 
 class HumanInputUploadTokenResponse(BaseModel):
