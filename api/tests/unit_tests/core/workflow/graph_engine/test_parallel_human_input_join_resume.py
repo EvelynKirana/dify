@@ -114,6 +114,9 @@ class StaticRepo(HumanInputFormRepository):
     def get_form(self, node_id: str) -> HumanInputFormEntity | None:
         return self._forms_by_node_id.get(node_id)
 
+    def set_forms(self, forms_by_node_id: Mapping[str, HumanInputFormEntity]) -> None:
+        self._forms_by_node_id = dict(forms_by_node_id)
+
     def create_form(self, params: FormCreateParams) -> HumanInputFormEntity:
         raise AssertionError("create_form should not be called in resume scenario")
 
@@ -190,8 +193,12 @@ def _build_graph(runtime_state: GraphRuntimeState, repo: HumanInputFormRepositor
     end_data = EndNodeData(
         title="End",
         outputs=[
-            OutputVariableEntity(variable="res_a", value_selector=["human_a", "__action_id"]),
-            OutputVariableEntity(variable="res_b", value_selector=["human_b", "__action_id"]),
+            OutputVariableEntity(variable="res_a_action", value_selector=["human_a", "__action_id"]),
+            OutputVariableEntity(variable="res_a_decision", value_selector=["human_a", "decision"]),
+            OutputVariableEntity(variable="res_a_attachment", value_selector=["human_a", "attachment"]),
+            OutputVariableEntity(variable="res_b_action", value_selector=["human_b", "__action_id"]),
+            OutputVariableEntity(variable="res_b_decision", value_selector=["human_b", "decision"]),
+            OutputVariableEntity(variable="res_b_attachments", value_selector=["human_b", "attachments"]),
         ],
         desc=None,
     )
@@ -229,13 +236,13 @@ def _run_graph(graph: Graph, runtime_state: GraphRuntimeState) -> list[object]:
     return list(engine.run())
 
 
-def _form(submitted: bool, action_id: str | None) -> StaticForm:
+def _form(submitted: bool, action_id: str | None, data: Mapping[str, Any] | None = None) -> StaticForm:
     return StaticForm(
         form_id="form",
         rendered="rendered",
         is_submitted=submitted,
         action_id=action_id,
-        data={},
+        data=data,
         status_value=HumanInputFormStatus.SUBMITTED if submitted else HumanInputFormStatus.WAITING,
     )
 
@@ -259,7 +266,21 @@ def test_parallel_human_input_join_completes_after_second_resume() -> None:
     first_resume_state = pause_store.load()
     first_resume_repo = StaticRepo(
         {
-            "human_a": _form(submitted=True, action_id="approve"),
+            "human_a": _form(
+                submitted=True,
+                action_id="approve",
+                data={
+                    "decision": "approve",
+                    "attachment": {
+                        "type": "document",
+                        "transfer_method": "remote_url",
+                        "remote_url": "https://example.com/resume.pdf",
+                        "filename": "resume.pdf",
+                        "extension": ".pdf",
+                        "mime_type": "application/pdf",
+                    },
+                },
+            ),
             "human_b": _form(submitted=False, action_id=None),
         }
     )
@@ -269,19 +290,68 @@ def test_parallel_human_input_join_completes_after_second_resume() -> None:
     assert isinstance(first_resume_events[0], GraphRunStartedEvent)
     assert first_resume_events[0].reason is WorkflowStartReason.RESUMPTION
     assert isinstance(first_resume_events[-1], GraphRunPausedEvent)
-    pause_store.save(first_resume_state)
-
-    second_resume_state = pause_store.load()
-    second_resume_repo = StaticRepo(
+    second_resume_state = first_resume_state
+    first_resume_repo.set_forms(
         {
-            "human_a": _form(submitted=True, action_id="approve"),
-            "human_b": _form(submitted=True, action_id="approve"),
+            "human_a": _form(
+                submitted=True,
+                action_id="approve",
+                data={
+                    "decision": "approve",
+                    "attachment": {
+                        "type": "document",
+                        "transfer_method": "remote_url",
+                        "remote_url": "https://example.com/resume.pdf",
+                        "filename": "resume.pdf",
+                        "extension": ".pdf",
+                        "mime_type": "application/pdf",
+                    },
+                },
+            ),
+            "human_b": _form(
+                submitted=True,
+                action_id="approve",
+                data={
+                    "decision": "reject",
+                    "attachments": [
+                        {
+                            "type": "image",
+                            "transfer_method": "remote_url",
+                            "remote_url": "https://example.com/a.png",
+                            "filename": "a.png",
+                            "extension": ".png",
+                            "mime_type": "image/png",
+                        },
+                        {
+                            "type": "image",
+                            "transfer_method": "remote_url",
+                            "remote_url": "https://example.com/b.png",
+                            "filename": "b.png",
+                            "extension": ".png",
+                            "mime_type": "image/png",
+                        },
+                    ],
+                },
+            ),
         }
     )
-    second_resume_graph = _build_graph(second_resume_state, second_resume_repo)
-    second_resume_events = _run_graph(second_resume_graph, second_resume_state)
+    second_resume_events = _run_graph(first_resume_graph, second_resume_state)
 
     assert isinstance(second_resume_events[0], GraphRunStartedEvent)
     assert second_resume_events[0].reason is WorkflowStartReason.RESUMPTION
     assert isinstance(second_resume_events[-1], GraphRunSucceededEvent)
     assert any(isinstance(event, NodeRunSucceededEvent) and event.node_id == "end" for event in second_resume_events)
+    second_resume_outputs = second_resume_state.outputs
+    assert second_resume_outputs["res_a_action"] == "approve"
+    assert second_resume_outputs["res_a_decision"] == "approve"
+    assert isinstance(second_resume_outputs["res_a_attachment"], File)
+    res_a_attachment_in_second_outputs = second_resume_outputs["res_a_attachment"]
+    assert isinstance(res_a_attachment_in_second_outputs, File)
+    assert res_a_attachment_in_second_outputs.filename == "resume.pdf"
+    assert res_a_attachment_in_second_outputs.type == FileType.DOCUMENT
+    assert res_a_attachment_in_second_outputs.transfer_method == FileTransferMethod.REMOTE_URL
+    assert second_resume_outputs["res_b_action"] == "approve"
+    assert second_resume_outputs["res_b_decision"] == "reject"
+    assert isinstance(second_resume_outputs["res_b_attachments"], list)
+    assert [file.filename for file in second_resume_outputs["res_b_attachments"]] == ["a.png", "b.png"]
+    assert all(file.type == FileType.IMAGE for file in second_resume_outputs["res_b_attachments"])
