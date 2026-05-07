@@ -23,10 +23,6 @@ import {
   useUpdateDeploymentInstance,
 } from '../hooks/use-deployment-mutations'
 import {
-  deploymentEnvironmentDeploymentsQueryOptions,
-  deploymentOverviewQueryOptions,
-} from '../queries'
-import {
   deployedRows,
   toAppInfoFromOverview,
 } from '../utils'
@@ -188,8 +184,12 @@ const SettingsTab: FC<SettingsTabProps> = ({ instanceId }) => {
   const updateInstance = useUpdateDeploymentInstance()
   const deleteInstance = useDeleteDeploymentInstance()
   const appInput = { params: { appInstanceId: instanceId } }
-  const { data: overview } = useQuery(deploymentOverviewQueryOptions(instanceId))
-  const { data: environmentDeployments } = useQuery(deploymentEnvironmentDeploymentsQueryOptions(instanceId))
+  const { data: overview } = useQuery(consoleQuery.enterprise.appDeploy.getAppInstanceOverview.queryOptions({
+    input: appInput,
+  }))
+  const { data: environmentDeployments } = useQuery(consoleQuery.enterprise.appDeploy.listRuntimeInstances.queryOptions({
+    input: appInput,
+  }))
   const app = useMemo(
     () => toAppInfoFromOverview(overview?.instance),
     [overview?.instance],

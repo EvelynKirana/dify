@@ -2,15 +2,13 @@
 
 import type { NavItem } from '@/app/components/header/nav/nav-selector'
 import type { AppIconType, AppModeEnum } from '@/types/app'
-import { useQuery } from '@tanstack/react-query'
+import { skipToken, useQuery } from '@tanstack/react-query'
 import { useCallback, useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 import Nav from '@/app/components/header/nav'
 import { useParams, useRouter, useSelectedLayoutSegment } from '@/next/navigation'
-import {
-  deploymentOverviewQueryOptions,
-  deploymentsListQueryOptions,
-} from '../queries'
+import { consoleQuery } from '@/service/client'
+import { SOURCE_APPS_PAGE_SIZE } from '../data'
 import { useDeploymentsStore } from '../store'
 import {
   sourceAppsFromList,
@@ -26,16 +24,23 @@ const DeploymentsNav = () => {
   const instanceId = params?.instanceId
 
   const openCreateInstanceModal = useDeploymentsStore(state => state.openCreateInstanceModal)
-  const { data: currentInstance } = useQuery({
-    ...deploymentOverviewQueryOptions(instanceId),
+  const { data: currentInstance } = useQuery(consoleQuery.enterprise.appDeploy.getAppInstanceOverview.queryOptions({
+    input: instanceId
+      ? { params: { appInstanceId: instanceId } }
+      : skipToken,
     enabled: isActive && Boolean(instanceId),
     select: data => toAppInfoFromOverview(data.instance),
-  })
+  }))
 
-  const listQuery = useQuery({
-    ...deploymentsListQueryOptions(),
+  const listQuery = useQuery(consoleQuery.enterprise.appDeploy.listAppInstances.queryOptions({
+    input: {
+      query: {
+        pageNumber: 1,
+        resultsPerPage: SOURCE_APPS_PAGE_SIZE,
+      },
+    },
     enabled: isActive,
-  })
+  }))
   const apps = useMemo(() => sourceAppsFromList(listQuery.data), [listQuery.data])
 
   const navigationItems = useMemo<NavItem[]>(() => {

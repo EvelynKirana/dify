@@ -16,7 +16,6 @@ import {
   useToggleDeploymentAccessChannel,
   useToggleDeploymentDeveloperAPI,
 } from '../hooks/use-deployment-mutations'
-import { deploymentEnvironmentDeploymentsQueryOptions } from '../queries'
 import {
   deployedRows,
 } from '../utils'
@@ -44,7 +43,9 @@ const AccessTab: FC<AccessTabProps> = ({ instanceId: appId }) => {
   const { data: accessConfig } = useQuery(consoleQuery.enterprise.appDeploy.getAppInstanceAccess.queryOptions({
     input: appInput,
   }))
-  const { data: environmentDeployments } = useQuery(deploymentEnvironmentDeploymentsQueryOptions(appId))
+  const { data: environmentDeployments } = useQuery(consoleQuery.enterprise.appDeploy.listRuntimeInstances.queryOptions({
+    input: appInput,
+  }))
   const [createdApiToken, setCreatedApiToken] = useState<{
     appId: string
     token: string

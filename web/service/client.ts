@@ -84,4 +84,7 @@ const consoleLink = new OpenAPILink(consoleRouterContract, {
 })
 
 export const consoleClient: JsonifiedClient<ContractRouterClient<typeof consoleRouterContract>> = createORPCClient(consoleLink)
-export const consoleQuery = createTanstackQueryUtils(consoleClient, { path: ['console'] })
+export const consoleQuery = createTanstackQueryUtils(consoleClient, {
+  path: ['console'],
+  experimental_defaults: { },
+})

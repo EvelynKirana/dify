@@ -9,11 +9,9 @@ import { useTranslation } from 'react-i18next'
 import { getAppModeLabel } from '@/app/components/app-sidebar/app-info/app-mode-labels'
 import useDocumentTitle from '@/hooks/use-document-title'
 import { useRouter, useSelectedLayoutSegment } from '@/next/navigation'
+import { consoleQuery } from '@/service/client'
 import DeployDrawer from '../components/deploy-drawer'
 import RollbackModal from '../components/rollback-modal'
-import {
-  deploymentOverviewQueryOptions,
-} from '../queries'
 import { toAppInfoFromOverview } from '../utils'
 import { DeploymentSidebar } from './deployment-sidebar'
 import { isInstanceDetailTabKey } from './tabs'
@@ -30,7 +28,11 @@ const InstanceDetail: FC<InstanceDetailProps> = ({ instanceId, children }) => {
   const selectedSegment = useSelectedLayoutSegment()
   const selectedTab = selectedSegment ?? undefined
   const activeTab: InstanceDetailTabKey = isInstanceDetailTabKey(selectedTab) ? selectedTab : 'overview'
-  const overviewQuery = useQuery(deploymentOverviewQueryOptions(instanceId))
+  const overviewQuery = useQuery(consoleQuery.enterprise.appDeploy.getAppInstanceOverview.queryOptions({
+    input: {
+      params: { appInstanceId: instanceId },
+    },
+  }))
 
   useDocumentTitle(t('documentTitle.detail'))
 

@@ -9,16 +9,12 @@ import {
   AlertDialogDescription,
   AlertDialogTitle,
 } from '@langgenius/dify-ui/alert-dialog'
-import { useQuery } from '@tanstack/react-query'
+import { skipToken, useQuery } from '@tanstack/react-query'
 import { useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 import { consoleQuery } from '@/service/client'
+import { DEPLOYMENT_PAGE_SIZE } from '../data'
 import { useStartDeployment } from '../hooks/use-deployment-mutations'
-import {
-  deploymentEnvironmentDeploymentsQueryOptions,
-  deploymentOverviewQueryOptions,
-  deploymentReleaseHistoryQueryOptions,
-} from '../queries'
 import { useDeploymentsStore } from '../store'
 import {
   activeRelease,
@@ -45,22 +41,32 @@ const RollbackModal: FC = () => {
   const modal = useDeploymentsStore(state => state.rollbackModal)
   const closeRollbackModal = useDeploymentsStore(state => state.closeRollbackModal)
   const rollbackDeployment = useStartDeployment()
-  const { data: overview } = useQuery({
-    ...deploymentOverviewQueryOptions(modal.appInstanceId),
+  const appInput = modal.appInstanceId
+    ? { params: { appInstanceId: modal.appInstanceId } }
+    : skipToken
+  const { data: overview } = useQuery(consoleQuery.enterprise.appDeploy.getAppInstanceOverview.queryOptions({
+    input: appInput,
     enabled: modal.open && Boolean(modal.appInstanceId),
-  })
-  const { data: environmentDeployments } = useQuery({
-    ...deploymentEnvironmentDeploymentsQueryOptions(modal.appInstanceId),
+  }))
+  const { data: environmentDeployments } = useQuery(consoleQuery.enterprise.appDeploy.listRuntimeInstances.queryOptions({
+    input: appInput,
     enabled: modal.open && Boolean(modal.appInstanceId),
-  })
-  const { data: environmentOptionsReply } = useQuery({
-    ...consoleQuery.enterprise.appDeploy.listDeploymentEnvironmentOptions.queryOptions(),
+  }))
+  const { data: environmentOptionsReply } = useQuery(consoleQuery.enterprise.appDeploy.listDeploymentEnvironmentOptions.queryOptions({
     enabled: modal.open,
-  })
-  const { data: releaseHistory } = useQuery({
-    ...deploymentReleaseHistoryQueryOptions(modal.appInstanceId),
+  }))
+  const { data: releaseHistory } = useQuery(consoleQuery.enterprise.appDeploy.listReleases.queryOptions({
+    input: modal.appInstanceId
+      ? {
+          params: { appInstanceId: modal.appInstanceId },
+          query: {
+            pageNumber: 1,
+            resultsPerPage: DEPLOYMENT_PAGE_SIZE,
+          },
+        }
+      : skipToken,
     enabled: modal.open && Boolean(modal.appInstanceId),
-  })
+  }))
   const environmentOptions = useMemo(
     () => environmentOptionsFromOptionsReply(environmentOptionsReply),
     [environmentOptionsReply],

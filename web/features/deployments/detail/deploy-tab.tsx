@@ -13,7 +13,6 @@ import { useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { consoleQuery } from '@/service/client'
 import { useUndeployDeployment } from '../hooks/use-deployment-mutations'
-import { deploymentEnvironmentDeploymentsQueryOptions } from '../queries'
 import { useDeploymentsStore } from '../store'
 import {
   activeRelease,
@@ -40,7 +39,11 @@ type DeployTabProps = {
 
 const DeployTab: FC<DeployTabProps> = ({ instanceId: appInstanceId }) => {
   const { t } = useTranslation('deployments')
-  const { data: environmentDeployments } = useQuery(deploymentEnvironmentDeploymentsQueryOptions(appInstanceId))
+  const { data: environmentDeployments } = useQuery(consoleQuery.enterprise.appDeploy.listRuntimeInstances.queryOptions({
+    input: {
+      params: { appInstanceId },
+    },
+  }))
   const { data: environmentOptionsReply } = useQuery(consoleQuery.enterprise.appDeploy.listDeploymentEnvironmentOptions.queryOptions())
   const openDeployDrawer = useDeploymentsStore(state => state.openDeployDrawer)
   const undeployDeployment = useUndeployDeployment()

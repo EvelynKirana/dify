@@ -11,7 +11,7 @@ import { consoleQuery } from '@/service/client'
 import CreateInstanceModal from '../components/create-instance-modal'
 import DeployDrawer from '../components/deploy-drawer'
 import RollbackModal from '../components/rollback-modal'
-import { deploymentsListQueryOptions } from '../queries'
+import { SOURCE_APPS_PAGE_SIZE } from '../data'
 import { useDeploymentsStore } from '../store'
 import {
   deploymentSummariesFromList,
@@ -45,10 +45,16 @@ const DeploymentsMain: FC = () => {
   const requestedEnvironmentId = envFilter !== 'all' && envFilter !== 'not-deployed'
     ? envFilter
     : undefined
-  const listQuery = useQuery(deploymentsListQueryOptions({
-    ...(requestedEnvironmentId ? { environmentId: requestedEnvironmentId } : {}),
-    ...(envFilter === 'not-deployed' ? { notDeployed: true } : {}),
-    ...(queryKeywords.trim() ? { query: queryKeywords.trim() } : {}),
+  const listQuery = useQuery(consoleQuery.enterprise.appDeploy.listAppInstances.queryOptions({
+    input: {
+      query: {
+        pageNumber: 1,
+        resultsPerPage: SOURCE_APPS_PAGE_SIZE,
+        ...(requestedEnvironmentId ? { environmentId: requestedEnvironmentId } : {}),
+        ...(envFilter === 'not-deployed' ? { notDeployed: true } : {}),
+        ...(queryKeywords.trim() ? { query: queryKeywords.trim() } : {}),
+      },
+    },
   }))
   const { data: environmentOptionsReply } = useQuery(consoleQuery.enterprise.appDeploy.listDeploymentEnvironmentOptions.queryOptions())
   const apps = useMemo(() => sourceAppsFromList(listQuery.data), [listQuery.data])

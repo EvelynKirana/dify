@@ -4,18 +4,7 @@ import type { DeploymentRuntimeBinding } from '@dify/contracts/enterprise/types.
 import type { QueryClient, QueryKey } from '@tanstack/react-query'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { consoleClient, consoleQuery } from '@/service/client'
-import {
-  deploymentAccessConfigQueryKey,
-  deploymentAccessStateQueryKeys,
-  deploymentEnvironmentAccessPolicyQueryKeyForEnvironment,
-  deploymentInstanceDetailQueryKeys,
-  deploymentInstanceIdentityQueryKeys,
-  deploymentInstanceStateQueryKeys,
-  deploymentOverviewQueryKey,
-  deploymentReleaseHistoryQueryKey,
-  deploymentsListQueryKey,
-  deploymentsListQueryOptions,
-} from '../queries'
+import { SOURCE_APPS_PAGE_SIZE } from '../data'
 
 export type CreateDeploymentInstanceResult = {
   appInstanceId: string
@@ -60,20 +49,57 @@ const removeQueries = (queryClient: QueryClient, queryKeys: readonly QueryKey[])
 
 const invalidateInstanceList = (queryClient: QueryClient): Promise<void> => {
   return queryClient.invalidateQueries({
-    queryKey: deploymentsListQueryKey(),
+    queryKey: consoleQuery.enterprise.appDeploy.listAppInstances.key({ type: 'query' }),
   })
 }
 
 const invalidateInstanceIdentity = (queryClient: QueryClient, appInstanceId: string): Promise<void> => {
-  return invalidateQueries(queryClient, deploymentInstanceIdentityQueryKeys(appInstanceId))
+  return invalidateQueries(queryClient, [
+    consoleQuery.enterprise.appDeploy.listAppInstances.key({ type: 'query' }),
+    consoleQuery.enterprise.appDeploy.getAppInstanceOverview.key({
+      type: 'query',
+      input: { params: { appInstanceId } },
+    }),
+    consoleQuery.enterprise.appDeploy.getAppInstanceSettings.key({
+      type: 'query',
+      input: { params: { appInstanceId } },
+    }),
+  ])
 }
 
 const invalidateDeploymentState = (queryClient: QueryClient, appInstanceId: string): Promise<void> => {
-  return invalidateQueries(queryClient, deploymentInstanceStateQueryKeys(appInstanceId))
+  return invalidateQueries(queryClient, [
+    consoleQuery.enterprise.appDeploy.listAppInstances.key({ type: 'query' }),
+    consoleQuery.enterprise.appDeploy.getAppInstanceOverview.key({
+      type: 'query',
+      input: { params: { appInstanceId } },
+    }),
+    consoleQuery.enterprise.appDeploy.listRuntimeInstances.key({
+      type: 'query',
+      input: { params: { appInstanceId } },
+    }),
+    consoleQuery.enterprise.appDeploy.listReleases.key({
+      type: 'query',
+      input: { params: { appInstanceId } },
+    }),
+    consoleQuery.enterprise.appDeploy.getAppInstanceAccess.key({
+      type: 'query',
+      input: { params: { appInstanceId } },
+    }),
+  ])
 }
 
 const invalidateAccessState = (queryClient: QueryClient, appInstanceId: string): Promise<void> => {
-  return invalidateQueries(queryClient, deploymentAccessStateQueryKeys(appInstanceId))
+  return invalidateQueries(queryClient, [
+    consoleQuery.enterprise.appDeploy.getAppInstanceOverview.key({
+      type: 'query',
+      input: { params: { appInstanceId } },
+    }),
+    consoleQuery.enterprise.appDeploy.getAppInstanceAccess.key({
+      type: 'query',
+      input: { params: { appInstanceId } },
+    }),
+  ])
 }
 
 const invalidateEnvironmentAccessPolicy = (
@@ -82,13 +108,49 @@ const invalidateEnvironmentAccessPolicy = (
   environmentId: string,
 ): Promise<void> => {
   return invalidateQueries(queryClient, [
-    deploymentAccessConfigQueryKey(appInstanceId),
-    deploymentEnvironmentAccessPolicyQueryKeyForEnvironment(appInstanceId, environmentId),
+    consoleQuery.enterprise.appDeploy.getAppInstanceAccess.key({
+      type: 'query',
+      input: { params: { appInstanceId } },
+    }),
+    consoleQuery.enterprise.appDeploy.getEnvironmentAccessPolicy.key({
+      type: 'query',
+      input: {
+        params: {
+          appInstanceId,
+          environmentId,
+        },
+      },
+    }),
   ])
 }
 
 const removeDeletedInstanceState = (queryClient: QueryClient, appInstanceId: string): Promise<void> => {
-  removeQueries(queryClient, deploymentInstanceDetailQueryKeys(appInstanceId))
+  removeQueries(queryClient, [
+    consoleQuery.enterprise.appDeploy.getAppInstanceOverview.key({
+      type: 'query',
+      input: { params: { appInstanceId } },
+    }),
+    consoleQuery.enterprise.appDeploy.getAppInstanceSettings.key({
+      type: 'query',
+      input: { params: { appInstanceId } },
+    }),
+    consoleQuery.enterprise.appDeploy.listRuntimeInstances.key({
+      type: 'query',
+      input: { params: { appInstanceId } },
+    }),
+    consoleQuery.enterprise.appDeploy.listReleases.key({
+      type: 'query',
+      input: { params: { appInstanceId } },
+    }),
+    consoleQuery.enterprise.appDeploy.getAppInstanceAccess.key({
+      type: 'query',
+      input: { params: { appInstanceId } },
+    }),
+    consoleQuery.enterprise.appDeploy.getEnvironmentAccessPolicy.key({
+      type: 'query',
+      input: { params: { appInstanceId } },
+    }),
+  ])
   return invalidateInstanceList(queryClient)
 }
 
@@ -112,7 +174,16 @@ export const useCreateDeploymentInstance = () => {
         if (delay > 0)
           await wait(delay)
 
-        const listResponse = await queryClient.fetchQuery(deploymentsListQueryOptions()).catch(() => undefined)
+        const listResponse = await queryClient
+          .fetchQuery(consoleQuery.enterprise.appDeploy.listAppInstances.queryOptions({
+            input: {
+              query: {
+                pageNumber: 1,
+                resultsPerPage: SOURCE_APPS_PAGE_SIZE,
+              },
+            },
+          }))
+          .catch(() => undefined)
         if (listResponse?.data?.some(app => app.id === response.appInstanceId))
           break
       }
@@ -149,8 +220,14 @@ export const useCreateDeploymentRelease = () => {
     },
     onSuccess: (_data, variables) => {
       return invalidateQueries(queryClient, [
-        deploymentReleaseHistoryQueryKey(variables.appInstanceId),
-        deploymentOverviewQueryKey(variables.appInstanceId),
+        consoleQuery.enterprise.appDeploy.listReleases.key({
+          type: 'query',
+          input: { params: { appInstanceId: variables.appInstanceId } },
+        }),
+        consoleQuery.enterprise.appDeploy.getAppInstanceOverview.key({
+          type: 'query',
+          input: { params: { appInstanceId: variables.appInstanceId } },
+        }),
       ])
     },
   })

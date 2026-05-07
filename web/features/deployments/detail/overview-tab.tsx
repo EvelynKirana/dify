@@ -9,10 +9,7 @@ import { getAppModeLabel } from '@/app/components/app-sidebar/app-info/app-mode-
 import { useRouter } from '@/next/navigation'
 import { consoleQuery } from '@/service/client'
 import { StatusBadge } from '../components/status-badge'
-import {
-  deploymentOverviewQueryOptions,
-  deploymentReleaseHistoryQueryOptions,
-} from '../queries'
+import { DEPLOYMENT_PAGE_SIZE } from '../data'
 import { useDeploymentsStore } from '../store'
 import {
   releaseLabel,
@@ -102,8 +99,18 @@ const OverviewTab: FC<OverviewTabProps> = ({ instanceId }) => {
   const { t: tCommon } = useTranslation()
   const router = useRouter()
   const input = { params: { appInstanceId: instanceId } }
-  const { data: overview } = useQuery(deploymentOverviewQueryOptions(instanceId))
-  const { data: releaseHistory } = useQuery(deploymentReleaseHistoryQueryOptions(instanceId))
+  const { data: overview } = useQuery(consoleQuery.enterprise.appDeploy.getAppInstanceOverview.queryOptions({
+    input,
+  }))
+  const { data: releaseHistory } = useQuery(consoleQuery.enterprise.appDeploy.listReleases.queryOptions({
+    input: {
+      ...input,
+      query: {
+        pageNumber: 1,
+        resultsPerPage: DEPLOYMENT_PAGE_SIZE,
+      },
+    },
+  }))
   const { data: accessConfig } = useQuery(consoleQuery.enterprise.appDeploy.getAppInstanceAccess.queryOptions({
     input,
   }))

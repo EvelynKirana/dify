@@ -12,7 +12,6 @@ import { useQuery } from '@tanstack/react-query'
 import { useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { consoleQuery } from '@/service/client'
-import { deploymentEnvironmentDeploymentsQueryOptions } from '../../queries'
 import { useDeploymentsStore } from '../../store'
 import {
   activeRelease,
@@ -32,14 +31,15 @@ export const DeployReleaseMenu: FC<DeployReleaseMenuProps> = ({ appInstanceId, r
   const { t } = useTranslation('deployments')
   const openDeployDrawer = useDeploymentsStore(state => state.openDeployDrawer)
   const [open, setOpen] = useState(false)
-  const { data: environmentDeployments } = useQuery({
-    ...deploymentEnvironmentDeploymentsQueryOptions(appInstanceId),
+  const { data: environmentDeployments } = useQuery(consoleQuery.enterprise.appDeploy.listRuntimeInstances.queryOptions({
+    input: {
+      params: { appInstanceId },
+    },
     enabled: open,
-  })
-  const { data: environmentOptionsReply } = useQuery({
-    ...consoleQuery.enterprise.appDeploy.listDeploymentEnvironmentOptions.queryOptions(),
+  }))
+  const { data: environmentOptionsReply } = useQuery(consoleQuery.enterprise.appDeploy.listDeploymentEnvironmentOptions.queryOptions({
     enabled: open,
-  })
+  }))
 
   const environmentOptions = useMemo(
     () => environmentOptionsFromOptionsReply(environmentOptionsReply),

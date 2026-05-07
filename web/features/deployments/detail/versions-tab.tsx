@@ -10,12 +10,9 @@ import { useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import Input from '@/app/components/base/input'
 import Textarea from '@/app/components/base/textarea'
+import { consoleQuery } from '@/service/client'
+import { DEPLOYMENT_PAGE_SIZE } from '../data'
 import { useCreateDeploymentRelease } from '../hooks/use-deployment-mutations'
-import {
-  deploymentEnvironmentDeploymentsQueryOptions,
-  deploymentOverviewQueryOptions,
-  deploymentReleaseHistoryQueryOptions,
-} from '../queries'
 import {
   deployedRows,
   formatDate,
@@ -34,9 +31,22 @@ type VersionsTabProps = {
 
 const VersionsTab: FC<VersionsTabProps> = ({ instanceId: appId }) => {
   const { t } = useTranslation('deployments')
-  const { data: overview } = useQuery(deploymentOverviewQueryOptions(appId))
-  const { data: releaseHistory } = useQuery(deploymentReleaseHistoryQueryOptions(appId))
-  const { data: environmentDeployments } = useQuery(deploymentEnvironmentDeploymentsQueryOptions(appId))
+  const input = { params: { appInstanceId: appId } }
+  const { data: overview } = useQuery(consoleQuery.enterprise.appDeploy.getAppInstanceOverview.queryOptions({
+    input,
+  }))
+  const { data: releaseHistory } = useQuery(consoleQuery.enterprise.appDeploy.listReleases.queryOptions({
+    input: {
+      ...input,
+      query: {
+        pageNumber: 1,
+        resultsPerPage: DEPLOYMENT_PAGE_SIZE,
+      },
+    },
+  }))
+  const { data: environmentDeployments } = useQuery(consoleQuery.enterprise.appDeploy.listRuntimeInstances.queryOptions({
+    input,
+  }))
   const createRelease = useCreateDeploymentRelease()
   const [isCreating, setIsCreating] = useState(false)
   const [releaseName, setReleaseName] = useState('')
