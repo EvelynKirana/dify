@@ -12,13 +12,14 @@ import {
   DropdownMenuTrigger,
 } from '@langgenius/dify-ui/dropdown-menu'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@langgenius/dify-ui/tooltip'
+import { useSetAtom } from 'jotai'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { AppTypeIcon } from '@/app/components/app/type-selector'
 import AppIcon from '@/app/components/base/app-icon'
 import { useFormatTimeFromNow } from '@/hooks/use-format-time-from-now'
 import Link from '@/next/link'
-import { useDeploymentsStore } from '../store'
+import { openDeployDrawerAtom } from '../store'
 
 export function InstanceCard({ app }: {
   app: AppInstanceCard
@@ -194,7 +195,7 @@ function InstanceCardActions({ appId, detailHref }: {
 }) {
   const { t } = useTranslation('deployments')
   const [menuOpen, setMenuOpen] = useState(false)
-  const openDeployDrawer = useDeploymentsStore(state => state.openDeployDrawer)
+  const openDeployDrawer = useSetAtom(openDeployDrawerAtom)
 
   return (
     <div className="pointer-events-none absolute right-0 bottom-1 left-0 flex h-[42px] shrink-0 items-center pt-1 pr-[6px] pb-[6px] pl-[14px]">

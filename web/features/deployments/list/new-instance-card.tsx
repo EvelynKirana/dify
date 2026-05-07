@@ -1,8 +1,9 @@
 'use client'
 
 import { cn } from '@langgenius/dify-ui/cn'
+import { useSetAtom } from 'jotai'
 import { useTranslation } from 'react-i18next'
-import { useDeploymentsStore } from '../store'
+import { openCreateInstanceModalAtom } from '../store'
 
 type NewInstanceActionProps = {
   icon: string
@@ -40,7 +41,7 @@ function NewInstanceAction({ icon, label, disabled, onClick }: NewInstanceAction
 
 export function NewInstanceCard() {
   const { t } = useTranslation('deployments')
-  const openCreateInstanceModal = useDeploymentsStore(state => state.openCreateInstanceModal)
+  const openCreateInstanceModal = useSetAtom(openCreateInstanceModalAtom)
 
   return (
     <div className="relative col-span-1 inline-flex h-[160px] flex-col justify-between rounded-xl border-[0.5px] border-components-card-border bg-components-card-bg">

@@ -6,6 +6,7 @@ import { Dialog, DialogCloseButton, DialogContent, DialogDescription, DialogTitl
 import { Popover, PopoverContent, PopoverTrigger } from '@langgenius/dify-ui/popover'
 import { toast } from '@langgenius/dify-ui/toast'
 import { useMutation, useQuery } from '@tanstack/react-query'
+import { useAtomValue, useSetAtom } from 'jotai'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { AppTypeIcon } from '@/app/components/app/type-selector'
@@ -14,7 +15,7 @@ import Input from '@/app/components/base/input'
 import { useRouter } from '@/next/navigation'
 import { consoleQuery } from '@/service/client'
 import { AppModeEnum } from '@/types/app'
-import { useDeploymentsStore } from '../store'
+import { closeCreateInstanceModalAtom, createInstanceModalOpenAtom } from '../store'
 
 const MAX_STUDIO_SOURCE_APPS = 100
 
@@ -324,17 +325,17 @@ function CreateInstanceForm({ onClose }: {
 }
 
 export function CreateInstanceModal() {
-  const modal = useDeploymentsStore(state => state.createInstanceModal)
-  const closeModal = useDeploymentsStore(state => state.closeCreateInstanceModal)
+  const open = useAtomValue(createInstanceModalOpenAtom)
+  const closeModal = useSetAtom(closeCreateInstanceModalAtom)
 
   return (
     <Dialog
-      open={modal.open}
+      open={open}
       onOpenChange={next => !next && closeModal()}
     >
       <DialogContent className="w-[520px] max-w-[90vw]">
         <DialogCloseButton />
-        {modal.open && <CreateInstanceForm onClose={closeModal} />}
+        {open && <CreateInstanceForm onClose={closeModal} />}
       </DialogContent>
     </Dialog>
   )

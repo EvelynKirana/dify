@@ -3,13 +3,14 @@ import type { ReactNode } from 'react'
 import { Button } from '@langgenius/dify-ui/button'
 import { cn } from '@langgenius/dify-ui/cn'
 import { useQuery } from '@tanstack/react-query'
+import { useSetAtom } from 'jotai'
 import { useTranslation } from 'react-i18next'
 import { getAppModeLabel } from '@/app/components/app-sidebar/app-info/app-mode-labels'
 import Link from '@/next/link'
 import { consoleQuery } from '@/service/client'
 import { StatusBadge } from '../components/status-badge'
 import { DEPLOYMENT_PAGE_SIZE } from '../data'
-import { useDeploymentsStore } from '../store'
+import { openDeployDrawerAtom } from '../store'
 import {
   releaseLabel,
   webappUrl,
@@ -107,7 +108,7 @@ export function OverviewTab({ instanceId }: {
   const { data: accessConfig } = useQuery(consoleQuery.enterprise.appDeploy.getAppInstanceAccess.queryOptions({
     input,
   }))
-  const openDeployDrawer = useDeploymentsStore(state => state.openDeployDrawer)
+  const openDeployDrawer = useSetAtom(openDeployDrawerAtom)
   const overviewApp = overview?.instance
   const deployments = overview?.deployments?.filter(row => row.environment?.id && row.status?.toLowerCase() !== 'undeployed') ?? []
   const releaseRows = releaseHistory?.data?.filter(row => row.id) ?? []

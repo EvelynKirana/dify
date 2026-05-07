@@ -9,10 +9,17 @@ import {
   AlertDialogTitle,
 } from '@langgenius/dify-ui/alert-dialog'
 import { skipToken, useMutation, useQuery } from '@tanstack/react-query'
+import { useAtomValue, useSetAtom } from 'jotai'
 import { useTranslation } from 'react-i18next'
 import { consoleQuery } from '@/service/client'
 import { DEPLOYMENT_PAGE_SIZE } from '../data'
-import { useDeploymentsStore } from '../store'
+import {
+  closeRollbackModalAtom,
+  rollbackModalAppInstanceIdAtom,
+  rollbackModalEnvironmentIdAtom,
+  rollbackModalOpenAtom,
+  rollbackModalTargetReleaseIdAtom,
+} from '../store'
 import {
   activeRelease,
   deployedRows,
@@ -37,60 +44,63 @@ function InfoRow({ label, value }: {
 
 export function RollbackModal() {
   const { t } = useTranslation('deployments')
-  const modal = useDeploymentsStore(state => state.rollbackModal)
-  const closeRollbackModal = useDeploymentsStore(state => state.closeRollbackModal)
+  const open = useAtomValue(rollbackModalOpenAtom)
+  const appInstanceId = useAtomValue(rollbackModalAppInstanceIdAtom)
+  const modalEnvironmentId = useAtomValue(rollbackModalEnvironmentIdAtom)
+  const targetReleaseId = useAtomValue(rollbackModalTargetReleaseIdAtom)
+  const closeRollbackModal = useSetAtom(closeRollbackModalAtom)
   const rollbackDeployment = useMutation(consoleQuery.enterprise.appDeploy.createDeployment.mutationOptions())
-  const appInput = modal.appInstanceId
-    ? { params: { appInstanceId: modal.appInstanceId } }
+  const appInput = appInstanceId
+    ? { params: { appInstanceId } }
     : skipToken
   const { data: overview } = useQuery(consoleQuery.enterprise.appDeploy.getAppInstanceOverview.queryOptions({
     input: appInput,
-    enabled: modal.open && Boolean(modal.appInstanceId),
+    enabled: open && Boolean(appInstanceId),
   }))
   const { data: environmentDeployments } = useQuery(consoleQuery.enterprise.appDeploy.listRuntimeInstances.queryOptions({
     input: appInput,
-    enabled: modal.open && Boolean(modal.appInstanceId),
+    enabled: open && Boolean(appInstanceId),
   }))
   const { data: environmentOptionsReply } = useQuery(consoleQuery.enterprise.appDeploy.listDeploymentEnvironmentOptions.queryOptions({
-    enabled: modal.open,
+    enabled: open,
   }))
   const { data: releaseHistory } = useQuery(consoleQuery.enterprise.appDeploy.listReleases.queryOptions({
-    input: modal.appInstanceId
+    input: appInstanceId
       ? {
-          params: { appInstanceId: modal.appInstanceId },
+          params: { appInstanceId },
           query: {
             pageNumber: 1,
             resultsPerPage: DEPLOYMENT_PAGE_SIZE,
           },
         }
       : skipToken,
-    enabled: modal.open && Boolean(modal.appInstanceId),
+    enabled: open && Boolean(appInstanceId),
   }))
   const environmentOptions = environmentOptionsFromOptionsReply(environmentOptionsReply)
 
   const currentRow = deployedRows(environmentDeployments?.data)
-    .find(row => environmentId(row.environment) === modal.environmentId)
+    .find(row => environmentId(row.environment) === modalEnvironmentId)
   const targetRelease = [
     ...(releaseHistory?.data?.filter(release => !!release.id) ?? []),
-  ].find(release => release.id === modal.targetReleaseId)
+  ].find(release => release.id === targetReleaseId)
   const currentRelease = activeRelease(currentRow)
   const environment = currentRow?.environment
-    ?? environmentOptions.find(env => env.id === modal.environmentId)
+    ?? environmentOptions.find(env => env.id === modalEnvironmentId)
   const app = overview?.instance
   const appName = app?.name ?? '-'
   const sourceAppName = app?.sourceAppName ?? appName
 
   const confirm = () => {
-    if (!modal.appInstanceId || !modal.environmentId || !modal.targetReleaseId)
+    if (!appInstanceId || !modalEnvironmentId || !targetReleaseId)
       return
     closeRollbackModal()
     rollbackDeployment.mutate({
       params: {
-        appInstanceId: modal.appInstanceId,
+        appInstanceId,
       },
       body: {
-        environmentId: modal.environmentId,
-        releaseId: modal.targetReleaseId,
+        environmentId: modalEnvironmentId,
+        releaseId: targetReleaseId,
         bindings: [],
       },
     })
@@ -98,7 +108,7 @@ export function RollbackModal() {
 
   return (
     <AlertDialog
-      open={modal.open}
+      open={open}
       onOpenChange={next => !next && closeRollbackModal()}
     >
       <AlertDialogContent className="w-[520px]">

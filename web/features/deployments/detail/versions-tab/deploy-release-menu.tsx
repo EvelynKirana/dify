@@ -8,10 +8,11 @@ import {
   DropdownMenuTrigger,
 } from '@langgenius/dify-ui/dropdown-menu'
 import { useQuery } from '@tanstack/react-query'
+import { useSetAtom } from 'jotai'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { consoleQuery } from '@/service/client'
-import { useDeploymentsStore } from '../../store'
+import { openDeployDrawerAtom } from '../../store'
 import {
   activeRelease,
   deployedRows,
@@ -26,7 +27,7 @@ export function DeployReleaseMenu({ appInstanceId, releaseId }: {
   releaseId: string
 }) {
   const { t } = useTranslation('deployments')
-  const openDeployDrawer = useDeploymentsStore(state => state.openDeployDrawer)
+  const openDeployDrawer = useSetAtom(openDeployDrawerAtom)
   const [open, setOpen] = useState(false)
   const { data: environmentDeployments } = useQuery(consoleQuery.enterprise.appDeploy.listRuntimeInstances.queryOptions({
     input: {

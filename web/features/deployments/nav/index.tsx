@@ -4,12 +4,13 @@ import type { AppInstanceBasicInfo, AppInstanceCard } from '@dify/contracts/ente
 import type { NavItem } from '@/app/components/header/nav/nav-selector'
 import type { AppModeEnum } from '@/types/app'
 import { skipToken, useQuery } from '@tanstack/react-query'
+import { useSetAtom } from 'jotai'
 import { useTranslation } from 'react-i18next'
 import Nav from '@/app/components/header/nav'
 import { useParams, useRouter, useSelectedLayoutSegment } from '@/next/navigation'
 import { consoleQuery } from '@/service/client'
 import { SOURCE_APPS_PAGE_SIZE } from '../data'
-import { useDeploymentsStore } from '../store'
+import { openCreateInstanceModalAtom } from '../store'
 
 function navItemFromListApp(app: AppInstanceCard): NavItem[] {
   if (!app.id || !app.name)
@@ -53,7 +54,7 @@ export function DeploymentsNav() {
   const params = useParams<{ instanceId?: string }>()
   const instanceId = params?.instanceId
 
-  const openCreateInstanceModal = useDeploymentsStore(state => state.openCreateInstanceModal)
+  const openCreateInstanceModal = useSetAtom(openCreateInstanceModalAtom)
   const { data: currentInstance } = useQuery(consoleQuery.enterprise.appDeploy.getAppInstanceOverview.queryOptions({
     input: instanceId
       ? { params: { appInstanceId: instanceId } }

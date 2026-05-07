@@ -3,20 +3,28 @@
 import { Dialog, DialogCloseButton, DialogContent } from '@langgenius/dify-ui/dialog'
 import { toast } from '@langgenius/dify-ui/toast'
 import { skipToken, useMutation, useQuery } from '@tanstack/react-query'
+import { useAtomValue, useSetAtom } from 'jotai'
 import { useTranslation } from 'react-i18next'
 import { consoleQuery } from '@/service/client'
 import { DEPLOYMENT_PAGE_SIZE } from '../data'
-import { useDeploymentsStore } from '../store'
+import {
+  closeDeployDrawerAtom,
+  deployDrawerAppInstanceIdAtom,
+  deployDrawerEnvironmentIdAtom,
+  deployDrawerOpenAtom,
+  deployDrawerReleaseIdAtom,
+} from '../store'
 import { environmentOptionsFromOptionsReply } from '../utils'
 import { DeployForm } from './deploy-drawer/form'
 
 export function DeployDrawer() {
   const { t } = useTranslation('deployments')
-  const drawer = useDeploymentsStore(state => state.deployDrawer)
-  const drawerAppInstanceId = drawer.appInstanceId
-  const closeDeployDrawer = useDeploymentsStore(state => state.closeDeployDrawer)
+  const open = useAtomValue(deployDrawerOpenAtom)
+  const drawerAppInstanceId = useAtomValue(deployDrawerAppInstanceIdAtom)
+  const drawerEnvironmentId = useAtomValue(deployDrawerEnvironmentIdAtom)
+  const drawerReleaseId = useAtomValue(deployDrawerReleaseIdAtom)
+  const closeDeployDrawer = useSetAtom(closeDeployDrawerAtom)
   const startDeploy = useMutation(consoleQuery.enterprise.appDeploy.createDeployment.mutationOptions())
-  const open = drawer.open
   const { data: releaseHistory } = useQuery(consoleQuery.enterprise.appDeploy.listReleases.queryOptions({
     input: drawerAppInstanceId
       ? {
@@ -36,7 +44,7 @@ export function DeployDrawer() {
   const environments = environmentOptionsFromOptionsReply(environmentOptionsReply)
   const releases = releaseHistory?.data?.filter(release => release.id) ?? []
   const defaultReleaseId = releases[0]?.id
-  const formKey = `${drawer.appInstanceId ?? 'none'}-${drawer.environmentId ?? 'any'}-${drawer.releaseId ?? 'new'}-${open ? '1' : '0'}`
+  const formKey = `${drawerAppInstanceId ?? 'none'}-${drawerEnvironmentId ?? 'any'}-${drawerReleaseId ?? 'new'}-${open ? '1' : '0'}`
 
   return (
     <Dialog
@@ -61,8 +69,8 @@ export function DeployDrawer() {
                     environments={environments}
                     releases={releases}
                     defaultReleaseId={defaultReleaseId}
-                    lockedEnvId={drawer.environmentId}
-                    presetReleaseId={drawer.releaseId}
+                    lockedEnvId={drawerEnvironmentId}
+                    presetReleaseId={drawerReleaseId}
                     isSubmitting={startDeploy.isPending}
                     onCancel={closeDeployDrawer}
                     onSubmit={async ({ environmentId, releaseId, bindings }) => {

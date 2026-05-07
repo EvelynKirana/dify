@@ -10,10 +10,11 @@ import {
   DropdownMenuTrigger,
 } from '@langgenius/dify-ui/dropdown-menu'
 import { useMutation, useQuery } from '@tanstack/react-query'
+import { useSetAtom } from 'jotai'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { consoleQuery } from '@/service/client'
-import { useDeploymentsStore } from '../store'
+import { openDeployDrawerAtom } from '../store'
 import {
   activeRelease,
   deployedRows,
@@ -38,7 +39,7 @@ function NewDeploymentMenu({ appInstanceId, availableEnvs }: {
   availableEnvs: EnvironmentOption[]
 }) {
   const { t } = useTranslation('deployments')
-  const openDeployDrawer = useDeploymentsStore(state => state.openDeployDrawer)
+  const openDeployDrawer = useSetAtom(openDeployDrawerAtom)
   const [open, setOpen] = useState(false)
 
   return (
@@ -100,7 +101,7 @@ function DeploymentRowActions({ appInstanceId, envId, row }: {
 }) {
   const { t } = useTranslation('deployments')
   const [menuOpen, setMenuOpen] = useState(false)
-  const openDeployDrawer = useDeploymentsStore(state => state.openDeployDrawer)
+  const openDeployDrawer = useSetAtom(openDeployDrawerAtom)
   const cancelDeployment = useMutation(consoleQuery.enterprise.appDeploy.cancelRuntimeDeployment.mutationOptions())
   const undeployDeployment = useMutation(consoleQuery.enterprise.appDeploy.undeployRuntimeInstance.mutationOptions())
   const isUndeployed = isUndeployedDeploymentRow(row)
