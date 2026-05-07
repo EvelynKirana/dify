@@ -68,6 +68,7 @@ function DeploymentsList() {
         ...(queryKeywords.trim() ? { query: queryKeywords.trim() } : {}),
       },
     },
+    placeholderData: prev => prev,
   }))
   const apps = listQuery.data?.data ?? []
 
