@@ -155,9 +155,6 @@
     }
   },
   "web/app/account/(commonLayout)/account-page/email-change-modal.tsx": {
-    "erasable-syntax-only/enums": {
-      "count": 1
-    },
     "ts/no-explicit-any": {
       "count": 5
     }
@@ -1824,26 +1821,6 @@
       "count": 1
     }
   },
-  "web/app/components/base/tag-management/__tests__/panel.spec.tsx": {
-    "ts/no-explicit-any": {
-      "count": 2
-    }
-  },
-  "web/app/components/base/tag-management/index.tsx": {
-    "no-restricted-imports": {
-      "count": 1
-    }
-  },
-  "web/app/components/base/tag-management/tag-item-editor.tsx": {
-    "no-restricted-imports": {
-      "count": 1
-    }
-  },
-  "web/app/components/base/tag-management/tag-remove-modal.tsx": {
-    "no-restricted-imports": {
-      "count": 1
-    }
-  },
   "web/app/components/base/text-generation/hooks.ts": {
     "ts/no-explicit-any": {
       "count": 1
@@ -1919,11 +1896,6 @@
   "web/app/components/billing/plan/assets/index.tsx": {
     "no-barrel-files/no-barrel-files": {
       "count": 4
-    }
-  },
-  "web/app/components/billing/plan/index.tsx": {
-    "ts/no-explicit-any": {
-      "count": 2
     }
   },
   "web/app/components/billing/pricing/assets/index.tsx": {
@@ -2359,11 +2331,6 @@
       "count": 1
     }
   },
-  "web/app/components/datasets/list/dataset-card/hooks/use-dataset-card-state.ts": {
-    "react/set-state-in-effect": {
-      "count": 1
-    }
-  },
   "web/app/components/datasets/metadata/edit-metadata-batch/input-combined.tsx": {
     "ts/no-explicit-any": {
       "count": 2
@@ -2467,17 +2434,6 @@
     },
     "react/set-state-in-effect": {
       "count": 2
-    }
-  },
-  "web/app/components/explore/create-app-modal/index.tsx": {
-    "no-restricted-imports": {
-      "count": 1
-    },
-    "ts/no-explicit-any": {
-      "count": 1
-    },
-    "unicorn/prefer-number-properties": {
-      "count": 1
     }
   },
   "web/app/components/explore/item-operation/index.tsx": {
@@ -4238,11 +4194,6 @@
       "count": 1
     }
   },
-  "web/app/components/workflow/nodes/knowledge-retrieval/components/metadata/condition-list/condition-value-method.tsx": {
-    "no-restricted-imports": {
-      "count": 1
-    }
-  },
   "web/app/components/workflow/nodes/knowledge-retrieval/components/metadata/metadata-filter/index.tsx": {
     "no-restricted-imports": {
       "count": 1
@@ -5099,11 +5050,6 @@
       "count": 5
     }
   },
-  "web/app/education-apply/verify-state-modal.tsx": {
-    "react/set-state-in-effect": {
-      "count": 1
-    }
-  },
   "web/app/forgot-password/ForgotPasswordForm.spec.tsx": {
     "ts/no-explicit-any": {
       "count": 5
@@ -5376,11 +5322,6 @@
     },
     "ts/no-explicit-any": {
       "count": 2
-    }
-  },
-  "web/service/knowledge/use-dataset.ts": {
-    "@tanstack/query/exhaustive-deps": {
-      "count": 1
     }
   },
   "web/service/share.ts": {
