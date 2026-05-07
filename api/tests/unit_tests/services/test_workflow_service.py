@@ -2656,6 +2656,7 @@ class TestWorkflowServiceHumanInputOperations:
         mock_node = MagicMock()
         mock_node.node_data = MagicMock()
         mock_node.node_data.outputs_field_names.return_value = ["field1"]
+        mock_node.node_data.inputs = []
 
         with (
             patch("services.workflow_service.db"),
@@ -2663,7 +2664,10 @@ class TestWorkflowServiceHumanInputOperations:
             patch("models.workflow.Workflow.get_node_type_from_node_config", return_value=BuiltinNodeTypes.HUMAN_INPUT),
             patch.object(service, "_build_human_input_variable_pool"),
             patch("services.workflow_service.HumanInputNode", return_value=mock_node),
-            patch("services.workflow_service.validate_human_input_submission"),
+            patch(
+                "services.workflow_service.HumanInputService.validate_and_normalize_submission",
+                return_value={"field1": "val1"},
+            ) as mock_validate,
             patch("services.workflow_service.Session"),
             patch("services.workflow_service.DraftVariableSaver") as mock_saver_cls,
         ):
@@ -2671,6 +2675,7 @@ class TestWorkflowServiceHumanInputOperations:
                 app_model=app_model, account=account, node_id="node-1", form_inputs={"field1": "val1"}, action="submit"
             )
             assert result["__action_id"] == "submit"
+            mock_validate.assert_called_once()
             mock_saver_cls.return_value.save.assert_called_once()
 
     def test_test_human_input_delivery_success(self, service: WorkflowService) -> None:
