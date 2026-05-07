@@ -103,19 +103,14 @@ export function DeveloperApiSection({
                   )
                 : (
                     <div className="flex flex-col divide-y divide-divider-subtle">
-                      {apiKeys.map((apiKey) => {
-                        const environmentId = apiKey.environmentId ?? apiKey.environment?.id
-                        if (!apiKey.id || !environmentId)
-                          return null
-                        return (
-                          <ApiKeyRow
-                            key={apiKey.id}
-                            apiKey={apiKey}
-                            onCopy={onCopyApiKey}
-                            onRevoke={onRevoke}
-                          />
-                        )
-                      })}
+                      {apiKeys.map(apiKey => (
+                        <ApiKeyRow
+                          key={apiKey.id}
+                          apiKey={apiKey}
+                          onCopy={onCopyApiKey}
+                          onRevoke={onRevoke}
+                        />
+                      ))}
                     </div>
                   )}
             </div>

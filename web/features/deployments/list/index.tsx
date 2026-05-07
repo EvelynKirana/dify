@@ -76,14 +76,12 @@ function DeploymentsList() {
       <DeploymentsListControls />
       <div className="relative grid grow grid-cols-1 content-start gap-4 px-12 pt-2 2k:grid-cols-6 sm:grid-cols-1 md:grid-cols-2 xl:grid-cols-4 2xl:grid-cols-5">
         <NewInstanceCard />
-        {apps.map(app => app.id
-          ? (
-              <InstanceCard
-                key={app.id}
-                app={app}
-              />
-            )
-          : null)}
+        {apps.map(app => (
+          <InstanceCard
+            key={app.id}
+            app={app}
+          />
+        ))}
       </div>
 
       <div className="py-4" />
