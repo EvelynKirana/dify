@@ -1,5 +1,6 @@
 'use client'
 
+import type { DeploymentEnvironmentOption } from '@dify/contracts/enterprise/types.gen'
 import type { ReactNode } from 'react'
 import { cn } from '@langgenius/dify-ui/cn'
 import {
@@ -23,23 +24,16 @@ type EnvironmentFilterOption = {
   disabledReason?: string
 }
 
-type FilterEnvironment = {
-  id: string
-  name: string
-  disabled?: boolean
-  disabledReason?: string
+function hasEnvironmentId(env: DeploymentEnvironmentOption): env is DeploymentEnvironmentOption & { id: string } {
+  return Boolean(env.id)
 }
 
-function getEnvironmentId(env: FilterEnvironment) {
-  return env.id
-}
-
-function getEnvironmentFilterOption(env: FilterEnvironment): EnvironmentFilterOption {
+function getEnvironmentFilterOption(env: DeploymentEnvironmentOption & { id: string }): EnvironmentFilterOption {
   return {
     value: env.id,
-    text: env.name,
+    text: env.name || env.id,
     icon: <span className="i-ri-stack-line h-[14px] w-[14px]" />,
-    disabled: env.disabled,
+    disabled: env.deployable === false,
     disabledReason: env.disabledReason,
   }
 }
@@ -50,20 +44,8 @@ export function EnvironmentFilter() {
   const [envFilter, setEnvFilter] = useQueryState('env', envFilterQueryState)
   const { data: environmentOptionsReply } = useQuery(consoleQuery.enterprise.appDeploy.listDeploymentEnvironmentOptions.queryOptions())
   const environmentOptions = environmentOptionsReply?.environments ?? []
-
-  function getFilterEnvironment(env: (typeof environmentOptions)[number]): FilterEnvironment[] {
-    if (!env.id)
-      return []
-    return [{
-      id: env.id,
-      name: env.name || env.id,
-      disabled: env.deployable === false,
-      disabledReason: env.disabledReason,
-    }]
-  }
-
-  const environments = environmentOptions.flatMap(getFilterEnvironment)
-  const envIdSet = new Set(environments.map(getEnvironmentId))
+  const environments = environmentOptions.filter(hasEnvironmentId)
+  const envIdSet = new Set(environments.map(env => env.id))
   const activeFilter = envFilter === 'all' || envFilter === 'not-deployed' || envIdSet.has(envFilter)
     ? envFilter
     : 'all'

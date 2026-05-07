@@ -15,7 +15,7 @@ type DeveloperApiSectionProps = {
   onToggle: (enabled: boolean) => void
   onGenerate: (environmentId: string) => void
   onCopyApiKey: (apiKeyId: string) => Promise<string>
-  onRevoke: (environmentId: string, apiKeyId: string) => void
+  onRevoke: (apiKeyId: string) => void
   onClearCreatedToken: () => void
 }
 
@@ -112,7 +112,7 @@ export function DeveloperApiSection({
                             key={apiKey.id}
                             apiKey={apiKey}
                             onCopy={onCopyApiKey}
-                            onRevoke={() => onRevoke(environmentId, apiKey.id!)}
+                            onRevoke={onRevoke}
                           />
                         )
                       })}

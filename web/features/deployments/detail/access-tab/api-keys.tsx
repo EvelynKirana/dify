@@ -16,7 +16,7 @@ import { environmentName } from '../../utils'
 export function ApiKeyRow({ apiKey, onCopy, onRevoke }: {
   apiKey: DeveloperAPIKeySummary
   onCopy: (apiKeyId: string) => Promise<string>
-  onRevoke: () => void
+  onRevoke: (apiKeyId: string) => void
 }) {
   const { t } = useTranslation('deployments')
   const [copied, setCopied] = useState(false)
@@ -61,7 +61,7 @@ export function ApiKeyRow({ apiKey, onCopy, onRevoke }: {
         </button>
         <button
           type="button"
-          onClick={onRevoke}
+          onClick={() => apiKey.id && onRevoke(apiKey.id)}
           aria-label={t('access.revoke')}
           className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md text-text-tertiary hover:bg-state-destructive-hover hover:text-text-destructive"
         >

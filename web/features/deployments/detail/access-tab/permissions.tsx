@@ -290,7 +290,6 @@ type EnvironmentPermissionRowProps = {
   environment: ConsoleEnvironmentSummary
   summaryPolicy?: AccessPermission
   onSetPolicy: (
-    appId: string,
     environmentId: string,
     accessMode: string,
     subjects: AccessSubject[],
@@ -344,7 +343,6 @@ export function EnvironmentPermissionRow({
     setIsSaving(true)
     try {
       await onSetPolicy(
-        appId,
         environmentId,
         permissionKeyToAccessMode(nextKind),
         nextKind === 'specific' ? policySubjects(nextSubjects) : [],

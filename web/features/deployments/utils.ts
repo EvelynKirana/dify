@@ -40,24 +40,12 @@ export function environmentHealth(environment?: ConsoleEnvironmentSummary | Envi
   return status.includes('ready') ? 'ready' : 'degraded'
 }
 
-export function releaseId(release?: ConsoleReleaseSummary) {
-  return release?.id ?? ''
-}
-
 export function releaseLabel(release?: ConsoleReleaseSummary) {
   return release?.name || release?.displayId || release?.id || '—'
 }
 
 export function releaseCommit(release?: ConsoleReleaseSummary) {
   return release?.shortCommitId || release?.commitId || '—'
-}
-
-export function runtimeBindingLabel(binding?: RuntimeBindingDisplay) {
-  return binding?.label || binding?.slot || binding?.kind || '—'
-}
-
-export function runtimeBindingValue(binding?: RuntimeBindingDisplay) {
-  return binding?.displayValue || binding?.maskedValue || binding?.displayName || '—'
 }
 
 export function runtimeBindingSummary(binding?: RuntimeBindingDisplay) {

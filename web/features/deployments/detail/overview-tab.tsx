@@ -15,12 +15,6 @@ import {
   webappUrl,
 } from '../utils'
 
-type SwitchableTab = 'deploy' | 'versions' | 'access' | 'settings'
-
-function tabHref(appId: string, tab: SwitchableTab): string {
-  return `/deployments/${appId}/${tab}`
-}
-
 function Section({ title, action, children }: {
   title: string
   action?: ReactNode
@@ -144,7 +138,7 @@ export function OverviewTab({ instanceId }: {
       <Section
         title={t('overview.deploymentStatus')}
         action={(
-          <Button nativeButton={false} size="small" variant="secondary" render={<Link href={tabHref(appId, 'deploy')} />}>
+          <Button nativeButton={false} size="small" variant="secondary" render={<Link href={`/deployments/${appId}/deploy`} />}>
             {t('overview.viewDeployments')}
             <span className="i-ri-arrow-right-up-line h-3.5 w-3.5" />
           </Button>
@@ -162,7 +156,7 @@ export function OverviewTab({ instanceId }: {
                 {releaseRows.length === 0
                   ? canCreateRelease
                     ? (
-                        <Button nativeButton={false} size="small" variant="primary" render={<Link href={tabHref(appId, 'versions')} />}>
+                        <Button nativeButton={false} size="small" variant="primary" render={<Link href={`/deployments/${appId}/versions`} />}>
                           {t('overview.createRelease')}
                         </Button>
                       )
@@ -201,7 +195,7 @@ export function OverviewTab({ instanceId }: {
       <Section
         title={t('overview.accessStatus')}
         action={(
-          <Button nativeButton={false} size="small" variant="secondary" render={<Link href={tabHref(appId, 'access')} />}>
+          <Button nativeButton={false} size="small" variant="secondary" render={<Link href={`/deployments/${appId}/access`} />}>
             {t('overview.configureAccess')}
             <span className="i-ri-arrow-right-up-line h-3.5 w-3.5" />
           </Button>

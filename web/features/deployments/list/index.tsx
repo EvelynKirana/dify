@@ -1,6 +1,5 @@
 'use client'
 
-import type { ChangeEvent } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { useDebounce } from 'ahooks'
 import { debounce, useQueryState } from 'nuqs'
@@ -26,14 +25,6 @@ function DeploymentsSearchInput() {
     })
   }
 
-  function handleKeywordsInputChange(e: ChangeEvent<HTMLInputElement>) {
-    handleKeywordsChange(e.target.value)
-  }
-
-  function handleKeywordsClear() {
-    handleKeywordsChange('')
-  }
-
   return (
     <Input
       showLeftIcon
@@ -41,8 +32,8 @@ function DeploymentsSearchInput() {
       wrapperClassName="w-[200px]"
       placeholder={t('filter.searchPlaceholder')}
       value={keywords}
-      onChange={handleKeywordsInputChange}
-      onClear={handleKeywordsClear}
+      onChange={e => handleKeywordsChange(e.target.value)}
+      onClear={() => handleKeywordsChange('')}
     />
   )
 }

@@ -79,7 +79,7 @@ function DeveloperApiAccessSection({
     )
   }
 
-  function handleRevokeApiKey(_environmentId: string, apiKeyId: string) {
+  function handleRevokeApiKey(apiKeyId: string) {
     revokeApiKey.mutate({
       params: {
         appInstanceId: appId,
@@ -146,7 +146,6 @@ export function AccessTab({ instanceId: appId }: {
   const apiEnabled = accessConfig?.developerApi?.enabled ?? false
   const apiKeys = accessConfig?.developerApi?.apiKeys ?? []
   const handleSetEnvironmentAccessPolicy = async (
-    appId: string,
     environmentId: string,
     accessMode: string,
     subjects: AccessSubject[],

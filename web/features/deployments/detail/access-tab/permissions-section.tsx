@@ -10,7 +10,6 @@ type AccessPermissionsSectionProps = {
   environments: ConsoleEnvironmentSummary[]
   policies: AccessPermission[]
   onSetPolicy: (
-    appId: string,
     environmentId: string,
     accessMode: string,
     subjects: AccessSubject[],
