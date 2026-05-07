@@ -1,5 +1,5 @@
 'use client'
-import type { App, AppModeEnum } from '@/types/app'
+import type { App } from '@/types/app'
 import { Button } from '@langgenius/dify-ui/button'
 import { cn } from '@langgenius/dify-ui/cn'
 import { Dialog, DialogCloseButton, DialogContent, DialogDescription, DialogTitle } from '@langgenius/dify-ui/dialog'
@@ -13,6 +13,7 @@ import AppIcon from '@/app/components/base/app-icon'
 import Input from '@/app/components/base/input'
 import { useRouter } from '@/next/navigation'
 import { consoleQuery } from '@/service/client'
+import { AppModeEnum } from '@/types/app'
 import { useDeploymentsStore } from '../store'
 
 const MAX_STUDIO_SOURCE_APPS = 100
@@ -20,7 +21,7 @@ const MAX_STUDIO_SOURCE_APPS = 100
 type StudioSourceApp = {
   id: string
   name: string
-  mode: string
+  mode: AppModeEnum
   iconType?: App['icon_type']
   icon?: string
   iconBackground?: string
@@ -32,7 +33,7 @@ function toStudioSourceAppInfo(app: App): StudioSourceApp {
   return {
     id: app.id,
     name: app.name,
-    mode: app.mode || 'workflow',
+    mode: app.mode || AppModeEnum.WORKFLOW,
     iconType: app.icon_type,
     icon: app.icon,
     iconBackground: app.icon_background ?? undefined,
@@ -118,7 +119,7 @@ function AppPicker({ apps, isLoading, value, onChange }: AppPickerProps) {
                     imageUrl={selected.iconUrl}
                   />
                   <AppTypeIcon
-                    type={selected.mode as unknown as AppModeEnum}
+                    type={selected.mode}
                     wrapperClassName="absolute -bottom-0.5 -right-0.5 w-3 h-3 shadow-sm"
                     className="h-2 w-2"
                   />
@@ -187,7 +188,7 @@ function AppPicker({ apps, isLoading, value, onChange }: AppPickerProps) {
                           imageUrl={app.iconUrl}
                         />
                         <AppTypeIcon
-                          type={app.mode as unknown as AppModeEnum}
+                          type={app.mode}
                           wrapperClassName="absolute -bottom-0.5 -right-0.5 w-3 h-3 shadow-sm"
                           className="h-2 w-2"
                         />

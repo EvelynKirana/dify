@@ -25,8 +25,6 @@ export function InstanceCard({ app }: {
 }) {
   const { t } = useTranslation('deployments')
   const { formatTimeFromNow } = useFormatTimeFromNow()
-  const [menuOpen, setMenuOpen] = useState(false)
-  const openDeployDrawer = useDeploymentsStore(state => state.openDeployDrawer)
 
   if (!app.id)
     return null
@@ -185,58 +183,71 @@ export function InstanceCard({ app }: {
           </div>
         </div>
       </Link>
-      <div className="pointer-events-none absolute right-0 bottom-1 left-0 flex h-[42px] shrink-0 items-center pt-1 pr-[6px] pb-[6px] pl-[14px]">
-        <div
-          className={cn(
-            'absolute top-1/2 right-[6px] flex -translate-y-1/2 items-center transition-opacity',
-            menuOpen
-              ? 'pointer-events-auto opacity-100'
-              : 'pointer-events-none opacity-0 group-hover:pointer-events-auto group-hover:opacity-100',
-          )}
-        >
-          <DropdownMenu modal={false} open={menuOpen} onOpenChange={setMenuOpen}>
-            <DropdownMenuTrigger
-              aria-label={t('card.moreActions')}
-              className={cn(
-                menuOpen ? 'bg-state-base-hover shadow-none' : 'bg-transparent',
-                'flex h-8 w-8 items-center justify-center rounded-md border-none p-2 hover:bg-state-base-hover',
-              )}
-            >
-              <span aria-hidden className="i-ri-more-fill h-4 w-4 text-text-tertiary" />
-            </DropdownMenuTrigger>
-            {menuOpen && (
-              <DropdownMenuContent placement="bottom-end" sideOffset={4} popupClassName="w-[216px]">
-                <DropdownMenuItem
-                  className="gap-2 px-3"
-                  onClick={() => {
-                    setMenuOpen(false)
-                    openDeployDrawer({ appInstanceId: appId })
-                  }}
-                >
-                  <span className="system-sm-regular text-text-secondary">{t('card.menu.deploy')}</span>
-                </DropdownMenuItem>
-                <DropdownMenuLinkItem
-                  className="gap-2 px-3"
-                  render={<Link href={detailHref} />}
-                >
-                  <span className="system-sm-regular text-text-secondary">{t('card.menu.viewDetail')}</span>
-                </DropdownMenuLinkItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem
-                  aria-disabled
-                  title={t('card.menu.deleteDisabled')}
-                  className="cursor-not-allowed gap-2 px-3 opacity-50"
-                  onClick={(e) => {
-                    e.stopPropagation()
-                    e.preventDefault()
-                  }}
-                >
-                  <span className="system-sm-regular text-text-destructive">{t('card.menu.delete')}</span>
-                </DropdownMenuItem>
-              </DropdownMenuContent>
+      <InstanceCardActions appId={appId} detailHref={detailHref} />
+    </div>
+  )
+}
+
+function InstanceCardActions({ appId, detailHref }: {
+  appId: string
+  detailHref: string
+}) {
+  const { t } = useTranslation('deployments')
+  const [menuOpen, setMenuOpen] = useState(false)
+  const openDeployDrawer = useDeploymentsStore(state => state.openDeployDrawer)
+
+  return (
+    <div className="pointer-events-none absolute right-0 bottom-1 left-0 flex h-[42px] shrink-0 items-center pt-1 pr-[6px] pb-[6px] pl-[14px]">
+      <div
+        className={cn(
+          'absolute top-1/2 right-[6px] flex -translate-y-1/2 items-center transition-opacity',
+          menuOpen
+            ? 'pointer-events-auto opacity-100'
+            : 'pointer-events-none opacity-0 group-hover:pointer-events-auto group-hover:opacity-100',
+        )}
+      >
+        <DropdownMenu modal={false} open={menuOpen} onOpenChange={setMenuOpen}>
+          <DropdownMenuTrigger
+            aria-label={t('card.moreActions')}
+            className={cn(
+              menuOpen ? 'bg-state-base-hover shadow-none' : 'bg-transparent',
+              'flex h-8 w-8 items-center justify-center rounded-md border-none p-2 hover:bg-state-base-hover',
             )}
-          </DropdownMenu>
-        </div>
+          >
+            <span aria-hidden className="i-ri-more-fill h-4 w-4 text-text-tertiary" />
+          </DropdownMenuTrigger>
+          {menuOpen && (
+            <DropdownMenuContent placement="bottom-end" sideOffset={4} popupClassName="w-[216px]">
+              <DropdownMenuItem
+                className="gap-2 px-3"
+                onClick={() => {
+                  setMenuOpen(false)
+                  openDeployDrawer({ appInstanceId: appId })
+                }}
+              >
+                <span className="system-sm-regular text-text-secondary">{t('card.menu.deploy')}</span>
+              </DropdownMenuItem>
+              <DropdownMenuLinkItem
+                className="gap-2 px-3"
+                render={<Link href={detailHref} />}
+              >
+                <span className="system-sm-regular text-text-secondary">{t('card.menu.viewDetail')}</span>
+              </DropdownMenuLinkItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem
+                aria-disabled
+                title={t('card.menu.deleteDisabled')}
+                className="cursor-not-allowed gap-2 px-3 opacity-50"
+                onClick={(e) => {
+                  e.stopPropagation()
+                  e.preventDefault()
+                }}
+              >
+                <span className="system-sm-regular text-text-destructive">{t('card.menu.delete')}</span>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          )}
+        </DropdownMenu>
       </div>
     </div>
   )

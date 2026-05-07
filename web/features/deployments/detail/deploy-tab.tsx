@@ -1,6 +1,6 @@
 'use client'
 import type { KeyboardEvent } from 'react'
-import type { EnvironmentOption } from '../types'
+import type { EnvironmentDeploymentRow, EnvironmentOption } from '../types'
 import { Button } from '@langgenius/dify-ui/button'
 import { cn } from '@langgenius/dify-ui/cn'
 import {
@@ -93,6 +93,90 @@ function NewDeploymentMenu({ appInstanceId, availableEnvs }: {
   )
 }
 
+function DeploymentRowActions({ appInstanceId, envId, row }: {
+  appInstanceId: string
+  envId: string
+  row: EnvironmentDeploymentRow
+}) {
+  const { t } = useTranslation('deployments')
+  const [menuOpen, setMenuOpen] = useState(false)
+  const openDeployDrawer = useDeploymentsStore(state => state.openDeployDrawer)
+  const cancelDeployment = useMutation(consoleQuery.enterprise.appDeploy.cancelRuntimeDeployment.mutationOptions())
+  const undeployDeployment = useMutation(consoleQuery.enterprise.appDeploy.undeployRuntimeInstance.mutationOptions())
+  const isUndeployed = isUndeployedDeploymentRow(row)
+  const status = deploymentStatus(row)
+
+  function handleRuntimeAction() {
+    const runtimeInstanceId = deploymentId(row)
+    setMenuOpen(false)
+
+    if (status === 'deploying') {
+      cancelDeployment.mutate({
+        params: {
+          appInstanceId,
+          runtimeInstanceId,
+        },
+        body: {
+          appInstanceId,
+          runtimeInstanceId,
+        },
+      })
+      return
+    }
+
+    undeployDeployment.mutate({
+      params: {
+        appInstanceId,
+        runtimeInstanceId,
+      },
+      body: {
+        appInstanceId,
+        runtimeInstanceId,
+      },
+    })
+  }
+
+  return (
+    <div
+      className="flex shrink-0 items-center gap-1"
+      onClick={e => e.stopPropagation()}
+      onKeyDown={e => e.stopPropagation()}
+    >
+      <Button size="small" variant="secondary" onClick={() => openDeployDrawer({ appInstanceId, environmentId: envId })}>
+        {isUndeployed
+          ? t('deployDrawer.deploy')
+          : status === 'ready'
+            ? t('deployTab.deployOtherVersion')
+            : status === 'deploying'
+              ? t('deployTab.viewProgress')
+              : t('deployTab.viewError')}
+      </Button>
+      {!isUndeployed && (
+        <DropdownMenu modal={false} open={menuOpen} onOpenChange={setMenuOpen}>
+          <DropdownMenuTrigger
+            aria-label={t('deployTab.moreActions')}
+            className="flex h-7 w-7 items-center justify-center rounded-md text-text-tertiary hover:bg-state-base-hover hover:text-text-secondary"
+          >
+            <span className="i-ri-more-line h-4 w-4" />
+          </DropdownMenuTrigger>
+          {menuOpen && (
+            <DropdownMenuContent placement="bottom-end" sideOffset={4} popupClassName="w-[200px]">
+              <DropdownMenuItem
+                className="gap-2 px-3"
+                onClick={handleRuntimeAction}
+              >
+                <span className="system-sm-regular text-text-destructive">
+                  {status === 'deploying' ? t('deployTab.cancelDeployment') : t('deployTab.undeploy')}
+                </span>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          )}
+        </DropdownMenu>
+      )}
+    </div>
+  )
+}
+
 export function DeployTab({ instanceId: appInstanceId }: {
   instanceId: string
 }) {
@@ -103,9 +187,6 @@ export function DeployTab({ instanceId: appInstanceId }: {
     },
   }))
   const { data: environmentOptionsReply } = useQuery(consoleQuery.enterprise.appDeploy.listDeploymentEnvironmentOptions.queryOptions())
-  const openDeployDrawer = useDeploymentsStore(state => state.openDeployDrawer)
-  const cancelDeployment = useMutation(consoleQuery.enterprise.appDeploy.cancelRuntimeDeployment.mutationOptions())
-  const undeployDeployment = useMutation(consoleQuery.enterprise.appDeploy.undeployRuntimeInstance.mutationOptions())
   const environmentOptions = environmentOptionsFromOptionsReply(environmentOptionsReply)
   const rows = environmentDeployments?.data?.filter(row => row.environment?.id) ?? []
   const deployedRuntimeRows = deployedRows(environmentDeployments?.data)
@@ -163,71 +244,7 @@ export function DeployTab({ instanceId: appInstanceId }: {
                 const envId = environmentId(row.environment)
                 const isUndeployed = isUndeployedDeploymentRow(row)
                 const isExpanded = !isUndeployed && activeExpanded === envId
-                const status = deploymentStatus(row)
                 const release = activeRelease(row)
-                const actions = (
-                  <div
-                    className="flex shrink-0 items-center gap-1"
-                    onClick={e => e.stopPropagation()}
-                    onKeyDown={e => e.stopPropagation()}
-                  >
-                    <Button size="small" variant="secondary" onClick={() => openDeployDrawer({ appInstanceId, environmentId: envId })}>
-                      {isUndeployed
-                        ? t('deployDrawer.deploy')
-                        : status === 'ready'
-                          ? t('deployTab.deployOtherVersion')
-                          : status === 'deploying'
-                            ? t('deployTab.viewProgress')
-                            : t('deployTab.viewError')}
-                    </Button>
-                    {!isUndeployed && (
-                      <DropdownMenu modal={false}>
-                        <DropdownMenuTrigger
-                          aria-label={t('deployTab.moreActions')}
-                          className="flex h-7 w-7 items-center justify-center rounded-md text-text-tertiary hover:bg-state-base-hover hover:text-text-secondary"
-                        >
-                          <span className="i-ri-more-line h-4 w-4" />
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent placement="bottom-end" sideOffset={4} popupClassName="w-[200px]">
-                          <DropdownMenuItem
-                            className="gap-2 px-3"
-                            onClick={() => {
-                              const runtimeInstanceId = deploymentId(row)
-                              if (status === 'deploying') {
-                                cancelDeployment.mutate({
-                                  params: {
-                                    appInstanceId,
-                                    runtimeInstanceId,
-                                  },
-                                  body: {
-                                    appInstanceId,
-                                    runtimeInstanceId,
-                                  },
-                                })
-                                return
-                              }
-
-                              undeployDeployment.mutate({
-                                params: {
-                                  appInstanceId,
-                                  runtimeInstanceId,
-                                },
-                                body: {
-                                  appInstanceId,
-                                  runtimeInstanceId,
-                                },
-                              })
-                            }}
-                          >
-                            <span className="system-sm-regular text-text-destructive">
-                              {status === 'deploying' ? t('deployTab.cancelDeployment') : t('deployTab.undeploy')}
-                            </span>
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    )}
-                  </div>
-                )
                 const chevron = !isUndeployed && (
                   <span
                     className={cn(
@@ -273,7 +290,7 @@ export function DeployTab({ instanceId: appInstanceId }: {
                           </div>
                         </div>
                         <div className="flex shrink-0 items-center gap-1 lg:hidden">
-                          {actions}
+                          <DeploymentRowActions appInstanceId={appInstanceId} envId={envId} row={row} />
                           {chevron}
                         </div>
                       </div>
@@ -287,7 +304,7 @@ export function DeployTab({ instanceId: appInstanceId }: {
                         <DeploymentStatusSummary row={row} />
                       </div>
                       <div className="hidden min-w-0 items-center justify-end gap-1 lg:flex">
-                        {actions}
+                        <DeploymentRowActions appInstanceId={appInstanceId} envId={envId} row={row} />
                         {chevron}
                       </div>
                     </div>
