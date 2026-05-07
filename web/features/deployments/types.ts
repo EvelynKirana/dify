@@ -1,5 +1,4 @@
 import type * as EnterpriseContract from '@dify/contracts/enterprise/types.gen'
-import type { AppIconType } from '@/types/app'
 
 type Timestamp = string
 
@@ -8,24 +7,7 @@ export type EnvironmentHealth = 'ready' | 'degraded'
 
 export type DeployStatus = 'ready' | 'deploying' | 'deploy_failed'
 
-export type AppMode = 'chat' | 'agent-chat' | 'workflow' | 'completion' | 'advanced-chat' | (string & {})
-
 export type AccessPermissionKind = 'organization' | 'specific' | 'anyone'
-
-export type AppInfo = {
-  id: string
-  name: string
-  mode: AppMode
-  iconType?: AppIconType | null
-  icon?: string
-  iconBackground?: string
-  iconUrl?: string | null
-  description?: string
-  sourceAppId?: string
-  sourceAppName?: string
-  sourceAppAvailable?: boolean
-  canCreateRelease?: boolean
-}
 
 export type ConsoleEnvironmentSummary = EnterpriseContract.ConsoleEnvironment & {
   backend?: string
@@ -43,8 +25,6 @@ export type ConsoleReleaseSummary = EnterpriseContract.ConsoleRelease & {
 type ConsoleUser = EnterpriseContract.ConsoleUser & {
   displayName?: string
 }
-
-export type AppInstanceOverview = EnterpriseContract.AppInstanceBasicInfo
 
 export type RuntimeBindingDisplay = EnterpriseContract.ReleaseRuntimeBinding & {
   displayName?: string

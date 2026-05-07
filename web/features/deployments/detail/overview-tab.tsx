@@ -12,7 +12,6 @@ import { DEPLOYMENT_PAGE_SIZE } from '../data'
 import { useDeploymentsStore } from '../store'
 import {
   releaseLabel,
-  toAppInfoFromOverview,
   webappUrl,
 } from '../utils'
 
@@ -112,20 +111,21 @@ export function OverviewTab({ instanceId }: {
     input,
   }))
   const openDeployDrawer = useDeploymentsStore(state => state.openDeployDrawer)
-  const app = toAppInfoFromOverview(overview?.instance)
   const overviewApp = overview?.instance
   const deployments = overview?.deployments?.filter(row => row.environment?.id && row.status?.toLowerCase() !== 'undeployed') ?? []
   const releaseRows = releaseHistory?.data?.filter(row => row.id) ?? []
   const canCreateRelease = overviewApp?.canCreateRelease ?? true
 
-  if (!app)
+  if (!overviewApp?.id)
     return null
 
+  const appId = overviewApp.id
+  const appName = overviewApp.name ?? appId
   const switchTab = (tab: SwitchableTab) => {
-    router.push(`/deployments/${instanceId}/${tab}`)
+    router.push(`/deployments/${appId}/${tab}`)
   }
 
-  const appModeLabel = getAppModeLabel(overviewApp?.mode ?? app.mode, tCommon)
+  const appModeLabel = getAppModeLabel(overviewApp.mode ?? 'workflow', tCommon)
   const webappAccessUrl = webappUrl(overview?.access?.webappUrl)
   const cliUrl = overview?.access?.cliUrl
   const apiUrl = overview?.access?.apiUrl ?? accessConfig?.developerApi?.apiUrl
@@ -135,9 +135,9 @@ export function OverviewTab({ instanceId }: {
     <div className="flex w-full max-w-[960px] flex-col gap-5 p-6">
       <Section title={t('overview.basicInfo')}>
         <div className="flex flex-col divide-y divide-divider-subtle">
-          <InfoRow label={t('overview.name')} value={overviewApp?.name ?? app.name} />
-          <InfoRow label={t('overview.description')} value={overviewApp?.description ?? app.description ?? t('overview.emptyValue')} />
-          <InfoRow label={t('overview.sourceApp')} value={overviewApp?.sourceAppName ?? app.sourceAppName ?? app.name} />
+          <InfoRow label={t('overview.name')} value={appName} />
+          <InfoRow label={t('overview.description')} value={overviewApp.description ?? t('overview.emptyValue')} />
+          <InfoRow label={t('overview.sourceApp')} value={overviewApp.sourceAppName ?? appName} />
           <InfoRow label={t('overview.appMode')} value={appModeLabel} />
         </div>
       </Section>
@@ -169,7 +169,7 @@ export function OverviewTab({ instanceId }: {
                       switchTab('versions')
                       return
                     }
-                    openDeployDrawer({ appInstanceId: app.id })
+                    openDeployDrawer({ appInstanceId: appId })
                   }}
                 >
                   {releaseRows.length === 0 ? t('overview.createRelease') : t('overview.deploy')}

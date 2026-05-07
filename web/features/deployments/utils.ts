@@ -1,8 +1,5 @@
 import type {
   AccessPermissionKind,
-  AppInfo,
-  AppInstanceOverview,
-  AppMode,
   ConsoleEnvironmentSummary,
   ConsoleReleaseSummary,
   EnvironmentDeploymentRow,
@@ -132,25 +129,6 @@ export function deployedRows(rows?: EnvironmentDeploymentRow[]) {
       && !isUndeployedDeploymentRow(row)
       && (row.id || runtimeStatus || row.currentRelease || row.detail)
   }) ?? []
-}
-
-export function toAppInfoFromOverview(instance?: AppInstanceOverview): AppInfo | undefined {
-  if (!instance?.id)
-    return undefined
-
-  return {
-    id: instance.id,
-    name: instance.name ?? instance.id,
-    mode: (instance.mode || 'workflow') as AppMode,
-    iconType: 'emoji',
-    icon: instance.icon,
-    iconBackground: instance.iconBackground,
-    description: instance.description ?? undefined,
-    sourceAppId: instance.sourceAppId,
-    sourceAppName: instance.sourceAppName,
-    sourceAppAvailable: instance.sourceAppAvailable,
-    canCreateRelease: instance.canCreateRelease,
-  }
 }
 
 export function environmentOptionsFromOptionsReply(response?: ListDeploymentEnvironmentOptionsReply): EnvironmentOption[] {

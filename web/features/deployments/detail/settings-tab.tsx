@@ -1,5 +1,5 @@
 'use client'
-import type { AppInfo } from '../types'
+import type { AppInstanceBasicInfo } from '@dify/contracts/enterprise/types.gen'
 import type { GetAppInstanceSettingsReply } from '@/features/deployments/types'
 import {
   AlertDialog,
@@ -17,27 +17,25 @@ import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useRouter } from '@/next/navigation'
 import { consoleQuery } from '@/service/client'
-import {
-  deployedRows,
-  toAppInfoFromOverview,
-} from '../utils'
+import { deployedRows } from '../utils'
 
 type SettingsFormProps = {
-  app: AppInfo
+  app: AppInstanceBasicInfo
   settings?: GetAppInstanceSettingsReply
   hasDeployments: boolean
-  onSave: (patch: Pick<AppInfo, 'name' | 'description'>) => Promise<void>
+  onSave: (patch: Pick<AppInstanceBasicInfo, 'name' | 'description'>) => Promise<void>
   onDelete: () => Promise<void>
 }
 
 function SettingsForm({ app, settings, hasDeployments, onSave, onDelete }: SettingsFormProps) {
   const { t } = useTranslation('deployments')
-  const [name, setName] = useState(settings?.name ?? app.name)
+  const appName = app.name ?? app.id ?? ''
+  const [name, setName] = useState(settings?.name ?? appName)
   const [description, setDescription] = useState(settings?.description ?? app.description ?? '')
   const [isSaving, setIsSaving] = useState(false)
   const [isDeleting, setIsDeleting] = useState(false)
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
-  const initialName = settings?.name ?? app.name
+  const initialName = settings?.name ?? appName
   const initialDescription = settings?.description ?? app.description ?? ''
   const canSave = Boolean(name.trim() && (name !== initialName || description !== initialDescription) && !isSaving)
   const canDelete = !hasDeployments && Boolean(settings) && settings?.deleteGuard?.canDelete !== false
@@ -153,7 +151,7 @@ function SettingsForm({ app, settings, hasDeployments, onSave, onDelete }: Setti
               {t('settings.deleteConfirmTitle')}
             </AlertDialogTitle>
             <AlertDialogDescription className="system-md-regular text-text-tertiary">
-              {t('settings.deleteConfirmDesc', { name: app.name })}
+              {t('settings.deleteConfirmDesc', { name: appName })}
             </AlertDialogDescription>
           </div>
           <AlertDialogActions>
@@ -183,16 +181,17 @@ export function SettingsTab({ instanceId }: {
   const { data: environmentDeployments } = useQuery(consoleQuery.enterprise.appDeploy.listRuntimeInstances.queryOptions({
     input: appInput,
   }))
-  const app = toAppInfoFromOverview(overview?.instance)
+  const app = overview?.instance
   const settingsQuery = useQuery(consoleQuery.enterprise.appDeploy.getAppInstanceSettings.queryOptions({
     input: appInput,
   }))
 
-  if (!app)
+  if (!app?.id)
     return null
 
   const hasDeployments = deployedRows(environmentDeployments?.data).length > 0
-  const formKey = `${app.id}-${settingsQuery.data?.name ?? app.name}-${settingsQuery.data?.description ?? app.description ?? ''}`
+  const appName = app.name ?? app.id
+  const formKey = `${app.id}-${settingsQuery.data?.name ?? appName}-${settingsQuery.data?.description ?? app.description ?? ''}`
 
   return (
     <SettingsForm

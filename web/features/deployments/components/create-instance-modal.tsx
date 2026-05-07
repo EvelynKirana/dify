@@ -1,5 +1,4 @@
 'use client'
-import type { AppInfo, AppMode } from '../types'
 import type { App, AppModeEnum } from '@/types/app'
 import { Button } from '@langgenius/dify-ui/button'
 import { cn } from '@langgenius/dify-ui/cn'
@@ -18,11 +17,22 @@ import { useDeploymentsStore } from '../store'
 
 const MAX_STUDIO_SOURCE_APPS = 100
 
-function toStudioSourceAppInfo(app: App): AppInfo {
+type StudioSourceApp = {
+  id: string
+  name: string
+  mode: string
+  iconType?: App['icon_type']
+  icon?: string
+  iconBackground?: string
+  iconUrl?: string | null
+  description?: string
+}
+
+function toStudioSourceAppInfo(app: App): StudioSourceApp {
   return {
     id: app.id,
     name: app.name,
-    mode: (app.mode || 'workflow') as AppMode,
+    mode: app.mode || 'workflow',
     iconType: app.icon_type,
     icon: app.icon,
     iconBackground: app.icon_background ?? undefined,
@@ -32,13 +42,13 @@ function toStudioSourceAppInfo(app: App): AppInfo {
 }
 
 type AppPickerProps = {
-  apps: AppInfo[]
+  apps: StudioSourceApp[]
   isLoading: boolean
   value: string
   onChange: (appId: string) => void
 }
 
-export function AppPicker({ apps, isLoading, value, onChange }: AppPickerProps) {
+function AppPicker({ apps, isLoading, value, onChange }: AppPickerProps) {
   const { t } = useTranslation('deployments')
   const [open, setOpen] = useState(false)
   const [keywords, setKeywords] = useState('')

@@ -21,7 +21,6 @@ import {
   environmentOptionsFromOptionsReply,
   releaseCommit,
   releaseLabel,
-  toAppInfoFromOverview,
 } from '../utils'
 
 function InfoRow({ label, value }: {
@@ -77,7 +76,9 @@ export function RollbackModal() {
   const currentRelease = activeRelease(currentRow)
   const environment = currentRow?.environment
     ?? environmentOptions.find(env => env.id === modal.environmentId)
-  const app = toAppInfoFromOverview(overview?.instance)
+  const app = overview?.instance
+  const appName = app?.name ?? '-'
+  const sourceAppName = app?.sourceAppName ?? appName
 
   const confirm = () => {
     if (!modal.appInstanceId || !modal.environmentId || !modal.targetReleaseId)
@@ -110,8 +111,8 @@ export function RollbackModal() {
           </AlertDialogDescription>
 
           <div className="mt-2 flex flex-col gap-2 rounded-lg border border-components-panel-border bg-components-panel-bg-blur p-3">
-            <InfoRow label={t('rollback.instance')} value={app?.name ?? '-'} />
-            <InfoRow label={t('rollback.sourceApp')} value={app?.name ?? '-'} />
+            <InfoRow label={t('rollback.instance')} value={appName} />
+            <InfoRow label={t('rollback.sourceApp')} value={sourceAppName} />
             <InfoRow label={t('rollback.environment')} value={environmentName(environment)} />
             <InfoRow
               label={t('rollback.currentRelease')}

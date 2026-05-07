@@ -1,7 +1,7 @@
 'use client'
 
+import type { AppInstanceBasicInfo } from '@dify/contracts/enterprise/types.gen'
 import type { ComponentProps, PropsWithoutRef } from 'react'
-import type { AppInfo } from '../types'
 import type { InstanceDetailTabKey } from './tabs'
 import type { NavIcon } from '@/app/components/app-sidebar/nav-link'
 import { cn } from '@langgenius/dify-ui/cn'
@@ -81,7 +81,7 @@ type DeploymentSidebarProps = {
   instanceName: string
   instanceDescription?: string
   appModeLabel: string
-  app?: AppInfo
+  app?: AppInstanceBasicInfo
 }
 
 export function DeploymentSidebar({
@@ -140,10 +140,9 @@ export function DeploymentSidebar({
               ? (
                   <AppIcon
                     size={expand ? 'large' : 'medium'}
-                    iconType={app.iconType}
+                    iconType="emoji"
                     icon={app.icon}
                     background={app.iconBackground}
-                    imageUrl={app.iconUrl}
                   />
                 )
               : (
