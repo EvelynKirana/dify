@@ -1,5 +1,6 @@
 'use client'
 import type { KeyboardEvent } from 'react'
+import type { EnvironmentOption } from '../types'
 import { Button } from '@langgenius/dify-ui/button'
 import { cn } from '@langgenius/dify-ui/cn'
 import {
@@ -31,6 +32,66 @@ import { DeploymentPanel } from './deploy-tab/deployment-panel'
 import { DeploymentStatusSummary } from './deploy-tab/deployment-status-summary'
 
 const GRID_TEMPLATE = 'lg:grid-cols-[minmax(180px,1fr)_minmax(140px,0.75fr)_minmax(180px,0.85fr)_240px]'
+
+function NewDeploymentMenu({ appInstanceId, availableEnvs }: {
+  appInstanceId: string
+  availableEnvs: EnvironmentOption[]
+}) {
+  const { t } = useTranslation('deployments')
+  const openDeployDrawer = useDeploymentsStore(state => state.openDeployDrawer)
+  const [open, setOpen] = useState(false)
+
+  return (
+    <DropdownMenu modal={false} open={open} onOpenChange={setOpen}>
+      <DropdownMenuTrigger
+        className={cn(
+          'inline-flex h-8 shrink-0 items-center gap-1 rounded-lg px-3 system-sm-medium',
+          'border border-components-button-primary-border bg-components-button-primary-bg text-components-button-primary-text',
+          'hover:bg-components-button-primary-bg-hover',
+        )}
+      >
+        <span className="i-ri-rocket-line h-3.5 w-3.5" />
+        {t('deployTab.newDeployment')}
+        <span className="i-ri-arrow-down-s-line h-3.5 w-3.5" />
+      </DropdownMenuTrigger>
+      {open && (
+        <DropdownMenuContent placement="bottom-end" sideOffset={4} popupClassName="w-[220px]">
+          <DropdownMenuItem
+            className="gap-2 px-3"
+            onClick={() => {
+              setOpen(false)
+              openDeployDrawer({ appInstanceId })
+            }}
+          >
+            <span className="system-sm-regular text-text-secondary">{t('deployTab.deployToNewEnv')}</span>
+          </DropdownMenuItem>
+          {availableEnvs.length > 0 && (
+            <>
+              <div className="px-3 py-1 system-xs-medium-uppercase text-text-quaternary">{t('deployTab.shortcut')}</div>
+              {availableEnvs.map(env => (
+                <DropdownMenuItem
+                  key={env.id}
+                  className="gap-2 px-3"
+                  disabled={env.disabled}
+                  onClick={() => {
+                    if (env.disabled)
+                      return
+                    setOpen(false)
+                    openDeployDrawer({ appInstanceId, environmentId: env.id })
+                  }}
+                >
+                  <span className="system-sm-regular text-text-secondary">
+                    {t('deployTab.deployToEnv', { name: environmentName(env) })}
+                  </span>
+                </DropdownMenuItem>
+              ))}
+            </>
+          )}
+        </DropdownMenuContent>
+      )}
+    </DropdownMenu>
+  )
+}
 
 export function DeployTab({ instanceId: appInstanceId }: {
   instanceId: string
@@ -64,7 +125,6 @@ export function DeployTab({ instanceId: appInstanceId }: {
       return current === id ? null : id
     })
   }
-  const [deployMenuOpen, setDeployMenuOpen] = useState(false)
 
   return (
     <div className="flex w-full max-w-[960px] flex-col gap-4 p-6">
@@ -78,54 +138,7 @@ export function DeployTab({ instanceId: appInstanceId }: {
             )
           </span>
         </div>
-        <DropdownMenu modal={false} open={deployMenuOpen} onOpenChange={setDeployMenuOpen}>
-          <DropdownMenuTrigger
-            className={cn(
-              'inline-flex h-8 shrink-0 items-center gap-1 rounded-lg px-3 system-sm-medium',
-              'border border-components-button-primary-border bg-components-button-primary-bg text-components-button-primary-text',
-              'hover:bg-components-button-primary-bg-hover',
-            )}
-          >
-            <span className="i-ri-rocket-line h-3.5 w-3.5" />
-            {t('deployTab.newDeployment')}
-            <span className="i-ri-arrow-down-s-line h-3.5 w-3.5" />
-          </DropdownMenuTrigger>
-          {deployMenuOpen && (
-            <DropdownMenuContent placement="bottom-end" sideOffset={4} popupClassName="w-[220px]">
-              <DropdownMenuItem
-                className="gap-2 px-3"
-                onClick={() => {
-                  setDeployMenuOpen(false)
-                  openDeployDrawer({ appInstanceId })
-                }}
-              >
-                <span className="system-sm-regular text-text-secondary">{t('deployTab.deployToNewEnv')}</span>
-              </DropdownMenuItem>
-              {availableEnvs.length > 0 && (
-                <>
-                  <div className="px-3 py-1 system-xs-medium-uppercase text-text-quaternary">{t('deployTab.shortcut')}</div>
-                  {availableEnvs.map(env => (
-                    <DropdownMenuItem
-                      key={env.id}
-                      className="gap-2 px-3"
-                      disabled={env.disabled}
-                      onClick={() => {
-                        if (env.disabled)
-                          return
-                        setDeployMenuOpen(false)
-                        openDeployDrawer({ appInstanceId, environmentId: env.id })
-                      }}
-                    >
-                      <span className="system-sm-regular text-text-secondary">
-                        {t('deployTab.deployToEnv', { name: environmentName(env) })}
-                      </span>
-                    </DropdownMenuItem>
-                  ))}
-                </>
-              )}
-            </DropdownMenuContent>
-          )}
-        </DropdownMenu>
+        <NewDeploymentMenu appInstanceId={appInstanceId} availableEnvs={availableEnvs} />
       </div>
 
       {rows.length === 0

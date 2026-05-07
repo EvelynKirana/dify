@@ -4,6 +4,7 @@ import type {
   AccessPermission,
   AccessSubject,
   ConsoleEnvironmentSummary,
+  DeveloperAPIKeySummary,
 } from '@/features/deployments/types'
 import { useMutation, useQuery } from '@tanstack/react-query'
 import { useState } from 'react'
@@ -26,44 +27,39 @@ function uniqueEnvironments(environments: (ConsoleEnvironmentSummary | undefined
   })
 }
 
-export function AccessTab({ instanceId: appId }: {
-  instanceId: string
-}) {
-  const appInput = { params: { appInstanceId: appId } }
-  const { data: accessConfig } = useQuery(consoleQuery.enterprise.appDeploy.getAppInstanceAccess.queryOptions({
-    input: appInput,
-  }))
-  const { data: environmentDeployments } = useQuery(consoleQuery.enterprise.appDeploy.listRuntimeInstances.queryOptions({
-    input: appInput,
-  }))
+type DeveloperApiAccessSectionProps = {
+  appId: string
+  apiEnabled: boolean
+  apiUrl?: string
+  environments: ConsoleEnvironmentSummary[]
+  apiKeys: DeveloperAPIKeySummary[]
+}
+
+function DeveloperApiAccessSection({
+  appId,
+  apiEnabled,
+  apiUrl,
+  environments,
+  apiKeys,
+}: DeveloperApiAccessSectionProps) {
   const [createdApiToken, setCreatedApiToken] = useState<{
     appId: string
     token: string
   }>()
   const generateApiKey = useMutation(consoleQuery.enterprise.appDeploy.createDeveloperApiKey.mutationOptions())
   const revokeApiKey = useMutation(consoleQuery.enterprise.appDeploy.deleteDeveloperApiKey.mutationOptions())
-  const toggleAccessChannel = useMutation(consoleQuery.enterprise.appDeploy.updateAccessChannels.mutationOptions())
   const toggleDeveloperAPI = useMutation(consoleQuery.enterprise.appDeploy.updateDeveloperApi.mutationOptions())
-  const setEnvironmentAccessPolicy = useMutation(consoleQuery.enterprise.appDeploy.updateEnvironmentAccessPolicy.mutationOptions())
 
-  const deploymentRows = deployedRows(environmentDeployments?.data)
-  const policies = accessConfig?.permissions ?? EMPTY_ACCESS_PERMISSIONS
-  const deployedEnvs = uniqueEnvironments([
-    ...deploymentRows.map(row => row.environment),
-    ...policies.map(policy => policy.environment),
-    ...(accessConfig?.accessChannels?.webappRows?.map(row => row.environment) ?? []),
-  ])
-  const apiEnabled = accessConfig?.developerApi?.enabled ?? false
-  const apiKeys = accessConfig?.developerApi?.apiKeys ?? []
-  const createApiKeyLabel = (environmentId: string) => {
+  function createApiKeyLabel(environmentId: string) {
     const existingCount = apiKeys.filter(key =>
       key.environment?.id === environmentId,
     ).length
-    const name = deployedEnvs.find(env => env.id === environmentId)?.name ?? 'env'
+    const name = environments.find(env => env.id === environmentId)?.name ?? 'env'
 
     return `${name}-key-${String(existingCount + 1).padStart(3, '0')}`
   }
-  const handleGenerateApiKey = (environmentId: string) => {
+
+  function handleGenerateApiKey(environmentId: string) {
     generateApiKey.mutate(
       {
         params: {
@@ -82,7 +78,8 @@ export function AccessTab({ instanceId: appId }: {
       },
     )
   }
-  const handleRevokeApiKey = (_environmentId: string, apiKeyId: string) => {
+
+  function handleRevokeApiKey(_environmentId: string, apiKeyId: string) {
     revokeApiKey.mutate({
       params: {
         appInstanceId: appId,
@@ -90,7 +87,8 @@ export function AccessTab({ instanceId: appId }: {
       },
     })
   }
-  const handleCopyApiKey = async (apiKeyId: string) => {
+
+  async function handleCopyApiKey(apiKeyId: string) {
     const response = await consoleClient.enterprise.appDeploy.revealDeveloperApiKey({
       params: {
         appInstanceId: appId,
@@ -101,6 +99,52 @@ export function AccessTab({ instanceId: appId }: {
       throw new Error('Reveal developer API key did not return a token.')
     return response.token
   }
+
+  const visibleCreatedApiToken = createdApiToken?.appId === appId
+    ? createdApiToken.token
+    : undefined
+
+  return (
+    <DeveloperApiSection
+      apiEnabled={apiEnabled}
+      apiUrl={apiUrl}
+      environments={environments}
+      apiKeys={apiKeys}
+      createdToken={visibleCreatedApiToken}
+      onToggle={enabled => toggleDeveloperAPI.mutate({
+        params: { appInstanceId: appId },
+        body: { enabled },
+      })}
+      onGenerate={handleGenerateApiKey}
+      onCopyApiKey={handleCopyApiKey}
+      onRevoke={handleRevokeApiKey}
+      onClearCreatedToken={() => setCreatedApiToken(undefined)}
+    />
+  )
+}
+
+export function AccessTab({ instanceId: appId }: {
+  instanceId: string
+}) {
+  const appInput = { params: { appInstanceId: appId } }
+  const { data: accessConfig } = useQuery(consoleQuery.enterprise.appDeploy.getAppInstanceAccess.queryOptions({
+    input: appInput,
+  }))
+  const { data: environmentDeployments } = useQuery(consoleQuery.enterprise.appDeploy.listRuntimeInstances.queryOptions({
+    input: appInput,
+  }))
+  const toggleAccessChannel = useMutation(consoleQuery.enterprise.appDeploy.updateAccessChannels.mutationOptions())
+  const setEnvironmentAccessPolicy = useMutation(consoleQuery.enterprise.appDeploy.updateEnvironmentAccessPolicy.mutationOptions())
+
+  const deploymentRows = deployedRows(environmentDeployments?.data)
+  const policies = accessConfig?.permissions ?? EMPTY_ACCESS_PERMISSIONS
+  const deployedEnvs = uniqueEnvironments([
+    ...deploymentRows.map(row => row.environment),
+    ...policies.map(policy => policy.environment),
+    ...(accessConfig?.accessChannels?.webappRows?.map(row => row.environment) ?? []),
+  ])
+  const apiEnabled = accessConfig?.developerApi?.enabled ?? false
+  const apiKeys = accessConfig?.developerApi?.apiKeys ?? []
   const handleSetEnvironmentAccessPolicy = async (
     appId: string,
     environmentId: string,
@@ -120,9 +164,6 @@ export function AccessTab({ instanceId: appId }: {
   }
   const webappRows = accessConfig?.accessChannels?.webappRows?.filter(row => row.url) ?? []
   const runEnabled = accessConfig?.accessChannels?.enabled ?? false
-  const visibleCreatedApiToken = createdApiToken?.appId === appId
-    ? createdApiToken.token
-    : undefined
   const cliDomain = getUrlOrigin(accessConfig?.accessChannels?.cli?.url)
   const cliDocsUrl = cliDomain ? `${cliDomain}/cli` : undefined
 
@@ -144,20 +185,12 @@ export function AccessTab({ instanceId: appId }: {
           body: { enabled },
         })}
       />
-      <DeveloperApiSection
+      <DeveloperApiAccessSection
+        appId={appId}
         apiEnabled={apiEnabled}
         apiUrl={accessConfig?.developerApi?.apiUrl}
         environments={deployedEnvs}
         apiKeys={apiKeys}
-        createdToken={visibleCreatedApiToken}
-        onToggle={enabled => toggleDeveloperAPI.mutate({
-          params: { appInstanceId: appId },
-          body: { enabled },
-        })}
-        onGenerate={handleGenerateApiKey}
-        onCopyApiKey={handleCopyApiKey}
-        onRevoke={handleRevokeApiKey}
-        onClearCreatedToken={() => setCreatedApiToken(undefined)}
       />
     </div>
   )

@@ -23,37 +23,19 @@ import { getReleaseDeployments } from './versions-tab/release-deployments'
 
 const GRID_TEMPLATE = 'grid-cols-[minmax(0,0.9fr)_minmax(0,1fr)_minmax(0,0.8fr)_minmax(0,1.5fr)_96px]'
 
-export function VersionsTab({ instanceId: appId }: {
-  instanceId: string
+function CreateReleaseControl({ appId, canCreateRelease }: {
+  appId: string
+  canCreateRelease: boolean
 }) {
   const { t } = useTranslation('deployments')
-  const input = { params: { appInstanceId: appId } }
-  const { data: overview } = useQuery(consoleQuery.enterprise.appDeploy.getAppInstanceOverview.queryOptions({
-    input,
-  }))
-  const { data: releaseHistory } = useQuery(consoleQuery.enterprise.appDeploy.listReleases.queryOptions({
-    input: {
-      ...input,
-      query: {
-        pageNumber: 1,
-        resultsPerPage: DEPLOYMENT_PAGE_SIZE,
-      },
-    },
-  }))
-  const { data: environmentDeployments } = useQuery(consoleQuery.enterprise.appDeploy.listRuntimeInstances.queryOptions({
-    input,
-  }))
   const createRelease = useMutation(consoleQuery.enterprise.appDeploy.createRelease.mutationOptions())
   const [isCreating, setIsCreating] = useState(false)
   const [releaseName, setReleaseName] = useState('')
   const [releaseDescription, setReleaseDescription] = useState('')
-  const releaseRows = releaseHistory?.data?.filter(row => row.id) ?? []
-  const deploymentRows = deployedRows(environmentDeployments?.data)
-  const canCreateRelease = overview?.instance?.canCreateRelease ?? true
   const trimmedReleaseName = releaseName.trim()
   const canSubmitRelease = Boolean(canCreateRelease && trimmedReleaseName && !createRelease.isPending)
 
-  const handleCreateRelease = async () => {
+  async function handleCreateRelease() {
     if (!canSubmitRelease)
       return
 
@@ -79,33 +61,16 @@ export function VersionsTab({ instanceId: appId }: {
   }
 
   return (
-    <div className="flex w-full max-w-[960px] flex-col gap-4 p-6">
-      <div className="flex items-center justify-between gap-3">
-        <div className="system-sm-semibold text-text-primary">
-          {t('versions.releaseHistory')}
-          {' '}
-          <span className="system-sm-regular text-text-tertiary">
-            (
-            {releaseRows.length}
-            )
-          </span>
-        </div>
-        <Button
-          size="small"
-          variant="primary"
-          disabled={!canCreateRelease}
-          onClick={() => setIsCreating(true)}
-        >
-          <span className="i-ri-add-line h-3.5 w-3.5" />
-          {t('versions.createRelease')}
-        </Button>
-      </div>
-
-      {!canCreateRelease && (
-        <div className="rounded-lg border border-divider-subtle bg-background-default-subtle px-3 py-2 system-sm-regular text-text-tertiary">
-          {t('versions.sourceAppUnavailable')}
-        </div>
-      )}
+    <>
+      <Button
+        size="small"
+        variant="primary"
+        disabled={!canCreateRelease}
+        onClick={() => setIsCreating(true)}
+      >
+        <span className="i-ri-add-line h-3.5 w-3.5" />
+        {t('versions.createRelease')}
+      </Button>
 
       <Dialog open={isCreating} onOpenChange={setIsCreating}>
         <DialogContent className="w-[560px] overflow-hidden p-0">
@@ -192,6 +157,54 @@ export function VersionsTab({ instanceId: appId }: {
           </form>
         </DialogContent>
       </Dialog>
+    </>
+  )
+}
+
+export function VersionsTab({ instanceId: appId }: {
+  instanceId: string
+}) {
+  const { t } = useTranslation('deployments')
+  const input = { params: { appInstanceId: appId } }
+  const { data: overview } = useQuery(consoleQuery.enterprise.appDeploy.getAppInstanceOverview.queryOptions({
+    input,
+  }))
+  const { data: releaseHistory } = useQuery(consoleQuery.enterprise.appDeploy.listReleases.queryOptions({
+    input: {
+      ...input,
+      query: {
+        pageNumber: 1,
+        resultsPerPage: DEPLOYMENT_PAGE_SIZE,
+      },
+    },
+  }))
+  const { data: environmentDeployments } = useQuery(consoleQuery.enterprise.appDeploy.listRuntimeInstances.queryOptions({
+    input,
+  }))
+  const releaseRows = releaseHistory?.data?.filter(row => row.id) ?? []
+  const deploymentRows = deployedRows(environmentDeployments?.data)
+  const canCreateRelease = overview?.instance?.canCreateRelease ?? true
+
+  return (
+    <div className="flex w-full max-w-[960px] flex-col gap-4 p-6">
+      <div className="flex items-center justify-between gap-3">
+        <div className="system-sm-semibold text-text-primary">
+          {t('versions.releaseHistory')}
+          {' '}
+          <span className="system-sm-regular text-text-tertiary">
+            (
+            {releaseRows.length}
+            )
+          </span>
+        </div>
+        <CreateReleaseControl appId={appId} canCreateRelease={canCreateRelease} />
+      </div>
+
+      {!canCreateRelease && (
+        <div className="rounded-lg border border-divider-subtle bg-background-default-subtle px-3 py-2 system-sm-regular text-text-tertiary">
+          {t('versions.sourceAppUnavailable')}
+        </div>
+      )}
 
       {releaseRows.length === 0
         ? (
