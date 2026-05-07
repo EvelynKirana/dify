@@ -5,14 +5,13 @@ import { cn } from '@langgenius/dify-ui/cn'
 import { Dialog, DialogCloseButton, DialogContent, DialogDescription, DialogTitle } from '@langgenius/dify-ui/dialog'
 import { toast } from '@langgenius/dify-ui/toast'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@langgenius/dify-ui/tooltip'
-import { useQuery } from '@tanstack/react-query'
+import { useMutation, useQuery } from '@tanstack/react-query'
 import { useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import Input from '@/app/components/base/input'
 import Textarea from '@/app/components/base/textarea'
 import { consoleQuery } from '@/service/client'
 import { DEPLOYMENT_PAGE_SIZE } from '../data'
-import { useCreateDeploymentRelease } from '../hooks/use-deployment-mutations'
 import {
   deployedRows,
   formatDate,
@@ -47,7 +46,7 @@ const VersionsTab: FC<VersionsTabProps> = ({ instanceId: appId }) => {
   const { data: environmentDeployments } = useQuery(consoleQuery.enterprise.appDeploy.listRuntimeInstances.queryOptions({
     input,
   }))
-  const createRelease = useCreateDeploymentRelease()
+  const createRelease = useMutation(consoleQuery.enterprise.appDeploy.createRelease.mutationOptions())
   const [isCreating, setIsCreating] = useState(false)
   const [releaseName, setReleaseName] = useState('')
   const [releaseDescription, setReleaseDescription] = useState('')
@@ -68,11 +67,17 @@ const VersionsTab: FC<VersionsTabProps> = ({ instanceId: appId }) => {
       return
 
     try {
-      await createRelease.mutateAsync({
-        appInstanceId: appId,
-        name: trimmedReleaseName,
-        description: releaseDescription.trim() || undefined,
+      const response = await createRelease.mutateAsync({
+        params: {
+          appInstanceId: appId,
+        },
+        body: {
+          name: trimmedReleaseName,
+          description: releaseDescription.trim() || undefined,
+        },
       })
+      if (!response.release?.id)
+        throw new Error('Create release did not return a release.')
       setReleaseName('')
       setReleaseDescription('')
       setIsCreating(false)

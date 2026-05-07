@@ -8,11 +8,10 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@langgenius/dify-ui/dropdown-menu'
-import { useQuery } from '@tanstack/react-query'
+import { useMutation, useQuery } from '@tanstack/react-query'
 import { useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { consoleQuery } from '@/service/client'
-import { useUndeployDeployment } from '../hooks/use-deployment-mutations'
 import { useDeploymentsStore } from '../store'
 import {
   activeRelease,
@@ -46,7 +45,8 @@ const DeployTab: FC<DeployTabProps> = ({ instanceId: appInstanceId }) => {
   }))
   const { data: environmentOptionsReply } = useQuery(consoleQuery.enterprise.appDeploy.listDeploymentEnvironmentOptions.queryOptions())
   const openDeployDrawer = useDeploymentsStore(state => state.openDeployDrawer)
-  const undeployDeployment = useUndeployDeployment()
+  const cancelDeployment = useMutation(consoleQuery.enterprise.appDeploy.cancelRuntimeDeployment.mutationOptions())
+  const undeployDeployment = useMutation(consoleQuery.enterprise.appDeploy.undeployRuntimeInstance.mutationOptions())
   const environmentOptions = useMemo(
     () => environmentOptionsFromOptionsReply(environmentOptionsReply),
     [environmentOptionsReply],
@@ -193,11 +193,33 @@ const DeployTab: FC<DeployTabProps> = ({ instanceId: appInstanceId }) => {
                         <DropdownMenuContent placement="bottom-end" sideOffset={4} popupClassName="w-[200px]">
                           <DropdownMenuItem
                             className="gap-2 px-3"
-                            onClick={() => undeployDeployment.mutate({
-                              appInstanceId,
-                              runtimeInstanceId: deploymentId(row),
-                              isDeploying: status === 'deploying',
-                            })}
+                            onClick={() => {
+                              const runtimeInstanceId = deploymentId(row)
+                              if (status === 'deploying') {
+                                cancelDeployment.mutate({
+                                  params: {
+                                    appInstanceId,
+                                    runtimeInstanceId,
+                                  },
+                                  body: {
+                                    appInstanceId,
+                                    runtimeInstanceId,
+                                  },
+                                })
+                                return
+                              }
+
+                              undeployDeployment.mutate({
+                                params: {
+                                  appInstanceId,
+                                  runtimeInstanceId,
+                                },
+                                body: {
+                                  appInstanceId,
+                                  runtimeInstanceId,
+                                },
+                              })
+                            }}
                           >
                             <span className="system-sm-regular text-text-destructive">
                               {status === 'deploying' ? t('deployTab.cancelDeployment') : t('deployTab.undeploy')}

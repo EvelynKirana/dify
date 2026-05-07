@@ -6,16 +6,9 @@ import type {
   AccessSubject,
   ConsoleEnvironmentSummary,
 } from '@/features/deployments/types'
-import { useQuery } from '@tanstack/react-query'
+import { useMutation, useQuery } from '@tanstack/react-query'
 import { useMemo, useState } from 'react'
 import { consoleClient, consoleQuery } from '@/service/client'
-import {
-  useGenerateDeploymentApiKey,
-  useRevokeDeploymentApiKey,
-  useSetEnvironmentAccessPolicy,
-  useToggleDeploymentAccessChannel,
-  useToggleDeploymentDeveloperAPI,
-} from '../hooks/use-deployment-mutations'
 import {
   deployedRows,
 } from '../utils'
@@ -50,11 +43,11 @@ const AccessTab: FC<AccessTabProps> = ({ instanceId: appId }) => {
     appId: string
     token: string
   }>()
-  const generateApiKey = useGenerateDeploymentApiKey()
-  const revokeApiKey = useRevokeDeploymentApiKey()
-  const toggleAccessChannel = useToggleDeploymentAccessChannel()
-  const toggleDeveloperAPI = useToggleDeploymentDeveloperAPI()
-  const setEnvironmentAccessPolicy = useSetEnvironmentAccessPolicy()
+  const generateApiKey = useMutation(consoleQuery.enterprise.appDeploy.createDeveloperApiKey.mutationOptions())
+  const revokeApiKey = useMutation(consoleQuery.enterprise.appDeploy.deleteDeveloperApiKey.mutationOptions())
+  const toggleAccessChannel = useMutation(consoleQuery.enterprise.appDeploy.updateAccessChannels.mutationOptions())
+  const toggleDeveloperAPI = useMutation(consoleQuery.enterprise.appDeploy.updateDeveloperApi.mutationOptions())
+  const setEnvironmentAccessPolicy = useMutation(consoleQuery.enterprise.appDeploy.updateEnvironmentAccessPolicy.mutationOptions())
 
   const deploymentRows = useMemo(
     () => deployedRows(environmentDeployments?.data),

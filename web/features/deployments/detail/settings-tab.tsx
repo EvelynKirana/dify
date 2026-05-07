@@ -13,15 +13,11 @@ import {
 } from '@langgenius/dify-ui/alert-dialog'
 import { Button } from '@langgenius/dify-ui/button'
 import { toast } from '@langgenius/dify-ui/toast'
-import { useQuery } from '@tanstack/react-query'
+import { useMutation, useQuery } from '@tanstack/react-query'
 import { useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useRouter } from '@/next/navigation'
 import { consoleQuery } from '@/service/client'
-import {
-  useDeleteDeploymentInstance,
-  useUpdateDeploymentInstance,
-} from '../hooks/use-deployment-mutations'
 import {
   deployedRows,
   toAppInfoFromOverview,
@@ -181,8 +177,8 @@ const SettingsForm: FC<SettingsFormProps> = ({ app, settings, hasDeployments, on
 
 const SettingsTab: FC<SettingsTabProps> = ({ instanceId }) => {
   const router = useRouter()
-  const updateInstance = useUpdateDeploymentInstance()
-  const deleteInstance = useDeleteDeploymentInstance()
+  const updateInstance = useMutation(consoleQuery.enterprise.appDeploy.updateAppInstance.mutationOptions())
+  const deleteInstance = useMutation(consoleQuery.enterprise.appDeploy.deleteAppInstance.mutationOptions())
   const appInput = { params: { appInstanceId: instanceId } }
   const { data: overview } = useQuery(consoleQuery.enterprise.appDeploy.getAppInstanceOverview.queryOptions({
     input: appInput,

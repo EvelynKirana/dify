@@ -7,7 +7,7 @@ import { cn } from '@langgenius/dify-ui/cn'
 import { Dialog, DialogCloseButton, DialogContent, DialogDescription, DialogTitle } from '@langgenius/dify-ui/dialog'
 import { Popover, PopoverContent, PopoverTrigger } from '@langgenius/dify-ui/popover'
 import { toast } from '@langgenius/dify-ui/toast'
-import { useQuery } from '@tanstack/react-query'
+import { useMutation, useQuery } from '@tanstack/react-query'
 import { useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { AppTypeIcon } from '@/app/components/app/type-selector'
@@ -15,7 +15,6 @@ import AppIcon from '@/app/components/base/app-icon'
 import Input from '@/app/components/base/input'
 import { useRouter } from '@/next/navigation'
 import { consoleQuery } from '@/service/client'
-import { useCreateDeploymentInstance } from '../hooks/use-deployment-mutations'
 import { useDeploymentsStore } from '../store'
 
 const MAX_STUDIO_SOURCE_APPS = 100
@@ -208,7 +207,7 @@ export const AppPicker: FC<AppPickerProps> = ({ apps, isLoading, value, onChange
 const CreateInstanceForm: FC<{ onClose: () => void }> = ({ onClose }) => {
   const { t } = useTranslation('deployments')
   const router = useRouter()
-  const createInstance = useCreateDeploymentInstance()
+  const createInstance = useMutation(consoleQuery.enterprise.appDeploy.createAppInstance.mutationOptions())
   const { data: appList, isLoading } = useQuery(consoleQuery.apps.list.queryOptions({
     input: {
       query: {
@@ -225,30 +224,29 @@ const CreateInstanceForm: FC<{ onClose: () => void }> = ({ onClose }) => {
   const [appId, setAppId] = useState<string>('')
   const [name, setName] = useState('')
   const [description, setDescription] = useState('')
-  const [isSubmitting, setIsSubmitting] = useState(false)
 
   const selectedApp = apps.find(a => a.id === appId)
-  const canCreate = Boolean(appId && name.trim() && !isSubmitting)
+  const canCreate = Boolean(appId && name.trim() && !createInstance.isPending)
 
   const handleCreate = async () => {
     if (!canCreate)
       return
 
-    setIsSubmitting(true)
     try {
       const result = await createInstance.mutateAsync({
-        sourceAppId: appId,
-        name: name.trim(),
-        description: description.trim() || undefined,
+        body: {
+          sourceAppId: appId,
+          name: name.trim(),
+          description: description.trim() || undefined,
+        },
       })
+      if (!result.appInstanceId)
+        throw new Error('Create app instance did not return an appInstanceId.')
       onClose()
       router.push(`/deployments/${result.appInstanceId}/overview`)
     }
     catch {
       toast.error(t('createModal.createFailed'))
-    }
-    finally {
-      setIsSubmitting(false)
     }
   }
 

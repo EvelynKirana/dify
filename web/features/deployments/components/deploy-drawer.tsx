@@ -3,12 +3,11 @@
 import type { FC } from 'react'
 import { Dialog, DialogCloseButton, DialogContent } from '@langgenius/dify-ui/dialog'
 import { toast } from '@langgenius/dify-ui/toast'
-import { skipToken, useQuery } from '@tanstack/react-query'
+import { skipToken, useMutation, useQuery } from '@tanstack/react-query'
 import { useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 import { consoleQuery } from '@/service/client'
 import { DEPLOYMENT_PAGE_SIZE } from '../data'
-import { useStartDeployment } from '../hooks/use-deployment-mutations'
 import { useDeploymentsStore } from '../store'
 import { environmentOptionsFromOptionsReply } from '../utils'
 import { DeployForm } from './deploy-drawer/form'
@@ -18,7 +17,7 @@ const DeployDrawer: FC = () => {
   const drawer = useDeploymentsStore(state => state.deployDrawer)
   const drawerAppInstanceId = drawer.appInstanceId
   const closeDeployDrawer = useDeploymentsStore(state => state.closeDeployDrawer)
-  const startDeploy = useStartDeployment()
+  const startDeploy = useMutation(consoleQuery.enterprise.appDeploy.createDeployment.mutationOptions())
   const open = drawer.open
   const { data: releaseHistory } = useQuery(consoleQuery.enterprise.appDeploy.listReleases.queryOptions({
     input: drawerAppInstanceId
@@ -75,10 +74,14 @@ const DeployDrawer: FC = () => {
                     onSubmit={async ({ environmentId, releaseId, bindings }) => {
                       try {
                         await startDeploy.mutateAsync({
-                          appInstanceId: drawerAppInstanceId,
-                          environmentId,
-                          releaseId,
-                          bindings,
+                          params: {
+                            appInstanceId: drawerAppInstanceId,
+                          },
+                          body: {
+                            environmentId,
+                            releaseId,
+                            bindings,
+                          },
                         })
                         closeDeployDrawer()
                       }

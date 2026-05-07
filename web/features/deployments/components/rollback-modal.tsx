@@ -9,12 +9,11 @@ import {
   AlertDialogDescription,
   AlertDialogTitle,
 } from '@langgenius/dify-ui/alert-dialog'
-import { skipToken, useQuery } from '@tanstack/react-query'
+import { skipToken, useMutation, useQuery } from '@tanstack/react-query'
 import { useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 import { consoleQuery } from '@/service/client'
 import { DEPLOYMENT_PAGE_SIZE } from '../data'
-import { useStartDeployment } from '../hooks/use-deployment-mutations'
 import { useDeploymentsStore } from '../store'
 import {
   activeRelease,
@@ -40,7 +39,7 @@ const RollbackModal: FC = () => {
   const { t } = useTranslation('deployments')
   const modal = useDeploymentsStore(state => state.rollbackModal)
   const closeRollbackModal = useDeploymentsStore(state => state.closeRollbackModal)
-  const rollbackDeployment = useStartDeployment()
+  const rollbackDeployment = useMutation(consoleQuery.enterprise.appDeploy.createDeployment.mutationOptions())
   const appInput = modal.appInstanceId
     ? { params: { appInstanceId: modal.appInstanceId } }
     : skipToken
@@ -87,10 +86,14 @@ const RollbackModal: FC = () => {
       return
     closeRollbackModal()
     rollbackDeployment.mutate({
-      appInstanceId: modal.appInstanceId,
-      environmentId: modal.environmentId,
-      releaseId: modal.targetReleaseId,
-      bindings: [],
+      params: {
+        appInstanceId: modal.appInstanceId,
+      },
+      body: {
+        environmentId: modal.environmentId,
+        releaseId: modal.targetReleaseId,
+        bindings: [],
+      },
     })
   }
 
