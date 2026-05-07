@@ -42,7 +42,12 @@ from graphon.model_runtime.entities.llm_entities import (
 from graphon.model_runtime.entities.message_entities import PromptMessage, PromptMessageTool
 from graphon.model_runtime.entities.model_entities import AIModelEntity
 from graphon.model_runtime.model_providers.base.large_language_model import LargeLanguageModel
-from graphon.nodes.human_input.entities import HumanInputNodeData
+from graphon.nodes.human_input.entities import (
+    FileInputConfig,
+    FileListInputConfig,
+    FormInputConfig,
+    HumanInputNodeData,
+)
 from graphon.nodes.llm.runtime_protocols import (
     PreparedLLMProtocol,
     PromptMessageSerializerProtocol,
@@ -625,6 +630,7 @@ class DifyHumanInputNodeRuntime(HumanInputNodeRuntimeProtocol):
         self._run_context = resolve_dify_run_context(run_context)
         self._workflow_execution_id_getter = workflow_execution_id_getter
         self._form_repository = form_repository
+        self._file_reference_factory = DifyFileReferenceFactory(self._run_context)
 
     def _invoke_source(self) -> str:
         invoke_from = self._run_context.invoke_from
@@ -678,6 +684,23 @@ class DifyHumanInputNodeRuntime(HumanInputNodeRuntimeProtocol):
         repo = self.build_form_repository()
         return repo.get_form(node_id)
 
+    def restore_submitted_data(
+        self,
+        *,
+        node_data: HumanInputNodeData,
+        submitted_data: Mapping[str, Any],
+    ) -> Mapping[str, Any]:
+        restored_data: dict[str, Any] = dict(submitted_data)
+        for input_config in node_data.inputs:
+            output_variable_name = input_config.output_variable_name
+            if output_variable_name not in submitted_data:
+                continue
+            restored_data[output_variable_name] = self._restore_submitted_value(
+                input_config=input_config,
+                value=submitted_data[output_variable_name],
+            )
+        return restored_data
+
     def create_form(
         self,
         *,
@@ -697,6 +720,55 @@ class DifyHumanInputNodeRuntime(HumanInputNodeRuntimeProtocol):
             resolved_default_values=resolved_default_values,
         )
         return repo.create_form(params)
+
+    def _restore_submitted_value(
+        self,
+        *,
+        input_config: FormInputConfig,
+        value: Any,
+    ) -> Any:
+        if isinstance(input_config, FileInputConfig):
+            return self._restore_submitted_file_value(
+                output_variable_name=input_config.output_variable_name,
+                value=value,
+            )
+        if isinstance(input_config, FileListInputConfig):
+            return self._restore_submitted_file_list_value(
+                output_variable_name=input_config.output_variable_name,
+                value=value,
+            )
+        return value
+
+    def _restore_submitted_file_value(
+        self,
+        *,
+        output_variable_name: str,
+        value: Any,
+    ) -> Any:
+        if not isinstance(value, Mapping):
+            msg = (
+                "HumanInput file submission must be persisted as a mapping, "
+                f"output_variable_name={output_variable_name}"
+            )
+            raise ValueError(msg)
+        return self._file_reference_factory.build_from_mapping(mapping=value)
+
+    def _restore_submitted_file_list_value(
+        self,
+        *,
+        output_variable_name: str,
+        value: Any,
+    ) -> list[Any]:
+        if not isinstance(value, list):
+            msg = (
+                "HumanInput file-list submission must be persisted as a list, "
+                f"output_variable_name={output_variable_name}"
+            )
+            raise ValueError(msg)
+        if any(not isinstance(item, Mapping) for item in value):
+            msg = f"HumanInput file-list submission must contain mappings, output_variable_name={output_variable_name}"
+            raise ValueError(msg)
+        return [self._file_reference_factory.build_from_mapping(mapping=item) for item in value]
 
 
 def build_dify_llm_file_saver(

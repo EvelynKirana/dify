@@ -388,17 +388,19 @@ class WorkflowResponseConverter:
         self, *, event: QueueHumanInputFormFilledEvent, task_id: str
     ) -> HumanInputFormFilledResponse:
         run_id = self._ensure_workflow_run_id()
-        return HumanInputFormFilledResponse(
-            task_id=task_id,
-            workflow_run_id=run_id,
-            data=HumanInputFormFilledResponse.Data(
-                node_id=event.node_id,
-                node_title=event.node_title,
-                rendered_content=event.rendered_content,
-                action_id=event.action_id,
-                action_text=event.action_text,
-            ),
+        data = HumanInputFormFilledResponse.Data(
+            node_id=event.node_id,
+            node_title=event.node_title,
+            rendered_content=event.rendered_content,
+            action_id=event.action_id,
+            action_text=event.action_text,
         )
+        if event.submitted_data is not None:
+            runtime_type_converter = WorkflowRuntimeTypeConverter()
+
+            data.submitted_data = runtime_type_converter.value_to_json_encodable_recursive(event.submitted_data)
+
+        return HumanInputFormFilledResponse(task_id=task_id, workflow_run_id=run_id, data=data)
 
     def human_input_form_timeout_to_stream_response(
         self, *, event: QueueHumanInputFormTimeoutEvent, task_id: str
