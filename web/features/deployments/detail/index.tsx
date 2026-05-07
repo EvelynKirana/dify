@@ -4,7 +4,6 @@ import type { ReactNode } from 'react'
 import type { InstanceDetailTabKey } from './tabs'
 import { Button } from '@langgenius/dify-ui/button'
 import { useQuery } from '@tanstack/react-query'
-import { useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 import { getAppModeLabel } from '@/app/components/app-sidebar/app-info/app-mode-labels'
 import useDocumentTitle from '@/hooks/use-document-title'
@@ -34,10 +33,7 @@ export function InstanceDetail({ instanceId, children }: {
 
   useDocumentTitle(t('documentTitle.detail'))
 
-  const app = useMemo(
-    () => toAppInfoFromOverview(overviewQuery.data?.instance),
-    [overviewQuery.data?.instance],
-  )
+  const app = toAppInfoFromOverview(overviewQuery.data?.instance)
 
   if (!app && overviewQuery.isLoading) {
     return (

@@ -6,7 +6,7 @@ import type { InstanceDetailTabKey } from './tabs'
 import type { NavIcon } from '@/app/components/app-sidebar/nav-link'
 import { cn } from '@langgenius/dify-ui/cn'
 import { useHover, useKeyPress } from 'ahooks'
-import { useCallback, useEffect, useRef } from 'react'
+import { useEffect, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useShallow } from 'zustand/react/shallow'
 import NavLink from '@/app/components/app-sidebar/nav-link'
@@ -103,9 +103,9 @@ export function DeploymentSidebar({
   const sidebarMode = appSidebarExpand || 'expand'
   const expand = sidebarMode === 'expand'
 
-  const handleToggle = useCallback(() => {
+  function handleToggle() {
     setAppSidebarExpand(sidebarMode === 'expand' ? 'collapse' : 'expand')
-  }, [setAppSidebarExpand, sidebarMode])
+  }
 
   useEffect(() => {
     const persistedMode = localStorage.getItem('app-detail-collapse-or-expand') || 'expand'

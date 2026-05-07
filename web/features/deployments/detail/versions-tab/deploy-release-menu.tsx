@@ -8,7 +8,7 @@ import {
   DropdownMenuTrigger,
 } from '@langgenius/dify-ui/dropdown-menu'
 import { useQuery } from '@tanstack/react-query'
-import { useMemo, useState } from 'react'
+import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { consoleQuery } from '@/service/client'
 import { useDeploymentsStore } from '../../store'
@@ -38,10 +38,7 @@ export function DeployReleaseMenu({ appInstanceId, releaseId }: {
     enabled: open,
   }))
 
-  const environmentOptions = useMemo(
-    () => environmentOptionsFromOptionsReply(environmentOptionsReply),
-    [environmentOptionsReply],
-  )
+  const environmentOptions = environmentOptionsFromOptionsReply(environmentOptionsReply)
   const environments = environmentOptions.filter(env => env.id)
   const deploymentRows = deployedRows(environmentDeployments?.data)
 

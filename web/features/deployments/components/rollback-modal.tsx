@@ -9,7 +9,6 @@ import {
   AlertDialogTitle,
 } from '@langgenius/dify-ui/alert-dialog'
 import { skipToken, useMutation, useQuery } from '@tanstack/react-query'
-import { useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 import { consoleQuery } from '@/service/client'
 import { DEPLOYMENT_PAGE_SIZE } from '../data'
@@ -68,10 +67,7 @@ export function RollbackModal() {
       : skipToken,
     enabled: modal.open && Boolean(modal.appInstanceId),
   }))
-  const environmentOptions = useMemo(
-    () => environmentOptionsFromOptionsReply(environmentOptionsReply),
-    [environmentOptionsReply],
-  )
+  const environmentOptions = environmentOptionsFromOptionsReply(environmentOptionsReply)
 
   const currentRow = deployedRows(environmentDeployments?.data)
     .find(row => environmentId(row.environment) === modal.environmentId)

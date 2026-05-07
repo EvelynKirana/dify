@@ -7,7 +7,7 @@ import { Dialog, DialogCloseButton, DialogContent, DialogDescription, DialogTitl
 import { Popover, PopoverContent, PopoverTrigger } from '@langgenius/dify-ui/popover'
 import { toast } from '@langgenius/dify-ui/toast'
 import { useMutation, useQuery } from '@tanstack/react-query'
-import { useMemo, useRef, useState } from 'react'
+import { useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { AppTypeIcon } from '@/app/components/app/type-selector'
 import AppIcon from '@/app/components/base/app-icon'
@@ -45,12 +45,10 @@ export function AppPicker({ apps, isLoading, value, onChange }: AppPickerProps) 
   const triggerRef = useRef<HTMLButtonElement>(null)
   const [triggerWidth, setTriggerWidth] = useState<number | undefined>(undefined)
 
-  const filtered = useMemo(() => {
-    const q = keywords.trim().toLowerCase()
-    if (!q)
-      return apps
-    return apps.filter(a => a.name.toLowerCase().includes(q) || a.mode.toLowerCase().includes(q))
-  }, [apps, keywords])
+  const q = keywords.trim().toLowerCase()
+  const filtered = q
+    ? apps.filter(a => a.name.toLowerCase().includes(q) || a.mode.toLowerCase().includes(q))
+    : apps
 
   const handleOpenChange = (next: boolean) => {
     if (next && triggerRef.current)
@@ -218,9 +216,7 @@ function CreateInstanceForm({ onClose }: {
       },
     },
   }))
-  const apps = useMemo<AppInfo[]>(() => {
-    return (appList?.data ?? []).map(toStudioSourceAppInfo)
-  }, [appList?.data])
+  const apps = (appList?.data ?? []).map(toStudioSourceAppInfo)
 
   const [appId, setAppId] = useState<string>('')
   const [name, setName] = useState('')

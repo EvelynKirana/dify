@@ -3,7 +3,6 @@
 import { useQuery } from '@tanstack/react-query'
 import { useDebounce } from 'ahooks'
 import { debounce, parseAsString, useQueryState } from 'nuqs'
-import { useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 import Input from '@/app/components/base/input'
 import { consoleQuery } from '@/service/client'
@@ -56,47 +55,42 @@ export function DeploymentsMain() {
     },
   }))
   const { data: environmentOptionsReply } = useQuery(consoleQuery.enterprise.appDeploy.listDeploymentEnvironmentOptions.queryOptions())
-  const apps = useMemo(() => sourceAppsFromList(listQuery.data), [listQuery.data])
-  const summaries = useMemo(() => deploymentSummariesFromList(listQuery.data), [listQuery.data])
-  const environments = useMemo(() => {
-    return environmentOptionsReply?.environments?.flatMap((env) => {
-      if (!env.id)
-        return []
-      return [{
-        id: env.id,
-        name: env.name || env.id,
-        disabled: env.deployable === false,
-        disabledReason: env.disabledReason,
-      }]
-    }) ?? []
-  }, [environmentOptionsReply])
-
-  const envIdSet = useMemo(() => new Set(environments.map(e => e.id)), [environments])
+  const apps = sourceAppsFromList(listQuery.data)
+  const summaries = deploymentSummariesFromList(listQuery.data)
+  const environments = environmentOptionsReply?.environments?.flatMap((env) => {
+    if (!env.id)
+      return []
+    return [{
+      id: env.id,
+      name: env.name || env.id,
+      disabled: env.deployable === false,
+      disabledReason: env.disabledReason,
+    }]
+  }) ?? []
+  const envIdSet = new Set(environments.map(e => e.id))
   const activeFilter = envFilter === 'all' || envFilter === 'not-deployed' || envIdSet.has(envFilter)
     ? envFilter
     : 'all'
 
-  const filterOptions = useMemo(() => {
-    return [
-      {
-        value: 'all',
-        text: t('filter.allEnvs'),
-        icon: <span className="i-ri-apps-2-line h-[14px] w-[14px]" />,
-      },
-      ...environments.map(env => ({
-        value: env.id,
-        text: env.name,
-        icon: <span className="i-ri-stack-line h-[14px] w-[14px]" />,
-        disabled: env.disabled,
-        disabledReason: env.disabledReason,
-      })),
-      {
-        value: 'not-deployed',
-        text: t('filter.notDeployed'),
-        icon: <span className="i-ri-inbox-line h-[14px] w-[14px]" />,
-      },
-    ]
-  }, [environments, t])
+  const filterOptions = [
+    {
+      value: 'all',
+      text: t('filter.allEnvs'),
+      icon: <span className="i-ri-apps-2-line h-[14px] w-[14px]" />,
+    },
+    ...environments.map(env => ({
+      value: env.id,
+      text: env.name,
+      icon: <span className="i-ri-stack-line h-[14px] w-[14px]" />,
+      disabled: env.disabled,
+      disabledReason: env.disabledReason,
+    })),
+    {
+      value: 'not-deployed',
+      text: t('filter.notDeployed'),
+      icon: <span className="i-ri-inbox-line h-[14px] w-[14px]" />,
+    },
+  ]
 
   return (
     <>

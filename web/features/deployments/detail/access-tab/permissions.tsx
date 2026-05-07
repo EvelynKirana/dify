@@ -19,7 +19,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@langgenius/dify-ui/pop
 import { toast } from '@langgenius/dify-ui/toast'
 import { skipToken, useQuery } from '@tanstack/react-query'
 import { useDebounce } from 'ahooks'
-import { useMemo, useState } from 'react'
+import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { consoleQuery } from '@/service/client'
 import {
@@ -181,10 +181,7 @@ function SubjectPicker({
   const [open, setOpen] = useState(false)
   const [keyword, setKeyword] = useState('')
   const debouncedKeyword = useDebounce(keyword, { wait: 300 })
-  const selectedKeys = useMemo(
-    () => new Set(selectedSubjects.map(subjectKey)),
-    [selectedSubjects],
-  )
+  const selectedKeys = new Set(selectedSubjects.map(subjectKey))
   const subjectsQuery = useQuery(consoleQuery.enterprise.appDeploy.searchAccessSubjects.queryOptions({
     input: open
       ? {
@@ -196,12 +193,9 @@ function SubjectPicker({
         }
       : skipToken,
   }))
-  const subjects = useMemo(
-    () => subjectsQuery.data?.data
-      ?.map(normalizeSubject)
-      .filter((subject): subject is SelectableAccessSubject => Boolean(subject)) ?? [],
-    [subjectsQuery.data?.data],
-  )
+  const subjects = subjectsQuery.data?.data
+    ?.map(normalizeSubject)
+    .filter((subject): subject is SelectableAccessSubject => Boolean(subject)) ?? []
 
   const toggleSubject = (subject: SelectableAccessSubject) => {
     const key = subjectKey(subject)
@@ -330,10 +324,7 @@ export function EnvironmentPermissionRow({
     detailPolicy?.accessMode ?? summaryPolicy?.accessMode ?? '',
     policySubjectFingerprint ?? '',
   ].join(':')
-  const policySelectedSubjects = useMemo(
-    () => policyKind === 'specific' ? selectedSubjectsFromPolicy(detailPolicy) : [],
-    [detailPolicy, policyKind],
-  )
+  const policySelectedSubjects = policyKind === 'specific' ? selectedSubjectsFromPolicy(detailPolicy) : []
   const [draft, setDraft] = useState<{
     fingerprint?: string
     kind?: AccessPermissionKind

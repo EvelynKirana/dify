@@ -5,7 +5,7 @@ import { Dialog, DialogCloseButton, DialogContent, DialogDescription, DialogTitl
 import { toast } from '@langgenius/dify-ui/toast'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@langgenius/dify-ui/tooltip'
 import { useMutation, useQuery } from '@tanstack/react-query'
-import { useMemo, useState } from 'react'
+import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import Input from '@/app/components/base/input'
 import Textarea from '@/app/components/base/textarea'
@@ -47,14 +47,8 @@ export function VersionsTab({ instanceId: appId }: {
   const [isCreating, setIsCreating] = useState(false)
   const [releaseName, setReleaseName] = useState('')
   const [releaseDescription, setReleaseDescription] = useState('')
-  const releaseRows = useMemo(
-    () => releaseHistory?.data?.filter(row => row.id) ?? [],
-    [releaseHistory?.data],
-  )
-  const deploymentRows = useMemo(
-    () => deployedRows(environmentDeployments?.data),
-    [environmentDeployments?.data],
-  )
+  const releaseRows = releaseHistory?.data?.filter(row => row.id) ?? []
+  const deploymentRows = deployedRows(environmentDeployments?.data)
   const canCreateRelease = overview?.instance?.canCreateRelease ?? true
   const trimmedReleaseName = releaseName.trim()
   const canSubmitRelease = Boolean(canCreateRelease && trimmedReleaseName && !createRelease.isPending)

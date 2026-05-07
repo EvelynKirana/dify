@@ -3,7 +3,6 @@ import type { ReactNode } from 'react'
 import { Button } from '@langgenius/dify-ui/button'
 import { cn } from '@langgenius/dify-ui/cn'
 import { useQuery } from '@tanstack/react-query'
-import { useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 import { getAppModeLabel } from '@/app/components/app-sidebar/app-info/app-mode-labels'
 import { useRouter } from '@/next/navigation'
@@ -115,10 +114,7 @@ export function OverviewTab({ instanceId }: {
   const openDeployDrawer = useDeploymentsStore(state => state.openDeployDrawer)
   const app = toAppInfoFromOverview(overview?.instance)
   const overviewApp = overview?.instance
-  const deployments = useMemo(
-    () => overview?.deployments?.filter(row => row.environment?.id && row.status?.toLowerCase() !== 'undeployed') ?? [],
-    [overview?.deployments],
-  )
+  const deployments = overview?.deployments?.filter(row => row.environment?.id && row.status?.toLowerCase() !== 'undeployed') ?? []
   const releaseRows = releaseHistory?.data?.filter(row => row.id) ?? []
   const canCreateRelease = overviewApp?.canCreateRelease ?? true
 

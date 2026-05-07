@@ -3,7 +3,6 @@
 import { Dialog, DialogCloseButton, DialogContent } from '@langgenius/dify-ui/dialog'
 import { toast } from '@langgenius/dify-ui/toast'
 import { skipToken, useMutation, useQuery } from '@tanstack/react-query'
-import { useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 import { consoleQuery } from '@/service/client'
 import { DEPLOYMENT_PAGE_SIZE } from '../data'
@@ -34,11 +33,7 @@ export function DeployDrawer() {
     enabled: open,
   }))
 
-  const environmentOptions = useMemo(
-    () => environmentOptionsFromOptionsReply(environmentOptionsReply),
-    [environmentOptionsReply],
-  )
-  const environments = environmentOptions
+  const environments = environmentOptionsFromOptionsReply(environmentOptionsReply)
   const releases = releaseHistory?.data?.filter(release => release.id) ?? []
   const defaultReleaseId = releases[0]?.id
   const formKey = `${drawer.appInstanceId ?? 'none'}-${drawer.environmentId ?? 'any'}-${drawer.releaseId ?? 'new'}-${open ? '1' : '0'}`

@@ -13,7 +13,7 @@ import {
 import { Button } from '@langgenius/dify-ui/button'
 import { toast } from '@langgenius/dify-ui/toast'
 import { useMutation, useQuery } from '@tanstack/react-query'
-import { useMemo, useState } from 'react'
+import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useRouter } from '@/next/navigation'
 import { consoleQuery } from '@/service/client'
@@ -183,10 +183,7 @@ export function SettingsTab({ instanceId }: {
   const { data: environmentDeployments } = useQuery(consoleQuery.enterprise.appDeploy.listRuntimeInstances.queryOptions({
     input: appInput,
   }))
-  const app = useMemo(
-    () => toAppInfoFromOverview(overview?.instance),
-    [overview?.instance],
-  )
+  const app = toAppInfoFromOverview(overview?.instance)
   const settingsQuery = useQuery(consoleQuery.enterprise.appDeploy.getAppInstanceSettings.queryOptions({
     input: appInput,
   }))

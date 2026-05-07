@@ -6,7 +6,7 @@ import type {
   ConsoleEnvironmentSummary,
 } from '@/features/deployments/types'
 import { useMutation, useQuery } from '@tanstack/react-query'
-import { useMemo, useState } from 'react'
+import { useState } from 'react'
 import { consoleClient, consoleQuery } from '@/service/client'
 import {
   deployedRows,
@@ -46,19 +46,13 @@ export function AccessTab({ instanceId: appId }: {
   const toggleDeveloperAPI = useMutation(consoleQuery.enterprise.appDeploy.updateDeveloperApi.mutationOptions())
   const setEnvironmentAccessPolicy = useMutation(consoleQuery.enterprise.appDeploy.updateEnvironmentAccessPolicy.mutationOptions())
 
-  const deploymentRows = useMemo(
-    () => deployedRows(environmentDeployments?.data),
-    [environmentDeployments?.data],
-  )
+  const deploymentRows = deployedRows(environmentDeployments?.data)
   const policies = accessConfig?.permissions ?? EMPTY_ACCESS_PERMISSIONS
-  const deployedEnvs = useMemo(
-    () => uniqueEnvironments([
-      ...deploymentRows.map(row => row.environment),
-      ...policies.map(policy => policy.environment),
-      ...(accessConfig?.accessChannels?.webappRows?.map(row => row.environment) ?? []),
-    ]),
-    [accessConfig?.accessChannels?.webappRows, deploymentRows, policies],
-  )
+  const deployedEnvs = uniqueEnvironments([
+    ...deploymentRows.map(row => row.environment),
+    ...policies.map(policy => policy.environment),
+    ...(accessConfig?.accessChannels?.webappRows?.map(row => row.environment) ?? []),
+  ])
   const apiEnabled = accessConfig?.developerApi?.enabled ?? false
   const apiKeys = accessConfig?.developerApi?.apiKeys ?? []
   const createApiKeyLabel = (environmentId: string) => {

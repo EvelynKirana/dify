@@ -9,7 +9,7 @@ import {
   DropdownMenuTrigger,
 } from '@langgenius/dify-ui/dropdown-menu'
 import { useMutation, useQuery } from '@tanstack/react-query'
-import { useMemo, useState } from 'react'
+import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { consoleQuery } from '@/service/client'
 import { useDeploymentsStore } from '../store'
@@ -45,26 +45,13 @@ export function DeployTab({ instanceId: appInstanceId }: {
   const openDeployDrawer = useDeploymentsStore(state => state.openDeployDrawer)
   const cancelDeployment = useMutation(consoleQuery.enterprise.appDeploy.cancelRuntimeDeployment.mutationOptions())
   const undeployDeployment = useMutation(consoleQuery.enterprise.appDeploy.undeployRuntimeInstance.mutationOptions())
-  const environmentOptions = useMemo(
-    () => environmentOptionsFromOptionsReply(environmentOptionsReply),
-    [environmentOptionsReply],
-  )
-
-  const rows = useMemo(
-    () => environmentDeployments?.data?.filter(row => row.environment?.id) ?? [],
-    [environmentDeployments?.data],
-  )
-  const deployedRuntimeRows = useMemo(
-    () => deployedRows(environmentDeployments?.data),
-    [environmentDeployments?.data],
-  )
+  const environmentOptions = environmentOptionsFromOptionsReply(environmentOptionsReply)
+  const rows = environmentDeployments?.data?.filter(row => row.environment?.id) ?? []
+  const deployedRuntimeRows = deployedRows(environmentDeployments?.data)
 
   const deployedEnvIds = new Set(deployedRuntimeRows.map(row => environmentId(row.environment)))
   const availableEnvs = environmentOptions.filter(env => env.id && !deployedEnvIds.has(env.id))
-  const expandableEnvIds = useMemo(
-    () => rows.filter(row => !isUndeployedDeploymentRow(row)).map(row => environmentId(row.environment)),
-    [rows],
-  )
+  const expandableEnvIds = rows.filter(row => !isUndeployedDeploymentRow(row)).map(row => environmentId(row.environment))
   const [expanded, setExpanded] = useState<string | null>()
   const activeExpanded = expanded === undefined
     ? expandableEnvIds[0] ?? null

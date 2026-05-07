@@ -5,7 +5,7 @@ import type { ConsoleReleaseSummary, EnvironmentOption } from '@/features/deploy
 import { Button } from '@langgenius/dify-ui/button'
 import { DialogDescription, DialogTitle } from '@langgenius/dify-ui/dialog'
 import { skipToken, useQuery } from '@tanstack/react-query'
-import { useMemo, useState } from 'react'
+import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { consoleQuery } from '@/service/client'
 import {
@@ -103,6 +103,20 @@ function selectedDeploymentBindings(slots: DeploymentBindingOptionSlot[], select
         : { slot: slotKey, credentialId: selectedValue }
     })
     .filter((binding): binding is DeploymentRuntimeBinding => Boolean(binding))
+}
+
+function selectedBindingSelections(slots: DeploymentBindingOptionSlot[], manualBindings: BindingSelections): BindingSelections {
+  const next: BindingSelections = {}
+  for (const slot of slots) {
+    const slotKey = bindingSlotKey(slot)
+    const candidates = bindingCandidateOptions(slot)
+    const existing = manualBindings[slotKey]
+    if (existing && candidates.some(candidate => candidate.value === existing))
+      next[slotKey] = existing
+    else if (candidates.length === 1 && candidates[0])
+      next[slotKey] = candidates[0].value
+  }
+  return next
 }
 
 function BindingOptionsPanel({
@@ -204,10 +218,7 @@ export function DeployForm({
   onSubmit,
 }: DeployFormProps) {
   const { t } = useTranslation('deployments')
-  const presetRelease = useMemo(
-    () => presetReleaseId ? releases.find(r => r.id === presetReleaseId) : undefined,
-    [releases, presetReleaseId],
-  )
+  const presetRelease = presetReleaseId ? releases.find(r => r.id === presetReleaseId) : undefined
   const displayedRelease = presetRelease ?? (presetReleaseId ? { id: presetReleaseId } : undefined)
   const isPromote = Boolean(presetReleaseId)
 
@@ -231,28 +242,10 @@ export function DeployForm({
         }
       : skipToken,
   }))
-  const bindingSlots = useMemo(
-    () => bindingOptions.data?.slots?.filter(slot => slot.slot) ?? [],
-    [bindingOptions.data?.slots],
-  )
+  const bindingSlots = bindingOptions.data?.slots?.filter(slot => slot.slot) ?? []
   const [manualBindings, setManualBindings] = useState<BindingSelections>({})
-  const selectedBindings = useMemo(() => {
-    const next: BindingSelections = {}
-    for (const slot of bindingSlots) {
-      const slotKey = bindingSlotKey(slot)
-      const candidates = bindingCandidateOptions(slot)
-      const existing = manualBindings[slotKey]
-      if (existing && candidates.some(candidate => candidate.value === existing))
-        next[slotKey] = existing
-      else if (candidates.length === 1 && candidates[0])
-        next[slotKey] = candidates[0].value
-    }
-    return next
-  }, [bindingSlots, manualBindings])
-  const deploymentBindings = useMemo(
-    () => selectedDeploymentBindings(bindingSlots, selectedBindings),
-    [bindingSlots, selectedBindings],
-  )
+  const selectedBindings = selectedBindingSelections(bindingSlots, manualBindings)
+  const deploymentBindings = selectedDeploymentBindings(bindingSlots, selectedBindings)
   const bindingOptionsLoading = Boolean(targetReleaseId && (bindingOptions.isLoading || bindingOptions.isFetching))
   const bindingOptionsReady = Boolean(targetReleaseId && bindingOptions.data && !bindingOptionsLoading && !bindingOptions.isError)
   const requiredBindingsReady = bindingSlots.every(slot => !hasMissingRequiredBinding(slot, selectedBindings[bindingSlotKey(slot)]))
