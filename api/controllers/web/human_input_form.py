@@ -9,6 +9,7 @@ from typing import Any, NotRequired, TypedDict
 
 from flask import Response, request
 from flask_restx import Resource
+from pydantic import BaseModel
 from sqlalchemy import select
 from werkzeug.exceptions import Forbidden
 
