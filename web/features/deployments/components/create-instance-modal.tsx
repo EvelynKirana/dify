@@ -6,7 +6,7 @@ import { Dialog, DialogCloseButton, DialogContent, DialogDescription, DialogTitl
 import { Popover, PopoverContent, PopoverTrigger } from '@langgenius/dify-ui/popover'
 import { toast } from '@langgenius/dify-ui/toast'
 import { useMutation, useQuery } from '@tanstack/react-query'
-import { useRef, useState } from 'react'
+import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { AppTypeIcon } from '@/app/components/app/type-selector'
 import AppIcon from '@/app/components/base/app-icon'
@@ -53,8 +53,6 @@ function AppPicker({ apps, isLoading, value, onChange }: AppPickerProps) {
   const { t } = useTranslation('deployments')
   const [open, setOpen] = useState(false)
   const [keywords, setKeywords] = useState('')
-  const triggerRef = useRef<HTMLButtonElement>(null)
-  const [triggerWidth, setTriggerWidth] = useState<number | undefined>(undefined)
 
   const q = keywords.trim().toLowerCase()
   const filtered = q
@@ -62,8 +60,6 @@ function AppPicker({ apps, isLoading, value, onChange }: AppPickerProps) {
     : apps
 
   const handleOpenChange = (next: boolean) => {
-    if (next && triggerRef.current)
-      setTriggerWidth(triggerRef.current.offsetWidth)
     if (!next)
       setKeywords('')
     setOpen(next)
@@ -96,7 +92,6 @@ function AppPicker({ apps, isLoading, value, onChange }: AppPickerProps) {
       <PopoverTrigger
         render={(
           <button
-            ref={triggerRef}
             type="button"
             className={cn(
               'flex h-10 w-full items-center justify-between rounded-lg border-[0.5px] bg-components-input-bg-normal pr-2 pl-2 text-left transition-colors',
@@ -142,8 +137,9 @@ function AppPicker({ apps, isLoading, value, onChange }: AppPickerProps) {
         placement="bottom-start"
         sideOffset={4}
         popupClassName="p-0 overflow-hidden"
+        popupProps={{ style: { width: 'var(--anchor-width, auto)' } }}
       >
-        <div style={triggerWidth ? { width: triggerWidth } : undefined} className="flex flex-col">
+        <div className="flex flex-col">
           <div className="p-2">
             <Input
               showLeftIcon
@@ -230,14 +226,18 @@ function CreateInstanceForm({ onClose }: {
   const apps = (appList?.data ?? []).map(toStudioSourceAppInfo)
 
   const [appId, setAppId] = useState<string>('')
-  const [name, setName] = useState('')
-  const [description, setDescription] = useState('')
 
   const selectedApp = apps.find(a => a.id === appId)
-  const canCreate = Boolean(appId && name.trim() && !createInstance.isPending)
+  const canCreate = Boolean(appId && !createInstance.isPending)
 
-  const handleCreate = async () => {
+  const handleCreate = async (form: HTMLFormElement) => {
     if (!canCreate)
+      return
+
+    const formData = new FormData(form)
+    const name = String(formData.get('name') ?? '').trim()
+    const description = String(formData.get('description') ?? '').trim()
+    if (!name)
       return
 
     try {
@@ -259,7 +259,13 @@ function CreateInstanceForm({ onClose }: {
   }
 
   return (
-    <div className="flex flex-col gap-5">
+    <form
+      className="flex flex-col gap-5"
+      onSubmit={(event) => {
+        event.preventDefault()
+        void handleCreate(event.currentTarget)
+      }}
+    >
       <div>
         <DialogTitle className="title-xl-semi-bold text-text-primary">
           {t('createModal.title')}
@@ -285,10 +291,10 @@ function CreateInstanceForm({ onClose }: {
         </label>
         <input
           id="instance-name"
+          name="name"
           type="text"
-          value={name}
           placeholder={selectedApp?.name ?? t('createModal.namePlaceholder')}
-          onChange={e => setName(e.target.value)}
+          required
           className="flex h-8 items-center rounded-lg border-[0.5px] border-components-input-border-active bg-components-input-bg-normal px-3 text-[13px] font-medium text-text-secondary outline-hidden placeholder:text-text-quaternary"
         />
       </div>
@@ -299,9 +305,8 @@ function CreateInstanceForm({ onClose }: {
         </label>
         <textarea
           id="instance-desc"
-          value={description}
+          name="description"
           placeholder={t('createModal.descriptionPlaceholder')}
-          onChange={e => setDescription(e.target.value)}
           className="min-h-[80px] rounded-lg border-[0.5px] border-components-input-border-active bg-components-input-bg-normal px-3 py-2 text-[13px] text-text-secondary outline-hidden placeholder:text-text-quaternary"
         />
       </div>
@@ -310,11 +315,11 @@ function CreateInstanceForm({ onClose }: {
         <Button variant="secondary" onClick={onClose}>
           {t('createModal.cancel')}
         </Button>
-        <Button variant="primary" disabled={!canCreate} onClick={() => void handleCreate()}>
+        <Button type="submit" variant="primary" disabled={!canCreate}>
           {t('createModal.create')}
         </Button>
       </div>
-    </div>
+    </form>
   )
 }
 

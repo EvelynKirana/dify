@@ -27,18 +27,98 @@ type SettingsFormProps = {
   onDelete: () => Promise<void>
 }
 
+type DeleteInstanceControlProps = {
+  appName: string
+  settings?: GetAppInstanceSettingsReply
+  hasDeployments: boolean
+  onDelete: () => Promise<void>
+}
+
+function DeleteInstanceControl({
+  appName,
+  settings,
+  hasDeployments,
+  onDelete,
+}: DeleteInstanceControlProps) {
+  const { t } = useTranslation('deployments')
+  const [isDeleting, setIsDeleting] = useState(false)
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
+  const canDelete = !hasDeployments && Boolean(settings) && settings?.deleteGuard?.canDelete !== false
+
+  const handleDelete = () => {
+    void (async () => {
+      setIsDeleting(true)
+      try {
+        await onDelete()
+        toast.success(t('settings.deleted'))
+      }
+      catch {
+        toast.error(t('settings.deleteFailed'))
+      }
+      finally {
+        setIsDeleting(false)
+        setShowDeleteConfirm(false)
+      }
+    })()
+  }
+
+  return (
+    <>
+      <div className="flex flex-col gap-3 rounded-xl border border-util-colors-red-red-200 bg-util-colors-red-red-50 p-4">
+        <div className="system-sm-semibold text-util-colors-red-red-700">{t('settings.danger')}</div>
+        <div className="system-xs-regular text-util-colors-red-red-600">
+          {t('settings.dangerDesc')}
+        </div>
+        <div className="flex items-center justify-between gap-2">
+          <div className="system-xs-regular text-text-tertiary">
+            {hasDeployments
+              ? t('settings.undeployFirst')
+              : settings?.deleteGuard?.disabledReason || t('settings.safeToDelete')}
+          </div>
+          <Button
+            variant="primary"
+            tone="destructive"
+            disabled={!canDelete || isDeleting}
+            onClick={() => setShowDeleteConfirm(true)}
+          >
+            {t('settings.delete')}
+          </Button>
+        </div>
+      </div>
+
+      <AlertDialog open={showDeleteConfirm} onOpenChange={open => !open && setShowDeleteConfirm(false)}>
+        <AlertDialogContent className="w-[520px]">
+          <div className="flex flex-col gap-3 px-6 pt-6 pb-2">
+            <AlertDialogTitle className="title-2xl-semi-bold text-text-primary">
+              {t('settings.deleteConfirmTitle')}
+            </AlertDialogTitle>
+            <AlertDialogDescription className="system-md-regular text-text-tertiary">
+              {t('settings.deleteConfirmDesc', { name: appName })}
+            </AlertDialogDescription>
+          </div>
+          <AlertDialogActions>
+            <AlertDialogCancelButton variant="secondary">
+              {t('createModal.cancel')}
+            </AlertDialogCancelButton>
+            <AlertDialogConfirmButton onClick={handleDelete}>
+              {t('settings.delete')}
+            </AlertDialogConfirmButton>
+          </AlertDialogActions>
+        </AlertDialogContent>
+      </AlertDialog>
+    </>
+  )
+}
+
 function SettingsForm({ app, settings, hasDeployments, onSave, onDelete }: SettingsFormProps) {
   const { t } = useTranslation('deployments')
   const appName = app.name ?? app.id ?? ''
   const [name, setName] = useState(settings?.name ?? appName)
   const [description, setDescription] = useState(settings?.description ?? app.description ?? '')
   const [isSaving, setIsSaving] = useState(false)
-  const [isDeleting, setIsDeleting] = useState(false)
-  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
   const initialName = settings?.name ?? appName
   const initialDescription = settings?.description ?? app.description ?? ''
   const canSave = Boolean(name.trim() && (name !== initialName || description !== initialDescription) && !isSaving)
-  const canDelete = !hasDeployments && Boolean(settings) && settings?.deleteGuard?.canDelete !== false
 
   const handleSave = () => {
     if (!canSave)
@@ -57,23 +137,6 @@ function SettingsForm({ app, settings, hasDeployments, onSave, onDelete }: Setti
       }
       finally {
         setIsSaving(false)
-      }
-    })()
-  }
-
-  const handleDelete = () => {
-    void (async () => {
-      setIsDeleting(true)
-      try {
-        await onDelete()
-        toast.success(t('settings.deleted'))
-      }
-      catch {
-        toast.error(t('settings.deleteFailed'))
-      }
-      finally {
-        setIsDeleting(false)
-        setShowDeleteConfirm(false)
       }
     })()
   }
@@ -123,47 +186,12 @@ function SettingsForm({ app, settings, hasDeployments, onSave, onDelete }: Setti
         </div>
       </div>
 
-      <div className="flex flex-col gap-3 rounded-xl border border-util-colors-red-red-200 bg-util-colors-red-red-50 p-4">
-        <div className="system-sm-semibold text-util-colors-red-red-700">{t('settings.danger')}</div>
-        <div className="system-xs-regular text-util-colors-red-red-600">
-          {t('settings.dangerDesc')}
-        </div>
-        <div className="flex items-center justify-between gap-2">
-          <div className="system-xs-regular text-text-tertiary">
-            {hasDeployments
-              ? t('settings.undeployFirst')
-              : settings?.deleteGuard?.disabledReason || t('settings.safeToDelete')}
-          </div>
-          <Button
-            variant="primary"
-            tone="destructive"
-            disabled={!canDelete || isDeleting}
-            onClick={() => setShowDeleteConfirm(true)}
-          >
-            {t('settings.delete')}
-          </Button>
-        </div>
-      </div>
-      <AlertDialog open={showDeleteConfirm} onOpenChange={open => !open && setShowDeleteConfirm(false)}>
-        <AlertDialogContent className="w-[520px]">
-          <div className="flex flex-col gap-3 px-6 pt-6 pb-2">
-            <AlertDialogTitle className="title-2xl-semi-bold text-text-primary">
-              {t('settings.deleteConfirmTitle')}
-            </AlertDialogTitle>
-            <AlertDialogDescription className="system-md-regular text-text-tertiary">
-              {t('settings.deleteConfirmDesc', { name: appName })}
-            </AlertDialogDescription>
-          </div>
-          <AlertDialogActions>
-            <AlertDialogCancelButton variant="secondary">
-              {t('createModal.cancel')}
-            </AlertDialogCancelButton>
-            <AlertDialogConfirmButton onClick={handleDelete}>
-              {t('settings.delete')}
-            </AlertDialogConfirmButton>
-          </AlertDialogActions>
-        </AlertDialogContent>
-      </AlertDialog>
+      <DeleteInstanceControl
+        appName={appName}
+        settings={settings}
+        hasDeployments={hasDeployments}
+        onDelete={onDelete}
+      />
     </div>
   )
 }

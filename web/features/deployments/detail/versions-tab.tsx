@@ -8,7 +8,6 @@ import { useMutation, useQuery } from '@tanstack/react-query'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import Input from '@/app/components/base/input'
-import Textarea from '@/app/components/base/textarea'
 import { consoleQuery } from '@/service/client'
 import { DEPLOYMENT_PAGE_SIZE } from '../data'
 import {
@@ -30,13 +29,15 @@ function CreateReleaseControl({ appId, canCreateRelease }: {
   const { t } = useTranslation('deployments')
   const createRelease = useMutation(consoleQuery.enterprise.appDeploy.createRelease.mutationOptions())
   const [isCreating, setIsCreating] = useState(false)
-  const [releaseName, setReleaseName] = useState('')
-  const [releaseDescription, setReleaseDescription] = useState('')
-  const trimmedReleaseName = releaseName.trim()
-  const canSubmitRelease = Boolean(canCreateRelease && trimmedReleaseName && !createRelease.isPending)
 
-  async function handleCreateRelease() {
-    if (!canSubmitRelease)
+  async function handleCreateRelease(form: HTMLFormElement) {
+    if (!canCreateRelease || createRelease.isPending)
+      return
+
+    const formData = new FormData(form)
+    const releaseName = String(formData.get('name') ?? '').trim()
+    const releaseDescription = String(formData.get('description') ?? '').trim()
+    if (!releaseName)
       return
 
     try {
@@ -45,14 +46,13 @@ function CreateReleaseControl({ appId, canCreateRelease }: {
           appInstanceId: appId,
         },
         body: {
-          name: trimmedReleaseName,
-          description: releaseDescription.trim() || undefined,
+          name: releaseName,
+          description: releaseDescription || undefined,
         },
       })
       if (!response.release?.id)
         throw new Error('Create release did not return a release.')
-      setReleaseName('')
-      setReleaseDescription('')
+      form.reset()
       setIsCreating(false)
     }
     catch {
@@ -78,7 +78,7 @@ function CreateReleaseControl({ appId, canCreateRelease }: {
           <form
             onSubmit={(event) => {
               event.preventDefault()
-              void handleCreateRelease()
+              void handleCreateRelease(event.currentTarget)
             }}
           >
             <div className="flex items-start gap-3 border-b border-divider-subtle px-6 py-5 pr-14">
@@ -102,10 +102,10 @@ function CreateReleaseControl({ appId, canCreateRelease }: {
                 </label>
                 <Input
                   id="release-name"
-                  value={releaseName}
-                  onChange={e => setReleaseName(e.target.value)}
+                  name="name"
                   placeholder={t('versions.releaseNamePlaceholder')}
                   maxLength={128}
+                  required
                   autoFocus
                   className="h-9"
                 />
@@ -120,13 +120,12 @@ function CreateReleaseControl({ appId, canCreateRelease }: {
                     {t('versions.optional')}
                   </span>
                 </div>
-                <Textarea
+                <textarea
                   id="release-description"
-                  value={releaseDescription}
-                  onChange={e => setReleaseDescription(e.target.value)}
+                  name="description"
                   placeholder={t('versions.releaseDescriptionPlaceholder')}
                   maxLength={512}
-                  className="min-h-[96px] resize-none"
+                  className="min-h-[96px] w-full resize-none appearance-none rounded-md border border-transparent bg-components-input-bg-normal p-2 system-sm-regular text-components-input-text-filled caret-primary-600 outline-hidden placeholder:text-components-input-text-placeholder hover:border-components-input-border-hover hover:bg-components-input-bg-hover focus:border-components-input-border-active focus:bg-components-input-bg-active focus:shadow-xs"
                 />
               </div>
             </div>
@@ -148,7 +147,7 @@ function CreateReleaseControl({ appId, canCreateRelease }: {
                   type="submit"
                   variant="primary"
                   className="min-w-[88px]"
-                  disabled={!canSubmitRelease}
+                  disabled={!canCreateRelease || createRelease.isPending}
                 >
                   {createRelease.isPending ? t('versions.creating') : t('versions.create')}
                 </Button>
