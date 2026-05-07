@@ -12,6 +12,7 @@ from core.repositories.human_input_repository import (
 from core.workflow.node_runtime import DifyHumanInputNodeRuntime
 from core.workflow.system_variables import build_system_variables
 from graphon.entities import WorkflowStartReason
+from graphon.file import File, FileTransferMethod, FileType
 from graphon.graph import Graph
 from graphon.graph_engine import GraphEngine, GraphEngineConfig
 from graphon.graph_engine.command_channels import InMemoryChannel
@@ -32,7 +33,7 @@ from graphon.nodes.human_input.entities import (
     StringListSource,
     UserActionConfig,
 )
-from graphon.nodes.human_input.enums import HumanInputFormStatus
+from graphon.nodes.human_input.enums import HumanInputFormStatus, ValueSourceType
 from graphon.nodes.human_input.human_input_node import HumanInputNode
 from graphon.nodes.start.entities import StartNodeData
 from graphon.nodes.start.start_node import StartNode
@@ -155,8 +156,15 @@ def _build_graph(runtime_state: GraphRuntimeState, repo: HumanInputFormRepositor
     human_data = HumanInputNodeData(
         title="Human Input",
         form_content="Human input required",
-        inputs=[],
-        user_actions=[UserAction(id="approve", title="Approve")],
+        inputs=[
+            SelectInputConfig(
+                output_variable_name="decision",
+                option_source=StringListSource(type=ValueSourceType.CONSTANT, value=["approve", "reject"]),
+            ),
+            FileInputConfig(output_variable_name="attachment"),
+            FileListInputConfig(output_variable_name="attachments", number_limits=2),
+        ],
+        user_actions=[UserActionConfig(id="approve", title="Approve")],
     )
 
     human_a_config = {"id": "human_a", "data": human_data.model_dump()}

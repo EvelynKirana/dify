@@ -26,10 +26,11 @@ from core.workflow.node_runtime import (
     build_dify_llm_file_saver,
     resolve_dify_run_context,
 )
-from graphon.file import FileTransferMethod, FileType
+from graphon.file import File, FileTransferMethod, FileType
 from graphon.model_runtime.entities.common_entities import I18nObject
 from graphon.model_runtime.entities.model_entities import AIModelEntity, FetchFrom, ModelType
-from graphon.nodes.human_input.entities import HumanInputNodeData
+from graphon.nodes.human_input.entities import FileInputConfig, FileListInputConfig, HumanInputNodeData
+from graphon.variables.segments import ArrayFileSegment, FileSegment
 from tests.workflow_test_utils import build_test_run_context
 
 

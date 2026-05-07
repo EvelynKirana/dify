@@ -467,7 +467,7 @@ def test_create_form_adds_console_and_backstage_recipients(monkeypatch: pytest.M
         delivery_methods=[],
         form_content="hello",
         inputs=[],
-        user_actions=[UserAction(id="submit", title="Submit")],
+        user_actions=[UserActionConfig(id="submit", title="Submit")],
     )
     params = FormCreateParams(
         workflow_execution_id=None,
