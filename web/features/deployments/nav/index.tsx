@@ -1,7 +1,8 @@
 'use client'
 
+import type { AppInstanceBasicInfo, AppInstanceCard } from '@dify/contracts/enterprise/types.gen'
 import type { NavItem } from '@/app/components/header/nav/nav-selector'
-import type { AppIconType, AppModeEnum } from '@/types/app'
+import type { AppModeEnum } from '@/types/app'
 import { skipToken, useQuery } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import Nav from '@/app/components/header/nav'
@@ -9,10 +10,40 @@ import { useParams, useRouter, useSelectedLayoutSegment } from '@/next/navigatio
 import { consoleQuery } from '@/service/client'
 import { SOURCE_APPS_PAGE_SIZE } from '../data'
 import { useDeploymentsStore } from '../store'
-import {
-  sourceAppsFromList,
-  toAppInfoFromOverview,
-} from '../utils'
+
+function navItemFromListApp(app: AppInstanceCard): NavItem[] {
+  if (!app.id || !app.name)
+    return []
+
+  return [{
+    id: app.id,
+    name: app.name,
+    link: `/deployments/${app.id}/overview`,
+    icon_type: 'emoji',
+    icon: app.icon ?? '',
+    icon_background: app.iconBackground ?? null,
+    icon_url: null,
+    mode: app.mode as AppModeEnum | undefined,
+  }]
+}
+
+function navItemFromOverview(instance?: AppInstanceBasicInfo): NavItem | undefined {
+  if (!instance?.id)
+    return undefined
+
+  const name = instance.name ?? instance.id
+
+  return {
+    id: instance.id,
+    name,
+    link: `/deployments/${instance.id}/overview`,
+    icon_type: 'emoji',
+    icon: instance.icon ?? '',
+    icon_background: instance.iconBackground ?? null,
+    icon_url: null,
+    mode: instance.mode as AppModeEnum | undefined,
+  }
+}
 
 export function DeploymentsNav() {
   const { t } = useTranslation()
@@ -28,7 +59,7 @@ export function DeploymentsNav() {
       ? { params: { appInstanceId: instanceId } }
       : skipToken,
     enabled: isActive && Boolean(instanceId),
-    select: data => toAppInfoFromOverview(data.instance),
+    select: data => data.instance,
   }))
 
   const listQuery = useQuery(consoleQuery.enterprise.appDeploy.listAppInstances.queryOptions({
@@ -40,24 +71,13 @@ export function DeploymentsNav() {
     },
     enabled: isActive,
   }))
-  const apps = sourceAppsFromList(listQuery.data)
+  const appNavItems = listQuery.data?.data?.flatMap(navItemFromListApp) ?? []
+  const currentNavItem = navItemFromOverview(currentInstance)
 
-  const navApps = currentInstance && !apps.some(app => app.id === currentInstance.id)
-    ? [...apps, currentInstance]
-    : apps
   const navigationItems: NavItem[] = isActive
-    ? navApps.map((app) => {
-        return {
-          id: app.id,
-          name: app.name,
-          link: `/deployments/${app.id}/overview`,
-          icon_type: (app.iconType ?? null) as AppIconType | null,
-          icon: app.icon ?? '',
-          icon_background: app.iconBackground ?? null,
-          icon_url: app.iconUrl ?? null,
-          mode: app.mode as unknown as AppModeEnum | undefined,
-        }
-      })
+    ? currentNavItem && !appNavItems.some(item => item.id === currentNavItem.id)
+      ? [...appNavItems, currentNavItem]
+      : appNavItems
     : []
 
   const curNav = instanceId

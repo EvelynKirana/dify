@@ -2,6 +2,7 @@
 
 import { cn } from '@langgenius/dify-ui/cn'
 import { useTranslation } from 'react-i18next'
+import { useDeploymentsStore } from '../store'
 
 type NewInstanceActionProps = {
   icon: string
@@ -37,10 +38,10 @@ function NewInstanceAction({ icon, label, disabled, onClick }: NewInstanceAction
   )
 }
 
-export function NewInstanceCard({ onOpen }: {
-  onOpen: () => void
-}) {
+export function NewInstanceCard() {
   const { t } = useTranslation('deployments')
+  const openCreateInstanceModal = useDeploymentsStore(state => state.openCreateInstanceModal)
+
   return (
     <div className="relative col-span-1 inline-flex h-[160px] flex-col justify-between rounded-xl border-[0.5px] border-components-card-border bg-components-card-bg">
       <div className="grow rounded-t-xl p-2">
@@ -50,7 +51,7 @@ export function NewInstanceCard({ onOpen }: {
         <NewInstanceAction
           icon="i-ri-stack-line"
           label={t('newInstance.fromStudio')}
-          onClick={onOpen}
+          onClick={openCreateInstanceModal}
         />
         <NewInstanceAction
           icon="i-ri-file-code-line"

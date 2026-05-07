@@ -1,8 +1,7 @@
 'use client'
 
+import type { AppInstanceCard } from '@dify/contracts/enterprise/types.gen'
 import type { MouseEvent } from 'react'
-import type { AppInfo } from '../types'
-import type { AppDeploymentSummary } from '@/features/deployments/types'
 import type { AppModeEnum } from '@/types/app'
 import { cn } from '@langgenius/dify-ui/cn'
 import {
@@ -21,9 +20,8 @@ import { useFormatTimeFromNow } from '@/hooks/use-format-time-from-now'
 import { useRouter } from '@/next/navigation'
 import { useDeploymentsStore } from '../store'
 
-export function InstanceCard({ app, summary }: {
-  app: AppInfo
-  summary?: AppDeploymentSummary
+export function InstanceCard({ app }: {
+  app: AppInstanceCard
 }) {
   const { t } = useTranslation('deployments')
   const router = useRouter()
@@ -31,7 +29,13 @@ export function InstanceCard({ app, summary }: {
   const [menuOpen, setMenuOpen] = useState(false)
   const openDeployDrawer = useDeploymentsStore(state => state.openDeployDrawer)
 
-  const navigateToDetail = () => router.push(`/deployments/${app.id}/overview`)
+  if (!app.id)
+    return null
+
+  const appId = app.id
+  const appName = app.name ?? appId
+  const appMode = app.mode ?? 'workflow'
+  const navigateToDetail = () => router.push(`/deployments/${appId}/overview`)
 
   const handleMenuAction = (e: MouseEvent<HTMLElement>, action: () => void) => {
     e.stopPropagation()
@@ -41,14 +45,14 @@ export function InstanceCard({ app, summary }: {
   }
 
   const statusCount = (status: string) =>
-    summary?.statuses?.find(item => item.status === status)?.count ?? 0
+    app.statuses?.find(item => item.status === status)?.count ?? 0
   const failedCount = statusCount('failed') + statusCount('deploy_failed')
   const deployingCount = statusCount('deploying')
   const readyCount = statusCount('ready')
   const envCount = failedCount + deployingCount + readyCount
 
-  const lastDeployedAt = summary?.lastDeployedAt
-    ? Date.parse(summary.lastDeployedAt)
+  const lastDeployedAt = app.lastDeployedAt
+    ? Date.parse(app.lastDeployedAt)
     : null
 
   const primaryStatus: 'none' | 'failed' | 'deploying' | 'ready' = envCount === 0
@@ -83,7 +87,7 @@ export function InstanceCard({ app, summary }: {
     return status || 'unknown'
   }
 
-  const statusSummaryTooltip = summary?.statuses?.filter(item => item.count && item.status !== 'undeployed') ?? []
+  const statusSummaryTooltip = app.statuses?.filter(item => item.count && item.status !== 'undeployed') ?? []
   const statusTooltip = primaryStatus === 'none'
     ? t('card.tooltip.notDeployed')
     : (
@@ -114,7 +118,7 @@ export function InstanceCard({ app, summary }: {
         ? 'bg-util-colors-warning-warning-500 animate-pulse'
         : 'bg-util-colors-green-green-500'
 
-  const appModeLabel = t(`appMode.${app.mode}`, { defaultValue: app.mode })
+  const appModeLabel = t(`appMode.${appMode}`, { defaultValue: appMode })
 
   return (
     <div
@@ -128,20 +132,19 @@ export function InstanceCard({ app, summary }: {
         <div className="relative shrink-0">
           <AppIcon
             size="large"
-            iconType={app.iconType}
+            iconType="emoji"
             icon={app.icon}
             background={app.iconBackground}
-            imageUrl={app.iconUrl}
           />
           <AppTypeIcon
-            type={app.mode as unknown as AppModeEnum}
+            type={appMode as AppModeEnum}
             wrapperClassName="absolute -bottom-0.5 -right-0.5 w-4 h-4 shadow-sm"
             className="h-3 w-3"
           />
         </div>
         <div className="w-0 grow py-px">
           <div className="flex items-center text-sm leading-5 font-semibold text-text-secondary">
-            <div className="truncate" title={app.name}>{app.name}</div>
+            <div className="truncate" title={appName}>{appName}</div>
           </div>
           <div className="truncate text-[10px] leading-[18px] font-medium text-text-tertiary" title={appModeLabel}>
             {appModeLabel}
@@ -174,8 +177,8 @@ export function InstanceCard({ app, summary }: {
         </Tooltip>
         <div className="flex min-w-0 items-center gap-1.5 system-xs-regular text-text-tertiary">
           <span aria-hidden className="i-ri-apps-2-line h-3.5 w-3.5 shrink-0 text-text-quaternary" />
-          <span className="truncate" title={app.sourceAppName ?? app.name}>
-            {t('card.fromApp', { name: app.sourceAppName ?? app.name })}
+          <span className="truncate" title={app.sourceAppName ?? appName}>
+            {t('card.fromApp', { name: app.sourceAppName ?? appName })}
           </span>
         </div>
       </div>
@@ -214,7 +217,7 @@ export function InstanceCard({ app, summary }: {
               <DropdownMenuContent placement="bottom-end" sideOffset={4} popupClassName="w-[216px]">
                 <DropdownMenuItem
                   className="gap-2 px-3"
-                  onClick={e => handleMenuAction(e, () => openDeployDrawer({ appInstanceId: app.id }))}
+                  onClick={e => handleMenuAction(e, () => openDeployDrawer({ appInstanceId: appId }))}
                 >
                   <span className="system-sm-regular text-text-secondary">{t('card.menu.deploy')}</span>
                 </DropdownMenuItem>

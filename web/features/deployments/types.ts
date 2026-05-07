@@ -44,16 +44,6 @@ type ConsoleUser = EnterpriseContract.ConsoleUser & {
   displayName?: string
 }
 
-export type AppDeploymentSummary = EnterpriseContract.AppInstanceCard & {
-  createdAt?: Timestamp
-  description?: string
-  status?: string
-}
-
-export type ListAppDeploymentsReply = Omit<EnterpriseContract.ListAppInstancesReply, 'data'> & {
-  data?: AppDeploymentSummary[]
-}
-
 export type AppInstanceOverview = EnterpriseContract.AppInstanceBasicInfo
 
 export type RuntimeBindingDisplay = EnterpriseContract.ReleaseRuntimeBinding & {

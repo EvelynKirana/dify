@@ -1,6 +1,5 @@
 import type {
   AccessPermissionKind,
-  AppDeploymentSummary,
   AppInfo,
   AppInstanceOverview,
   AppMode,
@@ -8,7 +7,6 @@ import type {
   ConsoleReleaseSummary,
   EnvironmentDeploymentRow,
   EnvironmentOption,
-  ListAppDeploymentsReply,
   ListDeploymentEnvironmentOptionsReply,
   RuntimeBindingDisplay,
 } from './types'
@@ -136,23 +134,6 @@ export function deployedRows(rows?: EnvironmentDeploymentRow[]) {
   }) ?? []
 }
 
-export function toAppInfoFromSummary(summary: AppDeploymentSummary): AppInfo | undefined {
-  if (!summary.id || !summary.name)
-    return undefined
-
-  return {
-    id: summary.id,
-    name: summary.name,
-    mode: (summary.mode || 'workflow') as AppMode,
-    iconType: 'emoji',
-    icon: summary.icon,
-    iconBackground: summary.iconBackground,
-    sourceAppName: summary.sourceAppName,
-    sourceAppAvailable: summary.sourceAppAvailable,
-    canCreateRelease: summary.canCreateRelease,
-  }
-}
-
 export function toAppInfoFromOverview(instance?: AppInstanceOverview): AppInfo | undefined {
   if (!instance?.id)
     return undefined
@@ -170,20 +151,6 @@ export function toAppInfoFromOverview(instance?: AppInstanceOverview): AppInfo |
     sourceAppAvailable: instance.sourceAppAvailable,
     canCreateRelease: instance.canCreateRelease,
   }
-}
-
-export function sourceAppsFromList(response?: ListAppDeploymentsReply) {
-  return (response?.data ?? [])
-    .map(toAppInfoFromSummary)
-    .filter((app): app is AppInfo => Boolean(app))
-}
-
-export function deploymentSummariesFromList(response?: ListAppDeploymentsReply): Record<string, AppDeploymentSummary> {
-  return Object.fromEntries(
-    (response?.data ?? [])
-      .filter(summary => summary.id)
-      .map(summary => [summary.id!, summary]),
-  )
 }
 
 export function environmentOptionsFromOptionsReply(response?: ListDeploymentEnvironmentOptionsReply): EnvironmentOption[] {

@@ -8,9 +8,14 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@langgenius/dify-ui/dropdown-menu'
+import { useQuery } from '@tanstack/react-query'
+import { useQueryState } from 'nuqs'
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
+import { consoleQuery } from '@/service/client'
+import { envFilterQueryState } from './query-state'
 
-export type EnvironmentFilterOption = {
+type EnvironmentFilterOption = {
   value: string
   text: string
   icon: ReactNode
@@ -18,13 +23,64 @@ export type EnvironmentFilterOption = {
   disabledReason?: string
 }
 
-export function EnvironmentFilter({ value, options, onChange }: {
-  value: string
-  options: EnvironmentFilterOption[]
-  onChange: (value: string) => void
-}) {
+type FilterEnvironment = {
+  id: string
+  name: string
+  disabled?: boolean
+  disabledReason?: string
+}
+
+function getEnvironmentId(env: FilterEnvironment) {
+  return env.id
+}
+
+function getEnvironmentFilterOption(env: FilterEnvironment): EnvironmentFilterOption {
+  return {
+    value: env.id,
+    text: env.name,
+    icon: <span className="i-ri-stack-line h-[14px] w-[14px]" />,
+    disabled: env.disabled,
+    disabledReason: env.disabledReason,
+  }
+}
+
+export function EnvironmentFilter() {
+  const { t } = useTranslation('deployments')
   const [open, setOpen] = useState(false)
-  const selectedOption = options.find(option => option.value === value) ?? options[0]
+  const [envFilter, setEnvFilter] = useQueryState('env', envFilterQueryState)
+  const { data: environmentOptionsReply } = useQuery(consoleQuery.enterprise.appDeploy.listDeploymentEnvironmentOptions.queryOptions())
+  const environmentOptions = environmentOptionsReply?.environments ?? []
+
+  function getFilterEnvironment(env: (typeof environmentOptions)[number]): FilterEnvironment[] {
+    if (!env.id)
+      return []
+    return [{
+      id: env.id,
+      name: env.name || env.id,
+      disabled: env.deployable === false,
+      disabledReason: env.disabledReason,
+    }]
+  }
+
+  const environments = environmentOptions.flatMap(getFilterEnvironment)
+  const envIdSet = new Set(environments.map(getEnvironmentId))
+  const activeFilter = envFilter === 'all' || envFilter === 'not-deployed' || envIdSet.has(envFilter)
+    ? envFilter
+    : 'all'
+  const filterOptions: EnvironmentFilterOption[] = [
+    {
+      value: 'all',
+      text: t('filter.allEnvs'),
+      icon: <span className="i-ri-apps-2-line h-[14px] w-[14px]" />,
+    },
+    ...environments.map(getEnvironmentFilterOption),
+    {
+      value: 'not-deployed',
+      text: t('filter.notDeployed'),
+      icon: <span className="i-ri-inbox-line h-[14px] w-[14px]" />,
+    },
+  ]
+  const selectedOption = filterOptions.find(option => option.value === activeFilter) ?? filterOptions[0]
 
   return (
     <DropdownMenu modal={false} open={open} onOpenChange={setOpen}>
@@ -51,13 +107,13 @@ export function EnvironmentFilter({ value, options, onChange }: {
           popupClassName="w-[240px] rounded-lg border-[0.5px] border-components-panel-border bg-components-panel-bg-blur shadow-lg backdrop-blur-[5px]"
         >
           <div className="max-h-72 overflow-auto p-1">
-            {options.map(option => (
+            {filterOptions.map(option => (
               <DropdownMenuItem
                 key={option.value}
                 onClick={() => {
                   if (option.disabled)
                     return
-                  onChange(option.value)
+                  void setEnvFilter(option.value)
                   setOpen(false)
                 }}
                 title={option.disabled ? option.disabledReason : undefined}
@@ -71,7 +127,7 @@ export function EnvironmentFilter({ value, options, onChange }: {
               >
                 <span className="shrink-0 text-text-tertiary">{option.icon}</span>
                 <span className="grow truncate text-sm leading-5 text-text-tertiary">{option.text}</span>
-                {option.value === value && (
+                {option.value === activeFilter && (
                   <span className="i-custom-vender-line-general-check h-4 w-4 shrink-0 text-text-secondary" />
                 )}
               </DropdownMenuItem>
