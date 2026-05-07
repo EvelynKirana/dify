@@ -1,5 +1,5 @@
 import type { WorkflowOnlineUser, WorkflowOnlineUsersResponse } from '@/models/app'
-import { useQuery } from '@tanstack/react-query'
+import { skipToken, useQuery } from '@tanstack/react-query'
 import { consoleQuery } from '@/service/client'
 
 type WorkflowOnlineUsersMap = Record<string, WorkflowOnlineUser[]>
@@ -9,7 +9,7 @@ type UseWorkflowOnlineUsersParams = {
   enabled: boolean
 }
 
-function normalizeWorkflowOnlineUsers(response?: WorkflowOnlineUsersResponse): WorkflowOnlineUsersMap {
+const normalizeWorkflowOnlineUsers = (response?: WorkflowOnlineUsersResponse): WorkflowOnlineUsersMap => {
   const data = response?.data
 
   if (!data)
@@ -30,18 +30,15 @@ function normalizeWorkflowOnlineUsers(response?: WorkflowOnlineUsersResponse): W
   }, {})
 }
 
-export function useWorkflowOnlineUsers({
+export const useWorkflowOnlineUsers = ({
   appIds,
   enabled,
-}: UseWorkflowOnlineUsersParams) {
+}: UseWorkflowOnlineUsersParams) => {
   const shouldFetch = enabled && appIds.length > 0
   const { data: onlineUsersMap = {} } = useQuery(consoleQuery.apps.workflowOnlineUsers.queryOptions({
-    input: {
-      body: {
-        app_ids: appIds,
-      },
-    },
-    enabled: shouldFetch,
+    input: shouldFetch
+      ? { body: { app_ids: appIds } }
+      : skipToken,
     select: normalizeWorkflowOnlineUsers,
     refetchInterval: shouldFetch ? 10000 : false,
   }))
