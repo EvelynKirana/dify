@@ -51,17 +51,35 @@ vi.mock('../invited-modal', () => ({
     </div>
   ),
 }))
-vi.mock('../operation', () => ({
-  default: () => <div>Member Operation</div>,
+vi.mock('../role-badges', () => ({
+  default: ({ roles }: { roles: string[] }) => (
+    <div data-testid="role-badges">{roles.join(',')}</div>
+  ),
 }))
-vi.mock('../operation/transfer-ownership', () => ({
-  default: ({ onOperate }: { onOperate: () => void }) => <button onClick={onOperate}>Transfer ownership</button>,
+vi.mock('../member-menu', () => ({
+  default: ({ member, onTransferOwnership, canTransferOwnership }: { member: Member, onTransferOwnership?: () => void, canTransferOwnership?: boolean }) => (
+    <div data-testid="member-menu">
+      {canTransferOwnership && member.role === 'owner' && onTransferOwnership && (
+        <button onClick={onTransferOwnership}>Transfer ownership</button>
+      )}
+    </div>
+  ),
 }))
 vi.mock('../transfer-ownership-modal', () => ({
   default: ({ onClose }: { onClose: () => void }) => (
     <div>
       <div>Transfer Ownership Modal</div>
       <button onClick={onClose}>Close Transfer Modal</button>
+    </div>
+  ),
+}))
+vi.mock('../member-details-modal', () => ({
+  default: ({ member, onClose, canAssignRoles }: { member: Member, onClose: () => void, canAssignRoles?: boolean }) => (
+    <div>
+      <div>Member Details Modal</div>
+      <div data-testid="details-member-name">{member.name}</div>
+      <div data-testid="details-can-assign">{String(canAssignRoles)}</div>
+      <button onClick={onClose}>Close Member Details Modal</button>
     </div>
   ),
 }))
@@ -358,6 +376,52 @@ describe('MembersPage', () => {
     renderMembersPage()
 
     expect(screen.getByText('common.members.normal'))!.toBeInTheDocument()
+  })
+
+  it('should open member details modal when a member row is clicked', async () => {
+    const user = userEvent.setup()
+
+    renderMembersPage()
+
+    await user.click(screen.getByTestId('member-row-2'))
+
+    expect(screen.getByText('Member Details Modal'))!.toBeInTheDocument()
+    expect(screen.getByTestId('details-member-name'))!.toHaveTextContent('Admin User')
+
+    await user.click(screen.getByRole('button', { name: 'Close Member Details Modal' }))
+    expect(screen.queryByText('Member Details Modal')).not.toBeInTheDocument()
+  })
+
+  it('should open member details modal via keyboard Enter', async () => {
+    const user = userEvent.setup()
+
+    renderMembersPage()
+
+    const row = screen.getByTestId('member-row-2')
+    row.focus()
+    await user.keyboard('{Enter}')
+
+    expect(screen.getByText('Member Details Modal'))!.toBeInTheDocument()
+  })
+
+  it('should not allow assigning roles from member details when target is owner', async () => {
+    const user = userEvent.setup()
+
+    renderMembersPage()
+
+    await user.click(screen.getByTestId('member-row-1'))
+
+    expect(screen.getByTestId('details-can-assign'))!.toHaveTextContent('false')
+  })
+
+  it('should not open member details when clicking the member menu area', async () => {
+    const user = userEvent.setup()
+
+    renderMembersPage()
+
+    await user.click(screen.getByRole('button', { name: /transfer ownership/i }))
+
+    expect(screen.queryByText('Member Details Modal')).not.toBeInTheDocument()
   })
 
   it('should show upgrade button when member limit is full', () => {
