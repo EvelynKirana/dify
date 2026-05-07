@@ -1,7 +1,6 @@
 'use client'
 
 import { useQuery } from '@tanstack/react-query'
-import { useDebounce } from 'ahooks'
 import { debounce, useQueryState } from 'nuqs'
 import { useTranslation } from 'react-i18next'
 import Input from '@/app/components/base/input'
@@ -52,8 +51,7 @@ function DeploymentsListControls() {
 function DeploymentsList() {
   const [envFilter] = useQueryState('env', envFilterQueryState)
   const [keywords] = useQueryState('keywords', keywordsQueryState)
-  const debouncedKeywords = useDebounce(keywords, { wait: 300 })
-  const queryKeywords = keywords.trim() ? debouncedKeywords : keywords
+  const queryKeywords = keywords.trim()
 
   const requestedEnvironmentId = envFilter !== 'all' && envFilter !== 'not-deployed'
     ? envFilter
@@ -65,7 +63,7 @@ function DeploymentsList() {
         resultsPerPage: SOURCE_APPS_PAGE_SIZE,
         ...(requestedEnvironmentId ? { environmentId: requestedEnvironmentId } : {}),
         ...(envFilter === 'not-deployed' ? { notDeployed: true } : {}),
-        ...(queryKeywords.trim() ? { query: queryKeywords.trim() } : {}),
+        ...(queryKeywords ? { query: queryKeywords } : {}),
       },
     },
     placeholderData: prev => prev,
