@@ -7,7 +7,8 @@ import { useQuery } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import { getAppModeLabel } from '@/app/components/app-sidebar/app-info/app-mode-labels'
 import useDocumentTitle from '@/hooks/use-document-title'
-import { useRouter, useSelectedLayoutSegment } from '@/next/navigation'
+import Link from '@/next/link'
+import { useSelectedLayoutSegment } from '@/next/navigation'
 import { consoleQuery } from '@/service/client'
 import { DeployDrawer } from '../components/deploy-drawer'
 import { RollbackModal } from '../components/rollback-modal'
@@ -20,7 +21,6 @@ export function InstanceDetail({ instanceId, children }: {
 }) {
   const { t } = useTranslation('deployments')
   const { t: tCommon } = useTranslation()
-  const router = useRouter()
   const selectedSegment = useSelectedLayoutSegment()
   const selectedTab = selectedSegment ?? undefined
   const activeTab: InstanceDetailTabKey = isInstanceDetailTabKey(selectedTab) ? selectedTab : 'overview'
@@ -47,7 +47,7 @@ export function InstanceDetail({ instanceId, children }: {
     return (
       <div className="flex h-full flex-col items-center justify-center gap-3 bg-background-body">
         <div className="title-xl-semi-bold text-text-primary">{t('detail.notFound')}</div>
-        <Button variant="secondary" onClick={() => router.push('/deployments')}>
+        <Button nativeButton={false} variant="secondary" render={<Link href="/deployments" />}>
           <span aria-hidden className="i-ri-arrow-left-line h-4 w-4" />
           {t('detail.backToInstances')}
         </Button>

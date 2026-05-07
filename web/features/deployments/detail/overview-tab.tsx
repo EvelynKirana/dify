@@ -5,7 +5,7 @@ import { cn } from '@langgenius/dify-ui/cn'
 import { useQuery } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import { getAppModeLabel } from '@/app/components/app-sidebar/app-info/app-mode-labels'
-import { useRouter } from '@/next/navigation'
+import Link from '@/next/link'
 import { consoleQuery } from '@/service/client'
 import { StatusBadge } from '../components/status-badge'
 import { DEPLOYMENT_PAGE_SIZE } from '../data'
@@ -16,6 +16,10 @@ import {
 } from '../utils'
 
 type SwitchableTab = 'deploy' | 'versions' | 'access' | 'settings'
+
+function tabHref(appId: string, tab: SwitchableTab): string {
+  return `/deployments/${appId}/${tab}`
+}
 
 function Section({ title, action, children }: {
   title: string
@@ -79,7 +83,7 @@ function AccessOverviewRow({ label, enabled, hint, meta }: AccessOverviewRowProp
   )
 }
 
-function overviewDeploymentStatus(status?: string) {
+function overviewDeploymentStatus(status?: string): 'deploying' | 'deploy_failed' | 'ready' {
   const normalized = status?.toLowerCase() ?? ''
   if (normalized.includes('deploying') || normalized.includes('pending'))
     return 'deploying'
@@ -93,7 +97,6 @@ export function OverviewTab({ instanceId }: {
 }) {
   const { t } = useTranslation('deployments')
   const { t: tCommon } = useTranslation()
-  const router = useRouter()
   const input = { params: { appInstanceId: instanceId } }
   const { data: overview } = useQuery(consoleQuery.enterprise.appDeploy.getAppInstanceOverview.queryOptions({
     input,
@@ -121,10 +124,6 @@ export function OverviewTab({ instanceId }: {
 
   const appId = overviewApp.id
   const appName = overviewApp.name ?? appId
-  const switchTab = (tab: SwitchableTab) => {
-    router.push(`/deployments/${appId}/${tab}`)
-  }
-
   const appModeLabel = getAppModeLabel(overviewApp.mode ?? 'workflow', tCommon)
   const webappAccessUrl = webappUrl(overview?.access?.webappUrl)
   const cliUrl = overview?.access?.cliUrl
@@ -145,7 +144,7 @@ export function OverviewTab({ instanceId }: {
       <Section
         title={t('overview.deploymentStatus')}
         action={(
-          <Button size="small" variant="secondary" onClick={() => switchTab('deploy')}>
+          <Button nativeButton={false} size="small" variant="secondary" render={<Link href={tabHref(appId, 'deploy')} />}>
             {t('overview.viewDeployments')}
             <span className="i-ri-arrow-right-up-line h-3.5 w-3.5" />
           </Button>
@@ -160,20 +159,23 @@ export function OverviewTab({ instanceId }: {
                     ? t(canCreateRelease ? 'overview.noReleaseYet' : 'overview.noReleaseSourceUnavailable')
                     : t('overview.notDeployedYet')}
                 </div>
-                <Button
-                  size="small"
-                  variant="primary"
-                  disabled={releaseRows.length === 0 && !canCreateRelease}
-                  onClick={() => {
-                    if (releaseRows.length === 0) {
-                      switchTab('versions')
-                      return
-                    }
-                    openDeployDrawer({ appInstanceId: appId })
-                  }}
-                >
-                  {releaseRows.length === 0 ? t('overview.createRelease') : t('overview.deploy')}
-                </Button>
+                {releaseRows.length === 0
+                  ? canCreateRelease
+                    ? (
+                        <Button nativeButton={false} size="small" variant="primary" render={<Link href={tabHref(appId, 'versions')} />}>
+                          {t('overview.createRelease')}
+                        </Button>
+                      )
+                    : (
+                        <Button size="small" variant="primary" disabled>
+                          {t('overview.createRelease')}
+                        </Button>
+                      )
+                  : (
+                      <Button size="small" variant="primary" onClick={() => openDeployDrawer({ appInstanceId: appId })}>
+                        {t('overview.deploy')}
+                      </Button>
+                    )}
               </div>
             )
           : (
@@ -199,7 +201,7 @@ export function OverviewTab({ instanceId }: {
       <Section
         title={t('overview.accessStatus')}
         action={(
-          <Button size="small" variant="secondary" onClick={() => switchTab('access')}>
+          <Button nativeButton={false} size="small" variant="secondary" render={<Link href={tabHref(appId, 'access')} />}>
             {t('overview.configureAccess')}
             <span className="i-ri-arrow-right-up-line h-3.5 w-3.5" />
           </Button>

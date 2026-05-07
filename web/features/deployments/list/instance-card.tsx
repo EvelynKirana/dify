@@ -1,13 +1,13 @@
 'use client'
 
 import type { AppInstanceCard } from '@dify/contracts/enterprise/types.gen'
-import type { MouseEvent } from 'react'
 import type { AppModeEnum } from '@/types/app'
 import { cn } from '@langgenius/dify-ui/cn'
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuLinkItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@langgenius/dify-ui/dropdown-menu'
@@ -17,14 +17,13 @@ import { useTranslation } from 'react-i18next'
 import { AppTypeIcon } from '@/app/components/app/type-selector'
 import AppIcon from '@/app/components/base/app-icon'
 import { useFormatTimeFromNow } from '@/hooks/use-format-time-from-now'
-import { useRouter } from '@/next/navigation'
+import Link from '@/next/link'
 import { useDeploymentsStore } from '../store'
 
 export function InstanceCard({ app }: {
   app: AppInstanceCard
 }) {
   const { t } = useTranslation('deployments')
-  const router = useRouter()
   const { formatTimeFromNow } = useFormatTimeFromNow()
   const [menuOpen, setMenuOpen] = useState(false)
   const openDeployDrawer = useDeploymentsStore(state => state.openDeployDrawer)
@@ -35,14 +34,7 @@ export function InstanceCard({ app }: {
   const appId = app.id
   const appName = app.name ?? appId
   const appMode = app.mode ?? 'workflow'
-  const navigateToDetail = () => router.push(`/deployments/${appId}/overview`)
-
-  const handleMenuAction = (e: MouseEvent<HTMLElement>, action: () => void) => {
-    e.stopPropagation()
-    e.preventDefault()
-    setMenuOpen(false)
-    action()
-  }
+  const detailHref = `/deployments/${appId}/overview`
 
   const statusCount = (status: string) =>
     app.statuses?.find(item => item.status === status)?.count ?? 0
@@ -122,75 +114,78 @@ export function InstanceCard({ app }: {
 
   return (
     <div
-      onClick={(e) => {
-        e.preventDefault()
-        navigateToDetail()
-      }}
       className="group relative col-span-1 inline-flex h-[160px] cursor-pointer flex-col rounded-xl border border-solid border-components-card-border bg-components-card-bg shadow-sm transition-all duration-200 ease-in-out hover:shadow-lg"
     >
-      <div className="flex h-[66px] shrink-0 grow-0 items-center gap-3 px-[14px] pt-[14px] pb-3">
-        <div className="relative shrink-0">
-          <AppIcon
-            size="large"
-            iconType="emoji"
-            icon={app.icon}
-            background={app.iconBackground}
-          />
-          <AppTypeIcon
-            type={appMode as AppModeEnum}
-            wrapperClassName="absolute -bottom-0.5 -right-0.5 w-4 h-4 shadow-sm"
-            className="h-3 w-3"
-          />
-        </div>
-        <div className="w-0 grow py-px">
-          <div className="flex items-center text-sm leading-5 font-semibold text-text-secondary">
-            <div className="truncate" title={appName}>{appName}</div>
+      <Link
+        href={detailHref}
+        className="flex h-full flex-col rounded-xl outline-none focus-visible:ring-2 focus-visible:ring-state-accent-solid"
+      >
+        <div className="flex h-[66px] shrink-0 grow-0 items-center gap-3 px-[14px] pt-[14px] pb-3">
+          <div className="relative shrink-0">
+            <AppIcon
+              size="large"
+              iconType="emoji"
+              icon={app.icon}
+              background={app.iconBackground}
+            />
+            <AppTypeIcon
+              type={appMode as AppModeEnum}
+              wrapperClassName="absolute -bottom-0.5 -right-0.5 w-4 h-4 shadow-sm"
+              className="h-3 w-3"
+            />
           </div>
-          <div className="truncate text-[10px] leading-[18px] font-medium text-text-tertiary" title={appModeLabel}>
-            {appModeLabel}
+          <div className="w-0 grow py-px">
+            <div className="flex items-center text-sm leading-5 font-semibold text-text-secondary">
+              <div className="truncate" title={appName}>{appName}</div>
+            </div>
+            <div className="truncate text-[10px] leading-[18px] font-medium text-text-tertiary" title={appModeLabel}>
+              {appModeLabel}
+            </div>
           </div>
         </div>
-      </div>
-      <div className="flex grow flex-col gap-2 px-[14px]">
-        <Tooltip>
-          <TooltipTrigger
-            render={(
-              <div className="flex min-w-0 items-center gap-1.5">
-                <span
-                  className={cn(
-                    'inline-flex h-5 shrink-0 items-center gap-1 rounded-md px-1.5 system-xs-medium',
-                    healthPillClass,
-                  )}
-                >
-                  <span className={cn('h-1.5 w-1.5 rounded-full', healthDotClass)} />
-                  {primaryText}
-                </span>
-                {secondaryParts.length > 0 && (
-                  <span className="truncate system-xs-regular text-text-tertiary">
-                    {secondaryParts.join(' · ')}
+        <div className="flex grow flex-col gap-2 px-[14px]">
+          <Tooltip>
+            <TooltipTrigger
+              render={(
+                <div className="flex min-w-0 items-center gap-1.5">
+                  <span
+                    className={cn(
+                      'inline-flex h-5 shrink-0 items-center gap-1 rounded-md px-1.5 system-xs-medium',
+                      healthPillClass,
+                    )}
+                  >
+                    <span className={cn('h-1.5 w-1.5 rounded-full', healthDotClass)} />
+                    {primaryText}
                   </span>
-                )}
-              </div>
-            )}
-          />
-          <TooltipContent>{statusTooltip}</TooltipContent>
-        </Tooltip>
-        <div className="flex min-w-0 items-center gap-1.5 system-xs-regular text-text-tertiary">
-          <span aria-hidden className="i-ri-apps-2-line h-3.5 w-3.5 shrink-0 text-text-quaternary" />
-          <span className="truncate" title={app.sourceAppName ?? appName}>
-            {t('card.fromApp', { name: app.sourceAppName ?? appName })}
-          </span>
+                  {secondaryParts.length > 0 && (
+                    <span className="truncate system-xs-regular text-text-tertiary">
+                      {secondaryParts.join(' · ')}
+                    </span>
+                  )}
+                </div>
+              )}
+            />
+            <TooltipContent>{statusTooltip}</TooltipContent>
+          </Tooltip>
+          <div className="flex min-w-0 items-center gap-1.5 system-xs-regular text-text-tertiary">
+            <span aria-hidden className="i-ri-apps-2-line h-3.5 w-3.5 shrink-0 text-text-quaternary" />
+            <span className="truncate" title={app.sourceAppName ?? appName}>
+              {t('card.fromApp', { name: app.sourceAppName ?? appName })}
+            </span>
+          </div>
         </div>
-      </div>
-      <div className="absolute right-0 bottom-1 left-0 flex h-[42px] shrink-0 items-center pt-1 pr-[6px] pb-[6px] pl-[14px]">
-        <div className="mr-[41px] flex min-w-0 grow items-center gap-1.5 system-xs-regular text-text-tertiary">
-          <span aria-hidden className="i-ri-time-line h-3.5 w-3.5 shrink-0 text-text-quaternary" />
-          <span className="truncate">
-            {lastDeployedAt
-              ? t('card.lastDeployed', { time: formatTimeFromNow(lastDeployedAt) })
-              : t('card.neverDeployed')}
-          </span>
+        <div className="absolute right-0 bottom-1 left-0 flex h-[42px] shrink-0 items-center pt-1 pr-[6px] pb-[6px] pl-[14px]">
+          <div className="mr-[41px] flex min-w-0 grow items-center gap-1.5 system-xs-regular text-text-tertiary">
+            <span aria-hidden className="i-ri-time-line h-3.5 w-3.5 shrink-0 text-text-quaternary" />
+            <span className="truncate">
+              {lastDeployedAt
+                ? t('card.lastDeployed', { time: formatTimeFromNow(lastDeployedAt) })
+                : t('card.neverDeployed')}
+            </span>
+          </div>
         </div>
+      </Link>
+      <div className="pointer-events-none absolute right-0 bottom-1 left-0 flex h-[42px] shrink-0 items-center pt-1 pr-[6px] pb-[6px] pl-[14px]">
         <div
           className={cn(
             'absolute top-1/2 right-[6px] flex -translate-y-1/2 items-center transition-opacity',
@@ -206,10 +201,6 @@ export function InstanceCard({ app }: {
                 menuOpen ? 'bg-state-base-hover shadow-none' : 'bg-transparent',
                 'flex h-8 w-8 items-center justify-center rounded-md border-none p-2 hover:bg-state-base-hover',
               )}
-              onClick={(e) => {
-                e.stopPropagation()
-                e.preventDefault()
-              }}
             >
               <span aria-hidden className="i-ri-more-fill h-4 w-4 text-text-tertiary" />
             </DropdownMenuTrigger>
@@ -217,16 +208,19 @@ export function InstanceCard({ app }: {
               <DropdownMenuContent placement="bottom-end" sideOffset={4} popupClassName="w-[216px]">
                 <DropdownMenuItem
                   className="gap-2 px-3"
-                  onClick={e => handleMenuAction(e, () => openDeployDrawer({ appInstanceId: appId }))}
+                  onClick={() => {
+                    setMenuOpen(false)
+                    openDeployDrawer({ appInstanceId: appId })
+                  }}
                 >
                   <span className="system-sm-regular text-text-secondary">{t('card.menu.deploy')}</span>
                 </DropdownMenuItem>
-                <DropdownMenuItem
+                <DropdownMenuLinkItem
                   className="gap-2 px-3"
-                  onClick={e => handleMenuAction(e, navigateToDetail)}
+                  render={<Link href={detailHref} />}
                 >
                   <span className="system-sm-regular text-text-secondary">{t('card.menu.viewDetail')}</span>
-                </DropdownMenuItem>
+                </DropdownMenuLinkItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem
                   aria-disabled
