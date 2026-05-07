@@ -59,7 +59,14 @@ def _create_human_input_node(
     )
 
 
-def _build_node(form_content: str = "Please enter your name:\n\n{{#$output.name#}}") -> HumanInputNode:
+def _build_node(
+    form_content: str = (
+        "Please enter your name:\n\n{{#$output.name#}}\n"
+        "Decision: {{#$output.decision#}}\n"
+        "Attachment: {{#$output.attachment#}}\n"
+        "Attachments: {{#$output.attachments#}}"
+    ),
+) -> HumanInputNode:
     system_variables = default_system_variables()
     graph_runtime_state = GraphRuntimeState(
         variable_pool=VariablePool(system_variables=system_variables, user_inputs={}, environment_variables=[]),
@@ -200,9 +207,25 @@ def test_human_input_node_emits_form_filled_event_before_succeeded():
 
     filled_event = events[1]
     assert filled_event.node_title == "Human Input"
-    assert filled_event.rendered_content.endswith("Alice")
+    assert filled_event.rendered_content == (
+        "Please enter your name:\n\nAlice\n"
+        "Decision: approve\n"
+        "Attachment: [file]\n"
+        "Attachments: [1 files]"
+    )
     assert filled_event.action_id == "Accept"
     assert filled_event.action_text == "Approve"
+    assert filled_event.submitted_data["name"] == StringSegment(value="Alice")
+    assert filled_event.submitted_data["decision"] == StringSegment(value="approve")
+    assert isinstance(filled_event.submitted_data["attachment"], FileSegment)
+    assert filled_event.submitted_data["attachment"].value_type == SegmentType.FILE
+    assert filled_event.submitted_data["attachment"].value.filename == "resume.pdf"
+    assert filled_event.submitted_data["attachment"].value.type == FileType.DOCUMENT
+    assert filled_event.submitted_data["attachment"].value.transfer_method == FileTransferMethod.REMOTE_URL
+    assert isinstance(filled_event.submitted_data["attachments"], ArrayFileSegment)
+    assert filled_event.submitted_data["attachments"].value_type == SegmentType.ARRAY_FILE
+    assert filled_event.submitted_data["attachments"].value[0].filename == "a.png"
+    assert filled_event.submitted_data["attachments"].value[0].type == FileType.IMAGE
 
 
 def test_human_input_node_emits_timeout_event_before_succeeded():

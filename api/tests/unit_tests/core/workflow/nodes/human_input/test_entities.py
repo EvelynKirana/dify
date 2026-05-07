@@ -54,7 +54,7 @@ from graphon.nodes.human_input.enums import (
 )
 from graphon.nodes.human_input.human_input_node import HumanInputNode
 from graphon.runtime import GraphRuntimeState, VariablePool
-from graphon.variables.segments import ArrayFileSegment, FileSegment
+from graphon.variables.segments import ArrayFileSegment, FileSegment, StringSegment
 from libs.datetime_utils import naive_utc_now
 
 
@@ -809,4 +809,115 @@ class TestHumanInputNodeRenderedContent:
         last_event = events[-1]
         assert isinstance(last_event, StreamCompletedEvent)
         node_run_result = last_event.node_run_result
-        assert node_run_result.outputs["__rendered_content"] == "Name: Alice"
+        assert node_run_result.outputs["name"] == StringSegment(value="Alice")
+        assert node_run_result.outputs["__action_id"] == StringSegment(value="approve")
+        assert node_run_result.outputs["__rendered_content"] == StringSegment(value="Name: Alice")
+
+    def test_resume_restores_file_outputs_as_runtime_segments(self):
+        variable_pool = VariablePool(
+            system_variables=build_system_variables(
+                user_id="user",
+                app_id="app",
+                workflow_id="workflow",
+                workflow_execution_id="run",
+            ),
+            user_inputs={},
+            conversation_variables=[],
+        )
+        runtime_state = GraphRuntimeState(variable_pool=variable_pool, start_at=0.0)
+        graph_init_params = GraphInitParams(
+            workflow_id="workflow",
+            graph_config={"nodes": [], "edges": []},
+            run_context={
+                DIFY_RUN_CONTEXT_KEY: {
+                    "tenant_id": "tenant",
+                    "app_id": "app",
+                    "user_id": "user",
+                    "user_from": "account",
+                    "invoke_from": "debugger",
+                }
+            },
+            call_depth=0,
+        )
+
+        node_data = HumanInputNodeData(
+            title="Human Input",
+            form_content=(
+                "Decision: {{#$output.decision#}}\n"
+                "Attachment: {{#$output.attachment#}}\n"
+                "Attachments: {{#$output.attachments#}}"
+            ),
+            inputs=[
+                SelectInputConfig(
+                    output_variable_name="decision",
+                    option_source=StringListSource(type="constant", value=["approve", "reject"]),
+                ),
+                FileInputConfig(output_variable_name="attachment"),
+                FileListInputConfig(output_variable_name="attachments", number_limits=2),
+            ],
+            user_actions=[UserActionConfig(id="approve", title="Approve")],
+        )
+        config = {"id": "human", "data": node_data.model_dump()}
+
+        form_repository = InMemoryHumanInputFormRepository()
+        runtime = DifyHumanInputNodeRuntime(graph_init_params.run_context)
+        runtime._build_form_repository = MagicMock(return_value=form_repository)  # type: ignore[attr-defined]
+        node = _build_human_input_node(
+            node_id=config["id"],
+            node_data=config["data"],
+            graph_init_params=graph_init_params,
+            graph_runtime_state=runtime_state,
+            runtime=runtime,
+        )
+
+        pause_gen = node._run()
+        pause_event = next(pause_gen)
+        assert isinstance(pause_event, PauseRequestedEvent)
+        with pytest.raises(StopIteration):
+            next(pause_gen)
+
+        form_repository.set_submission(
+            action_id="approve",
+            form_data={
+                "decision": "approve",
+                "attachment": {
+                    "type": "document",
+                    "transfer_method": "remote_url",
+                    "remote_url": "https://example.com/resume.pdf",
+                    "filename": "resume.pdf",
+                    "extension": ".pdf",
+                    "mime_type": "application/pdf",
+                },
+                "attachments": [
+                    {
+                        "type": "image",
+                        "transfer_method": "remote_url",
+                        "remote_url": "https://example.com/a.png",
+                        "filename": "a.png",
+                        "extension": ".png",
+                        "mime_type": "image/png",
+                    },
+                    {
+                        "type": "image",
+                        "transfer_method": "remote_url",
+                        "remote_url": "https://example.com/b.png",
+                        "filename": "b.png",
+                        "extension": ".png",
+                        "mime_type": "image/png",
+                    },
+                ],
+            },
+        )
+
+        events = list(node._run())
+        last_event = events[-1]
+        assert isinstance(last_event, StreamCompletedEvent)
+        node_run_result = last_event.node_run_result
+        assert node_run_result.outputs["decision"] == StringSegment(value="approve")
+        assert node_run_result.outputs["__rendered_content"] == StringSegment(
+            value="Decision: approve\nAttachment: [file]\nAttachments: [2 files]"
+        )
+        assert isinstance(node_run_result.outputs["attachment"], FileSegment)
+        assert node_run_result.outputs["attachment"].value.filename == "resume.pdf"
+        assert isinstance(node_run_result.outputs["attachments"], ArrayFileSegment)
+        assert [file.filename for file in node_run_result.outputs["attachments"].value] == ["a.png", "b.png"]

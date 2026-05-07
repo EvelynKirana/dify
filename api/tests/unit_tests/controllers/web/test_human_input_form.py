@@ -19,6 +19,7 @@ from models.human_input import RecipientType
 from services.human_input_service import FormExpiredError
 
 HumanInputFormApi = human_input_module.HumanInputFormApi
+HumanInputFormUploadTokenApi = human_input_module.HumanInputFormUploadTokenApi
 TenantStatus = human_input_module.TenantStatus
 
 
@@ -189,6 +190,35 @@ def test_get_form_includes_site(monkeypatch: pytest.MonkeyPatch, app: Flask):
     }
     service_mock.get_form_by_token.assert_called_once_with("token-1")
     limiter_mock.is_rate_limited.assert_called_once_with("203.0.113.10")
+    limiter_mock.increment_rate_limit.assert_called_once_with("203.0.113.10")
+
+
+def test_create_upload_token_returns_token_and_form_expiration(monkeypatch: pytest.MonkeyPatch, app: Flask):
+    """POST returns a HITL upload token for an active form token."""
+
+    expiration_time = datetime(2099, 1, 1, tzinfo=UTC)
+    service_mock = MagicMock()
+    service_mock.issue_upload_token.return_value = SimpleNamespace(
+        upload_token="hitl_upload_token-1",
+        expires_at=expiration_time,
+    )
+    monkeypatch.setattr(human_input_module, "HumanInputFileUploadService", lambda engine: service_mock)
+    monkeypatch.setattr(human_input_module, "db", SimpleNamespace(engine=object()))
+
+    limiter_mock = MagicMock()
+    limiter_mock.is_rate_limited.return_value = False
+    monkeypatch.setattr(human_input_module, "_FORM_UPLOAD_TOKEN_RATE_LIMITER", limiter_mock)
+    monkeypatch.setattr(human_input_module, "extract_remote_ip", lambda req: "203.0.113.10")
+
+    with app.test_request_context("/api/form/human_input/token-1/upload-token", method="POST"):
+        result, status = HumanInputFormUploadTokenApi().post("token-1")
+
+    assert status == 200
+    assert result == {
+        "upload_token": "hitl_upload_token-1",
+        "expires_at": int(expiration_time.timestamp()),
+    }
+    service_mock.issue_upload_token.assert_called_once_with("token-1")
     limiter_mock.increment_rate_limit.assert_called_once_with("203.0.113.10")
 
 

@@ -299,6 +299,157 @@ def test_submit_form_by_token_missing_inputs(sample_form_record, mock_session_fa
     repo.mark_submitted.assert_not_called()
 
 
+def test_validate_human_input_submission_accepts_select_file_and_file_list(mock_session_factory):
+    session_factory, _ = mock_session_factory
+    service = HumanInputService(session_factory)
+    definition = FormDefinition.model_validate(
+        {
+            "form_content": "Pick one and upload files",
+            "inputs": [
+                {
+                    "type": "select",
+                    "output_variable_name": "decision",
+                    "option_source": {
+                        "type": "constant",
+                        "value": ["approve", "reject"],
+                    },
+                },
+                {
+                    "type": "file",
+                    "output_variable_name": "attachment",
+                    "allowed_file_types": ["document"],
+                    "allowed_file_upload_methods": ["remote_url"],
+                },
+                {
+                    "type": "file-list",
+                    "output_variable_name": "attachments",
+                    "allowed_file_types": ["document"],
+                    "allowed_file_upload_methods": ["remote_url"],
+                    "number_limits": 3,
+                },
+            ],
+            "user_actions": [{"id": "submit", "title": "Submit"}],
+            "rendered_content": "<p>Pick one and upload files</p>",
+            "expiration_time": naive_utc_now() + timedelta(hours=1),
+        }
+    )
+
+    service.validate_human_input_submission(
+        form_definition=definition,
+        selected_action_id="submit",
+        form_data={
+            "decision": "approve",
+            "attachment": {
+                "type": "document",
+                "transfer_method": "remote_url",
+                "remote_url": "https://example.com/file.txt",
+                "filename": "file.txt",
+                "extension": ".txt",
+                "mime_type": "text/plain",
+            },
+            "attachments": [
+                {
+                    "type": "document",
+                    "transfer_method": "remote_url",
+                    "remote_url": "https://example.com/first.txt",
+                    "filename": "first.txt",
+                    "extension": ".txt",
+                    "mime_type": "text/plain",
+                },
+                {
+                    "type": "document",
+                    "transfer_method": "remote_url",
+                    "remote_url": "https://example.com/second.txt",
+                    "filename": "second.txt",
+                    "extension": ".txt",
+                    "mime_type": "text/plain",
+                },
+            ],
+        },
+    )
+
+
+@pytest.mark.parametrize(
+    ("input_definition", "submitted_value", "expected_message"),
+    [
+        (
+            {
+                "type": "select",
+                "output_variable_name": "decision",
+                "option_source": {
+                    "type": "constant",
+                    "value": ["approve", "reject"],
+                },
+            },
+            "unknown",
+            "decision",
+        ),
+        (
+            {
+                "type": "file",
+                "output_variable_name": "attachment",
+                "allowed_file_types": ["document"],
+                "allowed_file_upload_methods": ["remote_url"],
+            },
+            "not-a-file",
+            "attachment",
+        ),
+        (
+            {
+                "type": "file-list",
+                "output_variable_name": "attachments",
+                "allowed_file_types": ["document"],
+                "allowed_file_upload_methods": ["remote_url"],
+                "number_limits": 2,
+            },
+            [
+                {
+                    "type": "document",
+                    "transfer_method": "remote_url",
+                    "remote_url": "https://example.com/ok.txt",
+                    "filename": "ok.txt",
+                    "extension": ".txt",
+                    "mime_type": "text/plain",
+                },
+                "not-a-file",
+            ],
+            "attachments",
+        ),
+    ],
+)
+def test_validate_human_input_submission_rejects_invalid_select_and_file_payloads(
+    sample_form_record,
+    mock_session_factory,
+    input_definition,
+    submitted_value,
+    expected_message,
+):
+    session_factory, _ = mock_session_factory
+    repo = MagicMock(spec=HumanInputFormSubmissionRepository)
+    definition = FormDefinition.model_validate(
+        {
+            "form_content": "Validate form data",
+            "inputs": [input_definition],
+            "user_actions": [{"id": "submit", "title": "Submit"}],
+            "rendered_content": "<p>Validate form data</p>",
+            "expiration_time": naive_utc_now() + timedelta(hours=1),
+        }
+    )
+    repo.get_by_token.return_value = dataclasses.replace(sample_form_record, definition=definition)
+    service = HumanInputService(session_factory, form_repository=repo)
+
+    with pytest.raises(InvalidFormDataError) as exc_info:
+        service.submit_form_by_token(
+            recipient_type=RecipientType.STANDALONE_WEB_APP,
+            form_token="token",
+            selected_action_id="submit",
+            form_data={input_definition["output_variable_name"]: submitted_value},
+        )
+
+    assert expected_message in str(exc_info.value)
+    repo.mark_submitted.assert_not_called()
+
+
 def test_form_properties(sample_form_record):
     form = Form(sample_form_record)
     assert form.id == "form-id"
@@ -466,3 +617,203 @@ def test_is_globally_expired_zero_timeout(monkeypatch, sample_form_record, mock_
 
     monkeypatch.setattr(human_input_service_module.dify_config, "HUMAN_INPUT_GLOBAL_TIMEOUT_SECONDS", 0)
     assert service._is_globally_expired(Form(sample_form_record)) is False
+
+
+def test_submit_form_by_token_normalizes_select_and_files(sample_form_record, mock_session_factory, mocker) -> None:
+    session_factory, _ = mock_session_factory
+    repo = MagicMock(spec=HumanInputFormSubmissionRepository)
+    definition = FormDefinition(
+        form_content="hello",
+        inputs=[
+            SelectInputConfig(
+                output_variable_name="decision",
+                option_source=StringListSource(type=ValueSourceType.CONSTANT, value=["approve", "reject"]),
+            ),
+            FileInputConfig(output_variable_name="attachment"),
+            FileListInputConfig(output_variable_name="attachments", number_limits=3),
+        ],
+        user_actions=[UserActionConfig(id="submit", title="Submit")],
+        rendered_content="<p>hello</p>",
+        expiration_time=sample_form_record.expiration_time,
+    )
+    form_with_inputs = dataclasses.replace(sample_form_record, definition=definition)
+    repo.get_by_token.return_value = form_with_inputs
+    repo.mark_submitted.return_value = form_with_inputs
+    service = HumanInputService(session_factory, form_repository=repo)
+
+    single_file = File(
+        file_id="file-1",
+        file_type=FileType.DOCUMENT,
+        transfer_method=FileTransferMethod.LOCAL_FILE,
+        related_id="upload-1",
+        filename="resume.pdf",
+        extension=".pdf",
+        mime_type="application/pdf",
+        size=128,
+    )
+    list_files = [
+        File(
+            file_id="file-2",
+            file_type=FileType.DOCUMENT,
+            transfer_method=FileTransferMethod.LOCAL_FILE,
+            related_id="upload-2",
+            filename="a.pdf",
+            extension=".pdf",
+            mime_type="application/pdf",
+            size=64,
+        ),
+        File(
+            file_id="file-3",
+            file_type=FileType.DOCUMENT,
+            transfer_method=FileTransferMethod.REMOTE_URL,
+            remote_url="https://example.com/b.pdf",
+            filename="b.pdf",
+            extension=".pdf",
+            mime_type="application/pdf",
+            size=96,
+        ),
+    ]
+    mocker.patch("services.human_input_service.build_from_mapping", return_value=single_file)
+    mocker.patch("services.human_input_service.build_from_mappings", return_value=list_files)
+    enqueue_spy = mocker.patch.object(service, "enqueue_resume")
+
+    service.submit_form_by_token(
+        recipient_type=RecipientType.STANDALONE_WEB_APP,
+        form_token="token",
+        selected_action_id="submit",
+        form_data={
+            "decision": "approve",
+            "attachment": {"transfer_method": "local_file", "upload_file_id": "upload-1", "type": "document"},
+            "attachments": [
+                {"transfer_method": "local_file", "upload_file_id": "upload-2", "type": "document"},
+                {"transfer_method": "remote_url", "url": "https://example.com/b.pdf", "type": "document"},
+            ],
+        },
+    )
+
+    submitted_data = repo.mark_submitted.call_args.kwargs["form_data"]
+    assert submitted_data["decision"] == "approve"
+    assert submitted_data["attachment"]["filename"] == "resume.pdf"
+    assert submitted_data["attachment"]["transfer_method"] == "local_file"
+    assert submitted_data["attachments"][0]["filename"] == "a.pdf"
+    assert submitted_data["attachments"][1]["filename"] == "b.pdf"
+    enqueue_spy.assert_called_once_with(sample_form_record.workflow_run_id)
+
+
+def test_submit_form_by_token_invalid_select_value(sample_form_record, mock_session_factory) -> None:
+    session_factory, _ = mock_session_factory
+    repo = MagicMock(spec=HumanInputFormSubmissionRepository)
+    definition = FormDefinition(
+        form_content="hello",
+        inputs=[
+            SelectInputConfig(
+                output_variable_name="decision",
+                option_source=StringListSource(type=ValueSourceType.CONSTANT, value=["approve", "reject"]),
+            )
+        ],
+        user_actions=[UserActionConfig(id="submit", title="Submit")],
+        rendered_content="<p>hello</p>",
+        expiration_time=sample_form_record.expiration_time,
+    )
+    repo.get_by_token.return_value = dataclasses.replace(sample_form_record, definition=definition)
+    service = HumanInputService(session_factory, form_repository=repo)
+
+    with pytest.raises(InvalidFormDataError, match="Invalid value for select input 'decision'"):
+        service.submit_form_by_token(
+            recipient_type=RecipientType.STANDALONE_WEB_APP,
+            form_token="token",
+            selected_action_id="submit",
+            form_data={"decision": "hold"},
+        )
+
+
+def test_submit_form_by_token_invalid_file_list_item(sample_form_record, mock_session_factory) -> None:
+    session_factory, _ = mock_session_factory
+    repo = MagicMock(spec=HumanInputFormSubmissionRepository)
+    definition = FormDefinition(
+        form_content="hello",
+        inputs=[FileListInputConfig(output_variable_name="attachments", number_limits=2)],
+        user_actions=[UserActionConfig(id="submit", title="Submit")],
+        rendered_content="<p>hello</p>",
+        expiration_time=sample_form_record.expiration_time,
+    )
+    repo.get_by_token.return_value = dataclasses.replace(sample_form_record, definition=definition)
+    service = HumanInputService(session_factory, form_repository=repo)
+
+    with pytest.raises(
+        InvalidFormDataError,
+        match="Invalid value for file list input 'attachments': expected list of mappings",
+    ):
+        service.submit_form_by_token(
+            recipient_type=RecipientType.STANDALONE_WEB_APP,
+            form_token="token",
+            selected_action_id="submit",
+            form_data={"attachments": ["not-a-file"]},
+        )
+
+
+def test_submit_form_by_token_rejects_cross_tenant_file(sample_form_record, mock_session_factory, mocker) -> None:
+    session_factory, _ = mock_session_factory
+    repo = MagicMock(spec=HumanInputFormSubmissionRepository)
+    definition = FormDefinition(
+        form_content="hello",
+        inputs=[FileInputConfig(output_variable_name="attachment")],
+        user_actions=[UserActionConfig(id="submit", title="Submit")],
+        rendered_content="<p>hello</p>",
+        expiration_time=sample_form_record.expiration_time,
+    )
+    repo.get_by_token.return_value = dataclasses.replace(sample_form_record, definition=definition)
+    service = HumanInputService(session_factory, form_repository=repo)
+    mocker.patch("services.human_input_service.build_from_mapping", side_effect=ValueError("Invalid upload file"))
+
+    with pytest.raises(InvalidFormDataError, match="Invalid value for file input 'attachment': Invalid upload file"):
+        service.submit_form_by_token(
+            recipient_type=RecipientType.STANDALONE_WEB_APP,
+            form_token="token",
+            selected_action_id="submit",
+            form_data={
+                "attachment": {
+                    "transfer_method": "local_file",
+                    "upload_file_id": "4e0d1b87-52f2-49f6-b8c6-95cd9c954b3e",
+                    "type": "document",
+                }
+            },
+        )
+
+    repo.mark_submitted.assert_not_called()
+
+
+def test_submit_form_by_token_rejects_cross_tenant_file_list(sample_form_record, mock_session_factory, mocker) -> None:
+    session_factory, _ = mock_session_factory
+    repo = MagicMock(spec=HumanInputFormSubmissionRepository)
+    definition = FormDefinition(
+        form_content="hello",
+        inputs=[FileListInputConfig(output_variable_name="attachments", number_limits=2)],
+        user_actions=[UserActionConfig(id="submit", title="Submit")],
+        rendered_content="<p>hello</p>",
+        expiration_time=sample_form_record.expiration_time,
+    )
+    repo.get_by_token.return_value = dataclasses.replace(sample_form_record, definition=definition)
+    service = HumanInputService(session_factory, form_repository=repo)
+    mocker.patch("services.human_input_service.build_from_mappings", side_effect=ValueError("Invalid upload file"))
+
+    with pytest.raises(
+        InvalidFormDataError,
+        match="Invalid value for file list input 'attachments': Invalid upload file",
+    ):
+        service.submit_form_by_token(
+            recipient_type=RecipientType.STANDALONE_WEB_APP,
+            form_token="token",
+            selected_action_id="submit",
+            form_data={
+                "attachments": [
+                    {
+                        "transfer_method": "local_file",
+                        "upload_file_id": "4e0d1b87-52f2-49f6-b8c6-95cd9c954b3e",
+                        "type": "document",
+                    }
+                ]
+            },
+        )
+
+    repo.mark_submitted.assert_not_called()
