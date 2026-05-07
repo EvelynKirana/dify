@@ -1,7 +1,7 @@
 [project]
 name = "dify-api"
 version = "1.13.3"
-requires-python = ">=3.11,<3.13"
+requires-python = "~=3.12.0"
 
 dependencies = [
     "aliyun-log-python-sdk~=0.9.37",
@@ -34,13 +34,13 @@ dependencies = [
     "json-repair>=0.55.1",
     "jsonschema>=4.25.1",
     "langfuse~=2.51.3",
-    "langsmith~=0.7.16",
+    "langsmith~=0.7.31",
     "markdown~=3.10.2",
     "mlflow-skinny>=3.0.0",
     "numpy~=1.26.4",
     "openpyxl~=3.1.5",
     "opik~=1.10.37",
-    "litellm==1.82.6",                                    # Pinned to avoid madoka dependency issue
+    "litellm==1.83.7",                                    # Pinned to avoid madoka dependency issue
     "opentelemetry-api==1.28.0",
     "opentelemetry-distro==0.49b0",
     "opentelemetry-exporter-otlp==1.28.0",
@@ -88,7 +88,7 @@ dependencies = [
     "flask-restx~=1.3.2",
     "packaging~=23.2",
     "croniter>=6.0.0",
-    "weaviate-client==4.20.4",
+    "weaviate-client==4.20.5",
     "apscheduler>=3.11.0",
     "weave>=0.52.16",
     "fastopenapi[flask]>=0.7.0",
@@ -103,6 +103,13 @@ packages = []
 [tool.uv]
 default-groups = ["storage", "tools", "vdb"]
 package = false
+# litellm==1.83.7 pins jsonschema==4.23.0 and python-dotenv==1.0.1; overrides keep
+# resolution aligned with our direct deps (see dependency-groups / CI lock checks).
+override-dependencies = [
+    "jsonschema>=4.25.1",
+    "python-dotenv==1.2.2",
+    "pyarrow>=18.0.0",
+ ]
 
 [dependency-groups]
 
@@ -224,7 +231,7 @@ vdb = [
     "tidb-vector==0.0.15",
     "upstash-vector==0.8.0",
     "volcengine-compat~=1.0.0",
-    "weaviate-client==4.20.4",
+    "weaviate-client==4.20.5",
     "xinference-client~=2.3.1",
     "mo-vector~=0.1.13",
     "mysql-connector-python>=9.3.0",
@@ -255,5 +262,5 @@ ignore_errors = true
 project-includes = ["."]
 project-excludes = [".venv", "migrations/"]
 python-platform = "linux"
-python-version = "3.11.0"
+python-version = "3.12.0"
 infer-with-first-use = false
