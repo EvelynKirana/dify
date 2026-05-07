@@ -18,13 +18,11 @@ export type EnvironmentFilterOption = {
   disabledReason?: string
 }
 
-type EnvironmentFilterProps = {
+export function EnvironmentFilter({ value, options, onChange }: {
   value: string
   options: EnvironmentFilterOption[]
   onChange: (value: string) => void
-}
-
-export function EnvironmentFilter({ value, options, onChange }: EnvironmentFilterProps) {
+}) {
   const [open, setOpen] = useState(false)
   const selectedOption = options.find(option => option.value === value) ?? options[0]
 

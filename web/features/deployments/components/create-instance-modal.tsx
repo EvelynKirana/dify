@@ -203,11 +203,9 @@ export function AppPicker({ apps, isLoading, value, onChange }: AppPickerProps) 
   )
 }
 
-type CreateInstanceFormProps = {
+function CreateInstanceForm({ onClose }: {
   onClose: () => void
-}
-
-function CreateInstanceForm({ onClose }: CreateInstanceFormProps) {
+}) {
   const { t } = useTranslation('deployments')
   const router = useRouter()
   const createInstance = useMutation(consoleQuery.enterprise.appDeploy.createAppInstance.mutationOptions())

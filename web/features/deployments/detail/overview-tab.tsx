@@ -17,19 +17,13 @@ import {
   webappUrl,
 } from '../utils'
 
-type OverviewTabProps = {
-  instanceId: string
-}
-
 type SwitchableTab = 'deploy' | 'versions' | 'access' | 'settings'
 
-type SectionProps = {
+function Section({ title, action, children }: {
   title: string
   action?: ReactNode
   children: ReactNode
-}
-
-function Section({ title, action, children }: SectionProps) {
+}) {
   return (
     <div className="flex flex-col gap-3 rounded-xl border border-components-panel-border bg-components-panel-bg p-4">
       <div className="flex items-center justify-between">
@@ -41,13 +35,11 @@ function Section({ title, action, children }: SectionProps) {
   )
 }
 
-type InfoRowProps = {
+function InfoRow({ label, value, mono }: {
   label: string
   value: ReactNode
   mono?: boolean
-}
-
-function InfoRow({ label, value, mono }: InfoRowProps) {
+}) {
   return (
     <div className="flex items-start gap-3 py-1.5">
       <span className="w-32 shrink-0 system-xs-regular text-text-tertiary">{label}</span>
@@ -98,7 +90,9 @@ function overviewDeploymentStatus(status?: string) {
   return 'ready'
 }
 
-export function OverviewTab({ instanceId }: OverviewTabProps) {
+export function OverviewTab({ instanceId }: {
+  instanceId: string
+}) {
   const { t } = useTranslation('deployments')
   const { t: tCommon } = useTranslation()
   const router = useRouter()

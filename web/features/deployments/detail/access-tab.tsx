@@ -26,11 +26,9 @@ function uniqueEnvironments(environments: (ConsoleEnvironmentSummary | undefined
   })
 }
 
-type AccessTabProps = {
+export function AccessTab({ instanceId: appId }: {
   instanceId: string
-}
-
-export function AccessTab({ instanceId: appId }: AccessTabProps) {
+}) {
   const appInput = { params: { appInstanceId: appId } }
   const { data: accessConfig } = useQuery(consoleQuery.enterprise.appDeploy.getAppInstanceAccess.queryOptions({
     input: appInput,

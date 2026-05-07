@@ -18,12 +18,10 @@ import {
   runtimeBindingSummary,
 } from '../../utils'
 
-type InfoBlockProps = {
+function InfoBlock({ title, children }: {
   title: string
   children: ReactNode
-}
-
-function InfoBlock({ title, children }: InfoBlockProps) {
+}) {
   return (
     <div className="min-w-0 rounded-lg bg-background-default px-3 py-2.5">
       <div className="mb-2 system-xs-medium-uppercase text-text-tertiary">{title}</div>
@@ -51,11 +49,9 @@ function InfoRow({ label, value, mono, suffix }: InfoRowProps) {
   )
 }
 
-type RuntimeBindingItemProps = {
+function RuntimeBindingItem({ binding }: {
   binding: RuntimeBindingDisplay
-}
-
-function RuntimeBindingItem({ binding }: RuntimeBindingItemProps) {
+}) {
   const summary = runtimeBindingSummary(binding)
 
   return (
@@ -67,11 +63,9 @@ function RuntimeBindingItem({ binding }: RuntimeBindingItemProps) {
   )
 }
 
-type DeploymentPanelProps = {
+export function DeploymentPanel({ row }: {
   row: EnvironmentDeploymentRow
-}
-
-export function DeploymentPanel({ row }: DeploymentPanelProps) {
+}) {
   const { t } = useTranslation('deployments')
   const observed = activeRelease(row)
   const env = row.environment

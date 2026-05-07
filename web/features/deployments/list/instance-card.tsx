@@ -21,12 +21,10 @@ import { useFormatTimeFromNow } from '@/hooks/use-format-time-from-now'
 import { useRouter } from '@/next/navigation'
 import { useDeploymentsStore } from '../store'
 
-type InstanceCardProps = {
+export function InstanceCard({ app, summary }: {
   app: AppInfo
   summary?: AppDeploymentSummary
-}
-
-export function InstanceCard({ app, summary }: InstanceCardProps) {
+}) {
   const { t } = useTranslation('deployments')
   const router = useRouter()
   const { formatTimeFromNow } = useFormatTimeFromNow()

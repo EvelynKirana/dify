@@ -36,13 +36,11 @@ const permissionIcon: Record<AccessPermissionKind, string> = {
 
 const permissionOrder: AccessPermissionKind[] = ['organization', 'specific', 'anyone']
 
-type PermissionPickerProps = {
+function PermissionPicker({ value, disabled, onChange }: {
   value: AccessPermissionKind
   disabled?: boolean
   onChange: (kind: AccessPermissionKind) => void
-}
-
-function PermissionPicker({ value, disabled, onChange }: PermissionPickerProps) {
+}) {
   const { t } = useTranslation('deployments')
   const icon = permissionIcon[value]
   const label = t(`access.permission.${value}`)
@@ -135,13 +133,11 @@ function selectedSubjectsFromPolicy(policy?: AccessPolicyDetail) {
   ].map(normalizeSubject).filter((subject): subject is SelectableAccessSubject => Boolean(subject))
 }
 
-type SubjectPillProps = {
+function SubjectPill({ subject, disabled, onRemove }: {
   subject: SelectableAccessSubject
   disabled?: boolean
   onRemove: () => void
-}
-
-function SubjectPill({ subject, disabled, onRemove }: SubjectPillProps) {
+}) {
   const { t } = useTranslation('deployments')
   const isGroup = subject.subjectType === 'group'
 

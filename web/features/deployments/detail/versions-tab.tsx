@@ -23,11 +23,9 @@ import { getReleaseDeployments } from './versions-tab/release-deployments'
 
 const GRID_TEMPLATE = 'grid-cols-[minmax(0,0.9fr)_minmax(0,1fr)_minmax(0,0.8fr)_minmax(0,1.5fr)_96px]'
 
-type VersionsTabProps = {
+export function VersionsTab({ instanceId: appId }: {
   instanceId: string
-}
-
-export function VersionsTab({ instanceId: appId }: VersionsTabProps) {
+}) {
   const { t } = useTranslation('deployments')
   const input = { params: { appInstanceId: appId } }
   const { data: overview } = useQuery(consoleQuery.enterprise.appDeploy.getAppInstanceOverview.queryOptions({

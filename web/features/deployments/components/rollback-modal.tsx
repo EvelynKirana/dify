@@ -25,12 +25,10 @@ import {
   toAppInfoFromOverview,
 } from '../utils'
 
-type InfoRowProps = {
+function InfoRow({ label, value }: {
   label: string
   value: string
-}
-
-function InfoRow({ label, value }: InfoRowProps) {
+}) {
   return (
     <div className="flex items-start justify-between gap-4">
       <span className="system-xs-medium-uppercase text-text-tertiary">{label}</span>

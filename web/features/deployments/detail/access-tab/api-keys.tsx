@@ -13,13 +13,11 @@ import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { environmentName } from '../../utils'
 
-type ApiKeyRowProps = {
+export function ApiKeyRow({ apiKey, onCopy, onRevoke }: {
   apiKey: DeveloperAPIKeySummary
   onCopy: (apiKeyId: string) => Promise<string>
   onRevoke: () => void
-}
-
-export function ApiKeyRow({ apiKey, onCopy, onRevoke }: ApiKeyRowProps) {
+}) {
   const { t } = useTranslation('deployments')
   const [copied, setCopied] = useState(false)
   const displayValue = apiKey.maskedKey || apiKey.maskedPrefix || apiKey.id || '—'
@@ -74,12 +72,10 @@ export function ApiKeyRow({ apiKey, onCopy, onRevoke }: ApiKeyRowProps) {
   )
 }
 
-type ApiKeyGenerateMenuProps = {
+export function ApiKeyGenerateMenu({ environments, onGenerate }: {
   environments: ConsoleEnvironmentSummary[]
   onGenerate: (environmentId: string) => void
-}
-
-export function ApiKeyGenerateMenu({ environments, onGenerate }: ApiKeyGenerateMenuProps) {
+}) {
   const { t } = useTranslation('deployments')
   const [open, setOpen] = useState(false)
   const selectableEnvironments = environments.filter(env => env.id)

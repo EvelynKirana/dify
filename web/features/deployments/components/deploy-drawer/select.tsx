@@ -7,13 +7,11 @@ import { useTranslation } from 'react-i18next'
 import { environmentHealth, environmentMode, environmentName } from '../../utils'
 import { HealthBadge, ModeBadge } from '../status-badge'
 
-type FieldProps = {
+export function Field({ label, hint, children }: {
   label: string
   hint?: string
   children: React.ReactNode
-}
-
-export function Field({ label, hint, children }: FieldProps) {
+}) {
   return (
     <div className="flex flex-col gap-2">
       <div className="flex items-center justify-between">
@@ -78,9 +76,7 @@ export function DeploymentSelect({ value, onChange, options, placeholder }: Sele
   )
 }
 
-type EnvironmentRowProps = { env: EnvironmentOption }
-
-export function EnvironmentRow({ env }: EnvironmentRowProps) {
+export function EnvironmentRow({ env }: { env: EnvironmentOption }) {
   return (
     <div className="flex items-center justify-between rounded-lg border border-components-panel-border bg-components-panel-bg-blur px-3 py-2">
       <div className="flex items-center gap-2">

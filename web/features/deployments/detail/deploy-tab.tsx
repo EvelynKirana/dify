@@ -32,11 +32,9 @@ import { DeploymentStatusSummary } from './deploy-tab/deployment-status-summary'
 
 const GRID_TEMPLATE = 'lg:grid-cols-[minmax(180px,1fr)_minmax(140px,0.75fr)_minmax(180px,0.85fr)_240px]'
 
-type DeployTabProps = {
+export function DeployTab({ instanceId: appInstanceId }: {
   instanceId: string
-}
-
-export function DeployTab({ instanceId: appInstanceId }: DeployTabProps) {
+}) {
   const { t } = useTranslation('deployments')
   const { data: environmentDeployments } = useQuery(consoleQuery.enterprise.appDeploy.listRuntimeInstances.queryOptions({
     input: {

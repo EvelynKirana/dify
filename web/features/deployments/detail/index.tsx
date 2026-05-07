@@ -16,12 +16,10 @@ import { toAppInfoFromOverview } from '../utils'
 import { DeploymentSidebar } from './deployment-sidebar'
 import { isInstanceDetailTabKey } from './tabs'
 
-type InstanceDetailProps = {
+export function InstanceDetail({ instanceId, children }: {
   instanceId: string
   children: ReactNode
-}
-
-export function InstanceDetail({ instanceId, children }: InstanceDetailProps) {
+}) {
   const { t } = useTranslation('deployments')
   const { t: tCommon } = useTranslation()
   const router = useRouter()

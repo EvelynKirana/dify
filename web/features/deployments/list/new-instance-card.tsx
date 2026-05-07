@@ -3,10 +3,6 @@
 import { cn } from '@langgenius/dify-ui/cn'
 import { useTranslation } from 'react-i18next'
 
-type NewInstanceCardProps = {
-  onOpen: () => void
-}
-
 type NewInstanceActionProps = {
   icon: string
   label: string
@@ -41,7 +37,9 @@ function NewInstanceAction({ icon, label, disabled, onClick }: NewInstanceAction
   )
 }
 
-export function NewInstanceCard({ onOpen }: NewInstanceCardProps) {
+export function NewInstanceCard({ onOpen }: {
+  onOpen: () => void
+}) {
   const { t } = useTranslation('deployments')
   return (
     <div className="relative col-span-1 inline-flex h-[160px] flex-col justify-between rounded-xl border-[0.5px] border-components-card-border bg-components-card-bg">

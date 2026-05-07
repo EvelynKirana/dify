@@ -9,11 +9,9 @@ import {
   releaseLabel,
 } from '../../utils'
 
-type DeploymentStatusSummaryProps = {
+export function DeploymentStatusSummary({ row }: {
   row: EnvironmentDeploymentRow
-}
-
-export function DeploymentStatusSummary({ row }: DeploymentStatusSummaryProps) {
+}) {
   const { t } = useTranslation('deployments')
   if (isUndeployedDeploymentRow(row)) {
     return (

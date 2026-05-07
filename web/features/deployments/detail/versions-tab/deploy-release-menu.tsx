@@ -21,12 +21,10 @@ import {
   environmentOptionsFromOptionsReply,
 } from '../../utils'
 
-type DeployReleaseMenuProps = {
+export function DeployReleaseMenu({ appInstanceId, releaseId }: {
   appInstanceId: string
   releaseId: string
-}
-
-export function DeployReleaseMenu({ appInstanceId, releaseId }: DeployReleaseMenuProps) {
+}) {
   const { t } = useTranslation('deployments')
   const openDeployDrawer = useDeploymentsStore(state => state.openDeployDrawer)
   const [open, setOpen] = useState(false)

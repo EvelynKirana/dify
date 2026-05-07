@@ -11,11 +11,9 @@ const RELEASE_DEPLOYMENT_STYLES: Record<ReleaseDeploymentState, string> = {
   failed: 'border-util-colors-warning-warning-200 bg-util-colors-warning-warning-50 text-util-colors-warning-warning-700',
 }
 
-type DeployedToBadgeProps = {
+export function DeployedToBadge({ item }: {
   item: ReleaseDeployment
-}
-
-export function DeployedToBadge({ item }: DeployedToBadgeProps) {
+}) {
   const { t } = useTranslation('deployments')
   const statusLabel = t(`versions.deployedStatus.${item.state}`)
 

@@ -22,10 +22,6 @@ import {
   toAppInfoFromOverview,
 } from '../utils'
 
-type SettingsTabProps = {
-  instanceId: string
-}
-
 type SettingsFormProps = {
   app: AppInfo
   settings?: GetAppInstanceSettingsReply
@@ -174,7 +170,9 @@ function SettingsForm({ app, settings, hasDeployments, onSave, onDelete }: Setti
   )
 }
 
-export function SettingsTab({ instanceId }: SettingsTabProps) {
+export function SettingsTab({ instanceId }: {
+  instanceId: string
+}) {
   const router = useRouter()
   const updateInstance = useMutation(consoleQuery.enterprise.appDeploy.updateAppInstance.mutationOptions())
   const deleteInstance = useMutation(consoleQuery.enterprise.appDeploy.deleteAppInstance.mutationOptions())
