@@ -1,6 +1,6 @@
 'use client'
 
-import type { FC, ReactNode } from 'react'
+import type { ReactNode } from 'react'
 import type { InstanceDetailTabKey } from './tabs'
 import { Button } from '@langgenius/dify-ui/button'
 import { useQuery } from '@tanstack/react-query'
@@ -10,8 +10,8 @@ import { getAppModeLabel } from '@/app/components/app-sidebar/app-info/app-mode-
 import useDocumentTitle from '@/hooks/use-document-title'
 import { useRouter, useSelectedLayoutSegment } from '@/next/navigation'
 import { consoleQuery } from '@/service/client'
-import DeployDrawer from '../components/deploy-drawer'
-import RollbackModal from '../components/rollback-modal'
+import { DeployDrawer } from '../components/deploy-drawer'
+import { RollbackModal } from '../components/rollback-modal'
 import { toAppInfoFromOverview } from '../utils'
 import { DeploymentSidebar } from './deployment-sidebar'
 import { isInstanceDetailTabKey } from './tabs'
@@ -21,7 +21,7 @@ type InstanceDetailProps = {
   children: ReactNode
 }
 
-const InstanceDetail: FC<InstanceDetailProps> = ({ instanceId, children }) => {
+export function InstanceDetail({ instanceId, children }: InstanceDetailProps) {
   const { t } = useTranslation('deployments')
   const { t: tCommon } = useTranslation()
   const router = useRouter()
@@ -95,5 +95,3 @@ const InstanceDetail: FC<InstanceDetailProps> = ({ instanceId, children }) => {
     </>
   )
 }
-
-export default InstanceDetail

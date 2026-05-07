@@ -1,5 +1,4 @@
 'use client'
-import type { FC } from 'react'
 import type { AppInfo } from '../types'
 import type { GetAppInstanceSettingsReply } from '@/features/deployments/types'
 import {
@@ -35,7 +34,7 @@ type SettingsFormProps = {
   onDelete: () => Promise<void>
 }
 
-const SettingsForm: FC<SettingsFormProps> = ({ app, settings, hasDeployments, onSave, onDelete }) => {
+function SettingsForm({ app, settings, hasDeployments, onSave, onDelete }: SettingsFormProps) {
   const { t } = useTranslation('deployments')
   const [name, setName] = useState(settings?.name ?? app.name)
   const [description, setDescription] = useState(settings?.description ?? app.description ?? '')
@@ -175,7 +174,7 @@ const SettingsForm: FC<SettingsFormProps> = ({ app, settings, hasDeployments, on
   )
 }
 
-const SettingsTab: FC<SettingsTabProps> = ({ instanceId }) => {
+export function SettingsTab({ instanceId }: SettingsTabProps) {
   const router = useRouter()
   const updateInstance = useMutation(consoleQuery.enterprise.appDeploy.updateAppInstance.mutationOptions())
   const deleteInstance = useMutation(consoleQuery.enterprise.appDeploy.deleteAppInstance.mutationOptions())
@@ -225,5 +224,3 @@ const SettingsTab: FC<SettingsTabProps> = ({ instanceId }) => {
     />
   )
 }
-
-export default SettingsTab

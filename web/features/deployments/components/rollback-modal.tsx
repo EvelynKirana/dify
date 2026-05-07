@@ -1,5 +1,4 @@
 'use client'
-import type { FC } from 'react'
 import {
   AlertDialog,
   AlertDialogActions,
@@ -26,7 +25,12 @@ import {
   toAppInfoFromOverview,
 } from '../utils'
 
-const InfoRow: FC<{ label: string, value: string }> = ({ label, value }) => {
+type InfoRowProps = {
+  label: string
+  value: string
+}
+
+function InfoRow({ label, value }: InfoRowProps) {
   return (
     <div className="flex items-start justify-between gap-4">
       <span className="system-xs-medium-uppercase text-text-tertiary">{label}</span>
@@ -35,7 +39,7 @@ const InfoRow: FC<{ label: string, value: string }> = ({ label, value }) => {
   )
 }
 
-const RollbackModal: FC = () => {
+export function RollbackModal() {
   const { t } = useTranslation('deployments')
   const modal = useDeploymentsStore(state => state.rollbackModal)
   const closeRollbackModal = useDeploymentsStore(state => state.closeRollbackModal)
@@ -146,5 +150,3 @@ const RollbackModal: FC = () => {
     </AlertDialog>
   )
 }
-
-export default RollbackModal

@@ -1,6 +1,5 @@
 'use client'
 
-import type { FC } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { useDebounce } from 'ahooks'
 import { debounce, parseAsString, useQueryState } from 'nuqs'
@@ -8,9 +7,9 @@ import { useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 import Input from '@/app/components/base/input'
 import { consoleQuery } from '@/service/client'
-import CreateInstanceModal from '../components/create-instance-modal'
-import DeployDrawer from '../components/deploy-drawer'
-import RollbackModal from '../components/rollback-modal'
+import { CreateInstanceModal } from '../components/create-instance-modal'
+import { DeployDrawer } from '../components/deploy-drawer'
+import { RollbackModal } from '../components/rollback-modal'
 import { SOURCE_APPS_PAGE_SIZE } from '../data'
 import { useDeploymentsStore } from '../store'
 import {
@@ -21,7 +20,7 @@ import { EnvironmentFilter } from './environment-filter'
 import { InstanceCard } from './instance-card'
 import { NewInstanceCard } from './new-instance-card'
 
-const DeploymentsMain: FC = () => {
+export function DeploymentsMain() {
   const { t } = useTranslation('deployments')
   const openCreateInstanceModal = useDeploymentsStore(state => state.openCreateInstanceModal)
 
@@ -140,5 +139,3 @@ const DeploymentsMain: FC = () => {
     </>
   )
 }
-
-export default DeploymentsMain

@@ -9,7 +9,7 @@ type UseWorkflowOnlineUsersParams = {
   enabled: boolean
 }
 
-const normalizeWorkflowOnlineUsers = (response?: WorkflowOnlineUsersResponse): WorkflowOnlineUsersMap => {
+function normalizeWorkflowOnlineUsers(response?: WorkflowOnlineUsersResponse): WorkflowOnlineUsersMap {
   const data = response?.data
 
   if (!data)
@@ -30,10 +30,10 @@ const normalizeWorkflowOnlineUsers = (response?: WorkflowOnlineUsersResponse): W
   }, {})
 }
 
-export const useWorkflowOnlineUsers = ({
+export function useWorkflowOnlineUsers({
   appIds,
   enabled,
-}: UseWorkflowOnlineUsersParams) => {
+}: UseWorkflowOnlineUsersParams) {
   const shouldFetch = enabled && appIds.length > 0
   const { data: onlineUsersMap = {} } = useQuery(consoleQuery.apps.workflowOnlineUsers.queryOptions({
     input: {

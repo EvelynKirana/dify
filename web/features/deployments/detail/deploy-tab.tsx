@@ -1,5 +1,5 @@
 'use client'
-import type { FC, KeyboardEvent } from 'react'
+import type { KeyboardEvent } from 'react'
 import { Button } from '@langgenius/dify-ui/button'
 import { cn } from '@langgenius/dify-ui/cn'
 import {
@@ -36,7 +36,7 @@ type DeployTabProps = {
   instanceId: string
 }
 
-const DeployTab: FC<DeployTabProps> = ({ instanceId: appInstanceId }) => {
+export function DeployTab({ instanceId: appInstanceId }: DeployTabProps) {
   const { t } = useTranslation('deployments')
   const { data: environmentDeployments } = useQuery(consoleQuery.enterprise.appDeploy.listRuntimeInstances.queryOptions({
     input: {
@@ -302,5 +302,3 @@ const DeployTab: FC<DeployTabProps> = ({ instanceId: appInstanceId }) => {
     </div>
   )
 }
-
-export default DeployTab

@@ -1,6 +1,6 @@
 'use client'
 
-import type { FC, MouseEvent } from 'react'
+import type { MouseEvent } from 'react'
 import type { AppInfo } from '../types'
 import type { AppDeploymentSummary } from '@/features/deployments/types'
 import type { AppModeEnum } from '@/types/app'
@@ -26,7 +26,7 @@ type InstanceCardProps = {
   summary?: AppDeploymentSummary
 }
 
-export const InstanceCard: FC<InstanceCardProps> = ({ app, summary }) => {
+export function InstanceCard({ app, summary }: InstanceCardProps) {
   const { t } = useTranslation('deployments')
   const router = useRouter()
   const { formatTimeFromNow } = useFormatTimeFromNow()

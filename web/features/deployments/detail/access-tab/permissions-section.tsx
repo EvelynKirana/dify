@@ -1,6 +1,5 @@
 'use client'
 
-import type { FC } from 'react'
 import type { AccessPermission, AccessSubject, ConsoleEnvironmentSummary } from '@/features/deployments/types'
 import { useTranslation } from 'react-i18next'
 import { Section } from './common'
@@ -18,12 +17,12 @@ type AccessPermissionsSectionProps = {
   ) => Promise<void>
 }
 
-export const AccessPermissionsSection: FC<AccessPermissionsSectionProps> = ({
+export function AccessPermissionsSection({
   appId,
   environments,
   policies,
   onSetPolicy,
-}) => {
+}: AccessPermissionsSectionProps) {
   const { t } = useTranslation('deployments')
 
   return (

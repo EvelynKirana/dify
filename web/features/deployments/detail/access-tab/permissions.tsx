@@ -1,6 +1,5 @@
 'use client'
 
-import type { FC } from 'react'
 import type { AccessPermissionKind } from '../../types'
 import type {
   AccessPermission,
@@ -43,7 +42,7 @@ type PermissionPickerProps = {
   onChange: (kind: AccessPermissionKind) => void
 }
 
-const PermissionPicker: FC<PermissionPickerProps> = ({ value, disabled, onChange }) => {
+function PermissionPicker({ value, disabled, onChange }: PermissionPickerProps) {
   const { t } = useTranslation('deployments')
   const icon = permissionIcon[value]
   const label = t(`access.permission.${value}`)
@@ -142,7 +141,7 @@ type SubjectPillProps = {
   onRemove: () => void
 }
 
-const SubjectPill: FC<SubjectPillProps> = ({ subject, disabled, onRemove }) => {
+function SubjectPill({ subject, disabled, onRemove }: SubjectPillProps) {
   const { t } = useTranslation('deployments')
   const isGroup = subject.subjectType === 'group'
 
@@ -176,12 +175,12 @@ type SubjectPickerProps = {
   onChange: (subjects: SelectableAccessSubject[]) => void
 }
 
-const SubjectPicker: FC<SubjectPickerProps> = ({
+function SubjectPicker({
   appId,
   disabled,
   selectedSubjects,
   onChange,
-}) => {
+}: SubjectPickerProps) {
   const { t } = useTranslation('deployments')
   const [open, setOpen] = useState(false)
   const [keyword, setKeyword] = useState('')
@@ -308,12 +307,12 @@ type EnvironmentPermissionRowProps = {
   ) => Promise<void>
 }
 
-export const EnvironmentPermissionRow: FC<EnvironmentPermissionRowProps> = ({
+export function EnvironmentPermissionRow({
   appId,
   environment,
   summaryPolicy,
   onSetPolicy,
-}) => {
+}: EnvironmentPermissionRowProps) {
   const { t } = useTranslation('deployments')
   const environmentId = environment.id
   const policyQuery = useQuery(consoleQuery.enterprise.appDeploy.getEnvironmentAccessPolicy.queryOptions({

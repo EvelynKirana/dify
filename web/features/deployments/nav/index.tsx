@@ -15,7 +15,7 @@ import {
   toAppInfoFromOverview,
 } from '../utils'
 
-const DeploymentsNav = () => {
+export function DeploymentsNav() {
   const { t } = useTranslation()
   const router = useRouter()
   const selectedSegment = useSelectedLayoutSegment()
@@ -90,5 +90,3 @@ const DeploymentsNav = () => {
     />
   )
 }
-
-export default DeploymentsNav

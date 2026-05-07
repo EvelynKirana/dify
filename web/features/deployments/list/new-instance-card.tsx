@@ -1,6 +1,5 @@
 'use client'
 
-import type { FC } from 'react'
 import { cn } from '@langgenius/dify-ui/cn'
 import { useTranslation } from 'react-i18next'
 
@@ -15,7 +14,7 @@ type NewInstanceActionProps = {
   onClick?: () => void
 }
 
-const NewInstanceAction: FC<NewInstanceActionProps> = ({ icon, label, disabled, onClick }) => {
+function NewInstanceAction({ icon, label, disabled, onClick }: NewInstanceActionProps) {
   const { t } = useTranslation('deployments')
 
   return (
@@ -42,7 +41,7 @@ const NewInstanceAction: FC<NewInstanceActionProps> = ({ icon, label, disabled, 
   )
 }
 
-export const NewInstanceCard: FC<NewInstanceCardProps> = ({ onOpen }) => {
+export function NewInstanceCard({ onOpen }: NewInstanceCardProps) {
   const { t } = useTranslation('deployments')
   return (
     <div className="relative col-span-1 inline-flex h-[160px] flex-col justify-between rounded-xl border-[0.5px] border-components-card-border bg-components-card-bg">

@@ -1,6 +1,5 @@
 'use client'
 
-import type { FC } from 'react'
 import type { EnvironmentOption } from '@/features/deployments/types'
 import { cn } from '@langgenius/dify-ui/cn'
 import { Select, SelectContent, SelectItem, SelectItemIndicator, SelectItemText, SelectTrigger } from '@langgenius/dify-ui/select'
@@ -14,15 +13,17 @@ type FieldProps = {
   children: React.ReactNode
 }
 
-export const Field: FC<FieldProps> = ({ label, hint, children }) => (
-  <div className="flex flex-col gap-2">
-    <div className="flex items-center justify-between">
-      <div className="system-xs-medium-uppercase text-text-tertiary">{label}</div>
-      {hint && <span className="system-xs-regular text-text-quaternary">{hint}</span>}
+export function Field({ label, hint, children }: FieldProps) {
+  return (
+    <div className="flex flex-col gap-2">
+      <div className="flex items-center justify-between">
+        <div className="system-xs-medium-uppercase text-text-tertiary">{label}</div>
+        {hint && <span className="system-xs-regular text-text-quaternary">{hint}</span>}
+      </div>
+      {children}
     </div>
-    {children}
-  </div>
-)
+  )
+}
 
 type SelectOption = {
   value: string
@@ -38,7 +39,7 @@ type SelectProps = {
   placeholder?: string
 }
 
-export const DeploymentSelect: FC<SelectProps> = ({ value, onChange, options, placeholder }) => {
+export function DeploymentSelect({ value, onChange, options, placeholder }: SelectProps) {
   const { t } = useTranslation('deployments')
   const selectedOption = options.find(option => option.value === value)
 
@@ -79,13 +80,15 @@ export const DeploymentSelect: FC<SelectProps> = ({ value, onChange, options, pl
 
 type EnvironmentRowProps = { env: EnvironmentOption }
 
-export const EnvironmentRow: FC<EnvironmentRowProps> = ({ env }) => (
-  <div className="flex items-center justify-between rounded-lg border border-components-panel-border bg-components-panel-bg-blur px-3 py-2">
-    <div className="flex items-center gap-2">
-      <span className="system-sm-semibold text-text-primary">{environmentName(env)}</span>
-      <ModeBadge mode={environmentMode(env)} />
-      <HealthBadge health={environmentHealth(env)} />
+export function EnvironmentRow({ env }: EnvironmentRowProps) {
+  return (
+    <div className="flex items-center justify-between rounded-lg border border-components-panel-border bg-components-panel-bg-blur px-3 py-2">
+      <div className="flex items-center gap-2">
+        <span className="system-sm-semibold text-text-primary">{environmentName(env)}</span>
+        <ModeBadge mode={environmentMode(env)} />
+        <HealthBadge health={environmentHealth(env)} />
+      </div>
+      <span className="system-xs-regular text-text-tertiary uppercase">{env.type ?? 'env'}</span>
     </div>
-    <span className="system-xs-regular text-text-tertiary uppercase">{env.type ?? 'env'}</span>
-  </div>
-)
+  )
+}

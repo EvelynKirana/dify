@@ -1,5 +1,4 @@
 'use client'
-import type { FC } from 'react'
 import type { DeployStatus, EnvironmentHealth, EnvironmentMode } from '../types'
 import { cn } from '@langgenius/dify-ui/cn'
 import { useTranslation } from 'react-i18next'
@@ -23,7 +22,7 @@ const statusKey = {
 
 const baseBadge = 'inline-flex items-center gap-1 rounded-md border px-2 py-0.5 system-xs-medium whitespace-nowrap'
 
-export const StatusBadge: FC<StatusBadgeProps> = ({ status, className }) => {
+export function StatusBadge({ status, className }: StatusBadgeProps) {
   const { t } = useTranslation('deployments')
   return (
     <span className={cn(baseBadge, statusStyles[status], className)}>
@@ -40,7 +39,7 @@ type ModeBadgeProps = {
   className?: string
 }
 
-export const ModeBadge: FC<ModeBadgeProps> = ({ mode, className }) => {
+export function ModeBadge({ mode, className }: ModeBadgeProps) {
   const { t } = useTranslation('deployments')
   const style = mode === 'shared'
     ? 'border-util-colors-green-green-200 bg-util-colors-green-green-50 text-util-colors-green-green-700'
@@ -57,7 +56,7 @@ type HealthBadgeProps = {
   className?: string
 }
 
-export const HealthBadge: FC<HealthBadgeProps> = ({ health, className }) => {
+export function HealthBadge({ health, className }: HealthBadgeProps) {
   const { t } = useTranslation('deployments')
   const style = health === 'ready'
     ? 'border-util-colors-green-green-200 bg-util-colors-green-green-50 text-util-colors-green-green-700'

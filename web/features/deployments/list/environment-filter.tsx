@@ -1,6 +1,6 @@
 'use client'
 
-import type { FC, ReactNode } from 'react'
+import type { ReactNode } from 'react'
 import { cn } from '@langgenius/dify-ui/cn'
 import {
   DropdownMenu,
@@ -24,7 +24,7 @@ type EnvironmentFilterProps = {
   onChange: (value: string) => void
 }
 
-export const EnvironmentFilter: FC<EnvironmentFilterProps> = ({ value, options, onChange }) => {
+export function EnvironmentFilter({ value, options, onChange }: EnvironmentFilterProps) {
   const [open, setOpen] = useState(false)
   const selectedOption = options.find(option => option.value === value) ?? options[0]
 

@@ -16,60 +16,78 @@ import { PUBLIC_API_PREFIX } from '@/config'
 
 export type DeploymentUiStatus = 'ready' | 'deploying' | 'deploy_failed'
 
-export const formatDate = (value?: string) => {
+export function formatDate(value?: string) {
   if (!value)
     return '—'
   return value.replace('T', ' ').replace(/\.\d+Z?$/, '').replace(/Z$/, '').slice(0, 16)
 }
 
-export const environmentId = (environment?: ConsoleEnvironmentSummary | EnvironmentOption) => environment?.id ?? ''
+export function environmentId(environment?: ConsoleEnvironmentSummary | EnvironmentOption) {
+  return environment?.id ?? ''
+}
 
-export const environmentName = (environment?: ConsoleEnvironmentSummary | EnvironmentOption) => environment?.name || environment?.id || '—'
+export function environmentName(environment?: ConsoleEnvironmentSummary | EnvironmentOption) {
+  return environment?.name || environment?.id || '—'
+}
 
-export const environmentMode = (environment?: ConsoleEnvironmentSummary | EnvironmentOption) => {
+export function environmentMode(environment?: ConsoleEnvironmentSummary | EnvironmentOption) {
   const type = environment?.type?.toLowerCase() ?? ''
   return type.includes('isolated') ? 'isolated' : 'shared'
 }
 
-export const environmentBackend = (environment?: ConsoleEnvironmentSummary) => {
+export function environmentBackend(environment?: ConsoleEnvironmentSummary) {
   const runtime = (environment?.backend || environment?.runtime)?.toLowerCase() ?? ''
   return runtime.includes('host') ? 'host' : 'k8s'
 }
 
-export const environmentHealth = (environment?: ConsoleEnvironmentSummary | EnvironmentOption) => {
+export function environmentHealth(environment?: ConsoleEnvironmentSummary | EnvironmentOption) {
   const status = environment?.status?.toLowerCase() ?? ''
   return status.includes('ready') ? 'ready' : 'degraded'
 }
 
-export const releaseId = (release?: ConsoleReleaseSummary) => release?.id ?? ''
+export function releaseId(release?: ConsoleReleaseSummary) {
+  return release?.id ?? ''
+}
 
-export const releaseLabel = (release?: ConsoleReleaseSummary) => release?.name || release?.displayId || release?.id || '—'
+export function releaseLabel(release?: ConsoleReleaseSummary) {
+  return release?.name || release?.displayId || release?.id || '—'
+}
 
-export const releaseCommit = (release?: ConsoleReleaseSummary) => release?.shortCommitId || release?.commitId || '—'
+export function releaseCommit(release?: ConsoleReleaseSummary) {
+  return release?.shortCommitId || release?.commitId || '—'
+}
 
-export const runtimeBindingLabel = (binding?: RuntimeBindingDisplay) =>
-  binding?.label || binding?.slot || binding?.kind || '—'
+export function runtimeBindingLabel(binding?: RuntimeBindingDisplay) {
+  return binding?.label || binding?.slot || binding?.kind || '—'
+}
 
-export const runtimeBindingValue = (binding?: RuntimeBindingDisplay) =>
-  binding?.displayValue || binding?.maskedValue || binding?.displayName || '—'
+export function runtimeBindingValue(binding?: RuntimeBindingDisplay) {
+  return binding?.displayValue || binding?.maskedValue || binding?.displayName || '—'
+}
 
-export const runtimeBindingSummary = (binding?: RuntimeBindingDisplay) =>
-  binding?.label || binding?.slot || binding?.displayName || binding?.displayValue || binding?.maskedValue || binding?.kind || '—'
+export function runtimeBindingSummary(binding?: RuntimeBindingDisplay) {
+  return binding?.label || binding?.slot || binding?.displayName || binding?.displayValue || binding?.maskedValue || binding?.kind || '—'
+}
 
-export const isRuntimeEnvVarBinding = (binding?: RuntimeBindingDisplay) =>
-  (binding?.kind?.toLowerCase() ?? '').includes('env')
+export function isRuntimeEnvVarBinding(binding?: RuntimeBindingDisplay) {
+  return (binding?.kind?.toLowerCase() ?? '').includes('env')
+}
 
-export const isRuntimeModelBinding = (binding?: RuntimeBindingDisplay) =>
-  (binding?.kind?.toLowerCase() ?? '').includes('model')
+export function isRuntimeModelBinding(binding?: RuntimeBindingDisplay) {
+  return (binding?.kind?.toLowerCase() ?? '').includes('model')
+}
 
-export const isRuntimePluginBinding = (binding?: RuntimeBindingDisplay) =>
-  !isRuntimeEnvVarBinding(binding) && !isRuntimeModelBinding(binding)
+export function isRuntimePluginBinding(binding?: RuntimeBindingDisplay) {
+  return !isRuntimeEnvVarBinding(binding) && !isRuntimeModelBinding(binding)
+}
 
 const absoluteUrlRegExp = /^[a-z][a-z\d+.-]*:\/\//i
 
-const withLeadingSlash = (path: string) => path.startsWith('/') ? path : `/${path}`
+function withLeadingSlash(path: string) {
+  return path.startsWith('/') ? path : `/${path}`
+}
 
-const publicWebappOrigin = () => {
+function publicWebappOrigin() {
   try {
     return new URL(PUBLIC_API_PREFIX).origin
   }
@@ -78,7 +96,7 @@ const publicWebappOrigin = () => {
   }
 }
 
-export const webappUrl = (url?: string) => {
+export function webappUrl(url?: string) {
   if (!url)
     return ''
   if (absoluteUrlRegExp.test(url))
@@ -88,15 +106,19 @@ export const webappUrl = (url?: string) => {
   return `${origin}${withLeadingSlash(url)}`
 }
 
-export const deploymentId = (row?: EnvironmentDeploymentRow) =>
-  row?.id || ''
+export function deploymentId(row?: EnvironmentDeploymentRow) {
+  return row?.id || ''
+}
 
-export const activeRelease = (row?: EnvironmentDeploymentRow) => row?.currentRelease
+export function activeRelease(row?: EnvironmentDeploymentRow) {
+  return row?.currentRelease
+}
 
-export const isUndeployedDeploymentRow = (row?: EnvironmentDeploymentRow) =>
-  (row?.status?.toLowerCase() ?? '').includes('undeployed') || (!row?.id && !row?.currentRelease && !row?.detail)
+export function isUndeployedDeploymentRow(row?: EnvironmentDeploymentRow) {
+  return (row?.status?.toLowerCase() ?? '').includes('undeployed') || (!row?.id && !row?.currentRelease && !row?.detail)
+}
 
-export const deploymentStatus = (row: EnvironmentDeploymentRow): DeploymentUiStatus => {
+export function deploymentStatus(row: EnvironmentDeploymentRow): DeploymentUiStatus {
   const runtimeStatus = row.status?.toLowerCase() ?? ''
   if (runtimeStatus.includes('deploying') || runtimeStatus.includes('pending'))
     return 'deploying'
@@ -105,13 +127,14 @@ export const deploymentStatus = (row: EnvironmentDeploymentRow): DeploymentUiSta
   return 'ready'
 }
 
-export const deployedRows = (rows?: EnvironmentDeploymentRow[]) =>
-  rows?.filter((row) => {
+export function deployedRows(rows?: EnvironmentDeploymentRow[]) {
+  return rows?.filter((row) => {
     const runtimeStatus = row.status?.toLowerCase() ?? ''
     return row.environment?.id
       && !isUndeployedDeploymentRow(row)
       && (row.id || runtimeStatus || row.currentRelease || row.detail)
   }) ?? []
+}
 
 export function toAppInfoFromSummary(summary: AppDeploymentSummary): AppInfo | undefined {
   if (!summary.id || !summary.name)
@@ -149,13 +172,13 @@ export function toAppInfoFromOverview(instance?: AppInstanceOverview): AppInfo |
   }
 }
 
-export const sourceAppsFromList = (response?: ListAppDeploymentsReply) => {
+export function sourceAppsFromList(response?: ListAppDeploymentsReply) {
   return (response?.data ?? [])
     .map(toAppInfoFromSummary)
     .filter((app): app is AppInfo => Boolean(app))
 }
 
-export const deploymentSummariesFromList = (response?: ListAppDeploymentsReply): Record<string, AppDeploymentSummary> => {
+export function deploymentSummariesFromList(response?: ListAppDeploymentsReply): Record<string, AppDeploymentSummary> {
   return Object.fromEntries(
     (response?.data ?? [])
       .filter(summary => summary.id)
@@ -163,7 +186,7 @@ export const deploymentSummariesFromList = (response?: ListAppDeploymentsReply):
   )
 }
 
-export const environmentOptionsFromOptionsReply = (response?: ListDeploymentEnvironmentOptionsReply): EnvironmentOption[] => {
+export function environmentOptionsFromOptionsReply(response?: ListDeploymentEnvironmentOptionsReply): EnvironmentOption[] {
   return response?.environments
     ?.filter(environment => environment.id)
     .map(environment => ({
@@ -172,7 +195,7 @@ export const environmentOptionsFromOptionsReply = (response?: ListDeploymentEnvi
     })) ?? []
 }
 
-export const accessModeToPermissionKey = (mode?: string): AccessPermissionKind => {
+export function accessModeToPermissionKey(mode?: string): AccessPermissionKind {
   const normalized = mode?.toLowerCase() ?? ''
   if (normalized === 'private')
     return 'specific'
@@ -181,7 +204,7 @@ export const accessModeToPermissionKey = (mode?: string): AccessPermissionKind =
   return 'organization'
 }
 
-export const permissionKeyToAccessMode = (key: AccessPermissionKind) => {
+export function permissionKeyToAccessMode(key: AccessPermissionKind) {
   if (key === 'organization')
     return 'private_all'
   if (key === 'specific')

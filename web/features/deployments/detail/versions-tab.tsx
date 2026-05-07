@@ -1,5 +1,4 @@
 'use client'
-import type { FC } from 'react'
 import { Button } from '@langgenius/dify-ui/button'
 import { cn } from '@langgenius/dify-ui/cn'
 import { Dialog, DialogCloseButton, DialogContent, DialogDescription, DialogTitle } from '@langgenius/dify-ui/dialog'
@@ -28,7 +27,7 @@ type VersionsTabProps = {
   instanceId: string
 }
 
-const VersionsTab: FC<VersionsTabProps> = ({ instanceId: appId }) => {
+export function VersionsTab({ instanceId: appId }: VersionsTabProps) {
   const { t } = useTranslation('deployments')
   const input = { params: { appInstanceId: appId } }
   const { data: overview } = useQuery(consoleQuery.enterprise.appDeploy.getAppInstanceOverview.queryOptions({
@@ -311,5 +310,3 @@ const VersionsTab: FC<VersionsTabProps> = ({ instanceId: appId }) => {
     </div>
   )
 }
-
-export default VersionsTab

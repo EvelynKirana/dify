@@ -1,6 +1,5 @@
 'use client'
 
-import type { FC } from 'react'
 import type { ConsoleEnvironmentSummary, DeveloperAPIKeySummary } from '@/features/deployments/types'
 import { cn } from '@langgenius/dify-ui/cn'
 import {
@@ -20,7 +19,7 @@ type ApiKeyRowProps = {
   onRevoke: () => void
 }
 
-export const ApiKeyRow: FC<ApiKeyRowProps> = ({ apiKey, onCopy, onRevoke }) => {
+export function ApiKeyRow({ apiKey, onCopy, onRevoke }: ApiKeyRowProps) {
   const { t } = useTranslation('deployments')
   const [copied, setCopied] = useState(false)
   const displayValue = apiKey.maskedKey || apiKey.maskedPrefix || apiKey.id || '—'
@@ -80,7 +79,7 @@ type ApiKeyGenerateMenuProps = {
   onGenerate: (environmentId: string) => void
 }
 
-export const ApiKeyGenerateMenu: FC<ApiKeyGenerateMenuProps> = ({ environments, onGenerate }) => {
+export function ApiKeyGenerateMenu({ environments, onGenerate }: ApiKeyGenerateMenuProps) {
   const { t } = useTranslation('deployments')
   const [open, setOpen] = useState(false)
   const selectableEnvironments = environments.filter(env => env.id)

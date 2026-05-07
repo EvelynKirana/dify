@@ -1,6 +1,5 @@
 'use client'
 
-import type { FC } from 'react'
 import { Dialog, DialogCloseButton, DialogContent } from '@langgenius/dify-ui/dialog'
 import { toast } from '@langgenius/dify-ui/toast'
 import { skipToken, useMutation, useQuery } from '@tanstack/react-query'
@@ -12,7 +11,7 @@ import { useDeploymentsStore } from '../store'
 import { environmentOptionsFromOptionsReply } from '../utils'
 import { DeployForm } from './deploy-drawer/form'
 
-const DeployDrawer: FC = () => {
+export function DeployDrawer() {
   const { t } = useTranslation('deployments')
   const drawer = useDeploymentsStore(state => state.deployDrawer)
   const drawerAppInstanceId = drawer.appInstanceId
@@ -95,5 +94,3 @@ const DeployDrawer: FC = () => {
     </Dialog>
   )
 }
-
-export default DeployDrawer

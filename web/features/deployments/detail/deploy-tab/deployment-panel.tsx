@@ -1,6 +1,6 @@
 'use client'
 
-import type { FC, ReactNode } from 'react'
+import type { ReactNode } from 'react'
 import type { EnvironmentDeploymentRow, RuntimeBindingDisplay } from '@/features/deployments/types'
 import { cn } from '@langgenius/dify-ui/cn'
 import { useTranslation } from 'react-i18next'
@@ -23,12 +23,14 @@ type InfoBlockProps = {
   children: ReactNode
 }
 
-const InfoBlock: FC<InfoBlockProps> = ({ title, children }) => (
-  <div className="min-w-0 rounded-lg bg-background-default px-3 py-2.5">
-    <div className="mb-2 system-xs-medium-uppercase text-text-tertiary">{title}</div>
-    <div className="flex flex-col gap-1.5">{children}</div>
-  </div>
-)
+function InfoBlock({ title, children }: InfoBlockProps) {
+  return (
+    <div className="min-w-0 rounded-lg bg-background-default px-3 py-2.5">
+      <div className="mb-2 system-xs-medium-uppercase text-text-tertiary">{title}</div>
+      <div className="flex flex-col gap-1.5">{children}</div>
+    </div>
+  )
+}
 
 type InfoRowProps = {
   label: string
@@ -37,21 +39,23 @@ type InfoRowProps = {
   suffix?: string
 }
 
-const InfoRow: FC<InfoRowProps> = ({ label, value, mono, suffix }) => (
-  <div className="grid min-w-0 grid-cols-[minmax(88px,0.35fr)_minmax(0,1fr)] items-start gap-2">
-    <span className="system-xs-regular text-text-tertiary">{label}</span>
-    <span className={cn('min-w-0 system-sm-regular break-all text-text-primary', mono && 'font-mono')}>
-      {value}
-      {suffix && <span className="system-xs-regular text-text-tertiary">{suffix}</span>}
-    </span>
-  </div>
-)
+function InfoRow({ label, value, mono, suffix }: InfoRowProps) {
+  return (
+    <div className="grid min-w-0 grid-cols-[minmax(88px,0.35fr)_minmax(0,1fr)] items-start gap-2">
+      <span className="system-xs-regular text-text-tertiary">{label}</span>
+      <span className={cn('min-w-0 system-sm-regular break-all text-text-primary', mono && 'font-mono')}>
+        {value}
+        {suffix && <span className="system-xs-regular text-text-tertiary">{suffix}</span>}
+      </span>
+    </div>
+  )
+}
 
 type RuntimeBindingItemProps = {
   binding: RuntimeBindingDisplay
 }
 
-const RuntimeBindingItem: FC<RuntimeBindingItemProps> = ({ binding }) => {
+function RuntimeBindingItem({ binding }: RuntimeBindingItemProps) {
   const summary = runtimeBindingSummary(binding)
 
   return (
@@ -67,7 +71,7 @@ type DeploymentPanelProps = {
   row: EnvironmentDeploymentRow
 }
 
-export const DeploymentPanel: FC<DeploymentPanelProps> = ({ row }) => {
+export function DeploymentPanel({ row }: DeploymentPanelProps) {
   const { t } = useTranslation('deployments')
   const observed = activeRelease(row)
   const env = row.environment

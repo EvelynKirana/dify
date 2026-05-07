@@ -1,6 +1,5 @@
 'use client'
 
-import type { FC } from 'react'
 import { cn } from '@langgenius/dify-ui/cn'
 import {
   DropdownMenu,
@@ -27,7 +26,7 @@ type DeployReleaseMenuProps = {
   releaseId: string
 }
 
-export const DeployReleaseMenu: FC<DeployReleaseMenuProps> = ({ appInstanceId, releaseId }) => {
+export function DeployReleaseMenu({ appInstanceId, releaseId }: DeployReleaseMenuProps) {
   const { t } = useTranslation('deployments')
   const openDeployDrawer = useDeploymentsStore(state => state.openDeployDrawer)
   const [open, setOpen] = useState(false)

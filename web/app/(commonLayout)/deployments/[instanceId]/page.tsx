@@ -4,9 +4,7 @@ type PageProps = {
   params: Promise<{ instanceId: string }>
 }
 
-const InstanceDetailPage = async ({ params }: PageProps) => {
+export default async function InstanceDetailPage({ params }: PageProps) {
   const { instanceId } = await params
   redirect(`/deployments/${instanceId}/overview`)
 }
-
-export default InstanceDetailPage

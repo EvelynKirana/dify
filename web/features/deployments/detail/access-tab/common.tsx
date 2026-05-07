@@ -1,6 +1,6 @@
 'use client'
 
-import type { FC, ReactNode } from 'react'
+import type { ReactNode } from 'react'
 import { cn } from '@langgenius/dify-ui/cn'
 import { toast } from '@langgenius/dify-ui/toast'
 import { useState } from 'react'
@@ -13,20 +13,22 @@ type SectionProps = {
   children: ReactNode
 }
 
-export const Section: FC<SectionProps> = ({ title, description, action, children }) => (
-  <div className="flex flex-col gap-3 rounded-xl border border-components-panel-border bg-components-panel-bg p-4">
-    <div className="flex items-start justify-between gap-3">
-      <div>
-        <div className="system-sm-semibold text-text-primary">{title}</div>
-        {description && (
-          <p className="mt-1 max-w-xl system-xs-regular text-text-tertiary">{description}</p>
-        )}
+export function Section({ title, description, action, children }: SectionProps) {
+  return (
+    <div className="flex flex-col gap-3 rounded-xl border border-components-panel-border bg-components-panel-bg p-4">
+      <div className="flex items-start justify-between gap-3">
+        <div>
+          <div className="system-sm-semibold text-text-primary">{title}</div>
+          {description && (
+            <p className="mt-1 max-w-xl system-xs-regular text-text-tertiary">{description}</p>
+          )}
+        </div>
+        {action}
       </div>
-      {action}
+      {children}
     </div>
-    {children}
-  </div>
-)
+  )
+}
 
 type CopyPillProps = {
   label: string
@@ -35,7 +37,7 @@ type CopyPillProps = {
   className?: string
 }
 
-export const CopyPill: FC<CopyPillProps> = ({ label, value, prefix, className }) => {
+export function CopyPill({ label, value, prefix, className }: CopyPillProps) {
   const { t } = useTranslation('deployments')
   const [copied, setCopied] = useState(false)
 
@@ -85,22 +87,24 @@ type EndpointRowProps = {
   openLabel?: string
 }
 
-export const EndpointRow: FC<EndpointRowProps> = ({ envName, label, value, openLabel }) => (
-  <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5">
-    <span className="min-w-[140px] system-xs-regular text-text-tertiary">
-      {envName}
-    </span>
-    <CopyPill label={label} value={value} className="min-w-[260px] flex-1" />
-    {openLabel && (
-      <a
-        href={value}
-        target="_blank"
-        rel="noreferrer"
-        className="inline-flex h-8 shrink-0 items-center gap-1.5 rounded-lg border border-components-button-secondary-border bg-components-button-secondary-bg px-3 system-sm-medium text-components-button-secondary-text hover:bg-components-button-secondary-bg-hover"
-      >
-        <span className="i-ri-external-link-line h-3.5 w-3.5" />
-        {openLabel}
-      </a>
-    )}
-  </div>
-)
+export function EndpointRow({ envName, label, value, openLabel }: EndpointRowProps) {
+  return (
+    <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5">
+      <span className="min-w-[140px] system-xs-regular text-text-tertiary">
+        {envName}
+      </span>
+      <CopyPill label={label} value={value} className="min-w-[260px] flex-1" />
+      {openLabel && (
+        <a
+          href={value}
+          target="_blank"
+          rel="noreferrer"
+          className="inline-flex h-8 shrink-0 items-center gap-1.5 rounded-lg border border-components-button-secondary-border bg-components-button-secondary-bg px-3 system-sm-medium text-components-button-secondary-text hover:bg-components-button-secondary-bg-hover"
+        >
+          <span className="i-ri-external-link-line h-3.5 w-3.5" />
+          {openLabel}
+        </a>
+      )}
+    </div>
+  )
+}

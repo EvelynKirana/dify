@@ -1,5 +1,5 @@
 'use client'
-import type { FC, ReactNode } from 'react'
+import type { ReactNode } from 'react'
 import { Button } from '@langgenius/dify-ui/button'
 import { cn } from '@langgenius/dify-ui/cn'
 import { useQuery } from '@tanstack/react-query'
@@ -29,15 +29,17 @@ type SectionProps = {
   children: ReactNode
 }
 
-const Section: FC<SectionProps> = ({ title, action, children }) => (
-  <div className="flex flex-col gap-3 rounded-xl border border-components-panel-border bg-components-panel-bg p-4">
-    <div className="flex items-center justify-between">
-      <div className="system-sm-semibold text-text-primary">{title}</div>
-      {action}
+function Section({ title, action, children }: SectionProps) {
+  return (
+    <div className="flex flex-col gap-3 rounded-xl border border-components-panel-border bg-components-panel-bg p-4">
+      <div className="flex items-center justify-between">
+        <div className="system-sm-semibold text-text-primary">{title}</div>
+        {action}
+      </div>
+      {children}
     </div>
-    {children}
-  </div>
-)
+  )
+}
 
 type InfoRowProps = {
   label: string
@@ -45,12 +47,14 @@ type InfoRowProps = {
   mono?: boolean
 }
 
-const InfoRow: FC<InfoRowProps> = ({ label, value, mono }) => (
-  <div className="flex items-start gap-3 py-1.5">
-    <span className="w-32 shrink-0 system-xs-regular text-text-tertiary">{label}</span>
-    <span className={cn('min-w-0 flex-1 system-sm-regular text-text-primary', mono && 'font-mono')}>{value}</span>
-  </div>
-)
+function InfoRow({ label, value, mono }: InfoRowProps) {
+  return (
+    <div className="flex items-start gap-3 py-1.5">
+      <span className="w-32 shrink-0 system-xs-regular text-text-tertiary">{label}</span>
+      <span className={cn('min-w-0 flex-1 system-sm-regular text-text-primary', mono && 'font-mono')}>{value}</span>
+    </div>
+  )
+}
 
 type AccessOverviewRowProps = {
   label: string
@@ -59,7 +63,7 @@ type AccessOverviewRowProps = {
   meta?: string
 }
 
-const AccessOverviewRow: FC<AccessOverviewRowProps> = ({ label, enabled, hint, meta }) => {
+function AccessOverviewRow({ label, enabled, hint, meta }: AccessOverviewRowProps) {
   const { t } = useTranslation('deployments')
 
   return (
@@ -94,7 +98,7 @@ function overviewDeploymentStatus(status?: string) {
   return 'ready'
 }
 
-const OverviewTab: FC<OverviewTabProps> = ({ instanceId }) => {
+export function OverviewTab({ instanceId }: OverviewTabProps) {
   const { t } = useTranslation('deployments')
   const { t: tCommon } = useTranslation()
   const router = useRouter()
@@ -237,5 +241,3 @@ const OverviewTab: FC<OverviewTabProps> = ({ instanceId }) => {
     </div>
   )
 }
-
-export default OverviewTab

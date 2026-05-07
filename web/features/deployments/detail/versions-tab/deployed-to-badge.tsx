@@ -1,6 +1,5 @@
 'use client'
 
-import type { FC } from 'react'
 import type { ReleaseDeployment, ReleaseDeploymentState } from './release-deployments'
 import { cn } from '@langgenius/dify-ui/cn'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@langgenius/dify-ui/tooltip'
@@ -16,7 +15,7 @@ type DeployedToBadgeProps = {
   item: ReleaseDeployment
 }
 
-export const DeployedToBadge: FC<DeployedToBadgeProps> = ({ item }) => {
+export function DeployedToBadge({ item }: DeployedToBadgeProps) {
   const { t } = useTranslation('deployments')
   const statusLabel = t(`versions.deployedStatus.${item.state}`)
 

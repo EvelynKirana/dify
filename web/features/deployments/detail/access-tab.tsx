@@ -1,6 +1,5 @@
 'use client'
 
-import type { FC } from 'react'
 import type {
   AccessPermission,
   AccessSubject,
@@ -31,7 +30,7 @@ type AccessTabProps = {
   instanceId: string
 }
 
-const AccessTab: FC<AccessTabProps> = ({ instanceId: appId }) => {
+export function AccessTab({ instanceId: appId }: AccessTabProps) {
   const appInput = { params: { appInstanceId: appId } }
   const { data: accessConfig } = useQuery(consoleQuery.enterprise.appDeploy.getAppInstanceAccess.queryOptions({
     input: appInput,
@@ -171,5 +170,3 @@ const AccessTab: FC<AccessTabProps> = ({ instanceId: appId }) => {
     </div>
   )
 }
-
-export default AccessTab

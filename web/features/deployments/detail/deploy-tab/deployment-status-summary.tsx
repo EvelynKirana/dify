@@ -1,6 +1,5 @@
 'use client'
 
-import type { FC } from 'react'
 import type { EnvironmentDeploymentRow } from '@/features/deployments/types'
 import { useTranslation } from 'react-i18next'
 import {
@@ -14,7 +13,7 @@ type DeploymentStatusSummaryProps = {
   row: EnvironmentDeploymentRow
 }
 
-export const DeploymentStatusSummary: FC<DeploymentStatusSummaryProps> = ({ row }) => {
+export function DeploymentStatusSummary({ row }: DeploymentStatusSummaryProps) {
   const { t } = useTranslation('deployments')
   if (isUndeployedDeploymentRow(row)) {
     return (

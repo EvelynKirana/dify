@@ -1,6 +1,5 @@
 'use client'
 
-import type { FC } from 'react'
 import type { ConsoleEnvironmentSummary, DeveloperAPIKeySummary } from '@/features/deployments/types'
 import { Switch } from '@langgenius/dify-ui/switch'
 import { useTranslation } from 'react-i18next'
@@ -20,7 +19,7 @@ type DeveloperApiSectionProps = {
   onClearCreatedToken: () => void
 }
 
-export const DeveloperApiSection: FC<DeveloperApiSectionProps> = ({
+export function DeveloperApiSection({
   apiEnabled,
   apiUrl,
   environments,
@@ -31,7 +30,7 @@ export const DeveloperApiSection: FC<DeveloperApiSectionProps> = ({
   onCopyApiKey,
   onRevoke,
   onClearCreatedToken,
-}) => {
+}: DeveloperApiSectionProps) {
   const { t } = useTranslation('deployments')
 
   return (

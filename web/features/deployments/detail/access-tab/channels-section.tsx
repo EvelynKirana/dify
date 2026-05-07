@@ -1,6 +1,5 @@
 'use client'
 
-import type { FC } from 'react'
 import type { WebAppAccessRow } from '@/features/deployments/types'
 import { Switch } from '@langgenius/dify-ui/switch'
 import { useTranslation } from 'react-i18next'
@@ -15,13 +14,13 @@ type AccessChannelsSectionProps = {
   onToggle: (enabled: boolean) => void
 }
 
-export const AccessChannelsSection: FC<AccessChannelsSectionProps> = ({
+export function AccessChannelsSection({
   runEnabled,
   webappRows,
   cliDomain,
   cliDocsUrl,
   onToggle,
-}) => {
+}: AccessChannelsSectionProps) {
   const { t } = useTranslation('deployments')
 
   return (

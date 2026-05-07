@@ -1,6 +1,6 @@
 'use client'
 
-import type { ComponentProps, FC, PropsWithoutRef } from 'react'
+import type { ComponentProps, PropsWithoutRef } from 'react'
 import type { AppInfo } from '../types'
 import type { InstanceDetailTabKey } from './tabs'
 import type { NavIcon } from '@/app/components/app-sidebar/nav-link'
@@ -28,16 +28,36 @@ type TailwindNavIconProps = PropsWithoutRef<ComponentProps<'svg'>> & {
   titleId?: string
 }
 
-const OverviewIcon = ({ className }: TailwindNavIconProps) => <span aria-hidden className={cn('i-ri-dashboard-2-line', className)} />
-const OverviewSelectedIcon = ({ className }: TailwindNavIconProps) => <span aria-hidden className={cn('i-ri-dashboard-2-fill', className)} />
-const DeployIcon = ({ className }: TailwindNavIconProps) => <span aria-hidden className={cn('i-ri-rocket-line', className)} />
-const DeploySelectedIcon = ({ className }: TailwindNavIconProps) => <span aria-hidden className={cn('i-ri-rocket-fill', className)} />
-const VersionsIcon = ({ className }: TailwindNavIconProps) => <span aria-hidden className={cn('i-ri-stack-line', className)} />
-const VersionsSelectedIcon = ({ className }: TailwindNavIconProps) => <span aria-hidden className={cn('i-ri-stack-fill', className)} />
-const AccessIcon = ({ className }: TailwindNavIconProps) => <span aria-hidden className={cn('i-ri-plug-line', className)} />
-const AccessSelectedIcon = ({ className }: TailwindNavIconProps) => <span aria-hidden className={cn('i-ri-plug-fill', className)} />
-const SettingsIcon = ({ className }: TailwindNavIconProps) => <span aria-hidden className={cn('i-ri-settings-3-line', className)} />
-const SettingsSelectedIcon = ({ className }: TailwindNavIconProps) => <span aria-hidden className={cn('i-ri-settings-3-fill', className)} />
+function OverviewIcon({ className }: TailwindNavIconProps) {
+  return <span aria-hidden className={cn('i-ri-dashboard-2-line', className)} />
+}
+function OverviewSelectedIcon({ className }: TailwindNavIconProps) {
+  return <span aria-hidden className={cn('i-ri-dashboard-2-fill', className)} />
+}
+function DeployIcon({ className }: TailwindNavIconProps) {
+  return <span aria-hidden className={cn('i-ri-rocket-line', className)} />
+}
+function DeploySelectedIcon({ className }: TailwindNavIconProps) {
+  return <span aria-hidden className={cn('i-ri-rocket-fill', className)} />
+}
+function VersionsIcon({ className }: TailwindNavIconProps) {
+  return <span aria-hidden className={cn('i-ri-stack-line', className)} />
+}
+function VersionsSelectedIcon({ className }: TailwindNavIconProps) {
+  return <span aria-hidden className={cn('i-ri-stack-fill', className)} />
+}
+function AccessIcon({ className }: TailwindNavIconProps) {
+  return <span aria-hidden className={cn('i-ri-plug-line', className)} />
+}
+function AccessSelectedIcon({ className }: TailwindNavIconProps) {
+  return <span aria-hidden className={cn('i-ri-plug-fill', className)} />
+}
+function SettingsIcon({ className }: TailwindNavIconProps) {
+  return <span aria-hidden className={cn('i-ri-settings-3-line', className)} />
+}
+function SettingsSelectedIcon({ className }: TailwindNavIconProps) {
+  return <span aria-hidden className={cn('i-ri-settings-3-fill', className)} />
+}
 
 const TABS: TabDef[] = [
   { key: 'overview', icon: OverviewIcon, selectedIcon: OverviewSelectedIcon },
@@ -47,7 +67,7 @@ const TABS: TabDef[] = [
   { key: 'settings', icon: SettingsIcon, selectedIcon: SettingsSelectedIcon },
 ]
 
-const isShortcutFromInputArea = (target: EventTarget | null) => {
+function isShortcutFromInputArea(target: EventTarget | null) {
   if (!(target instanceof HTMLElement))
     return false
 
@@ -64,13 +84,13 @@ type DeploymentSidebarProps = {
   app?: AppInfo
 }
 
-export const DeploymentSidebar: FC<DeploymentSidebarProps> = ({
+export function DeploymentSidebar({
   instanceId,
   instanceName,
   instanceDescription,
   appModeLabel,
   app,
-}) => {
+}: DeploymentSidebarProps) {
   const { t } = useTranslation('deployments')
   const sidebarRef = useRef<HTMLDivElement>(null)
   const isHoveringSidebar = useHover(sidebarRef)

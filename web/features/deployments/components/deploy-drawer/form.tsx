@@ -1,7 +1,6 @@
 'use client'
 
 import type { DeploymentBindingOptionSlot, DeploymentRuntimeBinding } from '@dify/contracts/enterprise/types.gen'
-import type { FC } from 'react'
 import type { ConsoleReleaseSummary, EnvironmentOption } from '@/features/deployments/types'
 import { Button } from '@langgenius/dify-ui/button'
 import { DialogDescription, DialogTitle } from '@langgenius/dify-ui/dialog'
@@ -54,12 +53,15 @@ type BindingOptionsPanelProps = {
   onChange: (slot: string, value: string) => void
 }
 
-const isEnvBindingSlot = (slot: DeploymentBindingOptionSlot) =>
-  (slot.kind?.toLowerCase() ?? '').includes('env')
+function isEnvBindingSlot(slot: DeploymentBindingOptionSlot) {
+  return (slot.kind?.toLowerCase() ?? '').includes('env')
+}
 
-const bindingSlotKey = (slot: DeploymentBindingOptionSlot) => slot.slot ?? ''
+function bindingSlotKey(slot: DeploymentBindingOptionSlot) {
+  return slot.slot ?? ''
+}
 
-const bindingCandidateOptions = (slot: DeploymentBindingOptionSlot): BindingSelectOption[] => {
+function bindingCandidateOptions(slot: DeploymentBindingOptionSlot): BindingSelectOption[] {
   if (isEnvBindingSlot(slot)) {
     return (slot.envVarCandidates ?? [])
       .filter(candidate => candidate.envVarId)
@@ -84,13 +86,11 @@ const bindingCandidateOptions = (slot: DeploymentBindingOptionSlot): BindingSele
     }))
 }
 
-const hasMissingRequiredBinding = (slot: DeploymentBindingOptionSlot, selectedValue?: string) =>
-  Boolean(slot.required && !selectedValue)
+function hasMissingRequiredBinding(slot: DeploymentBindingOptionSlot, selectedValue?: string) {
+  return Boolean(slot.required && !selectedValue)
+}
 
-const selectedDeploymentBindings = (
-  slots: DeploymentBindingOptionSlot[],
-  selections: BindingSelections,
-): DeploymentRuntimeBinding[] => {
+function selectedDeploymentBindings(slots: DeploymentBindingOptionSlot[], selections: BindingSelections): DeploymentRuntimeBinding[] {
   return slots
     .map((slot): DeploymentRuntimeBinding | undefined => {
       const slotKey = bindingSlotKey(slot)
@@ -105,13 +105,13 @@ const selectedDeploymentBindings = (
     .filter((binding): binding is DeploymentRuntimeBinding => Boolean(binding))
 }
 
-const BindingOptionsPanel: FC<BindingOptionsPanelProps> = ({
+function BindingOptionsPanel({
   slots,
   selections,
   isLoading,
   hasError,
   onChange,
-}) => {
+}: BindingOptionsPanelProps) {
   const { t } = useTranslation('deployments')
 
   if (isLoading) {
@@ -192,7 +192,7 @@ const BindingOptionsPanel: FC<BindingOptionsPanelProps> = ({
   )
 }
 
-export const DeployForm: FC<DeployFormProps> = ({
+export function DeployForm({
   appInstanceId,
   environments,
   releases,
@@ -202,7 +202,7 @@ export const DeployForm: FC<DeployFormProps> = ({
   isSubmitting,
   onCancel,
   onSubmit,
-}) => {
+}: DeployFormProps) {
   const { t } = useTranslation('deployments')
   const presetRelease = useMemo(
     () => presetReleaseId ? releases.find(r => r.id === presetReleaseId) : undefined,

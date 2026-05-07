@@ -1,5 +1,4 @@
 'use client'
-import type { FC } from 'react'
 import type { AppInfo, AppMode } from '../types'
 import type { App, AppModeEnum } from '@/types/app'
 import { Button } from '@langgenius/dify-ui/button'
@@ -39,7 +38,7 @@ type AppPickerProps = {
   onChange: (appId: string) => void
 }
 
-export const AppPicker: FC<AppPickerProps> = ({ apps, isLoading, value, onChange }) => {
+export function AppPicker({ apps, isLoading, value, onChange }: AppPickerProps) {
   const { t } = useTranslation('deployments')
   const [open, setOpen] = useState(false)
   const [keywords, setKeywords] = useState('')
@@ -204,7 +203,11 @@ export const AppPicker: FC<AppPickerProps> = ({ apps, isLoading, value, onChange
   )
 }
 
-const CreateInstanceForm: FC<{ onClose: () => void }> = ({ onClose }) => {
+type CreateInstanceFormProps = {
+  onClose: () => void
+}
+
+function CreateInstanceForm({ onClose }: CreateInstanceFormProps) {
   const { t } = useTranslation('deployments')
   const router = useRouter()
   const createInstance = useMutation(consoleQuery.enterprise.appDeploy.createAppInstance.mutationOptions())
@@ -310,7 +313,7 @@ const CreateInstanceForm: FC<{ onClose: () => void }> = ({ onClose }) => {
   )
 }
 
-const CreateInstanceModal: FC = () => {
+export function CreateInstanceModal() {
   const modal = useDeploymentsStore(state => state.createInstanceModal)
   const closeModal = useDeploymentsStore(state => state.closeCreateInstanceModal)
 
@@ -326,5 +329,3 @@ const CreateInstanceModal: FC = () => {
     </Dialog>
   )
 }
-
-export default CreateInstanceModal
