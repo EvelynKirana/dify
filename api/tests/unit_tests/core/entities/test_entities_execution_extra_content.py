@@ -26,6 +26,7 @@ def test_human_input_content_defaults_and_domain_alias() -> None:
         rendered_content="Please confirm",
         action_id="confirm",
         action_text="Confirm",
+        submitted_data={"answer": "yes"},
     )
 
     # Act
@@ -41,4 +42,5 @@ def test_human_input_content_defaults_and_domain_alias() -> None:
     assert content.type == ExecutionContentType.HUMAN_INPUT
     assert content.form_definition is form_definition
     assert content.form_submission_data is submission_data
+    assert content.form_submission_data.submitted_data == {"answer": "yes"}
     assert ExecutionExtraContentDomainModel is HumanInputContent
