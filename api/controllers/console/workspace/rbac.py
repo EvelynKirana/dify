@@ -276,11 +276,8 @@ class RBACAccessPolicyCopyApi(Resource):
 # ---------------------------------------------------------------------------
 
 
-class _ReplaceRoleBindingsRequest(BaseModel):
+class _ReplaceBindingsRequest(BaseModel):
     role_ids: list[str] = []
-
-
-class _ReplaceMemberBindingsRequest(BaseModel):
     account_ids: list[str] = []
 
 
@@ -319,21 +316,6 @@ class RBACAppRoleBindingsApi(Resource):
             svc.RBACService.AppAccess.list_role_bindings(tenant_id, account_id, str(app_id), str(policy_id))
         )
 
-    @enterprise_only
-    @login_required
-    def put(self, app_id, policy_id):
-        tenant_id, account_id = _current_ids()
-        request = _payload(_ReplaceRoleBindingsRequest)
-        return _dump(
-            svc.RBACService.AppAccess.replace_role_bindings(
-                tenant_id,
-                account_id,
-                str(app_id),
-                str(policy_id),
-                svc.ReplaceRoleBindings(role_ids=list(request.role_ids)),
-            )
-        )
-
 
 @console_ns.route("/workspaces/current/rbac/apps/<uuid:app_id>/access-policies/<uuid:policy_id>/member-bindings")
 class RBACAppMemberBindingsApi(Resource):
@@ -345,18 +327,21 @@ class RBACAppMemberBindingsApi(Resource):
             svc.RBACService.AppAccess.list_member_bindings(tenant_id, account_id, str(app_id), str(policy_id))
         )
 
+
+@console_ns.route("/workspaces/current/rbac/apps/<uuid:app_id>/access-policies/<uuid:policy_id>/bindings")
+class RBACAppBindingsApi(Resource):
     @enterprise_only
     @login_required
     def put(self, app_id, policy_id):
         tenant_id, account_id = _current_ids()
-        request = _payload(_ReplaceMemberBindingsRequest)
+        request = _payload(_ReplaceBindingsRequest)
         return _dump(
-            svc.RBACService.AppAccess.replace_member_bindings(
+            svc.RBACService.AppAccess.replace_bindings(
                 tenant_id,
                 account_id,
                 str(app_id),
                 str(policy_id),
-                svc.ReplaceMemberBindings(account_ids=list(request.account_ids)),
+                svc.ReplaceBindings(role_ids=list(request.role_ids), account_ids=list(request.account_ids)),
             )
         )
 
@@ -387,18 +372,21 @@ class RBACDatasetRoleBindingsApi(Resource):
             )
         )
 
+
+@console_ns.route("/workspaces/current/rbac/datasets/<uuid:dataset_id>/access-policies/<uuid:policy_id>/bindings")
+class RBACDatasetBindingsApi(Resource):
     @enterprise_only
     @login_required
     def put(self, dataset_id, policy_id):
         tenant_id, account_id = _current_ids()
-        request = _payload(_ReplaceRoleBindingsRequest)
+        request = _payload(_ReplaceBindingsRequest)
         return _dump(
-            svc.RBACService.DatasetAccess.replace_role_bindings(
+            svc.RBACService.DatasetAccess.replace_bindings(
                 tenant_id,
                 account_id,
                 str(dataset_id),
                 str(policy_id),
-                svc.ReplaceRoleBindings(role_ids=list(request.role_ids)),
+                svc.ReplaceBindings(role_ids=list(request.role_ids), account_ids=list(request.account_ids)),
             )
         )
 
@@ -414,21 +402,6 @@ class RBACDatasetMemberBindingsApi(Resource):
         return _dump(
             svc.RBACService.DatasetAccess.list_member_bindings(
                 tenant_id, account_id, str(dataset_id), str(policy_id)
-            )
-        )
-
-    @enterprise_only
-    @login_required
-    def put(self, dataset_id, policy_id):
-        tenant_id, account_id = _current_ids()
-        request = _payload(_ReplaceMemberBindingsRequest)
-        return _dump(
-            svc.RBACService.DatasetAccess.replace_member_bindings(
-                tenant_id,
-                account_id,
-                str(dataset_id),
-                str(policy_id),
-                svc.ReplaceMemberBindings(account_ids=list(request.account_ids)),
             )
         )
 
@@ -458,17 +431,20 @@ class RBACWorkspaceAppRoleBindingsApi(Resource):
             svc.RBACService.WorkspaceAccess.list_app_role_bindings(tenant_id, account_id, str(policy_id))
         )
 
+
+@console_ns.route("/workspaces/current/rbac/workspace/apps/access-policies/<uuid:policy_id>/bindings")
+class RBACWorkspaceAppBindingsApi(Resource):
     @enterprise_only
     @login_required
     def put(self, policy_id):
         tenant_id, account_id = _current_ids()
-        request = _payload(_ReplaceRoleBindingsRequest)
+        request = _payload(_ReplaceBindingsRequest)
         return _dump(
-            svc.RBACService.WorkspaceAccess.replace_app_role_bindings(
+            svc.RBACService.WorkspaceAccess.replace_app_bindings(
                 tenant_id,
                 account_id,
                 str(policy_id),
-                svc.ReplaceRoleBindings(role_ids=list(request.role_ids)),
+                svc.ReplaceBindings(role_ids=list(request.role_ids), account_ids=list(request.account_ids)),
             )
         )
 
@@ -481,20 +457,6 @@ class RBACWorkspaceAppMemberBindingsApi(Resource):
         tenant_id, account_id = _current_ids()
         return _dump(
             svc.RBACService.WorkspaceAccess.list_app_member_bindings(tenant_id, account_id, str(policy_id))
-        )
-
-    @enterprise_only
-    @login_required
-    def put(self, policy_id):
-        tenant_id, account_id = _current_ids()
-        request = _payload(_ReplaceMemberBindingsRequest)
-        return _dump(
-            svc.RBACService.WorkspaceAccess.replace_app_member_bindings(
-                tenant_id,
-                account_id,
-                str(policy_id),
-                svc.ReplaceMemberBindings(account_ids=list(request.account_ids)),
-            )
         )
 
 
@@ -518,17 +480,20 @@ class RBACWorkspaceDatasetRoleBindingsApi(Resource):
             svc.RBACService.WorkspaceAccess.list_dataset_role_bindings(tenant_id, account_id, str(policy_id))
         )
 
+
+@console_ns.route("/workspaces/current/rbac/workspace/datasets/access-policies/<uuid:policy_id>/bindings")
+class RBACWorkspaceDatasetBindingsApi(Resource):
     @enterprise_only
     @login_required
     def put(self, policy_id):
         tenant_id, account_id = _current_ids()
-        request = _payload(_ReplaceRoleBindingsRequest)
+        request = _payload(_ReplaceBindingsRequest)
         return _dump(
-            svc.RBACService.WorkspaceAccess.replace_dataset_role_bindings(
+            svc.RBACService.WorkspaceAccess.replace_dataset_bindings(
                 tenant_id,
                 account_id,
                 str(policy_id),
-                svc.ReplaceRoleBindings(role_ids=list(request.role_ids)),
+                svc.ReplaceBindings(role_ids=list(request.role_ids), account_ids=list(request.account_ids)),
             )
         )
 
@@ -541,20 +506,6 @@ class RBACWorkspaceDatasetMemberBindingsApi(Resource):
         tenant_id, account_id = _current_ids()
         return _dump(
             svc.RBACService.WorkspaceAccess.list_dataset_member_bindings(tenant_id, account_id, str(policy_id))
-        )
-
-    @enterprise_only
-    @login_required
-    def put(self, policy_id):
-        tenant_id, account_id = _current_ids()
-        request = _payload(_ReplaceMemberBindingsRequest)
-        return _dump(
-            svc.RBACService.WorkspaceAccess.replace_dataset_member_bindings(
-                tenant_id,
-                account_id,
-                str(policy_id),
-                svc.ReplaceMemberBindings(account_ids=list(request.account_ids)),
-            )
         )
 
 

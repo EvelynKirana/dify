@@ -110,9 +110,10 @@ class TestPydanticModels:
         with pytest.raises(ValidationError):
             rbac_mod._AccessPolicyCreateRequest.model_validate({"name": "bad", "resource_type": "unknown"})
 
-    def test_replace_role_bindings_defaults_empty(self):
-        parsed = rbac_mod._ReplaceRoleBindingsRequest.model_validate({})
+    def test_replace_bindings_defaults_empty(self):
+        parsed = rbac_mod._ReplaceBindingsRequest.model_validate({})
         assert parsed.role_ids == []
+        assert parsed.account_ids == []
 
     def test_pagination_query_accepts_page_and_limit_aliases(self):
         parsed = rbac_mod._PaginationQuery.model_validate({"page": 3, "limit": 25, "reverse": True})
