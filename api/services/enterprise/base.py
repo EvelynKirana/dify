@@ -156,8 +156,6 @@ class EnterpriseRequest(BaseRequest):
         both the assertions and the header wiring so callers only have to
         supply business payload.
         """
-        if not dify_config.ENTERPRISE_ENABLED:
-            raise EnterpriseAPIError("Enterprise edition is not enabled")
         if not tenant_id:
             raise ValueError("tenant_id must be provided for inner RBAC requests")
 
