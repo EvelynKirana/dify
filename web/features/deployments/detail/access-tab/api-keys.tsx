@@ -9,27 +9,53 @@ import {
   DropdownMenuTrigger,
 } from '@langgenius/dify-ui/dropdown-menu'
 import { toast } from '@langgenius/dify-ui/toast'
+import { useMutation } from '@tanstack/react-query'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
+import { consoleClient, consoleQuery } from '@/service/client'
 import { environmentName } from '../../utils'
 import { useCopyFeedback } from './use-copy-feedback'
 
-export function ApiKeyRow({ apiKey, onCopy, onRevoke }: {
+function ApiKeyRow({ appId, apiKey }: {
+  appId: string
   apiKey: DeveloperApiKeyRow
-  onCopy: (apiKeyId: string) => Promise<string>
-  onRevoke: (apiKeyId: string) => void
 }) {
   const { t } = useTranslation('deployments')
   const { copied, showCopied } = useCopyFeedback()
+  const revokeApiKey = useMutation(consoleQuery.enterprise.appDeploy.deleteDeveloperApiKey.mutationOptions())
   const displayValue = apiKey.maskedKey || apiKey.id || '—'
   const environmentLabel = environmentName(apiKey.environment)
+
+  async function revealApiKey(apiKeyId: string) {
+    const response = await consoleClient.enterprise.appDeploy.revealDeveloperApiKey({
+      params: {
+        appInstanceId: appId,
+        apiKeyId,
+      },
+    })
+    if (!response.token)
+      throw new Error('Reveal developer API key did not return a token.')
+    return response.token
+  }
+
+  function handleRevoke() {
+    if (!apiKey.id)
+      return
+
+    revokeApiKey.mutate({
+      params: {
+        appInstanceId: appId,
+        apiKeyId: apiKey.id,
+      },
+    })
+  }
 
   const handleCopy = async () => {
     if (!apiKey.id)
       return
 
     try {
-      const token = await onCopy(apiKey.id)
+      const token = await revealApiKey(apiKey.id)
       await navigator.clipboard.writeText(token)
       showCopied()
       toast.success(t('access.copyToast'))
@@ -61,13 +87,30 @@ export function ApiKeyRow({ apiKey, onCopy, onRevoke }: {
         </button>
         <button
           type="button"
-          onClick={() => apiKey.id && onRevoke(apiKey.id)}
+          onClick={handleRevoke}
           aria-label={t('access.revoke')}
           className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md text-text-tertiary hover:bg-state-destructive-hover hover:text-text-destructive"
         >
           <span className="i-ri-delete-bin-line h-3.5 w-3.5" />
         </button>
       </div>
+    </div>
+  )
+}
+
+export function ApiKeyList({ appId, apiKeys }: {
+  appId: string
+  apiKeys: DeveloperApiKeyRow[]
+}) {
+  return (
+    <div className="flex flex-col divide-y divide-divider-subtle">
+      {apiKeys.map(apiKey => (
+        <ApiKeyRow
+          key={apiKey.id}
+          appId={appId}
+          apiKey={apiKey}
+        />
+      ))}
     </div>
   )
 }

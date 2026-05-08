@@ -3,10 +3,11 @@
 import type { ConsoleEnvironment, DeveloperApiKeyRow } from '@dify/contracts/enterprise/types.gen'
 import { Switch } from '@langgenius/dify-ui/switch'
 import { useTranslation } from 'react-i18next'
-import { ApiKeyGenerateMenu, ApiKeyRow } from './api-keys'
+import { ApiKeyGenerateMenu, ApiKeyList } from './api-keys'
 import { CopyPill, Section } from './common'
 
 type DeveloperApiSectionProps = {
+  appId: string
   apiEnabled: boolean
   apiUrl?: string
   environments: ConsoleEnvironment[]
@@ -14,12 +15,11 @@ type DeveloperApiSectionProps = {
   createdToken?: string
   onToggle: (enabled: boolean) => void
   onGenerate: (environmentId: string) => void
-  onCopyApiKey: (apiKeyId: string) => Promise<string>
-  onRevoke: (apiKeyId: string) => void
   onClearCreatedToken: () => void
 }
 
 export function DeveloperApiSection({
+  appId,
   apiEnabled,
   apiUrl,
   environments,
@@ -27,8 +27,6 @@ export function DeveloperApiSection({
   createdToken,
   onToggle,
   onGenerate,
-  onCopyApiKey,
-  onRevoke,
   onClearCreatedToken,
 }: DeveloperApiSectionProps) {
   const { t } = useTranslation('deployments')
@@ -102,16 +100,10 @@ export function DeveloperApiSection({
                     </div>
                   )
                 : (
-                    <div className="flex flex-col divide-y divide-divider-subtle">
-                      {apiKeys.map(apiKey => (
-                        <ApiKeyRow
-                          key={apiKey.id}
-                          apiKey={apiKey}
-                          onCopy={onCopyApiKey}
-                          onRevoke={onRevoke}
-                        />
-                      ))}
-                    </div>
+                    <ApiKeyList
+                      appId={appId}
+                      apiKeys={apiKeys}
+                    />
                   )}
             </div>
           )

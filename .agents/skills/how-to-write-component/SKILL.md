@@ -9,26 +9,30 @@ Follow existing project patterns first. Use these rules to resolve unclear compo
 
 ## Component Declaration And Exports
 
-- Do not use `FC` or `React.FC`; type the function signature directly.
-- Prefer `function` for top-level components and module helpers. Arrow functions are fine for local callbacks, handlers, and APIs that naturally take lambdas.
+- Type component signatures directly; do not use `FC` or `React.FC`.
+- Prefer `function` for top-level components and module helpers. Use arrow functions for local callbacks, handlers, and lambda-style APIs.
 - Prefer named exports. Use default exports only where the framework requires them, such as Next.js route files.
 
 ## Props And API Types
 
 - Type simple one-off props inline. Use a named `Props` type only when reused, exported, complex, or clearer.
-- Prefer API-generated or API-returned types at component boundaries. Keep small UI conversion helpers beside the component that needs them.
-- Avoid duplicate invariant checks across parent and child. If a lower-level component already handles empty or invalid data, let callers pass raw values through and keep the fallback there.
+- Use API-generated or API-returned types at component boundaries. Keep small UI conversion helpers beside the component that needs them.
+- Keep fallback and invariant checks at the lowest component that already handles that state; callers should pass raw values through instead of duplicating checks.
+- Avoid prop drilling. One pass-through layer is acceptable; two or more forwarding-only layers means ownership is in the wrong place.
+- Put handlers, mutations, queries, and side effects at the component boundary that actually uses them. For row-level actions, the row or a purpose-built row container should own the action; list/layout components should pass data and stable IDs, not callbacks they do not use.
+- Keep callbacks in a parent only when the parent genuinely coordinates the workflow, such as form submission, shared selection state, cross-row batch behavior, or navigation after a child action.
 
 ## State Ownership
 
-- Keep state, query state, handlers, and derived UI data near the component that owns the interaction. Do not lift state unless siblings or parents genuinely coordinate through it.
-- When local UI state must be shared across siblings, distant children, or feature-local surfaces, use a colocated Jotai `atom` instead of prop drilling or lifting state into a broad parent. Keep atoms feature-scoped and UI-owned; do not use them for server/cache state that belongs in query or API data flow.
+- Keep local state, query state, handlers, and derived UI data near the interaction owner. Do not lift state unless siblings or parents genuinely coordinate through it.
+- For local UI state shared across siblings, distant children, or feature-local surfaces, use a colocated Jotai `atom`. Keep atoms feature-scoped and UI-owned; do not use them for server/cache state that belongs in query or API data flow.
 - Prefer uncontrolled components when DOM-owned state is enough. Expose style customization through CSS variables before adding controlled props only for visual changes.
 
 ## Component Boundaries
 
-- Keep the component's first-render surface separate from secondary interactive surfaces. For dialogs, dropdown menus, popovers, and similar branches, split from the trigger boundary: extract a small local component that owns the trigger, open state, and overlay/menu content when that branch would obscure the parent UI flow. Do not further split the dialog body, menu body, or form content unless it has its own state, reuse, complexity, or semantic boundary.
-- Avoid shallow wrappers and unnecessary renaming. Call the original function directly unless the wrapper adds validation, orchestration, error handling, state ownership, or a real semantic boundary.
+- Separate first-render surfaces from secondary interactive surfaces. For dialogs, dropdowns, popovers, and similar branches, extract a small local component that owns the trigger, open state, and overlay/menu content when that branch obscures the parent flow.
+- Do not further split dialog bodies, menu bodies, or forms unless they have their own state, reuse, complexity, or semantic boundary.
+- Avoid shallow wrappers and renaming. Call the original function directly unless the wrapper adds validation, orchestration, error handling, state ownership, or a real semantic boundary.
 
 ## Navigation
 
@@ -36,8 +40,8 @@ Follow existing project patterns first. Use these rules to resolve unclear compo
 
 ## Effects
 
-- Treat `useEffect` as a last resort. Before adding or keeping one, first try to delete it by deriving values during render, moving event-driven work into handlers, or replacing persistence, subscription, media-query, timer, and DOM sync cases with existing equivalent hooks/APIs.
-- Do not use `useEffect` directly in components. If an effect remains genuinely unavoidable after checking for a declarative substitute, encapsulate it in a purpose-built hook so the component consumes a declarative API instead of managing the effect inline.
+- Treat `useEffect` as a last resort. First try deriving values during render, moving event-driven work into handlers, or using existing hooks/APIs for persistence, subscriptions, media queries, timers, and DOM sync.
+- Do not use `useEffect` directly in components. If unavoidable, encapsulate it in a purpose-built hook so the component consumes a declarative API.
 
 ## Performance
 

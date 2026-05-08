@@ -8,7 +8,7 @@ import type {
 } from '@dify/contracts/enterprise/types.gen'
 import { useMutation, useQuery } from '@tanstack/react-query'
 import { useState } from 'react'
-import { consoleClient, consoleQuery } from '@/service/client'
+import { consoleQuery } from '@/service/client'
 import {
   deployedRows,
 } from '../utils'
@@ -47,7 +47,6 @@ function DeveloperApiAccessSection({
     token: string
   }>()
   const generateApiKey = useMutation(consoleQuery.enterprise.appDeploy.createDeveloperApiKey.mutationOptions())
-  const revokeApiKey = useMutation(consoleQuery.enterprise.appDeploy.deleteDeveloperApiKey.mutationOptions())
   const toggleDeveloperAPI = useMutation(consoleQuery.enterprise.appDeploy.updateDeveloperApi.mutationOptions())
 
   function createApiKeyLabel(environmentId: string) {
@@ -79,33 +78,13 @@ function DeveloperApiAccessSection({
     )
   }
 
-  function handleRevokeApiKey(apiKeyId: string) {
-    revokeApiKey.mutate({
-      params: {
-        appInstanceId: appId,
-        apiKeyId,
-      },
-    })
-  }
-
-  async function handleCopyApiKey(apiKeyId: string) {
-    const response = await consoleClient.enterprise.appDeploy.revealDeveloperApiKey({
-      params: {
-        appInstanceId: appId,
-        apiKeyId,
-      },
-    })
-    if (!response.token)
-      throw new Error('Reveal developer API key did not return a token.')
-    return response.token
-  }
-
   const visibleCreatedApiToken = createdApiToken?.appId === appId
     ? createdApiToken.token
     : undefined
 
   return (
     <DeveloperApiSection
+      appId={appId}
       apiEnabled={apiEnabled}
       apiUrl={apiUrl}
       environments={environments}
@@ -116,8 +95,6 @@ function DeveloperApiAccessSection({
         body: { enabled },
       })}
       onGenerate={handleGenerateApiKey}
-      onCopyApiKey={handleCopyApiKey}
-      onRevoke={handleRevokeApiKey}
       onClearCreatedToken={() => setCreatedApiToken(undefined)}
     />
   )
