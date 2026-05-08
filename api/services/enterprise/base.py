@@ -133,6 +133,7 @@ class BaseRequest:
 
 class EnterpriseRequest(BaseRequest):
     base_url = os.environ.get("ENTERPRISE_API_URL", "ENTERPRISE_API_URL")
+    rbac_base_url = os.environ.get("ENTERPRISE_RBAC_API_URL", base_url)
     secret_key = os.environ.get("ENTERPRISE_API_SECRET_KEY", "ENTERPRISE_API_SECRET_KEY")
     secret_key_header = "Enterprise-Api-Secret-Key"
 
@@ -162,14 +163,25 @@ class EnterpriseRequest(BaseRequest):
         inner_headers: dict[str, str] = {INNER_TENANT_ID_HEADER: tenant_id}
         if account_id:
             inner_headers[INNER_ACCOUNT_ID_HEADER] = account_id
-        return cls.send_request(
-            method,
-            endpoint,
-            json=json,
-            params=params,
-            timeout=timeout,
-            extra_headers=inner_headers,
-        )
+        url = f"{cls.rbac_base_url}{endpoint}"
+        mounts = cls._build_mounts()
+
+        try:
+            traceparent = generate_traceparent_header()
+            if traceparent:
+                inner_headers = dict(inner_headers)
+                inner_headers["traceparent"] = traceparent
+        except Exception:
+            logger.debug("Failed to generate traceparent header", exc_info=True)
+
+        with httpx.Client(mounts=mounts) as client:
+            request_kwargs: dict[str, Any] = {"json": json, "params": params, "headers": {"Content-Type": "application/json", cls.secret_key_header: cls.secret_key, **inner_headers}}
+            if timeout is not None:
+                request_kwargs["timeout"] = timeout
+            response = client.request(method, url, **request_kwargs)
+            if not response.is_success:
+                cls._handle_error_response(response)
+        return response.json()
 
 
 class EnterprisePluginManagerRequest(BaseRequest):
