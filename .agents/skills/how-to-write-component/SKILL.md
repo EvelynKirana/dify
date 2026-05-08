@@ -34,6 +34,10 @@ Follow existing project patterns first. Use these rules to resolve unclear compo
 
 - Prefer `Link` for normal navigation. Use router APIs only for command-flow side effects such as mutation success, guarded redirects, or form submission.
 
+## Effects
+
+- Do not use `useEffect` directly in components. If an effect is genuinely unavoidable, encapsulate it in a purpose-built hook so the component consumes a declarative API instead of managing the effect inline.
+
 ## Performance
 
 - Avoid `memo`, `useMemo`, and `useCallback` unless there is a clear performance reason.
