@@ -3,7 +3,6 @@
 import type { ReactNode } from 'react'
 import { cn } from '@langgenius/dify-ui/cn'
 import { toast } from '@langgenius/dify-ui/toast'
-import { useRef } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useClipboard } from '@/hooks/use-clipboard'
 
@@ -40,21 +39,11 @@ type CopyPillProps = {
 
 export function CopyPill({ label, value, prefix, className }: CopyPillProps) {
   const { t } = useTranslation('deployments')
-  const copyFailedRef = useRef(false)
   const { copied, copy } = useClipboard({
-    timeout: 1500,
     onCopyError: () => {
-      copyFailedRef.current = true
       toast.error(t('access.copyFailed'))
     },
   })
-
-  const handleCopy = async () => {
-    copyFailedRef.current = false
-    await copy(value)
-    if (!copyFailedRef.current)
-      toast.success(t('access.copyToast'))
-  }
 
   return (
     <div
@@ -73,7 +62,7 @@ export function CopyPill({ label, value, prefix, className }: CopyPillProps) {
       <div className="mx-1 h-[14px] w-px shrink-0 bg-divider-regular" />
       <button
         type="button"
-        onClick={handleCopy}
+        onClick={() => copy(value)}
         aria-label={t('access.copy')}
         className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md text-text-tertiary hover:bg-state-base-hover hover:text-text-secondary"
       >
