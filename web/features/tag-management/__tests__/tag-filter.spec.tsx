@@ -27,6 +27,8 @@ const defaultProps = {
 // Helper: the i18n mock renders "ns.key" format (dot-separated)
 const i18n = {
   placeholder: 'common.tag.placeholder',
+  selectorPlaceholder: 'common.tag.selectorPlaceholder',
+  operationClear: 'common.operation.clear',
   noTag: 'common.tag.noTag',
   manageTags: 'common.tag.manageTags',
 }
@@ -101,6 +103,19 @@ describe('TagFilter', () => {
       expect(onChange).toHaveBeenCalledWith(['tag-1'])
     })
 
+    it('should select the highlighted tag with keyboard navigation', async () => {
+      const user = userEvent.setup()
+      const onChange = vi.fn()
+      render(<TagFilter {...defaultProps} onChange={onChange} />)
+
+      await user.click(screen.getByText(i18n.placeholder))
+      await user.type(screen.getByRole('combobox', { name: i18n.selectorPlaceholder }), 'Back')
+      await user.keyboard('{ArrowDown}')
+      await user.keyboard('{Enter}')
+
+      expect(onChange).toHaveBeenCalledWith(['tag-2'])
+    })
+
     it('should call onChange to deselect when an already-selected tag is clicked', async () => {
       const user = userEvent.setup()
       const onChange = vi.fn()
@@ -158,11 +173,9 @@ describe('TagFilter', () => {
       await user.click(screen.getByText('Frontend'))
 
       // The Check icon should be rendered for the selected tag
-      const tagItem = screen.getByTitle('Frontend')
+      const tagItem = screen.getByRole('option', { name: /Frontend/i })
       expect(tagItem).toBeInTheDocument()
-      // The parent container of the tag has a Check SVG sibling
-      const checkIcons = screen.getAllByTestId('tag-filter-selected-icon')
-      expect(checkIcons?.length).toBeGreaterThanOrEqual(1)
+      expect(tagItem).toHaveAttribute('aria-selected', 'true')
     })
 
     it('should clear all selected tags when clear button is clicked', async () => {
@@ -197,7 +210,7 @@ describe('TagFilter', () => {
 
       await user.click(screen.getByText(i18n.placeholder))
 
-      const searchInput = screen.getByRole('textbox')
+      const searchInput = screen.getByRole('combobox', { name: i18n.selectorPlaceholder })
       await user.type(searchInput, 'Front')
 
       expect(screen.getByText('Frontend')).toBeInTheDocument()
@@ -212,7 +225,7 @@ describe('TagFilter', () => {
 
       await user.click(screen.getByText(i18n.placeholder))
 
-      const searchInput = screen.getByRole('textbox')
+      const searchInput = screen.getByRole('combobox', { name: i18n.selectorPlaceholder })
       await user.type(searchInput, 'NonExistentTag')
 
       expect(screen.getByText(i18n.noTag)).toBeInTheDocument()
@@ -225,12 +238,12 @@ describe('TagFilter', () => {
 
       await user.click(screen.getByText(i18n.placeholder))
 
-      const searchInput = screen.getByRole('textbox')
+      const searchInput = screen.getByRole('combobox', { name: i18n.selectorPlaceholder })
       await user.type(searchInput, 'Front')
 
       expect(screen.queryByText('Backend')).not.toBeInTheDocument()
 
-      const clearButton = screen.getByTestId('input-clear')
+      const clearButton = screen.getByRole('button', { name: i18n.operationClear })
       await user.click(clearButton)
 
       expect(searchInput).toHaveValue('')
