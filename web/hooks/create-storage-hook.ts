@@ -1,7 +1,7 @@
 /* eslint-disable react/component-hook-factories -- Mirrors foxact's storage hook factory shape. */
 import type { Dispatch, SetStateAction } from 'react'
 import { useCallback, useEffect, useLayoutEffect as useLayoutEffectFromReact, useMemo, useSyncExternalStore } from 'react'
-import { noop } from '../noop'
+import { noop } from './noop'
 import 'client-only'
 
 /*

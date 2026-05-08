@@ -3,8 +3,8 @@ import type {
   Serializer,
   UseStorageParserOption,
   UseStorageRawOption,
-} from '../create-storage-hook'
-import { createStorage } from '../create-storage-hook'
+} from './create-storage-hook'
+import { createStorage } from './create-storage-hook'
 import 'client-only'
 
 export type UseLocalStorageRawOption = UseStorageRawOption
