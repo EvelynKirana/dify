@@ -13,6 +13,14 @@
 
 - `frontend-query-mutation` is the source of truth for Dify frontend contracts, query and mutation call-site patterns, conditional queries, invalidation, and mutation error handling.
 
+## SVG Icons (Mandatory)
+
+- New custom SVG icons must be added under `../packages/iconify-collections/assets/...`.
+- Run `pnpm --filter @dify/iconify-collections generate` and consume generated icons with Tailwind `i-custom-*` classes.
+- Restart the web dev server after regenerating icons because Tailwind loads the custom icon collection at startup.
+- Do not add new generated React icon components or JSON files under `app/components/base/icons/src/...`.
+- See `../packages/iconify-collections/README.md` for the full workflow.
+
 ## Design Token Mapping
 
 - When translating Figma designs to code, read `../packages/dify-ui/AGENTS.md` for the Figma `--radius/*` token to Tailwind `rounded-*` class mapping. The two scales are offset by one step.
