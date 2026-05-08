@@ -44,7 +44,7 @@ Follow existing project patterns first. Use these rules to resolve unclear compo
 
 ## Component Boundaries
 
-- The first level below a page or tab should only organize and lay out independent page sections.
+- Prefer using the first level below a page or tab to organize and lay out independent page sections. This layer is optional when the page has only one main section or extracting it would only add a shallow wrapper.
 - Split deeper components by the data and state each layer actually needs. Each component should access only necessary data, and state should be pushed down to the lowest owner.
 - Keep cohesive forms, menu bodies, and one-off helpers local unless they need their own state, reuse, or semantic boundary.
 - Separate hidden secondary surfaces from the trigger's main flow. For dialogs, dropdowns, popovers, and similar branches, extract a small local component that owns the trigger, open state, and hidden content when that branch obscures the parent flow.
