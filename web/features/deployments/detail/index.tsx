@@ -10,7 +10,6 @@ import Link from '@/next/link'
 import { useSelectedLayoutSegment } from '@/next/navigation'
 import { consoleQuery } from '@/service/client'
 import { DeployDrawer } from '../components/deploy-drawer'
-import { RollbackModal } from '../components/rollback-modal'
 import { DeploymentSidebar } from './deployment-sidebar'
 import { isInstanceDetailTabKey } from './tabs'
 
@@ -78,7 +77,6 @@ export function InstanceDetail({ appInstanceId, children }: {
       </div>
 
       <DeployDrawer />
-      <RollbackModal />
     </>
   )
 }

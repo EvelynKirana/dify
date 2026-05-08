@@ -7,7 +7,6 @@ import Input from '@/app/components/base/input'
 import { consoleQuery } from '@/service/client'
 import { CreateInstanceModal } from '../components/create-instance-modal'
 import { DeployDrawer } from '../components/deploy-drawer'
-import { RollbackModal } from '../components/rollback-modal'
 import { SOURCE_APPS_PAGE_SIZE } from '../data'
 import { EnvironmentFilter } from './environment-filter'
 import { InstanceCard } from './instance-card'
@@ -94,7 +93,6 @@ export function DeploymentsMain() {
       <DeploymentsList />
       <CreateInstanceModal />
       <DeployDrawer />
-      <RollbackModal />
     </>
   )
 }
