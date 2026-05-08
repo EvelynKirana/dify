@@ -149,14 +149,6 @@ class EnterpriseRequest(BaseRequest):
         params: Mapping[str, Any] | None = None,
         timeout: float | httpx.Timeout | None = None,
     ) -> Any:
-        """Call an /inner/api/rbac/* endpoint on dify-enterprise.
-
-        Inner RBAC endpoints require three headers on top of the standard
-        Enterprise-Api-Secret-Key: the tenant the call targets and (optionally)
-        the account acting on behalf of the workspace. This helper centralises
-        both the assertions and the header wiring so callers only have to
-        supply business payload.
-        """
         if not tenant_id:
             raise ValueError("tenant_id must be provided for inner RBAC requests")
 
