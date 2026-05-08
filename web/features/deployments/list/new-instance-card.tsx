@@ -39,9 +39,21 @@ function NewInstanceAction({ icon, label, disabled, onClick }: NewInstanceAction
   )
 }
 
-export function NewInstanceCard() {
+function CreateFromStudioAction() {
   const { t } = useTranslation('deployments')
   const openCreateInstanceModal = useSetAtom(openCreateInstanceModalAtom)
+
+  return (
+    <NewInstanceAction
+      icon="i-ri-stack-line"
+      label={t('newInstance.fromStudio')}
+      onClick={openCreateInstanceModal}
+    />
+  )
+}
+
+export function NewInstanceCard() {
+  const { t } = useTranslation('deployments')
 
   return (
     <div className="relative col-span-1 inline-flex h-[160px] flex-col justify-between rounded-xl border-[0.5px] border-components-card-border bg-components-card-bg">
@@ -49,11 +61,7 @@ export function NewInstanceCard() {
         <div className="px-6 pt-2 pb-1 text-xs leading-[18px] font-medium text-text-tertiary">
           {t('newInstance.title')}
         </div>
-        <NewInstanceAction
-          icon="i-ri-stack-line"
-          label={t('newInstance.fromStudio')}
-          onClick={openCreateInstanceModal}
-        />
+        <CreateFromStudioAction />
         <NewInstanceAction
           icon="i-ri-file-code-line"
           label={t('newInstance.importDSL')}

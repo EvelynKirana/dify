@@ -16,6 +16,25 @@ type AccessChannelsSectionProps = {
   cliDocsUrl?: string
 }
 
+function AccessChannelsSwitch({ appId, checked }: {
+  appId: string
+  checked: boolean
+}) {
+  const toggleAccessChannel = useMutation(consoleQuery.enterprise.appDeploy.updateAccessChannels.mutationOptions())
+
+  return (
+    <Switch
+      checked={checked}
+      onCheckedChange={(enabled) => {
+        toggleAccessChannel.mutate({
+          params: { appInstanceId: appId },
+          body: { enabled },
+        })
+      }}
+    />
+  )
+}
+
 export function AccessChannelsSection({
   appId,
   runEnabled,
@@ -24,23 +43,15 @@ export function AccessChannelsSection({
   cliDocsUrl,
 }: AccessChannelsSectionProps) {
   const { t } = useTranslation('deployments')
-  const toggleAccessChannel = useMutation(consoleQuery.enterprise.appDeploy.updateAccessChannels.mutationOptions())
-
-  function handleToggle(enabled: boolean) {
-    toggleAccessChannel.mutate({
-      params: { appInstanceId: appId },
-      body: { enabled },
-    })
-  }
 
   return (
     <Section
       title={t('access.channels.title')}
       description={t('access.channels.description')}
       action={(
-        <Switch
+        <AccessChannelsSwitch
+          appId={appId}
           checked={runEnabled}
-          onCheckedChange={handleToggle}
         />
       )}
     >

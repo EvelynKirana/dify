@@ -88,6 +88,19 @@ function overviewDeploymentStatus(status?: string): 'deploying' | 'deploy_failed
   return 'ready'
 }
 
+function DeployFromOverviewButton({ appId }: {
+  appId: string
+}) {
+  const { t } = useTranslation('deployments')
+  const openDeployDrawer = useSetAtom(openDeployDrawerAtom)
+
+  return (
+    <Button size="small" variant="primary" onClick={() => openDeployDrawer({ appInstanceId: appId })}>
+      {t('overview.deploy')}
+    </Button>
+  )
+}
+
 export function OverviewTab({ instanceId }: {
   instanceId: string
 }) {
@@ -109,7 +122,6 @@ export function OverviewTab({ instanceId }: {
   const { data: accessConfig } = useQuery(consoleQuery.enterprise.appDeploy.getAppInstanceAccess.queryOptions({
     input,
   }))
-  const openDeployDrawer = useSetAtom(openDeployDrawerAtom)
   const overviewApp = overview?.instance
   const deployments = overview?.deployments?.filter(row => row.environment?.id && row.status?.toLowerCase() !== 'undeployed') ?? []
   const releaseRows = releaseHistory?.data?.filter(row => row.id) ?? []
@@ -168,9 +180,7 @@ export function OverviewTab({ instanceId }: {
                         </Button>
                       )
                   : (
-                      <Button size="small" variant="primary" onClick={() => openDeployDrawer({ appInstanceId: appId })}>
-                        {t('overview.deploy')}
-                      </Button>
+                      <DeployFromOverviewButton appId={appId} />
                     )}
               </div>
             )

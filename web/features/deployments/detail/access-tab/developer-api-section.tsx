@@ -18,6 +18,66 @@ type DeveloperApiSectionProps = {
   apiKeys: DeveloperApiKeyRow[]
 }
 
+function DeveloperApiSwitch({ appId, checked }: {
+  appId: string
+  checked: boolean
+}) {
+  const toggleDeveloperAPI = useMutation(consoleQuery.enterprise.appDeploy.updateDeveloperApi.mutationOptions())
+
+  return (
+    <Switch
+      checked={checked}
+      onCheckedChange={(enabled) => {
+        toggleDeveloperAPI.mutate({
+          params: { appInstanceId: appId },
+          body: { enabled },
+        })
+      }}
+    />
+  )
+}
+
+function CreatedApiTokenCard({ appId }: {
+  appId: string
+}) {
+  const { t } = useTranslation('deployments')
+  const createdApiToken = useAtomValue(createdDeveloperApiTokenAtom)
+  const setCreatedApiToken = useSetAtom(createdDeveloperApiTokenAtom)
+  const visibleCreatedApiToken = createdApiToken?.appId === appId
+    ? createdApiToken.token
+    : undefined
+
+  if (!visibleCreatedApiToken)
+    return null
+
+  return (
+    <div className="flex flex-col gap-2 rounded-lg border border-components-panel-border bg-components-panel-bg-blur p-3">
+      <div className="flex items-start justify-between gap-3">
+        <div className="flex min-w-0 flex-col">
+          <span className="system-sm-medium text-text-primary">
+            {t('access.api.newTokenTitle')}
+          </span>
+          <span className="system-xs-regular text-text-tertiary">
+            {t('access.api.newTokenDescription')}
+          </span>
+        </div>
+        <button
+          type="button"
+          onClick={() => setCreatedApiToken(undefined)}
+          aria-label={t('access.api.dismissToken')}
+          className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md text-text-tertiary hover:bg-state-base-hover hover:text-text-secondary"
+        >
+          <span className="i-ri-close-line h-3.5 w-3.5" />
+        </button>
+      </div>
+      <CopyPill
+        label={t('access.api.newTokenLabel')}
+        value={visibleCreatedApiToken}
+      />
+    </div>
+  )
+}
+
 export function DeveloperApiSection({
   appId,
   apiEnabled,
@@ -26,29 +86,15 @@ export function DeveloperApiSection({
   apiKeys,
 }: DeveloperApiSectionProps) {
   const { t } = useTranslation('deployments')
-  const createdApiToken = useAtomValue(createdDeveloperApiTokenAtom)
-  const setCreatedApiToken = useSetAtom(createdDeveloperApiTokenAtom)
-  const toggleDeveloperAPI = useMutation(consoleQuery.enterprise.appDeploy.updateDeveloperApi.mutationOptions())
-
-  function handleToggle(enabled: boolean) {
-    toggleDeveloperAPI.mutate({
-      params: { appInstanceId: appId },
-      body: { enabled },
-    })
-  }
-
-  const visibleCreatedApiToken = createdApiToken?.appId === appId
-    ? createdApiToken.token
-    : undefined
 
   return (
     <Section
       title={t('access.api.developerTitle')}
       description={t('access.api.description')}
       action={(
-        <Switch
+        <DeveloperApiSwitch
+          appId={appId}
           checked={apiEnabled}
-          onCheckedChange={handleToggle}
         />
       )}
     >
@@ -76,32 +122,7 @@ export function DeveloperApiSection({
                   apiKeys={apiKeys}
                 />
               </div>
-              {visibleCreatedApiToken && (
-                <div className="flex flex-col gap-2 rounded-lg border border-components-panel-border bg-components-panel-bg-blur p-3">
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="flex min-w-0 flex-col">
-                      <span className="system-sm-medium text-text-primary">
-                        {t('access.api.newTokenTitle')}
-                      </span>
-                      <span className="system-xs-regular text-text-tertiary">
-                        {t('access.api.newTokenDescription')}
-                      </span>
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => setCreatedApiToken(undefined)}
-                      aria-label={t('access.api.dismissToken')}
-                      className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md text-text-tertiary hover:bg-state-base-hover hover:text-text-secondary"
-                    >
-                      <span className="i-ri-close-line h-3.5 w-3.5" />
-                    </button>
-                  </div>
-                  <CopyPill
-                    label={t('access.api.newTokenLabel')}
-                    value={visibleCreatedApiToken}
-                  />
-                </div>
-              )}
+              <CreatedApiTokenCard appId={appId} />
               {apiKeys.length === 0
                 ? (
                     <div className="rounded-lg border border-dashed border-components-panel-border bg-components-panel-bg-blur px-4 py-6 text-center system-sm-regular text-text-tertiary">

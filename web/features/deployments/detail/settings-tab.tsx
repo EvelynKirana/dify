@@ -29,7 +29,7 @@ type DeleteInstanceControlProps = {
   hasDeployments: boolean
 }
 
-function DeleteInstanceControl({
+function DeleteInstanceButton({
   app,
   settings,
   hasDeployments,
@@ -70,27 +70,14 @@ function DeleteInstanceControl({
 
   return (
     <>
-      <div className="flex flex-col gap-3 rounded-xl border border-util-colors-red-red-200 bg-util-colors-red-red-50 p-4">
-        <div className="system-sm-semibold text-util-colors-red-red-700">{t('settings.danger')}</div>
-        <div className="system-xs-regular text-util-colors-red-red-600">
-          {t('settings.dangerDesc')}
-        </div>
-        <div className="flex items-center justify-between gap-2">
-          <div className="system-xs-regular text-text-tertiary">
-            {hasDeployments
-              ? t('settings.undeployFirst')
-              : settings?.deleteGuard?.disabledReason || t('settings.safeToDelete')}
-          </div>
-          <Button
-            variant="primary"
-            tone="destructive"
-            disabled={!canDelete || isDeleting}
-            onClick={() => setShowDeleteConfirm(true)}
-          >
-            {t('settings.delete')}
-          </Button>
-        </div>
-      </div>
+      <Button
+        variant="primary"
+        tone="destructive"
+        disabled={!canDelete || isDeleting}
+        onClick={() => setShowDeleteConfirm(true)}
+      >
+        {t('settings.delete')}
+      </Button>
 
       <AlertDialog open={showDeleteConfirm} onOpenChange={open => !open && setShowDeleteConfirm(false)}>
         <AlertDialogContent className="w-[520px]">
@@ -113,6 +100,35 @@ function DeleteInstanceControl({
         </AlertDialogContent>
       </AlertDialog>
     </>
+  )
+}
+
+function DeleteInstanceControl({
+  app,
+  settings,
+  hasDeployments,
+}: DeleteInstanceControlProps) {
+  const { t } = useTranslation('deployments')
+
+  return (
+    <div className="flex flex-col gap-3 rounded-xl border border-util-colors-red-red-200 bg-util-colors-red-red-50 p-4">
+      <div className="system-sm-semibold text-util-colors-red-red-700">{t('settings.danger')}</div>
+      <div className="system-xs-regular text-util-colors-red-red-600">
+        {t('settings.dangerDesc')}
+      </div>
+      <div className="flex items-center justify-between gap-2">
+        <div className="system-xs-regular text-text-tertiary">
+          {hasDeployments
+            ? t('settings.undeployFirst')
+            : settings?.deleteGuard?.disabledReason || t('settings.safeToDelete')}
+        </div>
+        <DeleteInstanceButton
+          app={app}
+          settings={settings}
+          hasDeployments={hasDeployments}
+        />
+      </div>
+    </div>
   )
 }
 
