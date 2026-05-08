@@ -535,8 +535,8 @@ catalogs:
       specifier: 14.0.0
       version: 14.0.0
     vinext:
-      specifier: 0.0.45
-      version: 0.0.45
+      specifier: https://pkg.pr.new/vinext@1141
+      version: 0.0.5
     vite-plugin-inspect:
       specifier: 12.0.0-beta.1
       version: 12.0.0-beta.1
@@ -1365,7 +1365,7 @@ importers:
         version: 3.19.3
       vinext:
         specifier: 'catalog:'
-        version: 0.0.45(@mdx-js/rollup@3.1.1)(@vitejs/plugin-react@6.0.1(@voidzero-dev/vite-plus-core@0.1.20(@types/node@25.6.0)(esbuild@0.27.2)(jiti@2.6.1)(tsx@4.21.0)(typescript@6.0.3)(yaml@2.8.3)))(@vitejs/plugin-rsc@0.5.25(@voidzero-dev/vite-plus-core@0.1.20(@types/node@25.6.0)(esbuild@0.27.2)(jiti@2.6.1)(tsx@4.21.0)(typescript@6.0.3)(yaml@2.8.3))(react-dom@19.2.5(react@19.2.5))(react-server-dom-webpack@19.2.5(react-dom@19.2.5(react@19.2.5))(react@19.2.5))(react@19.2.5))(@voidzero-dev/vite-plus-core@0.1.20(@types/node@25.6.0)(esbuild@0.27.2)(jiti@2.6.1)(tsx@4.21.0)(typescript@6.0.3)(yaml@2.8.3))(next@16.2.4(@babel/core@7.29.0)(@playwright/test@1.59.1)(react-dom@19.2.5(react@19.2.5))(react@19.2.5))(react-dom@19.2.5(react@19.2.5))(react-server-dom-webpack@19.2.5(react-dom@19.2.5(react@19.2.5))(react@19.2.5))(react@19.2.5)(typescript@6.0.3)
+        version: https://pkg.pr.new/vinext@1141(@mdx-js/rollup@3.1.1)(@vitejs/plugin-react@6.0.1(@voidzero-dev/vite-plus-core@0.1.20(@types/node@25.6.0)(esbuild@0.27.2)(jiti@2.6.1)(tsx@4.21.0)(typescript@6.0.3)(yaml@2.8.3)))(@vitejs/plugin-rsc@0.5.25(@voidzero-dev/vite-plus-core@0.1.20(@types/node@25.6.0)(esbuild@0.27.2)(jiti@2.6.1)(tsx@4.21.0)(typescript@6.0.3)(yaml@2.8.3))(react-dom@19.2.5(react@19.2.5))(react-server-dom-webpack@19.2.5(react-dom@19.2.5(react@19.2.5))(react@19.2.5))(react@19.2.5))(@voidzero-dev/vite-plus-core@0.1.20(@types/node@25.6.0)(esbuild@0.27.2)(jiti@2.6.1)(tsx@4.21.0)(typescript@6.0.3)(yaml@2.8.3))(next@16.2.4(@babel/core@7.29.0)(@playwright/test@1.59.1)(react-dom@19.2.5(react@19.2.5))(react@19.2.5))(react-dom@19.2.5(react@19.2.5))(react-server-dom-webpack@19.2.5(react-dom@19.2.5(react@19.2.5))(react@19.2.5))(react@19.2.5)(typescript@6.0.3)
       vite:
         specifier: npm:@voidzero-dev/vite-plus-core@0.1.20
         version: '@voidzero-dev/vite-plus-core@0.1.20(@types/node@25.6.0)(esbuild@0.27.2)(jiti@2.6.1)(tsx@4.21.0)(typescript@6.0.3)(yaml@2.8.3)'
@@ -8234,17 +8234,18 @@ packages:
   vfile@6.0.3:
     resolution: {integrity: sha512-KzIbH/9tXat2u30jf+smMwFCsno4wHVdNmzFyL+T/L3UGqqk6JKfVqOFOZEpZSHADH1k40ab6NUIXZq422ov3Q==}
 
-  vinext@0.0.45:
-    resolution: {integrity: sha512-iXXRR5IMO5bZHgN9xEIzwt/+jushkoJgmWNenR++x6Tw1XnJGTEY9D5GAKMGewHl+HJ1z2GPO4fpNkT+2UowRA==}
+  vinext@https://pkg.pr.new/vinext@1141:
+    resolution: {integrity: sha512-j39qh78oFjEmv4SsoGlG+gm4q+tLdSmuGh6ccqkGwCPT1qGy+rM/6nWgl7M/cCofIm9Uha2nW6ZpfyAeCQqUBQ==}
+    version: 0.0.5
     engines: {node: '>=22'}
     hasBin: true
     peerDependencies:
       '@mdx-js/rollup': ^3.0.0
       '@vitejs/plugin-react': ^5.1.4 || ^6.0.0
       '@vitejs/plugin-rsc': ^0.5.23
-      react: ^19.2.5
-      react-dom: ^19.2.5
-      react-server-dom-webpack: ^19.2.5
+      react: ^19.2.6
+      react-dom: ^19.2.6
+      react-server-dom-webpack: ^19.2.6
       vite: ^7.0.0 || ^8.0.0
     peerDependenciesMeta:
       '@mdx-js/rollup':
@@ -16249,11 +16250,12 @@ snapshots:
       '@types/unist': 3.0.3
       vfile-message: 4.0.3
 
-  vinext@0.0.45(@mdx-js/rollup@3.1.1)(@vitejs/plugin-react@6.0.1(@voidzero-dev/vite-plus-core@0.1.20(@types/node@25.6.0)(esbuild@0.27.2)(jiti@2.6.1)(tsx@4.21.0)(typescript@6.0.3)(yaml@2.8.3)))(@vitejs/plugin-rsc@0.5.25(@voidzero-dev/vite-plus-core@0.1.20(@types/node@25.6.0)(esbuild@0.27.2)(jiti@2.6.1)(tsx@4.21.0)(typescript@6.0.3)(yaml@2.8.3))(react-dom@19.2.5(react@19.2.5))(react-server-dom-webpack@19.2.5(react-dom@19.2.5(react@19.2.5))(react@19.2.5))(react@19.2.5))(@voidzero-dev/vite-plus-core@0.1.20(@types/node@25.6.0)(esbuild@0.27.2)(jiti@2.6.1)(tsx@4.21.0)(typescript@6.0.3)(yaml@2.8.3))(next@16.2.4(@babel/core@7.29.0)(@playwright/test@1.59.1)(react-dom@19.2.5(react@19.2.5))(react@19.2.5))(react-dom@19.2.5(react@19.2.5))(react-server-dom-webpack@19.2.5(react-dom@19.2.5(react@19.2.5))(react@19.2.5))(react@19.2.5)(typescript@6.0.3):
+  vinext@https://pkg.pr.new/vinext@1141(@mdx-js/rollup@3.1.1)(@vitejs/plugin-react@6.0.1(@voidzero-dev/vite-plus-core@0.1.20(@types/node@25.6.0)(esbuild@0.27.2)(jiti@2.6.1)(tsx@4.21.0)(typescript@6.0.3)(yaml@2.8.3)))(@vitejs/plugin-rsc@0.5.25(@voidzero-dev/vite-plus-core@0.1.20(@types/node@25.6.0)(esbuild@0.27.2)(jiti@2.6.1)(tsx@4.21.0)(typescript@6.0.3)(yaml@2.8.3))(react-dom@19.2.5(react@19.2.5))(react-server-dom-webpack@19.2.5(react-dom@19.2.5(react@19.2.5))(react@19.2.5))(react@19.2.5))(@voidzero-dev/vite-plus-core@0.1.20(@types/node@25.6.0)(esbuild@0.27.2)(jiti@2.6.1)(tsx@4.21.0)(typescript@6.0.3)(yaml@2.8.3))(next@16.2.4(@babel/core@7.29.0)(@playwright/test@1.59.1)(react-dom@19.2.5(react@19.2.5))(react@19.2.5))(react-dom@19.2.5(react@19.2.5))(react-server-dom-webpack@19.2.5(react-dom@19.2.5(react@19.2.5))(react@19.2.5))(react@19.2.5)(typescript@6.0.3):
     dependencies:
       '@unpic/react': 1.0.2(next@16.2.4(@babel/core@7.29.0)(@playwright/test@1.59.1)(react-dom@19.2.5(react@19.2.5))(react@19.2.5))(react-dom@19.2.5(react@19.2.5))(react@19.2.5)
       '@vercel/og': 0.8.6
       '@vitejs/plugin-react': 6.0.1(@voidzero-dev/vite-plus-core@0.1.20(@types/node@25.6.0)(esbuild@0.27.2)(jiti@2.6.1)(tsx@4.21.0)(typescript@6.0.3)(yaml@2.8.3))
+      image-size: 2.0.2
       magic-string: 0.30.21
       react: 19.2.5
       react-dom: 19.2.5(react@19.2.5)
@@ -16620,6 +16622,5 @@ time:
   tldts@7.0.29: '2026-04-28T12:21:32.710Z'
   typescript@6.0.3: '2026-04-16T23:38:27.905Z'
   uuid@14.0.0: '2026-04-19T15:15:42.302Z'
-  vinext@0.0.45: '2026-04-28T11:43:03.463Z'
   vite-plus@0.1.20: '2026-04-29T03:08:50.317Z'
   zod@4.3.6: '2026-01-22T19:14:35.382Z'
