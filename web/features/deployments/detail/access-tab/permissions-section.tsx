@@ -1,22 +1,19 @@
 'use client'
 
-import type { ConsoleEnvironment, EnvironmentAccessRow } from '@dify/contracts/enterprise/types.gen'
 import { useTranslation } from 'react-i18next'
 import { Section } from './common'
 import { EnvironmentPermissionRow } from './permissions'
+import { useAccessEnvironmentScope } from './use-access-environment-scope'
 
 type AccessPermissionsSectionProps = {
   appId: string
-  environments: ConsoleEnvironment[]
-  policies: EnvironmentAccessRow[]
 }
 
 export function AccessPermissionsSection({
   appId,
-  environments,
-  policies,
 }: AccessPermissionsSectionProps) {
   const { t } = useTranslation('deployments')
+  const { environments, policies } = useAccessEnvironmentScope(appId)
 
   return (
     <Section

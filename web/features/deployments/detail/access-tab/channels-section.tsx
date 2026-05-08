@@ -1,19 +1,15 @@
 'use client'
 
-import type { WebAppAccessRow } from '@dify/contracts/enterprise/types.gen'
 import { Switch } from '@langgenius/dify-ui/switch'
-import { useMutation } from '@tanstack/react-query'
+import { useMutation, useQuery } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import { consoleQuery } from '@/service/client'
 import { environmentName, webappUrl } from '../../utils'
 import { CopyPill, EndpointRow, Section } from './common'
+import { getUrlOrigin } from './url'
 
 type AccessChannelsSectionProps = {
   appId: string
-  runEnabled: boolean
-  webappRows: WebAppAccessRow[]
-  cliDomain?: string
-  cliDocsUrl?: string
 }
 
 function AccessChannelsSwitch({ appId, checked }: {
@@ -37,12 +33,17 @@ function AccessChannelsSwitch({ appId, checked }: {
 
 export function AccessChannelsSection({
   appId,
-  runEnabled,
-  webappRows,
-  cliDomain,
-  cliDocsUrl,
 }: AccessChannelsSectionProps) {
   const { t } = useTranslation('deployments')
+  const { data: accessConfig } = useQuery(consoleQuery.enterprise.appDeploy.getAppInstanceAccess.queryOptions({
+    input: {
+      params: { appInstanceId: appId },
+    },
+  }))
+  const runEnabled = accessConfig?.accessChannels?.enabled ?? false
+  const webappRows = accessConfig?.accessChannels?.webappRows?.filter(row => row.url) ?? []
+  const cliDomain = getUrlOrigin(accessConfig?.accessChannels?.cli?.url)
+  const cliDocsUrl = cliDomain ? `${cliDomain}/cli` : undefined
 
   return (
     <Section

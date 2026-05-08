@@ -216,14 +216,11 @@ function SettingsForm({ app, settings }: SettingsFormProps) {
   )
 }
 
-export function SettingsTab({ instanceId }: {
-  instanceId: string
+function SettingsFormSection({ appId }: {
+  appId: string
 }) {
-  const appInput = { params: { appInstanceId: instanceId } }
+  const appInput = { params: { appInstanceId: appId } }
   const { data: overview } = useQuery(consoleQuery.enterprise.appDeploy.getAppInstanceOverview.queryOptions({
-    input: appInput,
-  }))
-  const { data: environmentDeployments } = useQuery(consoleQuery.enterprise.appDeploy.listRuntimeInstances.queryOptions({
     input: appInput,
   }))
   const app = overview?.instance
@@ -234,22 +231,54 @@ export function SettingsTab({ instanceId }: {
   if (!app?.id)
     return null
 
-  const hasDeployments = deployedRows(environmentDeployments?.data).length > 0
   const appName = app.name ?? app.id
   const formKey = `${app.id}-${settingsQuery.data?.name ?? appName}-${settingsQuery.data?.description ?? app.description ?? ''}`
 
   return (
+    <SettingsForm
+      key={formKey}
+      app={app}
+      settings={settingsQuery.data}
+    />
+  )
+}
+
+function DeleteInstanceControlSection({ appId }: {
+  appId: string
+}) {
+  const appInput = { params: { appInstanceId: appId } }
+  const { data: overview } = useQuery(consoleQuery.enterprise.appDeploy.getAppInstanceOverview.queryOptions({
+    input: appInput,
+  }))
+  const { data: environmentDeployments } = useQuery(consoleQuery.enterprise.appDeploy.listRuntimeInstances.queryOptions({
+    input: appInput,
+  }))
+  const settingsQuery = useQuery(consoleQuery.enterprise.appDeploy.getAppInstanceSettings.queryOptions({
+    input: appInput,
+  }))
+  const app = overview?.instance
+
+  if (!app?.id)
+    return null
+
+  const hasDeployments = deployedRows(environmentDeployments?.data).length > 0
+
+  return (
+    <DeleteInstanceControl
+      app={app}
+      settings={settingsQuery.data}
+      hasDeployments={hasDeployments}
+    />
+  )
+}
+
+export function SettingsTab({ instanceId: appId }: {
+  instanceId: string
+}) {
+  return (
     <div className="flex max-w-[640px] flex-col gap-5 p-6">
-      <SettingsForm
-        key={formKey}
-        app={app}
-        settings={settingsQuery.data}
-      />
-      <DeleteInstanceControl
-        app={app}
-        settings={settingsQuery.data}
-        hasDeployments={hasDeployments}
-      />
+      <SettingsFormSection appId={appId} />
+      <DeleteInstanceControlSection appId={appId} />
     </div>
   )
 }

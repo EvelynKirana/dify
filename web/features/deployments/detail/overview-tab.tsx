@@ -101,12 +101,41 @@ function DeployFromOverviewButton({ appId }: {
   )
 }
 
-export function OverviewTab({ instanceId }: {
-  instanceId: string
+function BasicInfoSection({ appId }: {
+  appId: string
 }) {
   const { t } = useTranslation('deployments')
   const { t: tCommon } = useTranslation()
-  const input = { params: { appInstanceId: instanceId } }
+  const { data: overview } = useQuery(consoleQuery.enterprise.appDeploy.getAppInstanceOverview.queryOptions({
+    input: {
+      params: { appInstanceId: appId },
+    },
+  }))
+  const overviewApp = overview?.instance
+
+  if (!overviewApp?.id)
+    return null
+
+  const appName = overviewApp.name ?? overviewApp.id
+  const appModeLabel = getAppModeLabel(toAppMode(overviewApp.mode), tCommon)
+
+  return (
+    <Section title={t('overview.basicInfo')}>
+      <div className="flex flex-col divide-y divide-divider-subtle">
+        <InfoRow label={t('overview.name')} value={appName} />
+        <InfoRow label={t('overview.description')} value={overviewApp.description ?? t('overview.emptyValue')} />
+        <InfoRow label={t('overview.sourceApp')} value={overviewApp.sourceAppName ?? appName} />
+        <InfoRow label={t('overview.appMode')} value={appModeLabel} />
+      </div>
+    </Section>
+  )
+}
+
+function DeploymentStatusSection({ appId }: {
+  appId: string
+}) {
+  const { t } = useTranslation('deployments')
+  const input = { params: { appInstanceId: appId } }
   const { data: overview } = useQuery(consoleQuery.enterprise.appDeploy.getAppInstanceOverview.queryOptions({
     input,
   }))
@@ -119,9 +148,6 @@ export function OverviewTab({ instanceId }: {
       },
     },
   }))
-  const { data: accessConfig } = useQuery(consoleQuery.enterprise.appDeploy.getAppInstanceAccess.queryOptions({
-    input,
-  }))
   const overviewApp = overview?.instance
   const deployments = overview?.deployments?.filter(row => row.environment?.id && row.status?.toLowerCase() !== 'undeployed') ?? []
   const releaseRows = releaseHistory?.data?.filter(row => row.id) ?? []
@@ -130,112 +156,124 @@ export function OverviewTab({ instanceId }: {
   if (!overviewApp?.id)
     return null
 
-  const appId = overviewApp.id
-  const appName = overviewApp.name ?? appId
-  const appModeLabel = getAppModeLabel(toAppMode(overviewApp.mode), tCommon)
+  return (
+    <Section
+      title={t('overview.deploymentStatus')}
+      action={(
+        <Button nativeButton={false} size="small" variant="secondary" render={<Link href={`/deployments/${appId}/deploy`} />}>
+          {t('overview.viewDeployments')}
+          <span className="i-ri-arrow-right-up-line h-3.5 w-3.5" />
+        </Button>
+      )}
+    >
+      {deployments.length === 0
+        ? (
+            <div className="flex flex-col items-center gap-3 rounded-lg border border-dashed border-components-panel-border bg-components-panel-bg-blur px-4 py-8 text-center">
+              <span className="i-ri-rocket-line h-5 w-5 text-text-quaternary" />
+              <div className="system-sm-regular text-text-tertiary">
+                {releaseRows.length === 0
+                  ? t(canCreateRelease ? 'overview.noReleaseYet' : 'overview.noReleaseSourceUnavailable')
+                  : t('overview.notDeployedYet')}
+              </div>
+              {releaseRows.length === 0
+                ? canCreateRelease
+                  ? (
+                      <Button nativeButton={false} size="small" variant="primary" render={<Link href={`/deployments/${appId}/versions`} />}>
+                        {t('overview.createRelease')}
+                      </Button>
+                    )
+                  : (
+                      <Button size="small" variant="primary" disabled>
+                        {t('overview.createRelease')}
+                      </Button>
+                    )
+                : (
+                    <DeployFromOverviewButton appId={appId} />
+                  )}
+            </div>
+          )
+        : (
+            <div className="flex flex-col divide-y divide-divider-subtle">
+              {deployments.map((row) => {
+                const status = overviewDeploymentStatus(row.status)
+                return (
+                  <div key={row.environment?.id} className="flex items-center justify-between gap-3 py-2">
+                    <div className="flex min-w-0 flex-col">
+                      <span className="system-sm-medium text-text-primary">{row.environment?.name || row.environment?.id}</span>
+                      <span className="system-xs-regular text-text-tertiary">
+                        {releaseLabel(row.release) || t('overview.emptyValue')}
+                      </span>
+                    </div>
+                    <StatusBadge status={status} />
+                  </div>
+                )
+              })}
+            </div>
+          )}
+    </Section>
+  )
+}
+
+function AccessStatusSection({ appId }: {
+  appId: string
+}) {
+  const { t } = useTranslation('deployments')
+  const input = { params: { appInstanceId: appId } }
+  const { data: overview } = useQuery(consoleQuery.enterprise.appDeploy.getAppInstanceOverview.queryOptions({
+    input,
+  }))
+  const { data: accessConfig } = useQuery(consoleQuery.enterprise.appDeploy.getAppInstanceAccess.queryOptions({
+    input,
+  }))
   const webappAccessUrl = webappUrl(overview?.access?.webappUrl)
   const cliUrl = overview?.access?.cliUrl
   const apiUrl = overview?.access?.apiUrl ?? accessConfig?.developerApi?.apiUrl
   const apiKeysCount = overview?.access?.apiKeyCount ?? accessConfig?.developerApi?.apiKeys?.length ?? 0
 
   return (
+    <Section
+      title={t('overview.accessStatus')}
+      action={(
+        <Button nativeButton={false} size="small" variant="secondary" render={<Link href={`/deployments/${appId}/access`} />}>
+          {t('overview.configureAccess')}
+          <span className="i-ri-arrow-right-up-line h-3.5 w-3.5" />
+        </Button>
+      )}
+    >
+      <div className="flex flex-col divide-y divide-divider-subtle">
+        <AccessOverviewRow
+          label={t('overview.webapp')}
+          enabled={overview?.access?.accessChannelsEnabled ?? false}
+          hint={webappAccessUrl || t('overview.notConfigured')}
+        />
+        <AccessOverviewRow
+          label={t('overview.cli')}
+          enabled={overview?.access?.accessChannelsEnabled ?? false}
+          hint={cliUrl ?? t('overview.notConfigured')}
+        />
+        <AccessOverviewRow
+          label={t('overview.api')}
+          enabled={overview?.access?.developerApiEnabled ?? false}
+          hint={overview?.access?.developerApiEnabled
+            ? apiUrl || t('overview.notConfigured')
+            : t('overview.notConfigured')}
+          meta={overview?.access?.developerApiEnabled
+            ? t('overview.apiKeysCount', { count: apiKeysCount })
+            : undefined}
+        />
+      </div>
+    </Section>
+  )
+}
+
+export function OverviewTab({ instanceId: appId }: {
+  instanceId: string
+}) {
+  return (
     <div className="flex w-full max-w-[960px] flex-col gap-5 p-6">
-      <Section title={t('overview.basicInfo')}>
-        <div className="flex flex-col divide-y divide-divider-subtle">
-          <InfoRow label={t('overview.name')} value={appName} />
-          <InfoRow label={t('overview.description')} value={overviewApp.description ?? t('overview.emptyValue')} />
-          <InfoRow label={t('overview.sourceApp')} value={overviewApp.sourceAppName ?? appName} />
-          <InfoRow label={t('overview.appMode')} value={appModeLabel} />
-        </div>
-      </Section>
-
-      <Section
-        title={t('overview.deploymentStatus')}
-        action={(
-          <Button nativeButton={false} size="small" variant="secondary" render={<Link href={`/deployments/${appId}/deploy`} />}>
-            {t('overview.viewDeployments')}
-            <span className="i-ri-arrow-right-up-line h-3.5 w-3.5" />
-          </Button>
-        )}
-      >
-        {deployments.length === 0
-          ? (
-              <div className="flex flex-col items-center gap-3 rounded-lg border border-dashed border-components-panel-border bg-components-panel-bg-blur px-4 py-8 text-center">
-                <span className="i-ri-rocket-line h-5 w-5 text-text-quaternary" />
-                <div className="system-sm-regular text-text-tertiary">
-                  {releaseRows.length === 0
-                    ? t(canCreateRelease ? 'overview.noReleaseYet' : 'overview.noReleaseSourceUnavailable')
-                    : t('overview.notDeployedYet')}
-                </div>
-                {releaseRows.length === 0
-                  ? canCreateRelease
-                    ? (
-                        <Button nativeButton={false} size="small" variant="primary" render={<Link href={`/deployments/${appId}/versions`} />}>
-                          {t('overview.createRelease')}
-                        </Button>
-                      )
-                    : (
-                        <Button size="small" variant="primary" disabled>
-                          {t('overview.createRelease')}
-                        </Button>
-                      )
-                  : (
-                      <DeployFromOverviewButton appId={appId} />
-                    )}
-              </div>
-            )
-          : (
-              <div className="flex flex-col divide-y divide-divider-subtle">
-                {deployments.map((row) => {
-                  const status = overviewDeploymentStatus(row.status)
-                  return (
-                    <div key={row.environment?.id} className="flex items-center justify-between gap-3 py-2">
-                      <div className="flex min-w-0 flex-col">
-                        <span className="system-sm-medium text-text-primary">{row.environment?.name || row.environment?.id}</span>
-                        <span className="system-xs-regular text-text-tertiary">
-                          {releaseLabel(row.release) || t('overview.emptyValue')}
-                        </span>
-                      </div>
-                      <StatusBadge status={status} />
-                    </div>
-                  )
-                })}
-              </div>
-            )}
-      </Section>
-
-      <Section
-        title={t('overview.accessStatus')}
-        action={(
-          <Button nativeButton={false} size="small" variant="secondary" render={<Link href={`/deployments/${appId}/access`} />}>
-            {t('overview.configureAccess')}
-            <span className="i-ri-arrow-right-up-line h-3.5 w-3.5" />
-          </Button>
-        )}
-      >
-        <div className="flex flex-col divide-y divide-divider-subtle">
-          <AccessOverviewRow
-            label={t('overview.webapp')}
-            enabled={overview?.access?.accessChannelsEnabled ?? false}
-            hint={webappAccessUrl || t('overview.notConfigured')}
-          />
-          <AccessOverviewRow
-            label={t('overview.cli')}
-            enabled={overview?.access?.accessChannelsEnabled ?? false}
-            hint={cliUrl ?? t('overview.notConfigured')}
-          />
-          <AccessOverviewRow
-            label={t('overview.api')}
-            enabled={overview?.access?.developerApiEnabled ?? false}
-            hint={overview?.access?.developerApiEnabled
-              ? apiUrl || t('overview.notConfigured')
-              : t('overview.notConfigured')}
-            meta={overview?.access?.developerApiEnabled
-              ? t('overview.apiKeysCount', { count: apiKeysCount })
-              : undefined}
-          />
-        </div>
-      </Section>
+      <BasicInfoSection appId={appId} />
+      <DeploymentStatusSection appId={appId} />
+      <AccessStatusSection appId={appId} />
     </div>
   )
 }

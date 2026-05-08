@@ -1,6 +1,5 @@
 'use client'
 
-import type { ConsoleEnvironment, DeveloperApiKeyRow } from '@dify/contracts/enterprise/types.gen'
 import { Switch } from '@langgenius/dify-ui/switch'
 import { useMutation } from '@tanstack/react-query'
 import { useAtomValue, useSetAtom } from 'jotai'
@@ -9,13 +8,10 @@ import { consoleQuery } from '@/service/client'
 import { createdDeveloperApiTokenAtom } from '../../store'
 import { ApiKeyGenerateMenu, ApiKeyList } from './api-keys'
 import { CopyPill, Section } from './common'
+import { useAccessEnvironmentScope } from './use-access-environment-scope'
 
 type DeveloperApiSectionProps = {
   appId: string
-  apiEnabled: boolean
-  apiUrl?: string
-  environments: ConsoleEnvironment[]
-  apiKeys: DeveloperApiKeyRow[]
 }
 
 function DeveloperApiSwitch({ appId, checked }: {
@@ -80,12 +76,12 @@ function CreatedApiTokenCard({ appId }: {
 
 export function DeveloperApiSection({
   appId,
-  apiEnabled,
-  apiUrl,
-  environments,
-  apiKeys,
 }: DeveloperApiSectionProps) {
   const { t } = useTranslation('deployments')
+  const { accessConfig, environments } = useAccessEnvironmentScope(appId)
+  const apiEnabled = accessConfig?.developerApi?.enabled ?? false
+  const apiUrl = accessConfig?.developerApi?.apiUrl
+  const apiKeys = accessConfig?.developerApi?.apiKeys ?? []
 
   return (
     <Section
