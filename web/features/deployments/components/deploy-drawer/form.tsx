@@ -4,10 +4,13 @@ import type { DeploymentBindingOptionSlot, DeploymentRuntimeBinding, ReleaseRow 
 import type { EnvironmentOption } from '@/features/deployments/types'
 import { Button } from '@langgenius/dify-ui/button'
 import { DialogDescription, DialogTitle } from '@langgenius/dify-ui/dialog'
-import { skipToken, useQuery } from '@tanstack/react-query'
+import { toast } from '@langgenius/dify-ui/toast'
+import { skipToken, useMutation, useQuery } from '@tanstack/react-query'
+import { useSetAtom } from 'jotai'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { consoleQuery } from '@/service/client'
+import { closeDeployDrawerAtom } from '../../store'
 import {
   environmentMode,
   environmentName,
@@ -20,12 +23,6 @@ import {
   Field,
 } from './select'
 
-export type DeployFormSubmit = {
-  environmentId: string
-  releaseId: string
-  bindings: DeploymentRuntimeBinding[]
-}
-
 type DeployFormProps = {
   appInstanceId: string
   environments: EnvironmentOption[]
@@ -33,9 +30,6 @@ type DeployFormProps = {
   defaultReleaseId?: string
   lockedEnvId?: string
   presetReleaseId?: string
-  isSubmitting?: boolean
-  onCancel: () => void
-  onSubmit: (params: DeployFormSubmit) => void | Promise<void>
 }
 
 type BindingSelections = Record<string, string>
@@ -213,11 +207,10 @@ export function DeployForm({
   defaultReleaseId,
   lockedEnvId,
   presetReleaseId,
-  isSubmitting,
-  onCancel,
-  onSubmit,
 }: DeployFormProps) {
   const { t } = useTranslation('deployments')
+  const closeDeployDrawer = useSetAtom(closeDeployDrawerAtom)
+  const startDeploy = useMutation(consoleQuery.enterprise.appDeploy.createDeployment.mutationOptions())
   const presetRelease = presetReleaseId ? releases.find(r => r.id === presetReleaseId) : undefined
   const displayedRelease: ReleaseRow | undefined = presetRelease ?? (presetReleaseId ? { id: presetReleaseId } : undefined)
   const isPromote = Boolean(presetReleaseId)
@@ -249,6 +242,7 @@ export function DeployForm({
   const bindingOptionsLoading = Boolean(targetReleaseId && (bindingOptions.isLoading || bindingOptions.isFetching))
   const bindingOptionsReady = Boolean(targetReleaseId && bindingOptions.data && !bindingOptionsLoading && !bindingOptions.isError)
   const requiredBindingsReady = bindingSlots.every(slot => !hasMissingRequiredBinding(slot, selectedBindings[bindingSlotKey(slot)]))
+  const isSubmitting = startDeploy.isPending
   const canDeploy = Boolean(
     selectedEnvironmentId
     && selectedEnvironment
@@ -270,11 +264,24 @@ export function DeployForm({
     if (!canDeploy || !targetReleaseId)
       return
 
-    onSubmit({
-      environmentId: selectedEnvironmentId,
-      releaseId: targetReleaseId,
-      bindings: deploymentBindings,
-    })
+    void (async () => {
+      try {
+        await startDeploy.mutateAsync({
+          params: {
+            appInstanceId,
+          },
+          body: {
+            environmentId: selectedEnvironmentId,
+            releaseId: targetReleaseId,
+            bindings: deploymentBindings,
+          },
+        })
+        closeDeployDrawer()
+      }
+      catch {
+        toast.error(t('deployDrawer.deployFailed'))
+      }
+    })()
   }
 
   return (
@@ -356,7 +363,7 @@ export function DeployForm({
       )}
 
       <div className="flex justify-end gap-2">
-        <Button variant="secondary" onClick={onCancel}>
+        <Button variant="secondary" onClick={closeDeployDrawer}>
           {t('deployDrawer.cancel')}
         </Button>
         <Button variant="primary" disabled={!canDeploy} onClick={handleDeploy}>

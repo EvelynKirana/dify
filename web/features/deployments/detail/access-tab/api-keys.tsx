@@ -10,9 +10,11 @@ import {
 } from '@langgenius/dify-ui/dropdown-menu'
 import { toast } from '@langgenius/dify-ui/toast'
 import { useMutation } from '@tanstack/react-query'
+import { useSetAtom } from 'jotai'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { consoleClient, consoleQuery } from '@/service/client'
+import { createdDeveloperApiTokenAtom } from '../../store'
 import { environmentName } from '../../utils'
 import { useCopyFeedback } from './use-copy-feedback'
 
@@ -115,14 +117,46 @@ export function ApiKeyList({ appId, apiKeys }: {
   )
 }
 
-export function ApiKeyGenerateMenu({ environments, onGenerate }: {
+export function ApiKeyGenerateMenu({ appId, environments, apiKeys }: {
+  appId: string
   environments: ConsoleEnvironment[]
-  onGenerate: (environmentId: string) => void
+  apiKeys: DeveloperApiKeyRow[]
 }) {
   const { t } = useTranslation('deployments')
   const [open, setOpen] = useState(false)
+  const setCreatedApiToken = useSetAtom(createdDeveloperApiTokenAtom)
+  const generateApiKey = useMutation(consoleQuery.enterprise.appDeploy.createDeveloperApiKey.mutationOptions())
   const selectableEnvironments = environments.filter(env => env.id)
   const disabled = selectableEnvironments.length === 0
+
+  function createApiKeyLabel(environmentId: string) {
+    const existingCount = apiKeys.filter(key =>
+      key.environment?.id === environmentId,
+    ).length
+    const name = environments.find(env => env.id === environmentId)?.name ?? 'env'
+
+    return `${name}-key-${String(existingCount + 1).padStart(3, '0')}`
+  }
+
+  function handleGenerateApiKey(environmentId: string) {
+    generateApiKey.mutate(
+      {
+        params: {
+          appInstanceId: appId,
+        },
+        body: {
+          environmentId,
+          name: createApiKeyLabel(environmentId),
+        },
+      },
+      {
+        onSuccess: (response) => {
+          if (response.token)
+            setCreatedApiToken({ appId, token: response.token })
+        },
+      },
+    )
+  }
 
   return (
     <DropdownMenu modal={false} open={open} onOpenChange={setOpen}>
@@ -147,7 +181,7 @@ export function ApiKeyGenerateMenu({ environments, onGenerate }: {
               className="gap-2 px-3"
               onClick={() => {
                 setOpen(false)
-                onGenerate(env.id!)
+                handleGenerateApiKey(env.id!)
               }}
             >
               <span className="system-sm-regular text-text-secondary">

@@ -209,11 +209,10 @@ function AppPicker({ apps, isLoading, value, onChange }: AppPickerProps) {
   )
 }
 
-function CreateInstanceForm({ onClose }: {
-  onClose: () => void
-}) {
+function CreateInstanceForm() {
   const { t } = useTranslation('deployments')
   const router = useRouter()
+  const closeModal = useSetAtom(closeCreateInstanceModalAtom)
   const createInstance = useMutation(consoleQuery.enterprise.appDeploy.createAppInstance.mutationOptions())
   const { data: appList, isLoading } = useQuery(consoleQuery.apps.list.queryOptions({
     input: {
@@ -251,7 +250,7 @@ function CreateInstanceForm({ onClose }: {
       })
       if (!result.appInstanceId)
         throw new Error('Create app instance did not return an appInstanceId.')
-      onClose()
+      closeModal()
       router.push(`/deployments/${result.appInstanceId}/overview`)
     }
     catch {
@@ -313,7 +312,7 @@ function CreateInstanceForm({ onClose }: {
       </div>
 
       <div className="flex justify-end gap-2">
-        <Button variant="secondary" onClick={onClose}>
+        <Button variant="secondary" onClick={closeModal}>
           {t('createModal.cancel')}
         </Button>
         <Button type="submit" variant="primary" disabled={!canCreate}>
@@ -335,7 +334,7 @@ export function CreateInstanceModal() {
     >
       <DialogContent className="w-[520px] max-w-[90vw]">
         <DialogCloseButton />
-        {open && <CreateInstanceForm onClose={closeModal} />}
+        {open && <CreateInstanceForm />}
       </DialogContent>
     </Dialog>
   )

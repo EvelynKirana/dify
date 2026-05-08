@@ -8,6 +8,7 @@ import { cn } from '@langgenius/dify-ui/cn'
 import { useHover, useKeyPress } from 'ahooks'
 import { useRef } from 'react'
 import { useTranslation } from 'react-i18next'
+import { getAppModeLabel } from '@/app/components/app-sidebar/app-info/app-mode-labels'
 import NavLink from '@/app/components/app-sidebar/nav-link'
 import ToggleButton from '@/app/components/app-sidebar/toggle-button'
 import AppIcon from '@/app/components/base/app-icon'
@@ -15,6 +16,7 @@ import Divider from '@/app/components/base/divider'
 import { getKeyboardKeyCodeBySystem } from '@/app/components/workflow/utils'
 import useBreakpoints, { MediaType } from '@/hooks/use-breakpoints'
 import { useLocalStorage } from '@/hooks/use-local-storage'
+import { toAppMode } from '../utils'
 
 type TabDef = {
   key: InstanceDetailTabKey
@@ -98,27 +100,23 @@ function useDeploymentSidebarMode(isMobile: boolean) {
 }
 
 type DeploymentSidebarProps = {
-  instanceId: string
-  instanceName: string
-  instanceDescription?: string
-  appModeLabel: string
-  app?: AppInstanceBasicInfo
+  app: AppInstanceBasicInfo
 }
 
 export function DeploymentSidebar({
-  instanceId,
-  instanceName,
-  instanceDescription,
-  appModeLabel,
   app,
 }: DeploymentSidebarProps) {
   const { t } = useTranslation('deployments')
+  const { t: tCommon } = useTranslation()
   const sidebarRef = useRef<HTMLDivElement>(null)
   const isHoveringSidebar = useHover(sidebarRef)
   const media = useBreakpoints()
   const isMobile = media === MediaType.mobile
   const { sidebarMode, toggleSidebarMode } = useDeploymentSidebarMode(isMobile)
   const expand = sidebarMode === 'expand'
+  const instanceId = app.id ?? ''
+  const instanceName = app.name ?? instanceId
+  const appModeLabel = getAppModeLabel(toAppMode(app.mode), tCommon)
 
   useKeyPress(`${getKeyboardKeyCodeBySystem('ctrl')}.b`, (e) => {
     if (isShortcutFromInputArea(e.target))
@@ -139,24 +137,12 @@ export function DeploymentSidebar({
       <div className={cn('shrink-0', expand ? 'p-2' : 'p-1')}>
         <div className={cn('flex flex-col gap-2 rounded-lg', expand ? 'p-1' : 'items-center p-1')}>
           <div className="flex items-center gap-1">
-            {app
-              ? (
-                  <AppIcon
-                    size={expand ? 'large' : 'medium'}
-                    iconType="emoji"
-                    icon={app.icon}
-                    background={app.iconBackground}
-                  />
-                )
-              : (
-                  <div className={cn(
-                    'flex items-center justify-center rounded-xl border border-divider-subtle bg-background-default text-text-tertiary',
-                    expand ? 'h-10 w-10' : 'h-8 w-8',
-                  )}
-                  >
-                    <span aria-hidden className="i-ri-apps-2-line h-5 w-5" />
-                  </div>
-                )}
+            <AppIcon
+              size={expand ? 'large' : 'medium'}
+              iconType="emoji"
+              icon={app.icon}
+              background={app.iconBackground}
+            />
           </div>
           {expand && (
             <div className="flex flex-col items-start gap-1">
@@ -168,12 +154,12 @@ export function DeploymentSidebar({
               <div className="system-2xs-medium-uppercase whitespace-nowrap text-text-tertiary">
                 {appModeLabel}
               </div>
-              {instanceDescription && (
+              {app.description && (
                 <div
                   className="line-clamp-2 system-xs-regular text-text-tertiary"
-                  title={instanceDescription}
+                  title={app.description}
                 >
-                  {instanceDescription}
+                  {app.description}
                 </div>
               )}
             </div>

@@ -1,6 +1,6 @@
 'use client'
 
-import type { AccessSubject, ConsoleEnvironment, EnvironmentAccessRow } from '@dify/contracts/enterprise/types.gen'
+import type { ConsoleEnvironment, EnvironmentAccessRow } from '@dify/contracts/enterprise/types.gen'
 import { useTranslation } from 'react-i18next'
 import { Section } from './common'
 import { EnvironmentPermissionRow } from './permissions'
@@ -9,18 +9,12 @@ type AccessPermissionsSectionProps = {
   appId: string
   environments: ConsoleEnvironment[]
   policies: EnvironmentAccessRow[]
-  onSetPolicy: (
-    environmentId: string,
-    accessMode: string,
-    subjects: AccessSubject[],
-  ) => Promise<void>
 }
 
 export function AccessPermissionsSection({
   appId,
   environments,
   policies,
-  onSetPolicy,
 }: AccessPermissionsSectionProps) {
   const { t } = useTranslation('deployments')
 
@@ -45,7 +39,6 @@ export function AccessPermissionsSection({
                     appId={appId}
                     environment={env}
                     summaryPolicy={policy}
-                    onSetPolicy={onSetPolicy}
                   />
                 )
               })}

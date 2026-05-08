@@ -1,8 +1,7 @@
 'use client'
 
 import { Dialog, DialogCloseButton, DialogContent } from '@langgenius/dify-ui/dialog'
-import { toast } from '@langgenius/dify-ui/toast'
-import { skipToken, useMutation, useQuery } from '@tanstack/react-query'
+import { skipToken, useQuery } from '@tanstack/react-query'
 import { useAtomValue, useSetAtom } from 'jotai'
 import { useTranslation } from 'react-i18next'
 import { consoleQuery } from '@/service/client'
@@ -24,7 +23,6 @@ export function DeployDrawer() {
   const drawerEnvironmentId = useAtomValue(deployDrawerEnvironmentIdAtom)
   const drawerReleaseId = useAtomValue(deployDrawerReleaseIdAtom)
   const closeDeployDrawer = useSetAtom(closeDeployDrawerAtom)
-  const startDeploy = useMutation(consoleQuery.enterprise.appDeploy.createDeployment.mutationOptions())
   const { data: releaseHistory } = useQuery(consoleQuery.enterprise.appDeploy.listReleases.queryOptions({
     input: drawerAppInstanceId
       ? {
@@ -71,26 +69,6 @@ export function DeployDrawer() {
                     defaultReleaseId={defaultReleaseId}
                     lockedEnvId={drawerEnvironmentId}
                     presetReleaseId={drawerReleaseId}
-                    isSubmitting={startDeploy.isPending}
-                    onCancel={closeDeployDrawer}
-                    onSubmit={async ({ environmentId, releaseId, bindings }) => {
-                      try {
-                        await startDeploy.mutateAsync({
-                          params: {
-                            appInstanceId: drawerAppInstanceId,
-                          },
-                          body: {
-                            environmentId,
-                            releaseId,
-                            bindings,
-                          },
-                        })
-                        closeDeployDrawer()
-                      }
-                      catch {
-                        toast.error(t('deployDrawer.deployFailed'))
-                      }
-                    }}
                   />
                 )}
       </DialogContent>

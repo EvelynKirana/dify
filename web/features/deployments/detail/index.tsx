@@ -5,7 +5,6 @@ import type { InstanceDetailTabKey } from './tabs'
 import { Button } from '@langgenius/dify-ui/button'
 import { useQuery } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
-import { getAppModeLabel } from '@/app/components/app-sidebar/app-info/app-mode-labels'
 import useDocumentTitle from '@/hooks/use-document-title'
 import Link from '@/next/link'
 import { useSelectedLayoutSegment } from '@/next/navigation'
@@ -20,7 +19,6 @@ export function InstanceDetail({ instanceId, children }: {
   children: ReactNode
 }) {
   const { t } = useTranslation('deployments')
-  const { t: tCommon } = useTranslation()
   const selectedSegment = useSelectedLayoutSegment()
   const selectedTab = selectedSegment ?? undefined
   const activeTab: InstanceDetailTabKey = isInstanceDetailTabKey(selectedTab) ? selectedTab : 'overview'
@@ -54,17 +52,11 @@ export function InstanceDetail({ instanceId, children }: {
       </div>
     )
   }
-  const appName = app.name ?? appId
-  const appModeLabel = getAppModeLabel(app.mode ?? 'workflow', tCommon)
 
   return (
     <>
       <div className="relative flex h-full overflow-hidden rounded-t-2xl shadow-[0_0_5px_rgba(0,0,0,0.05),0_0_2px_-1px_rgba(0,0,0,0.03)]">
         <DeploymentSidebar
-          instanceId={appId}
-          instanceName={appName}
-          instanceDescription={app.description}
-          appModeLabel={appModeLabel}
           app={app}
         />
 

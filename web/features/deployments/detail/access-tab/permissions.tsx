@@ -17,7 +17,7 @@ import {
 } from '@langgenius/dify-ui/dropdown-menu'
 import { Popover, PopoverContent, PopoverTrigger } from '@langgenius/dify-ui/popover'
 import { toast } from '@langgenius/dify-ui/toast'
-import { skipToken, useQuery } from '@tanstack/react-query'
+import { skipToken, useMutation, useQuery } from '@tanstack/react-query'
 import { useDebounce } from 'ahooks'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
@@ -295,21 +295,16 @@ type EnvironmentPermissionRowProps = {
   appId: string
   environment: ConsoleEnvironment
   summaryPolicy?: EnvironmentAccessRow
-  onSetPolicy: (
-    environmentId: string,
-    accessMode: string,
-    subjects: AccessSubject[],
-  ) => Promise<void>
 }
 
 export function EnvironmentPermissionRow({
   appId,
   environment,
   summaryPolicy,
-  onSetPolicy,
 }: EnvironmentPermissionRowProps) {
   const { t } = useTranslation('deployments')
   const environmentId = environment.id
+  const setEnvironmentAccessPolicy = useMutation(consoleQuery.enterprise.appDeploy.updateEnvironmentAccessPolicy.mutationOptions())
   const policyQuery = useQuery(consoleQuery.enterprise.appDeploy.getEnvironmentAccessPolicy.queryOptions({
     input: environmentId
       ? {
@@ -348,11 +343,16 @@ export function EnvironmentPermissionRow({
 
     setIsSaving(true)
     try {
-      await onSetPolicy(
-        environmentId,
-        permissionKeyToAccessMode(nextKind),
-        nextKind === 'specific' ? policySubjects(nextSubjects) : [],
-      )
+      await setEnvironmentAccessPolicy.mutateAsync({
+        params: {
+          appInstanceId: appId,
+          environmentId,
+        },
+        body: {
+          accessMode: permissionKeyToAccessMode(nextKind),
+          subjects: nextKind === 'specific' ? policySubjects(nextSubjects) : [],
+        },
+      })
       setDraft({})
     }
     catch {

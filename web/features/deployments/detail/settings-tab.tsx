@@ -21,19 +21,16 @@ import { deployedRows } from '../utils'
 type SettingsFormProps = {
   app: AppInstanceBasicInfo
   settings?: GetAppInstanceSettingsReply
-  onSave: (patch: Pick<AppInstanceBasicInfo, 'name' | 'description'>) => Promise<void>
 }
 
 type DeleteInstanceControlProps = {
-  appId: string
-  appName: string
+  app: AppInstanceBasicInfo
   settings?: GetAppInstanceSettingsReply
   hasDeployments: boolean
 }
 
 function DeleteInstanceControl({
-  appId,
-  appName,
+  app,
   settings,
   hasDeployments,
 }: DeleteInstanceControlProps) {
@@ -42,9 +39,14 @@ function DeleteInstanceControl({
   const deleteInstance = useMutation(consoleQuery.enterprise.appDeploy.deleteAppInstance.mutationOptions())
   const [isDeleting, setIsDeleting] = useState(false)
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
+  const appId = app.id
+  const appName = app.name ?? appId ?? ''
   const canDelete = !hasDeployments && Boolean(settings) && settings?.deleteGuard?.canDelete !== false
 
   const handleDelete = () => {
+    if (!appId)
+      return
+
     void (async () => {
       setIsDeleting(true)
       try {
@@ -114,8 +116,9 @@ function DeleteInstanceControl({
   )
 }
 
-function SettingsForm({ app, settings, onSave }: SettingsFormProps) {
+function SettingsForm({ app, settings }: SettingsFormProps) {
   const { t } = useTranslation('deployments')
+  const updateInstance = useMutation(consoleQuery.enterprise.appDeploy.updateAppInstance.mutationOptions())
   const appName = app.name ?? app.id ?? ''
   const [name, setName] = useState(settings?.name ?? appName)
   const [description, setDescription] = useState(settings?.description ?? app.description ?? '')
@@ -125,14 +128,20 @@ function SettingsForm({ app, settings, onSave }: SettingsFormProps) {
   const canSave = Boolean(name.trim() && (name !== initialName || description !== initialDescription) && !isSaving)
 
   const handleSave = () => {
-    if (!canSave)
+    const appId = app.id
+    if (!canSave || !appId)
       return
     void (async () => {
       setIsSaving(true)
       try {
-        await onSave({
-          name: name.trim(),
-          description: description.trim() || undefined,
+        await updateInstance.mutateAsync({
+          params: {
+            appInstanceId: appId,
+          },
+          body: {
+            name: name.trim(),
+            description: description.trim() || undefined,
+          },
         })
         toast.success(t('settings.updated'))
       }
@@ -194,7 +203,6 @@ function SettingsForm({ app, settings, onSave }: SettingsFormProps) {
 export function SettingsTab({ instanceId }: {
   instanceId: string
 }) {
-  const updateInstance = useMutation(consoleQuery.enterprise.appDeploy.updateAppInstance.mutationOptions())
   const appInput = { params: { appInstanceId: instanceId } }
   const { data: overview } = useQuery(consoleQuery.enterprise.appDeploy.getAppInstanceOverview.queryOptions({
     input: appInput,
@@ -220,18 +228,9 @@ export function SettingsTab({ instanceId }: {
         key={formKey}
         app={app}
         settings={settingsQuery.data}
-        onSave={async (patch) => {
-          await updateInstance.mutateAsync({
-            params: {
-              appInstanceId: instanceId,
-            },
-            body: patch,
-          })
-        }}
       />
       <DeleteInstanceControl
-        appId={instanceId}
-        appName={appName}
+        app={app}
         settings={settingsQuery.data}
         hasDeployments={hasDeployments}
       />

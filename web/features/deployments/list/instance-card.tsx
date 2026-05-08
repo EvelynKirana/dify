@@ -1,7 +1,6 @@
 'use client'
 
 import type { AppInstanceCard } from '@dify/contracts/enterprise/types.gen'
-import type { AppModeEnum } from '@/types/app'
 import { cn } from '@langgenius/dify-ui/cn'
 import {
   DropdownMenu,
@@ -20,6 +19,7 @@ import AppIcon from '@/app/components/base/app-icon'
 import { useFormatTimeFromNow } from '@/hooks/use-format-time-from-now'
 import Link from '@/next/link'
 import { openDeployDrawerAtom } from '../store'
+import { toAppMode } from '../utils'
 
 export function InstanceCard({ app }: {
   app: AppInstanceCard
@@ -32,7 +32,7 @@ export function InstanceCard({ app }: {
 
   const appId = app.id
   const appName = app.name ?? appId
-  const appMode = app.mode ?? 'workflow'
+  const appMode = toAppMode(app.mode)
   const detailHref = `/deployments/${appId}/overview`
 
   const statusCount = (status: string) =>
@@ -128,7 +128,7 @@ export function InstanceCard({ app }: {
               background={app.iconBackground}
             />
             <AppTypeIcon
-              type={appMode as AppModeEnum}
+              type={appMode}
               wrapperClassName="absolute -bottom-0.5 -right-0.5 w-4 h-4 shadow-sm"
               className="h-3 w-3"
             />

@@ -2,7 +2,6 @@
 
 import type { AppInstanceBasicInfo, AppInstanceCard } from '@dify/contracts/enterprise/types.gen'
 import type { NavItem } from '@/app/components/header/nav/nav-selector'
-import type { AppModeEnum } from '@/types/app'
 import { skipToken, useQuery } from '@tanstack/react-query'
 import { useSetAtom } from 'jotai'
 import { useTranslation } from 'react-i18next'
@@ -11,6 +10,7 @@ import { useParams, useRouter, useSelectedLayoutSegment } from '@/next/navigatio
 import { consoleQuery } from '@/service/client'
 import { SOURCE_APPS_PAGE_SIZE } from '../data'
 import { openCreateInstanceModalAtom } from '../store'
+import { toAppMode } from '../utils'
 
 function navItemFromListApp(app: AppInstanceCard): NavItem[] {
   if (!app.id || !app.name)
@@ -24,7 +24,7 @@ function navItemFromListApp(app: AppInstanceCard): NavItem[] {
     icon: app.icon ?? '',
     icon_background: app.iconBackground ?? null,
     icon_url: null,
-    mode: app.mode as AppModeEnum | undefined,
+    mode: toAppMode(app.mode),
   }]
 }
 
@@ -42,7 +42,7 @@ function navItemFromOverview(instance?: AppInstanceBasicInfo): NavItem | undefin
     icon: instance.icon ?? '',
     icon_background: instance.iconBackground ?? null,
     icon_url: null,
-    mode: instance.mode as AppModeEnum | undefined,
+    mode: toAppMode(instance.mode),
   }
 }
 

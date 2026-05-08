@@ -11,8 +11,15 @@ import type {
   EnvironmentOption,
 } from './types'
 import { PUBLIC_API_PREFIX } from '@/config'
+import { AppModeEnum } from '@/types/app'
 
 export type DeploymentUiStatus = 'ready' | 'deploying' | 'deploy_failed'
+
+const appModeValues = new Set<string>(Object.values(AppModeEnum))
+
+export function toAppMode(mode?: string): AppModeEnum {
+  return appModeValues.has(mode ?? '') ? (mode as AppModeEnum) : AppModeEnum.WORKFLOW
+}
 
 export function formatDate(value?: string) {
   if (!value)

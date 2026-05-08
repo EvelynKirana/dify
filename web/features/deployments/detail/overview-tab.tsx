@@ -13,6 +13,7 @@ import { DEPLOYMENT_PAGE_SIZE } from '../data'
 import { openDeployDrawerAtom } from '../store'
 import {
   releaseLabel,
+  toAppMode,
   webappUrl,
 } from '../utils'
 
@@ -119,7 +120,7 @@ export function OverviewTab({ instanceId }: {
 
   const appId = overviewApp.id
   const appName = overviewApp.name ?? appId
-  const appModeLabel = getAppModeLabel(overviewApp.mode ?? 'workflow', tCommon)
+  const appModeLabel = getAppModeLabel(toAppMode(overviewApp.mode), tCommon)
   const webappAccessUrl = webappUrl(overview?.access?.webappUrl)
   const cliUrl = overview?.access?.cliUrl
   const apiUrl = overview?.access?.apiUrl ?? accessConfig?.developerApi?.apiUrl

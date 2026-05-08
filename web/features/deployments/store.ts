@@ -13,6 +13,11 @@ type OpenRollbackParams = {
   deploymentId?: string
 }
 
+type CreatedDeveloperApiToken = {
+  appId: string
+  token: string
+}
+
 export const deployDrawerOpenAtom = atom(false)
 export const deployDrawerAppInstanceIdAtom = atom<string | undefined>(undefined)
 export const deployDrawerEnvironmentIdAtom = atom<string | undefined>(undefined)
@@ -25,6 +30,7 @@ export const rollbackModalDeploymentIdAtom = atom<string | undefined>(undefined)
 export const rollbackModalTargetReleaseIdAtom = atom<string | undefined>(undefined)
 
 export const createInstanceModalOpenAtom = atom(false)
+export const createdDeveloperApiTokenAtom = atom<CreatedDeveloperApiToken | undefined>(undefined)
 
 export const openDeployDrawerAtom = atom(null, (_get, set, params: OpenDeployDrawerParams) => {
   set(deployDrawerAppInstanceIdAtom, params.appInstanceId)

@@ -2,26 +2,36 @@
 
 import type { WebAppAccessRow } from '@dify/contracts/enterprise/types.gen'
 import { Switch } from '@langgenius/dify-ui/switch'
+import { useMutation } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
+import { consoleQuery } from '@/service/client'
 import { environmentName, webappUrl } from '../../utils'
 import { CopyPill, EndpointRow, Section } from './common'
 
 type AccessChannelsSectionProps = {
+  appId: string
   runEnabled: boolean
   webappRows: WebAppAccessRow[]
   cliDomain?: string
   cliDocsUrl?: string
-  onToggle: (enabled: boolean) => void
 }
 
 export function AccessChannelsSection({
+  appId,
   runEnabled,
   webappRows,
   cliDomain,
   cliDocsUrl,
-  onToggle,
 }: AccessChannelsSectionProps) {
   const { t } = useTranslation('deployments')
+  const toggleAccessChannel = useMutation(consoleQuery.enterprise.appDeploy.updateAccessChannels.mutationOptions())
+
+  function handleToggle(enabled: boolean) {
+    toggleAccessChannel.mutate({
+      params: { appInstanceId: appId },
+      body: { enabled },
+    })
+  }
 
   return (
     <Section
@@ -30,7 +40,7 @@ export function AccessChannelsSection({
       action={(
         <Switch
           checked={runEnabled}
-          onCheckedChange={onToggle}
+          onCheckedChange={handleToggle}
         />
       )}
     >

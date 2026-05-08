@@ -2,7 +2,11 @@
 
 import type { ConsoleEnvironment, DeveloperApiKeyRow } from '@dify/contracts/enterprise/types.gen'
 import { Switch } from '@langgenius/dify-ui/switch'
+import { useMutation } from '@tanstack/react-query'
+import { useAtomValue, useSetAtom } from 'jotai'
 import { useTranslation } from 'react-i18next'
+import { consoleQuery } from '@/service/client'
+import { createdDeveloperApiTokenAtom } from '../../store'
 import { ApiKeyGenerateMenu, ApiKeyList } from './api-keys'
 import { CopyPill, Section } from './common'
 
@@ -12,10 +16,6 @@ type DeveloperApiSectionProps = {
   apiUrl?: string
   environments: ConsoleEnvironment[]
   apiKeys: DeveloperApiKeyRow[]
-  createdToken?: string
-  onToggle: (enabled: boolean) => void
-  onGenerate: (environmentId: string) => void
-  onClearCreatedToken: () => void
 }
 
 export function DeveloperApiSection({
@@ -24,12 +24,22 @@ export function DeveloperApiSection({
   apiUrl,
   environments,
   apiKeys,
-  createdToken,
-  onToggle,
-  onGenerate,
-  onClearCreatedToken,
 }: DeveloperApiSectionProps) {
   const { t } = useTranslation('deployments')
+  const createdApiToken = useAtomValue(createdDeveloperApiTokenAtom)
+  const setCreatedApiToken = useSetAtom(createdDeveloperApiTokenAtom)
+  const toggleDeveloperAPI = useMutation(consoleQuery.enterprise.appDeploy.updateDeveloperApi.mutationOptions())
+
+  function handleToggle(enabled: boolean) {
+    toggleDeveloperAPI.mutate({
+      params: { appInstanceId: appId },
+      body: { enabled },
+    })
+  }
+
+  const visibleCreatedApiToken = createdApiToken?.appId === appId
+    ? createdApiToken.token
+    : undefined
 
   return (
     <Section
@@ -38,7 +48,7 @@ export function DeveloperApiSection({
       action={(
         <Switch
           checked={apiEnabled}
-          onCheckedChange={onToggle}
+          onCheckedChange={handleToggle}
         />
       )}
     >
@@ -61,11 +71,12 @@ export function DeveloperApiSection({
                   </span>
                 </div>
                 <ApiKeyGenerateMenu
+                  appId={appId}
                   environments={environments}
-                  onGenerate={onGenerate}
+                  apiKeys={apiKeys}
                 />
               </div>
-              {createdToken && (
+              {visibleCreatedApiToken && (
                 <div className="flex flex-col gap-2 rounded-lg border border-components-panel-border bg-components-panel-bg-blur p-3">
                   <div className="flex items-start justify-between gap-3">
                     <div className="flex min-w-0 flex-col">
@@ -78,7 +89,7 @@ export function DeveloperApiSection({
                     </div>
                     <button
                       type="button"
-                      onClick={onClearCreatedToken}
+                      onClick={() => setCreatedApiToken(undefined)}
                       aria-label={t('access.api.dismissToken')}
                       className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md text-text-tertiary hover:bg-state-base-hover hover:text-text-secondary"
                     >
@@ -87,7 +98,7 @@ export function DeveloperApiSection({
                   </div>
                   <CopyPill
                     label={t('access.api.newTokenLabel')}
-                    value={createdToken}
+                    value={visibleCreatedApiToken}
                   />
                 </div>
               )}
