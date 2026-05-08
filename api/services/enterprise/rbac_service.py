@@ -3,7 +3,7 @@ from __future__ import annotations
 from enum import StrEnum
 from typing import Any, Generic, TypeVar
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 from services.enterprise.base import EnterpriseRequest
 
@@ -65,6 +65,13 @@ class RBACRole(_RBACModel):
     description: str = ""
     is_builtin: bool = False
     permission_keys: list[str] = Field(default_factory=list)
+
+    @field_validator("permission_keys", mode="before")
+    @classmethod
+    def _coerce_permission_keys(cls, value: Any) -> list[str]:
+        if value is None:
+            return []
+        return value
 
 
 class AccessPolicy(_RBACModel):
