@@ -287,6 +287,9 @@ describe('human-input/panel', () => {
         variable: ['start', 'email'],
         type: VarType.string,
       }, {
+        variable: ['code', 'result'],
+        type: VarType.arrayString,
+      }, {
         variable: ['start', 'files'],
         type: VarType.file,
       }].filter(variable => options?.filterVar ? options.filterVar({ type: variable.type } as never) : true),
@@ -314,6 +317,12 @@ describe('human-input/panel', () => {
     expect(screen.getByText('review_result:string:Form input value')).toBeInTheDocument()
     expect(screen.getByText('__action_id:string:Action ID user triggered')).toBeInTheDocument()
     expect(screen.getByText('__rendered_content:string:Rendered content')).toBeInTheDocument()
+    expect(mockDeliveryMethod).toHaveBeenCalledWith(expect.objectContaining({
+      nodesOutputVars: [
+        expect.objectContaining({ type: VarType.string }),
+        expect.objectContaining({ type: VarType.arrayString }),
+      ],
+    }))
 
     await user.click(screen.getByRole('button', { name: 'delivery-method:editable' }))
     await user.click(screen.getByRole('button', { name: /workflow\.nodes\.humanInput\.formContent\.preview/ }))

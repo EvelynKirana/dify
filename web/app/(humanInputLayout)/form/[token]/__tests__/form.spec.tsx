@@ -186,7 +186,12 @@ describe('Human input share form', () => {
         action: 'approve',
         inputs: {
           summary: 'updated summary',
-          attachments: [mockContentItemState.uploadedFile],
+          attachments: [{
+            type: 'document',
+            transfer_method: TransferMethod.local_file,
+            url: '',
+            upload_file_id: 'upload-file-1',
+          }],
         },
       },
     }, expect.objectContaining({
@@ -208,7 +213,12 @@ describe('Human input share form', () => {
         action: 'approve',
         inputs: {
           summary: 'initial summary',
-          attachments: [mockContentItemState.uploadedFile],
+          attachments: [{
+            type: 'document',
+            transfer_method: TransferMethod.local_file,
+            url: '',
+            upload_file_id: 'upload-file-1',
+          }],
         },
       },
     }, expect.objectContaining({

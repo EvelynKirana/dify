@@ -2,7 +2,14 @@
 import type { FC } from 'react'
 import type { InputVarType } from '@/app/components/workflow/types'
 import { cn } from '@langgenius/dify-ui/cn'
-import { Select, SelectContent, SelectItem, SelectItemText, SelectTrigger } from '@langgenius/dify-ui/select'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectItemIndicator,
+  SelectItemText,
+  SelectTrigger,
+} from '@langgenius/dify-ui/select'
 import * as React from 'react'
 import Badge from '@/app/components/base/badge'
 import InputVarTypeIcon from '@/app/components/workflow/nodes/_base/components/input-var-type-icon'
@@ -26,28 +33,30 @@ const TypeSelector: FC<Props> = ({
   value,
   onSelect,
   items,
-  popupClassName,
   popupInnerClassName,
   readonly,
 }) => {
-  const selectedItem = value ? items.find(item => `${item.value}` === `${value}`) : undefined
+  const selectedItem = value ? items.find(item => item.value === value) : undefined
 
   return (
     <Select
-      value={selectedItem ? `${selectedItem.value}` : null}
+      value={selectedItem?.value}
       readOnly={readonly}
       onValueChange={(nextValue) => {
-        if (!nextValue)
-          return
-
-        const nextItem = items.find(item => `${item.value}` === nextValue)
-        if (nextItem)
-          onSelect(nextItem)
+        const selected = items.find(item => item.value === nextValue)
+        if (selected)
+          onSelect(selected)
       }}
     >
-      <SelectTrigger className="h-9 rounded-lg px-2 text-sm" title={selectedItem?.name}>
-        <div className="flex w-full items-center justify-between gap-2">
-          <div className="flex min-w-0 items-center">
+      <SelectTrigger
+        className={cn(
+          'h-9 rounded-lg px-2 text-sm',
+          readonly ? 'cursor-not-allowed' : 'cursor-pointer',
+        )}
+        title={selectedItem?.name}
+      >
+        <div className="flex min-w-0 items-center justify-between">
+          <div className="flex items-center">
             <InputVarTypeIcon type={selectedItem?.value as InputVarType} className="size-4 shrink-0 text-text-secondary" />
             <span
               className={cn(
@@ -58,32 +67,31 @@ const TypeSelector: FC<Props> = ({
               {selectedItem?.name}
             </span>
           </div>
-          <div className="flex shrink-0 items-center">
+          <div className="ml-2 flex shrink-0 items-center space-x-1">
             <Badge uppercase={false}>{inputVarTypeToVarType(selectedItem?.value as InputVarType)}</Badge>
           </div>
         </div>
       </SelectTrigger>
       <SelectContent
-        placement="bottom-start"
         sideOffset={4}
-        className={popupClassName}
-        popupClassName={cn('w-(--anchor-width) text-base sm:text-sm', popupInnerClassName)}
-        listClassName="p-1"
+        popupClassName={cn('w-[432px] rounded-md px-1 py-1 text-base sm:text-sm', popupInnerClassName)}
+        listClassName="max-h-80 p-0"
       >
         {items.map((item: Item) => (
           <SelectItem
             key={item.value}
-            value={`${item.value}`}
-            className="h-9 justify-between px-2"
+            value={item.value}
+            className="h-9 justify-between px-2 text-text-secondary"
             title={item.name}
           >
-            <div className="flex w-full items-center justify-between gap-2">
-              <div className="flex min-w-0 items-center space-x-2">
-                <InputVarTypeIcon type={item.value} className="size-4 shrink-0 text-text-secondary" />
-                <SelectItemText title={item.name} className="mr-0 px-0">{item.name}</SelectItemText>
-              </div>
-              <Badge uppercase={false}>{inputVarTypeToVarType(item.value)}</Badge>
-            </div>
+            <SelectItemText
+              className="flex items-center space-x-2 px-0"
+            >
+              <InputVarTypeIcon type={item.value} className="size-4 shrink-0 text-text-secondary" />
+              <span title={item.name}>{item.name}</span>
+            </SelectItemText>
+            <Badge uppercase={false}>{inputVarTypeToVarType(item.value)}</Badge>
+            <SelectItemIndicator />
           </SelectItem>
         ))}
       </SelectContent>

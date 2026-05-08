@@ -170,6 +170,61 @@ describe('human-input/hooks/use-single-run-form-params', () => {
     ])
   })
 
+  it('should include variables referenced by dynamic select option sources', () => {
+    currentInputs = createPayload({
+      inputs: [
+        {
+          type: InputVarType.paragraph,
+          output_variable_name: 'summary',
+          default: {
+            type: 'variable',
+            selector: ['start', 'topic'],
+            value: '',
+          },
+        },
+        {
+          type: InputVarType.select,
+          output_variable_name: 'choice',
+          option_source: {
+            type: 'variable',
+            selector: ['start', 'choices'],
+            value: [],
+          },
+        },
+      ],
+    })
+    getInputVars.mockReturnValue([
+      createInputVar(),
+      createInputVar({
+        label: 'Choices',
+        variable: '#start.choices#',
+        value_selector: ['start', 'choices'],
+      }),
+    ])
+
+    const { result } = renderHook(() => useSingleRunFormParams({
+      id: 'node-1',
+      payload: currentInputs,
+      runInputData: {},
+      getInputVars,
+      setRunInputData: mockSetRunInputData,
+    }))
+
+    expect(getInputVars).toHaveBeenCalledWith([
+      '{{#start.topic#}}',
+      '{{#start.choices#}}',
+      'Summary: {{#start.topic#}}',
+    ])
+    expect(result.current.forms[0]!.inputs).toEqual([
+      expect.objectContaining({ variable: '#start.topic#' }),
+      expect.objectContaining({ variable: '#start.choices#' }),
+    ])
+    expect(result.current.getDependentVars()).toEqual([
+      ['start', 'topic'],
+      ['start', 'choices'],
+    ])
+  })
+
   it('should fetch and submit generated forms in workflow mode while keeping required inputs', async () => {
     const formDataWithFiles = {
       ...mockFormData,

@@ -1,8 +1,9 @@
 import type { NodeDefault, Var } from '../../types'
-import type { FormInputItem, HumanInputNodeType } from './types'
+import type { DeliveryMethod, EmailConfig, FormInputItem, HumanInputNodeType } from './types'
 import { BlockClassificationEnum } from '@/app/components/workflow/block-selector/types'
 import { BlockEnum, VarType } from '@/app/components/workflow/types'
 import { genNodeMetaData } from '@/app/components/workflow/utils'
+import { DeliveryMethodType } from './types'
 
 const i18nPrefix = 'nodes.humanInput.errorMsg'
 
@@ -31,6 +32,27 @@ const buildOutputVars = (inputs: FormInputItem[]): Var[] => {
   })
 }
 
+const isEmailConfigComplete = (config?: EmailConfig): boolean => {
+  if (!config)
+    return false
+
+  if (!config.subject?.trim() || !config.body?.trim())
+    return false
+
+  if (!/\{\{#url#\}\}/.test(config.body.trim()))
+    return false
+
+  return !!config.recipients?.whole_workspace || !!config.recipients?.items?.length
+}
+
+const hasIncompleteEnabledEmailConfig = (deliveryMethods: DeliveryMethod[]): boolean => {
+  return deliveryMethods.some((method) => {
+    return method.enabled
+      && method.type === DeliveryMethodType.Email
+      && !isEmailConfigComplete(method.config)
+  })
+}
+
 const nodeDefault: NodeDefault<HumanInputNodeType> = {
   metaData,
   defaultValue: {
@@ -48,6 +70,9 @@ const nodeDefault: NodeDefault<HumanInputNodeType> = {
 
     if (!errorMessages && payload.delivery_methods.length > 0 && !payload.delivery_methods.some(method => method.enabled))
       errorMessages = t(`${i18nPrefix}.noDeliveryMethodEnabled`, { ns: 'workflow' })
+
+    if (!errorMessages && hasIncompleteEnabledEmailConfig(payload.delivery_methods))
+      errorMessages = t(`${i18nPrefix}.emailConfigIncomplete`, { ns: 'workflow' })
 
     if (!errorMessages && !payload.user_actions.length)
       errorMessages = t(`${i18nPrefix}.noUserActions`, { ns: 'workflow' })
