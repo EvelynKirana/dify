@@ -14,7 +14,7 @@ export OPENDAL_FS_ROOT=${OPENDAL_FS_ROOT:-/tmp/dify-storage}
 mkdir -p "${OPENDAL_FS_ROOT}"
 
 # Prepare env files like CI
-cp -n docker/.env.example docker/.env || true
+./docker/init-env.sh
 cp -n docker/middleware.env.example docker/middleware.env || true
 cp -n api/tests/integration_tests/.env.example api/tests/integration_tests/.env || true
 

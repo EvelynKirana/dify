@@ -98,7 +98,7 @@ jobs:
 
       - name: Set up dotenvs
         run: |
-          cp docker/.env.example docker/.env
+          ./docker/init-env.sh
           cp docker/middleware.env.example docker/middleware.env
 
       - name: Expose Service Ports
