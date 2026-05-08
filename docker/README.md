@@ -7,28 +7,38 @@ Welcome to the new `docker` directory for deploying Dify using Docker Compose. T
 - **Certbot Container**: `docker-compose.yaml` now contains `certbot` for managing SSL certificates. This container automatically renews certificates and ensures secure HTTPS connections.\
   For more information, refer `docker/certbot/README.md`.
 
-- **Persistent Environment Variables**: Default environment variables are managed through `.env.default`, while local overrides are stored in `.env`, ensuring that your configurations persist across deployments.
+- **Persistent Environment Variables**: Default deployment values are provided in `.env.example`. Initialize `.env` from it and keep local changes there so your configuration persists across deployments.
 
   > What is `.env`? </br> </br>
-  > The `.env` file is a local override file. Keep it small by adding only the values that differ from `.env.default`. Use `.env.example` as the full reference when you need advanced configuration.
+  > The `.env` file is your local Docker Compose environment file. Start from `.env.example`, then customize it as needed. Use `.env.all` as the full reference when you need advanced configuration.
 
 - **Unified Vector Database Services**: All vector database services are now managed from a single Docker Compose file `docker-compose.yaml`. You can switch between different vector databases by setting the `VECTOR_STORE` environment variable in your `.env` file.
 
-- **Local .env Overrides**: The `dify-compose` and `dify-compose.ps1` wrappers create `.env` if it is missing and generate a persistent `SECRET_KEY` for this deployment.
+- **Full Configuration Reference**: `.env.all` keeps the complete variable list for advanced and service-specific settings, while `.env.example` stays focused on the default self-hosted deployment path.
 
 ### How to Deploy Dify with `docker-compose.yaml`
 
 1. **Prerequisites**: Ensure Docker and Docker Compose are installed on your system.
 1. **Environment Setup**:
    - Navigate to the `docker` directory.
-   - No copy step is required. The `dify-compose` wrappers create `.env` if it is missing and write a generated `SECRET_KEY` to it.
-   - When prompted on first run, press Enter to use the default deployment, or answer `y` to stop and edit `.env` first.
-   - Customize `.env` only when you need to override defaults from `.env.default`. Refer to `.env.example` for the full list of available variables.
+   - Create `.env` and generate a deployment-specific `SECRET_KEY`:
+
+     ```bash
+     ./init-env.sh
+     ```
+
+     On Windows PowerShell:
+
+     ```powershell
+     .\init-env.ps1
+     ```
+
+   - Customize `.env` only when you need to override defaults. Refer to `.env.all` for the full list of available variables.
    - **Optional (for advanced deployments)**:
-     If you maintain a full `.env` file copied from `.env.example`, you may use the environment synchronization tool to keep it aligned with the latest `.env.example` updates while preserving your custom settings.
+     If you maintain a full `.env` file copied from `.env.all`, you may use the environment synchronization tool to keep it aligned with the latest `.env.all` updates while preserving your custom settings.
      See the [Environment Variables Synchronization](#environment-variables-synchronization) section below.
 1. **Running the Services**:
-   - Execute `./dify-compose up -d` from the `docker` directory to start the services. On Windows PowerShell, run `.\dify-compose.ps1 up -d`.
+   - Execute `docker compose up -d` from the `docker` directory to start the services.
    - To specify a vector database, set the `VECTOR_STORE` variable in your `.env` file to your desired vector database service, such as `milvus`, `weaviate`, or `opensearch`.
 1. **SSL Certificate Setup**:
    - Refer `docker/certbot/README.md` to set up SSL certificates using Certbot.
@@ -58,13 +68,11 @@ For users migrating from the `docker-legacy` setup:
 1. **Data Migration**:
    - Ensure that data from services like databases and caches is backed up and migrated appropriately to the new structure if necessary.
 
-### Overview of `.env.default`, `.env`, and `.env.example`
+### Overview of `.env.example`, `.env`, and `.env.all`
 
-- `.env.default` contains the minimal default configuration for Docker Compose deployments.
-- `.env` contains the generated `SECRET_KEY` plus any local overrides.
-- `.env.example` is the full reference for advanced configuration.
-
-The `dify-compose` wrappers merge `.env.default` and `.env` into a temporary environment file, append paired internal service keys when needed, and remove the temporary file after Docker Compose starts.
+- `.env.example` contains the minimal default configuration for Docker Compose deployments.
+- `.env` is your local copy. It contains the generated `SECRET_KEY` plus any local changes.
+- `.env.all` is the full reference for advanced configuration.
 
 #### Key Modules and Customization
 
@@ -74,7 +82,7 @@ The `dify-compose` wrappers merge `.env.default` and `.env` into a temporary env
 
 #### Other notable variables
 
-The `.env.example` file provided in the Docker setup is extensive and covers a wide range of configuration options. It is structured into several sections, each pertaining to different aspects of the application and its services. Here are some of the key sections and variables:
+The `.env.all` file provided in the Docker setup is extensive and covers a wide range of configuration options. It is structured into several sections, each pertaining to different aspects of the application and its services. Here are some of the key sections and variables:
 
 1. **Common Variables**:
 
@@ -124,25 +132,25 @@ The `.env.example` file provided in the Docker setup is extensive and covers a w
 
 ### Environment Variables Synchronization
 
-When upgrading Dify or pulling the latest changes, new environment variables may be introduced in `.env.default` or `.env.example`.
+When upgrading Dify or pulling the latest changes, new environment variables may be introduced in `.env.example` or `.env.all`.
 
-If you use the default override-only workflow, review `.env.default` and add only the values you need to override to `.env`.
+If you use the default workflow, review `.env.example` and add only the values you need to customize to `.env`.
 
-If you maintain a full `.env` file copied from `.env.example`, an optional environment variables synchronization tool is provided.
+If you maintain a full `.env` file copied from `.env.all`, an optional environment variables synchronization tool is provided.
 
-> This tool performs a **one-way synchronization** from `.env.example` to `.env`.
+> This tool performs a **one-way synchronization** from `.env.all` to `.env`.
 > Existing values in `.env` are never overwritten automatically.
 
 #### `dify-env-sync.sh` (Optional)
 
-This script compares your current `.env` file with the latest `.env.example` template and helps safely apply new or updated environment variables.
+This script compares your current `.env` file with the latest `.env.all` template and helps safely apply new or updated environment variables.
 
 **What it does**
 
 - Creates a backup of the current `.env` file before making any changes
-- Synchronizes newly added environment variables from `.env.example`
+- Synchronizes newly added environment variables from `.env.all`
 - Preserves all existing custom values in `.env`
-- Displays differences and variables removed from `.env.example` for review
+- Displays differences and variables removed from `.env.all` for review
 
 **Backup behavior**
 
@@ -152,8 +160,8 @@ Before synchronization, the current `.env` file is saved to the `env-backup/` di
 **When to use**
 
 - After upgrading Dify to a newer version with a full `.env` file
-- When `.env.example` has been updated with new environment variables
-- When managing a large or heavily customized `.env` file copied from `.env.example`
+- When `.env.all` has been updated with new environment variables
+- When managing a large or heavily customized `.env` file copied from `.env.all`
 
 **Usage**
 
@@ -168,6 +176,6 @@ chmod +x dify-env-sync.sh
 ### Additional Information
 
 - **Continuous Improvement Phase**: We are actively seeking feedback from the community to refine and enhance the deployment process. As more users adopt this new method, we will continue to make improvements based on your experiences and suggestions.
-- **Support**: For detailed configuration options and environment variable settings, refer to the `.env.example` file and the Docker Compose configuration files in the `docker` directory.
+- **Support**: For detailed configuration options and environment variable settings, refer to the `.env.all` file and the Docker Compose configuration files in the `docker` directory.
 
 This README aims to guide you through the deployment process using the new Docker Compose setup. For any issues or further assistance, please refer to the official documentation or contact support.

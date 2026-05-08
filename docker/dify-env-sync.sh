@@ -4,7 +4,7 @@
 # Dify Environment Variables Synchronization Script
 #
 # Features:
-# - Synchronize latest settings from .env.example to .env
+# - Synchronize latest settings from .env.all to .env
 # - Preserve custom settings in existing .env
 # - Add new environment variables
 # - Detect removed environment variables
@@ -61,18 +61,18 @@ log_error() {
 }
 
 # Check for required files and create .env if missing
-# Verifies that .env.example exists and creates .env from template if needed
+# Verifies that .env.all exists and creates .env from template if needed
 check_files() {
     log_info "Checking required files..."
 
-    if [[ ! -f ".env.example" ]]; then
-        log_error ".env.example file not found"
+    if [[ ! -f ".env.all" ]]; then
+        log_error ".env.all file not found"
         exit 1
     fi
 
     if [[ ! -f ".env" ]]; then
-        log_warning ".env file does not exist. Creating from .env.example."
-        cp ".env.example" ".env"
+        log_warning ".env file does not exist. Creating from .env.all."
+        cp ".env.all" ".env"
         log_success ".env file created"
     fi
 
@@ -98,9 +98,9 @@ create_backup() {
     fi
 }
 
-# Detect differences between .env and .env.example (optimized for large files)
+# Detect differences between .env and .env.all (optimized for large files)
 detect_differences() {
-    log_info "Detecting differences between .env and .env.example..."
+    log_info "Detecting differences between .env and .env.all..."
 
     # Create secure temporary directory
     local temp_dir=$(mktemp -d)
@@ -140,7 +140,7 @@ detect_differences() {
         }
     }
     END { print diff_count }
-    ' .env .env.example)
+    ' .env .env.all)
 
     if [[ $diff_count -gt 0 ]]; then
         log_success "Detected differences in $diff_count environment variables"
@@ -201,7 +201,7 @@ show_differences_detail() {
         echo ""
         echo -e "${YELLOW}[$count] $key${NC}"
         echo -e "  ${GREEN}.env (current)${NC}      : ${env_value}"
-        echo -e "  ${BLUE}.env.example (recommended)${NC}: ${example_value}"
+        echo -e "  ${BLUE}.env.all (recommended)${NC}: ${example_value}"
 
         # Analyze value changes
         analyze_value_change "$env_value" "$example_value"
@@ -261,8 +261,8 @@ analyze_value_change() {
     fi
 }
 
-# Synchronize .env file with .env.example while preserving custom values
-# Creates a new .env file based on .env.example structure, preserving existing custom values
+# Synchronize .env file with .env.all while preserving custom values
+# Creates a new .env file based on .env.all structure, preserving existing custom values
 # Global variables used: DIFF_FILE, TEMP_DIR
 sync_env_file() {
     log_info "Starting partial synchronization of .env file..."
@@ -281,7 +281,7 @@ sync_env_file() {
     fi
 
     # Use AWK for efficient processing (much faster than bash loop for large files)
-    log_info "Processing $(wc -l < .env.example) lines with AWK..."
+    log_info "Processing $(wc -l < .env.all) lines with AWK..."
 
     local preserved_keys_file="${TEMP_DIR}/preserved_keys"
     local awk_preserved_count_file="${TEMP_DIR}/awk_preserved_count"
@@ -332,7 +332,7 @@ sync_env_file() {
         print preserved_count > preserved_count_file
         print updated_count > updated_count_file
     }
-    ' .env.example > "$new_env_file"
+    ' .env.all > "$new_env_file"
 
     # Read counters and preserved keys
     if [[ -f "$awk_preserved_count_file" ]]; then
@@ -372,7 +372,7 @@ sync_env_file() {
 
     log_success "Partial synchronization of .env file completed"
     log_info "  Preserved .env values: $preserved_count"
-    log_info "  Updated to .env.example values: $updated_count"
+    log_info "  Updated to .env.all values: $updated_count"
 }
 
 # Detect removed environment variables
@@ -394,8 +394,8 @@ detect_removed_variables() {
         cleanup_temp_dir="$temp_dir"
     fi
 
-    # Get keys from .env.example and .env, sorted for comm
-    awk -F= '!/^[[:space:]]*#/ && /=/ {gsub(/^[[:space:]]+|[[:space:]]+$/, "", $1); print $1}' .env.example | sort > "$temp_example_keys"
+    # Get keys from .env.all and .env, sorted for comm
+    awk -F= '!/^[[:space:]]*#/ && /=/ {gsub(/^[[:space:]]+|[[:space:]]+$/, "", $1); print $1}' .env.all | sort > "$temp_example_keys"
     awk -F= '!/^[[:space:]]*#/ && /=/ {gsub(/^[[:space:]]+|[[:space:]]+$/, "", $1); print $1}' .env | sort > "$temp_current_keys"
 
     # Get keys from existing .env and check for removals
@@ -410,7 +410,7 @@ detect_removed_variables() {
     fi
 
     if [[ ${#removed_vars[@]} -gt 0 ]]; then
-        log_warning "The following environment variables have been removed from .env.example:"
+        log_warning "The following environment variables have been removed from .env.all:"
         for var in "${removed_vars[@]}"; do
             log_warning "  - $var"
         done
@@ -424,10 +424,10 @@ detect_removed_variables() {
 show_statistics() {
     log_info "Synchronization statistics:"
 
-    local total_example=$(grep -c "^[^#]*=" .env.example 2>/dev/null || echo "0")
+    local total_example=$(grep -c "^[^#]*=" .env.all 2>/dev/null || echo "0")
     local total_env=$(grep -c "^[^#]*=" .env 2>/dev/null || echo "0")
 
-    log_info "  .env.example environment variables: $total_example"
+    log_info "  .env.all environment variables: $total_example"
     log_info "  .env environment variables: $total_env"
 }
 

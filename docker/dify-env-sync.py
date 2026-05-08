@@ -4,7 +4,7 @@
 # Dify Environment Variables Synchronization Script
 #
 # Features:
-# - Synchronize latest settings from .env.example to .env
+# - Synchronize latest settings from .env.all to .env
 # - Preserve custom settings in existing .env
 # - Add new environment variables
 # - Detect removed environment variables
@@ -93,25 +93,25 @@ def parse_env_file(path: Path) -> dict[str, str]:
 
 
 def check_files(work_dir: Path) -> None:
-    """Verify required files exist; create .env from .env.example if absent.
+    """Verify required files exist; create .env from .env.all if absent.
 
     Args:
-        work_dir: Directory that must contain .env.example (and optionally .env).
+        work_dir: Directory that must contain .env.all (and optionally .env).
 
     Raises:
-        SystemExit: If .env.example does not exist.
+        SystemExit: If .env.all does not exist.
     """
     log_info("Checking required files...")
 
-    example_file = work_dir / ".env.example"
+    example_file = work_dir / ".env.all"
     env_file = work_dir / ".env"
 
     if not example_file.exists():
-        log_error(".env.example file not found")
+        log_error(".env.all file not found")
         sys.exit(1)
 
     if not env_file.exists():
-        log_warning(".env file does not exist. Creating from .env.example.")
+        log_warning(".env file does not exist. Creating from .env.all.")
         shutil.copy2(example_file, env_file)
         log_success(".env file created")
 
@@ -147,7 +147,7 @@ def analyze_value_change(current: str, recommended: str) -> str | None:
 
     Args:
         current: Value currently set in .env.
-        recommended: Value present in .env.example.
+        recommended: Value present in .env.all.
 
     Returns:
         A human-readable description string, or None when no analysis applies.
@@ -199,20 +199,20 @@ def analyze_value_change(current: str, recommended: str) -> str | None:
 
 
 def detect_differences(env_vars: dict[str, str], example_vars: dict[str, str]) -> dict[str, tuple[str, str]]:
-    """Find variables whose values differ between .env and .env.example.
+    """Find variables whose values differ between .env and .env.all.
 
     Only variables present in *both* files are compared; new or removed
     variables are handled by separate functions.
 
     Args:
         env_vars: Parsed key/value pairs from .env.
-        example_vars: Parsed key/value pairs from .env.example.
+        example_vars: Parsed key/value pairs from .env.all.
 
     Returns:
         Mapping of key -> (env_value, example_value) for every key whose
         values differ.
     """
-    log_info("Detecting differences between .env and .env.example...")
+    log_info("Detecting differences between .env and .env.all...")
 
     diffs: dict[str, tuple[str, str]] = {}
     for key, example_value in example_vars.items():
@@ -248,11 +248,11 @@ def show_differences_detail(diffs: dict[str, tuple[str, str]]) -> None:
         if use_colors:
             print(f"{YELLOW}[{count}] {key}{NC}")
             print(f"  {GREEN}.env (current){NC}             : {env_value}")
-            print(f"  {BLUE}.env.example (recommended){NC} : {example_value}")
+            print(f"  {BLUE}.env.all (recommended){NC} : {example_value}")
         else:
             print(f"[{count}] {key}")
             print(f"  .env (current)             : {env_value}")
-            print(f"  .env.example (recommended) : {example_value}")
+            print(f"  .env.all (recommended) : {example_value}")
 
         analysis = analyze_value_change(env_value, example_value)
         if analysis:
@@ -266,21 +266,21 @@ def show_differences_detail(diffs: dict[str, tuple[str, str]]) -> None:
 
 
 def detect_removed_variables(env_vars: dict[str, str], example_vars: dict[str, str]) -> list[str]:
-    """Identify variables present in .env but absent from .env.example.
+    """Identify variables present in .env but absent from .env.all.
 
     Args:
         env_vars: Parsed key/value pairs from .env.
-        example_vars: Parsed key/value pairs from .env.example.
+        example_vars: Parsed key/value pairs from .env.all.
 
     Returns:
-        Sorted list of variable names that no longer appear in .env.example.
+        Sorted list of variable names that no longer appear in .env.all.
     """
     log_info("Detecting removed environment variables...")
 
     removed = sorted(set(env_vars) - set(example_vars))
 
     if removed:
-        log_warning("The following environment variables have been removed from .env.example:")
+        log_warning("The following environment variables have been removed from .env.all:")
         for var in removed:
             log_warning(f"  - {var}")
         log_warning("Consider manually removing these variables from .env")
@@ -291,22 +291,22 @@ def detect_removed_variables(env_vars: dict[str, str], example_vars: dict[str, s
 
 
 def sync_env_file(work_dir: Path, env_vars: dict[str, str], diffs: dict[str, tuple[str, str]]) -> None:
-    """Rewrite .env based on .env.example while preserving custom values.
+    """Rewrite .env based on .env.all while preserving custom values.
 
-    The output file follows the exact line structure of .env.example
+    The output file follows the exact line structure of .env.all
     (preserving comments, blank lines, and ordering).  For every variable
     that exists in .env with a different value from the example, the
-    current .env value is kept.  Variables that are new in .env.example
+    current .env value is kept.  Variables that are new in .env.all
     (not present in .env at all) are added with the example's default.
 
     Args:
-        work_dir: Directory containing .env and .env.example.
+        work_dir: Directory containing .env and .env.all.
         env_vars: Parsed key/value pairs from the original .env.
-        diffs: Keys whose .env values differ from .env.example (to preserve).
+        diffs: Keys whose .env values differ from .env.all (to preserve).
     """
     log_info("Starting partial synchronization of .env file...")
 
-    example_file = work_dir / ".env.example"
+    example_file = work_dir / ".env.all"
     new_env_file = work_dir / ".env.new"
 
     # Keys whose current .env value should override the example default
@@ -350,24 +350,24 @@ def sync_env_file(work_dir: Path, env_vars: dict[str, str], diffs: dict[str, tup
     log_success("Successfully created new .env file")
     log_success("Partial synchronization of .env file completed")
     log_info(f"  Preserved .env values: {preserved_count}")
-    log_info(f"  Updated to .env.example values: {updated_count}")
+    log_info(f"  Updated to .env.all values: {updated_count}")
 
 
 def show_statistics(work_dir: Path) -> None:
     """Print a summary of variable counts from both env files.
 
     Args:
-        work_dir: Directory containing .env and .env.example.
+        work_dir: Directory containing .env and .env.all.
     """
     log_info("Synchronization statistics:")
 
-    example_file = work_dir / ".env.example"
+    example_file = work_dir / ".env.all"
     env_file = work_dir / ".env"
 
     example_count = len(parse_env_file(example_file)) if example_file.exists() else 0
     env_count = len(parse_env_file(env_file)) if env_file.exists() else 0
 
-    log_info(f"  .env.example environment variables: {example_count}")
+    log_info(f"  .env.all environment variables: {example_count}")
     log_info(f"  .env environment variables: {env_count}")
 
 
@@ -380,7 +380,7 @@ def build_arg_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         prog="dify-env-sync",
         description=(
-            "Synchronize .env with .env.example: add new variables, "
+            "Synchronize .env with .env.all: add new variables, "
             "preserve custom values, and report removed variables."
         ),
         formatter_class=argparse.RawDescriptionHelpFormatter,
@@ -396,7 +396,7 @@ def build_arg_parser() -> argparse.ArgumentParser:
         "--dir",
         metavar="DIRECTORY",
         default=".",
-        help="Working directory containing .env and .env.example (default: current directory)",
+        help="Working directory containing .env and .env.all (default: current directory)",
     )
     parser.add_argument(
         "--no-backup",
@@ -427,7 +427,7 @@ def main() -> None:
 
     # 3. Parse both files
     env_vars = parse_env_file(work_dir / ".env")
-    example_vars = parse_env_file(work_dir / ".env.example")
+    example_vars = parse_env_file(work_dir / ".env.all")
 
     # 4. Report differences (values that changed in the example)
     diffs = detect_differences(env_vars, example_vars)
