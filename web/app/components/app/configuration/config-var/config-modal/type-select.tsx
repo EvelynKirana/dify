@@ -74,7 +74,7 @@ const TypeSelector: FC<Props> = ({
       </SelectTrigger>
       <SelectContent
         sideOffset={4}
-        popupClassName={cn('w-[432px] rounded-md px-1 py-1 text-base sm:text-sm', popupInnerClassName)}
+        popupClassName={cn('w-(--anchor-width) rounded-md px-1 py-1 text-base sm:text-sm', popupInnerClassName)}
         listClassName="max-h-80 p-0"
       >
         {items.map((item: Item) => (
