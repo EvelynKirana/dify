@@ -8,7 +8,6 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@langgenius/dify-ui/dropdown-menu'
-import { toast } from '@langgenius/dify-ui/toast'
 import { useMutation } from '@tanstack/react-query'
 import { useSetAtom } from 'jotai'
 import { useState } from 'react'
@@ -16,16 +15,13 @@ import { useTranslation } from 'react-i18next'
 import { consoleQuery } from '@/service/client'
 import { createdDeveloperApiTokenAtom } from '../../store'
 import { environmentName } from '../../utils'
-import { useCopyFeedback } from './use-copy-feedback'
 
 function ApiKeyRow({ appInstanceId, apiKey }: {
   appInstanceId: string
   apiKey: DeveloperApiKeyRow
 }) {
   const { t } = useTranslation('deployments')
-  const { copied, showCopied } = useCopyFeedback()
   const revokeApiKey = useMutation(consoleQuery.enterprise.appDeploy.deleteDeveloperApiKey.mutationOptions())
-  const revealApiKey = useMutation(consoleQuery.enterprise.appDeploy.revealDeveloperApiKey.mutationOptions())
   const displayValue = apiKey.maskedKey || apiKey.id || '—'
   const environmentLabel = environmentName(apiKey.environment)
 
@@ -41,30 +37,6 @@ function ApiKeyRow({ appInstanceId, apiKey }: {
     })
   }
 
-  const handleCopy = async () => {
-    if (!apiKey.id)
-      return
-
-    try {
-      const response = await revealApiKey.mutateAsync({
-        params: {
-          appInstanceId,
-          apiKeyId: apiKey.id,
-        },
-      })
-      if (!response.token)
-        throw new Error('Reveal developer API key did not return a token.')
-
-      const token = response.token
-      await navigator.clipboard.writeText(token)
-      showCopied()
-      toast.success(t('access.copyToast'))
-    }
-    catch {
-      toast.error(t('access.copyFailed'))
-    }
-  }
-
   return (
     <div className="flex items-center gap-3 py-1.5">
       <div className="flex min-w-[140px] flex-col">
@@ -77,14 +49,6 @@ function ApiKeyRow({ appInstanceId, apiKey }: {
         <div className="min-w-0 flex-1 truncate font-mono text-[13px] font-medium text-text-secondary">
           {displayValue}
         </div>
-        <button
-          type="button"
-          onClick={handleCopy}
-          aria-label={t('access.copy')}
-          className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md text-text-tertiary hover:bg-state-base-hover hover:text-text-secondary"
-        >
-          <span className={cn(copied ? 'i-ri-check-line' : 'i-ri-file-copy-line', 'h-3.5 w-3.5')} />
-        </button>
         <button
           type="button"
           onClick={handleRevoke}
