@@ -15,26 +15,6 @@ from libs.login import current_account_with_tenant, login_required
 from services.enterprise import rbac_service as svc
 
 
-# ---------------------------------------------------------------------------
-# Shared helpers.
-# ---------------------------------------------------------------------------
-
-
-def enterprise_only[**P, R](view: Callable[P, R]) -> Callable[P, R]:
-    """Reject every call when the Dify install is not running in enterprise
-    mode. The dashboard UI shown in the screenshots is an enterprise-only
-    feature, so every route here should fail fast (and clearly) in community.
-    """
-
-    @wraps(view)
-    def decorated(*args: P.args, **kwargs: P.kwargs) -> R:
-        if not dify_config.ENTERPRISE_ENABLED:
-            raise Forbidden("Enterprise edition is not enabled")
-        return view(*args, **kwargs)
-
-    return decorated
-
-
 def _current_ids() -> tuple[str, str]:
     """Return ``(tenant_id, account_id)`` for the authenticated user, or
     raise a 404 when no tenant is associated with the session.
@@ -87,7 +67,6 @@ def _pagination_options() -> svc.ListOption:
 
 @console_ns.route("/workspaces/current/rbac/role-permissions/catalog")
 class RBACWorkspaceCatalogApi(Resource):
-    @enterprise_only
     @login_required
     def get(self):
         tenant_id, account_id = _current_ids()
@@ -96,7 +75,6 @@ class RBACWorkspaceCatalogApi(Resource):
 
 @console_ns.route("/workspaces/current/rbac/role-permissions/catalog/app")
 class RBACAppCatalogApi(Resource):
-    @enterprise_only
     @login_required
     def get(self):
         tenant_id, account_id = _current_ids()
@@ -105,7 +83,6 @@ class RBACAppCatalogApi(Resource):
 
 @console_ns.route("/workspaces/current/rbac/role-permissions/catalog/dataset")
 class RBACDatasetCatalogApi(Resource):
-    @enterprise_only
     @login_required
     def get(self):
         tenant_id, account_id = _current_ids()
@@ -134,14 +111,12 @@ class _RoleUpsertRequest(BaseModel):
 
 @console_ns.route("/workspaces/current/rbac/roles")
 class RBACRolesApi(Resource):
-    @enterprise_only
     @login_required
     def get(self):
         tenant_id, account_id = _current_ids()
         options = _pagination_options()
         return _dump(svc.RBACService.Roles.list(tenant_id, account_id, options=options))
 
-    @enterprise_only
     @login_required
     def post(self):
         tenant_id, account_id = _current_ids()
@@ -152,13 +127,11 @@ class RBACRolesApi(Resource):
 
 @console_ns.route("/workspaces/current/rbac/roles/<uuid:role_id>")
 class RBACRoleItemApi(Resource):
-    @enterprise_only
     @login_required
     def get(self, role_id):
         tenant_id, account_id = _current_ids()
         return _dump(svc.RBACService.Roles.get(tenant_id, account_id, str(role_id)))
 
-    @enterprise_only
     @login_required
     def put(self, role_id):
         tenant_id, account_id = _current_ids()
@@ -166,7 +139,6 @@ class RBACRoleItemApi(Resource):
         role = svc.RBACService.Roles.update(tenant_id, account_id, str(role_id), request.to_mutation())
         return _dump(role)
 
-    @enterprise_only
     @login_required
     def delete(self, role_id):
         tenant_id, account_id = _current_ids()
@@ -194,7 +166,6 @@ class _AccessPolicyUpdateRequest(BaseModel):
 
 @console_ns.route("/workspaces/current/rbac/access-policies")
 class RBACAccessPoliciesApi(Resource):
-    @enterprise_only
     @login_required
     def get(self):
         tenant_id, account_id = _current_ids()
@@ -210,7 +181,6 @@ class RBACAccessPoliciesApi(Resource):
             )
         )
 
-    @enterprise_only
     @login_required
     def post(self):
         tenant_id, account_id = _current_ids()
@@ -230,13 +200,11 @@ class RBACAccessPoliciesApi(Resource):
 
 @console_ns.route("/workspaces/current/rbac/access-policies/<uuid:policy_id>")
 class RBACAccessPolicyItemApi(Resource):
-    @enterprise_only
     @login_required
     def get(self, policy_id):
         tenant_id, account_id = _current_ids()
         return _dump(svc.RBACService.AccessPolicies.get(tenant_id, account_id, str(policy_id)))
 
-    @enterprise_only
     @login_required
     def put(self, policy_id):
         tenant_id, account_id = _current_ids()
@@ -253,7 +221,6 @@ class RBACAccessPolicyItemApi(Resource):
         )
         return _dump(policy)
 
-    @enterprise_only
     @login_required
     def delete(self, policy_id):
         tenant_id, account_id = _current_ids()
@@ -263,7 +230,6 @@ class RBACAccessPolicyItemApi(Resource):
 
 @console_ns.route("/workspaces/current/rbac/access-policies/<uuid:policy_id>/copy")
 class RBACAccessPolicyCopyApi(Resource):
-    @enterprise_only
     @login_required
     def post(self, policy_id):
         tenant_id, account_id = _current_ids()
@@ -283,7 +249,6 @@ class _ReplaceBindingsRequest(BaseModel):
 
 @console_ns.route("/workspaces/current/rbac/my-permissions")
 class RBACMyPermissionsApi(Resource):
-    @enterprise_only
     @login_required
     def get(self):
         tenant_id, account_id = _current_ids()
@@ -299,7 +264,6 @@ class RBACMyPermissionsApi(Resource):
 
 @console_ns.route("/workspaces/current/rbac/apps/<uuid:app_id>/access-policy")
 class RBACAppMatrixApi(Resource):
-    @enterprise_only
     @login_required
     def get(self, app_id):
         tenant_id, account_id = _current_ids()
@@ -308,7 +272,6 @@ class RBACAppMatrixApi(Resource):
 
 @console_ns.route("/workspaces/current/rbac/apps/<uuid:app_id>/access-policies/<uuid:policy_id>/role-bindings")
 class RBACAppRoleBindingsApi(Resource):
-    @enterprise_only
     @login_required
     def get(self, app_id, policy_id):
         tenant_id, account_id = _current_ids()
@@ -319,7 +282,6 @@ class RBACAppRoleBindingsApi(Resource):
 
 @console_ns.route("/workspaces/current/rbac/apps/<uuid:app_id>/access-policies/<uuid:policy_id>/member-bindings")
 class RBACAppMemberBindingsApi(Resource):
-    @enterprise_only
     @login_required
     def get(self, app_id, policy_id):
         tenant_id, account_id = _current_ids()
@@ -330,7 +292,6 @@ class RBACAppMemberBindingsApi(Resource):
 
 @console_ns.route("/workspaces/current/rbac/apps/<uuid:app_id>/access-policies/<uuid:policy_id>/bindings")
 class RBACAppBindingsApi(Resource):
-    @enterprise_only
     @login_required
     def put(self, app_id, policy_id):
         tenant_id, account_id = _current_ids()
@@ -353,7 +314,6 @@ class RBACAppBindingsApi(Resource):
 
 @console_ns.route("/workspaces/current/rbac/datasets/<uuid:dataset_id>/access-policy")
 class RBACDatasetMatrixApi(Resource):
-    @enterprise_only
     @login_required
     def get(self, dataset_id):
         tenant_id, account_id = _current_ids()
@@ -362,7 +322,6 @@ class RBACDatasetMatrixApi(Resource):
 
 @console_ns.route("/workspaces/current/rbac/datasets/<uuid:dataset_id>/access-policies/<uuid:policy_id>/role-bindings")
 class RBACDatasetRoleBindingsApi(Resource):
-    @enterprise_only
     @login_required
     def get(self, dataset_id, policy_id):
         tenant_id, account_id = _current_ids()
@@ -375,7 +334,6 @@ class RBACDatasetRoleBindingsApi(Resource):
 
 @console_ns.route("/workspaces/current/rbac/datasets/<uuid:dataset_id>/access-policies/<uuid:policy_id>/bindings")
 class RBACDatasetBindingsApi(Resource):
-    @enterprise_only
     @login_required
     def put(self, dataset_id, policy_id):
         tenant_id, account_id = _current_ids()
@@ -395,7 +353,6 @@ class RBACDatasetBindingsApi(Resource):
     "/workspaces/current/rbac/datasets/<uuid:dataset_id>/access-policies/<uuid:policy_id>/member-bindings"
 )
 class RBACDatasetMemberBindingsApi(Resource):
-    @enterprise_only
     @login_required
     def get(self, dataset_id, policy_id):
         tenant_id, account_id = _current_ids()
@@ -413,7 +370,6 @@ class RBACDatasetMemberBindingsApi(Resource):
 
 @console_ns.route("/workspaces/current/rbac/workspace/apps/access-policy")
 class RBACWorkspaceAppMatrixApi(Resource):
-    @enterprise_only
     @login_required
     def get(self):
         tenant_id, account_id = _current_ids()
@@ -423,7 +379,6 @@ class RBACWorkspaceAppMatrixApi(Resource):
 
 @console_ns.route("/workspaces/current/rbac/workspace/apps/access-policies/<uuid:policy_id>/role-bindings")
 class RBACWorkspaceAppRoleBindingsApi(Resource):
-    @enterprise_only
     @login_required
     def get(self, policy_id):
         tenant_id, account_id = _current_ids()
@@ -434,7 +389,6 @@ class RBACWorkspaceAppRoleBindingsApi(Resource):
 
 @console_ns.route("/workspaces/current/rbac/workspace/apps/access-policies/<uuid:policy_id>/bindings")
 class RBACWorkspaceAppBindingsApi(Resource):
-    @enterprise_only
     @login_required
     def put(self, policy_id):
         tenant_id, account_id = _current_ids()
@@ -451,7 +405,6 @@ class RBACWorkspaceAppBindingsApi(Resource):
 
 @console_ns.route("/workspaces/current/rbac/workspace/apps/access-policies/<uuid:policy_id>/member-bindings")
 class RBACWorkspaceAppMemberBindingsApi(Resource):
-    @enterprise_only
     @login_required
     def get(self, policy_id):
         tenant_id, account_id = _current_ids()
@@ -462,7 +415,6 @@ class RBACWorkspaceAppMemberBindingsApi(Resource):
 
 @console_ns.route("/workspaces/current/rbac/workspace/datasets/access-policy")
 class RBACWorkspaceDatasetMatrixApi(Resource):
-    @enterprise_only
     @login_required
     def get(self):
         tenant_id, account_id = _current_ids()
@@ -472,7 +424,6 @@ class RBACWorkspaceDatasetMatrixApi(Resource):
 
 @console_ns.route("/workspaces/current/rbac/workspace/datasets/access-policies/<uuid:policy_id>/role-bindings")
 class RBACWorkspaceDatasetRoleBindingsApi(Resource):
-    @enterprise_only
     @login_required
     def get(self, policy_id):
         tenant_id, account_id = _current_ids()
@@ -483,7 +434,6 @@ class RBACWorkspaceDatasetRoleBindingsApi(Resource):
 
 @console_ns.route("/workspaces/current/rbac/workspace/datasets/access-policies/<uuid:policy_id>/bindings")
 class RBACWorkspaceDatasetBindingsApi(Resource):
-    @enterprise_only
     @login_required
     def put(self, policy_id):
         tenant_id, account_id = _current_ids()
@@ -500,7 +450,6 @@ class RBACWorkspaceDatasetBindingsApi(Resource):
 
 @console_ns.route("/workspaces/current/rbac/workspace/datasets/access-policies/<uuid:policy_id>/member-bindings")
 class RBACWorkspaceDatasetMemberBindingsApi(Resource):
-    @enterprise_only
     @login_required
     def get(self, policy_id):
         tenant_id, account_id = _current_ids()
@@ -520,13 +469,11 @@ class _ReplaceMemberRolesRequest(BaseModel):
 
 @console_ns.route("/workspaces/current/rbac/members/<uuid:member_id>/rbac-roles")
 class RBACMemberRolesApi(Resource):
-    @enterprise_only
     @login_required
     def get(self, member_id):
         tenant_id, account_id = _current_ids()
         return _dump(svc.RBACService.MemberRoles.get(tenant_id, account_id, str(member_id)))
 
-    @enterprise_only
     @login_required
     def put(self, member_id):
         tenant_id, account_id = _current_ids()
