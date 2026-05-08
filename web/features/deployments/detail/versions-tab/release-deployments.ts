@@ -1,4 +1,4 @@
-import type { DeployedToSummary, EnvironmentDeploymentRow, ReleaseHistoryRow } from '@/features/deployments/types'
+import type { DeployedEnvironment, ReleaseRow, RuntimeInstanceRow } from '@dify/contracts/enterprise/types.gen'
 import {
   activeRelease,
   deploymentStatus,
@@ -23,7 +23,7 @@ function releaseDeploymentState(status?: string): ReleaseDeploymentState {
   return 'active'
 }
 
-function fromDeployedTo(item: DeployedToSummary): ReleaseDeployment | undefined {
+function fromDeployedTo(item: DeployedEnvironment): ReleaseDeployment | undefined {
   if (!item.environmentId)
     return undefined
 
@@ -40,7 +40,7 @@ function dedupeReleaseDeployments(items: ReleaseDeployment[]) {
   })
 }
 
-export function getReleaseDeployments(row: ReleaseHistoryRow, deploymentRows: EnvironmentDeploymentRow[]) {
+export function getReleaseDeployments(row: ReleaseRow, deploymentRows: RuntimeInstanceRow[]) {
   const releaseId = row.id
   if (!releaseId)
     return []

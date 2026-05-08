@@ -1,6 +1,6 @@
 'use client'
 
-import type { ConsoleEnvironmentSummary, DeveloperAPIKeySummary } from '@/features/deployments/types'
+import type { ConsoleEnvironment, DeveloperApiKeyRow } from '@dify/contracts/enterprise/types.gen'
 import { Switch } from '@langgenius/dify-ui/switch'
 import { useTranslation } from 'react-i18next'
 import { ApiKeyGenerateMenu, ApiKeyRow } from './api-keys'
@@ -9,8 +9,8 @@ import { CopyPill, Section } from './common'
 type DeveloperApiSectionProps = {
   apiEnabled: boolean
   apiUrl?: string
-  environments: ConsoleEnvironmentSummary[]
-  apiKeys: DeveloperAPIKeySummary[]
+  environments: ConsoleEnvironment[]
+  apiKeys: DeveloperApiKeyRow[]
   createdToken?: string
   onToggle: (enabled: boolean) => void
   onGenerate: (environmentId: string) => void

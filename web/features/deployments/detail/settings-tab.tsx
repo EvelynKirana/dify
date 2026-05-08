@@ -1,6 +1,5 @@
 'use client'
-import type { AppInstanceBasicInfo } from '@dify/contracts/enterprise/types.gen'
-import type { GetAppInstanceSettingsReply } from '@/features/deployments/types'
+import type { AppInstanceBasicInfo, GetAppInstanceSettingsReply } from '@dify/contracts/enterprise/types.gen'
 import {
   AlertDialog,
   AlertDialogActions,

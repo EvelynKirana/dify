@@ -1,7 +1,7 @@
 'use client'
 
-import type { DeploymentBindingOptionSlot, DeploymentRuntimeBinding } from '@dify/contracts/enterprise/types.gen'
-import type { EnvironmentOption, ReleaseHistoryRow } from '@/features/deployments/types'
+import type { DeploymentBindingOptionSlot, DeploymentRuntimeBinding, ReleaseRow } from '@dify/contracts/enterprise/types.gen'
+import type { EnvironmentOption } from '@/features/deployments/types'
 import { Button } from '@langgenius/dify-ui/button'
 import { DialogDescription, DialogTitle } from '@langgenius/dify-ui/dialog'
 import { skipToken, useQuery } from '@tanstack/react-query'
@@ -29,7 +29,7 @@ export type DeployFormSubmit = {
 type DeployFormProps = {
   appInstanceId: string
   environments: EnvironmentOption[]
-  releases: ReleaseHistoryRow[]
+  releases: ReleaseRow[]
   defaultReleaseId?: string
   lockedEnvId?: string
   presetReleaseId?: string
@@ -219,7 +219,7 @@ export function DeployForm({
 }: DeployFormProps) {
   const { t } = useTranslation('deployments')
   const presetRelease = presetReleaseId ? releases.find(r => r.id === presetReleaseId) : undefined
-  const displayedRelease: ReleaseHistoryRow | undefined = presetRelease ?? (presetReleaseId ? { id: presetReleaseId } : undefined)
+  const displayedRelease: ReleaseRow | undefined = presetRelease ?? (presetReleaseId ? { id: presetReleaseId } : undefined)
   const isPromote = Boolean(presetReleaseId)
 
   const [selectedEnvId, setSelectedEnvId] = useState<string>(

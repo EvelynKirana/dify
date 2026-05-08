@@ -1,6 +1,7 @@
 'use client'
+import type { RuntimeInstanceRow } from '@dify/contracts/enterprise/types.gen'
 import type { KeyboardEvent } from 'react'
-import type { EnvironmentDeploymentRow, EnvironmentOption } from '../types'
+import type { EnvironmentOption } from '../types'
 import { Button } from '@langgenius/dify-ui/button'
 import { cn } from '@langgenius/dify-ui/cn'
 import {
@@ -97,7 +98,7 @@ function NewDeploymentMenu({ appInstanceId, availableEnvs }: {
 function DeploymentRowActions({ appInstanceId, envId, row }: {
   appInstanceId: string
   envId: string
-  row: EnvironmentDeploymentRow
+  row: RuntimeInstanceRow
 }) {
   const { t } = useTranslation('deployments')
   const [menuOpen, setMenuOpen] = useState(false)

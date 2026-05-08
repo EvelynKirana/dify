@@ -1,11 +1,11 @@
 'use client'
 
 import type {
-  AccessPermission,
   AccessSubject,
-  ConsoleEnvironmentSummary,
-  DeveloperAPIKeySummary,
-} from '@/features/deployments/types'
+  ConsoleEnvironment,
+  DeveloperApiKeyRow,
+  EnvironmentAccessRow,
+} from '@dify/contracts/enterprise/types.gen'
 import { useMutation, useQuery } from '@tanstack/react-query'
 import { useState } from 'react'
 import { consoleClient, consoleQuery } from '@/service/client'
@@ -17,10 +17,10 @@ import { DeveloperApiSection } from './access-tab/developer-api-section'
 import { AccessPermissionsSection } from './access-tab/permissions-section'
 import { getUrlOrigin } from './access-tab/url'
 
-const EMPTY_ACCESS_PERMISSIONS: AccessPermission[] = []
+const EMPTY_ACCESS_PERMISSIONS: EnvironmentAccessRow[] = []
 
-function uniqueEnvironments(environments: (ConsoleEnvironmentSummary | undefined)[]) {
-  return environments.filter((environment, index): environment is ConsoleEnvironmentSummary => {
+function uniqueEnvironments(environments: (ConsoleEnvironment | undefined)[]) {
+  return environments.filter((environment, index): environment is ConsoleEnvironment => {
     if (!environment?.id)
       return false
     return environments.findIndex(candidate => candidate?.id === environment.id) === index
@@ -31,8 +31,8 @@ type DeveloperApiAccessSectionProps = {
   appId: string
   apiEnabled: boolean
   apiUrl?: string
-  environments: ConsoleEnvironmentSummary[]
-  apiKeys: DeveloperAPIKeySummary[]
+  environments: ConsoleEnvironment[]
+  apiKeys: DeveloperApiKeyRow[]
 }
 
 function DeveloperApiAccessSection({

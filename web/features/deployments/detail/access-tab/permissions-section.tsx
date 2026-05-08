@@ -1,14 +1,14 @@
 'use client'
 
-import type { AccessPermission, AccessSubject, ConsoleEnvironmentSummary } from '@/features/deployments/types'
+import type { AccessSubject, ConsoleEnvironment, EnvironmentAccessRow } from '@dify/contracts/enterprise/types.gen'
 import { useTranslation } from 'react-i18next'
 import { Section } from './common'
 import { EnvironmentPermissionRow } from './permissions'
 
 type AccessPermissionsSectionProps = {
   appId: string
-  environments: ConsoleEnvironmentSummary[]
-  policies: AccessPermission[]
+  environments: ConsoleEnvironment[]
+  policies: EnvironmentAccessRow[]
   onSetPolicy: (
     environmentId: string,
     accessMode: string,

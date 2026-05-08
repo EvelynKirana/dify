@@ -1,6 +1,6 @@
 'use client'
 
-import type { ConsoleEnvironmentSummary, DeveloperAPIKeySummary } from '@/features/deployments/types'
+import type { ConsoleEnvironment, DeveloperApiKeyRow } from '@dify/contracts/enterprise/types.gen'
 import { cn } from '@langgenius/dify-ui/cn'
 import {
   DropdownMenu,
@@ -12,14 +12,15 @@ import { toast } from '@langgenius/dify-ui/toast'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { environmentName } from '../../utils'
+import { useCopyFeedback } from './use-copy-feedback'
 
 export function ApiKeyRow({ apiKey, onCopy, onRevoke }: {
-  apiKey: DeveloperAPIKeySummary
+  apiKey: DeveloperApiKeyRow
   onCopy: (apiKeyId: string) => Promise<string>
   onRevoke: (apiKeyId: string) => void
 }) {
   const { t } = useTranslation('deployments')
-  const [copied, setCopied] = useState(false)
+  const { copied, showCopied } = useCopyFeedback()
   const displayValue = apiKey.maskedKey || apiKey.id || '—'
   const environmentLabel = environmentName(apiKey.environment)
 
@@ -30,9 +31,8 @@ export function ApiKeyRow({ apiKey, onCopy, onRevoke }: {
     try {
       const token = await onCopy(apiKey.id)
       await navigator.clipboard.writeText(token)
-      setCopied(true)
+      showCopied()
       toast.success(t('access.copyToast'))
-      window.setTimeout(() => setCopied(false), 1500)
     }
     catch {
       toast.error(t('access.copyFailed'))
@@ -73,7 +73,7 @@ export function ApiKeyRow({ apiKey, onCopy, onRevoke }: {
 }
 
 export function ApiKeyGenerateMenu({ environments, onGenerate }: {
-  environments: ConsoleEnvironmentSummary[]
+  environments: ConsoleEnvironment[]
   onGenerate: (environmentId: string) => void
 }) {
   const { t } = useTranslation('deployments')

@@ -1,7 +1,7 @@
 'use client'
 
+import type { ReleaseRuntimeBinding, RuntimeInstanceRow } from '@dify/contracts/enterprise/types.gen'
 import type { ReactNode } from 'react'
-import type { EnvironmentDeploymentRow, RuntimeBindingDisplay } from '@/features/deployments/types'
 import { cn } from '@langgenius/dify-ui/cn'
 import { useTranslation } from 'react-i18next'
 import {
@@ -50,7 +50,7 @@ function InfoRow({ label, value, mono, suffix }: InfoRowProps) {
 }
 
 function RuntimeBindingItem({ binding }: {
-  binding: RuntimeBindingDisplay
+  binding: ReleaseRuntimeBinding
 }) {
   const summary = runtimeBindingSummary(binding)
 
@@ -64,7 +64,7 @@ function RuntimeBindingItem({ binding }: {
 }
 
 export function DeploymentPanel({ row }: {
-  row: EnvironmentDeploymentRow
+  row: RuntimeInstanceRow
 }) {
   const { t } = useTranslation('deployments')
   const observed = activeRelease(row)

@@ -3,8 +3,8 @@
 import type { ReactNode } from 'react'
 import { cn } from '@langgenius/dify-ui/cn'
 import { toast } from '@langgenius/dify-ui/toast'
-import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
+import { useCopyFeedback } from './use-copy-feedback'
 
 type SectionProps = {
   title: string
@@ -39,14 +39,13 @@ type CopyPillProps = {
 
 export function CopyPill({ label, value, prefix, className }: CopyPillProps) {
   const { t } = useTranslation('deployments')
-  const [copied, setCopied] = useState(false)
+  const { copied, showCopied } = useCopyFeedback()
 
   const handleCopy = async () => {
     try {
       await navigator.clipboard.writeText(value)
-      setCopied(true)
+      showCopied()
       toast.success(t('access.copyToast'))
-      window.setTimeout(() => setCopied(false), 1500)
     }
     catch {
       toast.error(t('access.copyFailed'))

@@ -1,13 +1,13 @@
 'use client'
 
-import type { AccessPermissionKind } from '../../types'
 import type {
-  AccessPermission,
   AccessPolicyDetail,
   AccessSubject,
   AccessSubjectDisplay,
-  ConsoleEnvironmentSummary,
-} from '@/features/deployments/types'
+  ConsoleEnvironment,
+  EnvironmentAccessRow,
+} from '@dify/contracts/enterprise/types.gen'
+import type { AccessPermissionKind } from '../../types'
 import { cn } from '@langgenius/dify-ui/cn'
 import {
   DropdownMenu,
@@ -293,8 +293,8 @@ function SubjectPicker({
 
 type EnvironmentPermissionRowProps = {
   appId: string
-  environment: ConsoleEnvironmentSummary
-  summaryPolicy?: AccessPermission
+  environment: ConsoleEnvironment
+  summaryPolicy?: EnvironmentAccessRow
   onSetPolicy: (
     environmentId: string,
     accessMode: string,

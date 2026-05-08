@@ -1,6 +1,6 @@
 'use client'
 
-import type { WebAppAccessRow } from '@/features/deployments/types'
+import type { WebAppAccessRow } from '@dify/contracts/enterprise/types.gen'
 import { Switch } from '@langgenius/dify-ui/switch'
 import { useTranslation } from 'react-i18next'
 import { environmentName, webappUrl } from '../../utils'
