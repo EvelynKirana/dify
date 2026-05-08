@@ -11,7 +11,6 @@ describe('getReleaseDeployments', () => {
         {
           environmentId: 'env-1',
           environmentName: 'Production',
-          instanceStatus: 'failed',
         },
       ],
     } satisfies ReleaseHistoryRow
@@ -45,14 +44,11 @@ describe('getReleaseDeployments', () => {
   it('should merge history deployments with runtime deployments for different environments', () => {
     // Arrange
     const releaseRow = {
-      release: {
-        id: 'release-1',
-      },
+      id: 'release-1',
       deployedTo: [
         {
           environmentId: 'env-1',
           environmentName: 'Production',
-          instanceStatus: 'ready',
         },
       ],
     } satisfies ReleaseHistoryRow
@@ -95,7 +91,6 @@ describe('getReleaseDeployments', () => {
         {
           environmentId: 'env-1',
           environmentName: 'Production',
-          instanceStatus: 'ready',
         },
       ],
     } satisfies ReleaseHistoryRow

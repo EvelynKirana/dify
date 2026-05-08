@@ -36,7 +36,8 @@ Follow existing project patterns first. Use these rules to resolve unclear compo
 
 ## Effects
 
-- Do not use `useEffect` directly in components. If an effect is genuinely unavoidable, encapsulate it in a purpose-built hook so the component consumes a declarative API instead of managing the effect inline.
+- Treat `useEffect` as a last resort. Before adding or keeping one, first try to delete it by deriving values during render, moving event-driven work into handlers, or replacing persistence, subscription, media-query, timer, and DOM sync cases with existing equivalent hooks/APIs.
+- Do not use `useEffect` directly in components. If an effect remains genuinely unavoidable after checking for a declarative substitute, encapsulate it in a purpose-built hook so the component consumes a declarative API instead of managing the effect inline.
 
 ## Performance
 

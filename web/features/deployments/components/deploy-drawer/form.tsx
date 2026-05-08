@@ -1,7 +1,7 @@
 'use client'
 
 import type { DeploymentBindingOptionSlot, DeploymentRuntimeBinding } from '@dify/contracts/enterprise/types.gen'
-import type { ConsoleReleaseSummary, EnvironmentOption } from '@/features/deployments/types'
+import type { EnvironmentOption, ReleaseHistoryRow } from '@/features/deployments/types'
 import { Button } from '@langgenius/dify-ui/button'
 import { DialogDescription, DialogTitle } from '@langgenius/dify-ui/dialog'
 import { skipToken, useQuery } from '@tanstack/react-query'
@@ -29,7 +29,7 @@ export type DeployFormSubmit = {
 type DeployFormProps = {
   appInstanceId: string
   environments: EnvironmentOption[]
-  releases: ConsoleReleaseSummary[]
+  releases: ReleaseHistoryRow[]
   defaultReleaseId?: string
   lockedEnvId?: string
   presetReleaseId?: string
@@ -219,7 +219,7 @@ export function DeployForm({
 }: DeployFormProps) {
   const { t } = useTranslation('deployments')
   const presetRelease = presetReleaseId ? releases.find(r => r.id === presetReleaseId) : undefined
-  const displayedRelease = presetRelease ?? (presetReleaseId ? { id: presetReleaseId } : undefined)
+  const displayedRelease: ReleaseHistoryRow | undefined = presetRelease ?? (presetReleaseId ? { id: presetReleaseId } : undefined)
   const isPromote = Boolean(presetReleaseId)
 
   const [selectedEnvId, setSelectedEnvId] = useState<string>(
@@ -297,12 +297,6 @@ export function DeployForm({
                     <span className="shrink-0 font-mono system-sm-semibold text-text-primary">{releaseLabel(displayedRelease)}</span>
                     <span className="shrink-0 system-xs-regular text-text-tertiary">·</span>
                     <span className="shrink-0 font-mono system-xs-regular text-text-tertiary">{releaseCommit(displayedRelease)}</span>
-                    {displayedRelease.description && (
-                      <>
-                        <span className="shrink-0 system-xs-regular text-text-tertiary">·</span>
-                        <span className="truncate system-xs-regular text-text-secondary">{displayedRelease.description}</span>
-                      </>
-                    )}
                   </div>
                   <span className="shrink-0 system-xs-regular text-text-quaternary">{displayedRelease.createdAt}</span>
                 </div>

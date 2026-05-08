@@ -30,7 +30,7 @@ function fromDeployedTo(item: DeployedToSummary): ReleaseDeployment | undefined 
   return {
     environmentId: item.environmentId,
     environmentName: item.environmentName || item.environmentId,
-    state: releaseDeploymentState(item.instanceStatus),
+    state: 'active',
   }
 }
 
@@ -41,7 +41,7 @@ function dedupeReleaseDeployments(items: ReleaseDeployment[]) {
 }
 
 export function getReleaseDeployments(row: ReleaseHistoryRow, deploymentRows: EnvironmentDeploymentRow[]) {
-  const releaseId = (row.release ?? row).id
+  const releaseId = row.id
   if (!releaseId)
     return []
 

@@ -6,22 +6,25 @@ import type { InstanceDetailTabKey } from './tabs'
 import type { NavIcon } from '@/app/components/app-sidebar/nav-link'
 import { cn } from '@langgenius/dify-ui/cn'
 import { useHover, useKeyPress } from 'ahooks'
-import { useEffect, useRef } from 'react'
+import { useRef } from 'react'
 import { useTranslation } from 'react-i18next'
-import { useShallow } from 'zustand/react/shallow'
 import NavLink from '@/app/components/app-sidebar/nav-link'
 import ToggleButton from '@/app/components/app-sidebar/toggle-button'
-import { useStore as useAppStore } from '@/app/components/app/store'
 import AppIcon from '@/app/components/base/app-icon'
 import Divider from '@/app/components/base/divider'
 import { getKeyboardKeyCodeBySystem } from '@/app/components/workflow/utils'
 import useBreakpoints, { MediaType } from '@/hooks/use-breakpoints'
+import { useLocalStorage } from '@/hooks/use-local-storage'
 
 type TabDef = {
   key: InstanceDetailTabKey
   icon: NavIcon
   selectedIcon: NavIcon
 }
+
+type DeploymentSidebarMode = 'expand' | 'collapse'
+
+const DEPLOYMENT_SIDEBAR_MODE_KEY = 'deployment-sidebar-collapse-or-expand'
 
 type TailwindNavIconProps = PropsWithoutRef<ComponentProps<'svg'>> & {
   title?: string
@@ -76,6 +79,24 @@ function isShortcutFromInputArea(target: EventTarget | null) {
     || target.isContentEditable
 }
 
+function useDeploymentSidebarMode(isMobile: boolean) {
+  const [persistedMode, setPersistedMode] = useLocalStorage<DeploymentSidebarMode>(
+    DEPLOYMENT_SIDEBAR_MODE_KEY,
+    'expand',
+    { raw: true },
+  )
+  const sidebarMode = isMobile ? 'collapse' : persistedMode
+
+  function toggleSidebarMode() {
+    setPersistedMode(sidebarMode === 'expand' ? 'collapse' : 'expand')
+  }
+
+  return {
+    sidebarMode,
+    toggleSidebarMode,
+  }
+}
+
 type DeploymentSidebarProps = {
   instanceId: string
   instanceName: string
@@ -96,33 +117,15 @@ export function DeploymentSidebar({
   const isHoveringSidebar = useHover(sidebarRef)
   const media = useBreakpoints()
   const isMobile = media === MediaType.mobile
-  const { appSidebarExpand, setAppSidebarExpand } = useAppStore(useShallow(state => ({
-    appSidebarExpand: state.appSidebarExpand,
-    setAppSidebarExpand: state.setAppSidebarExpand,
-  })))
-  const sidebarMode = appSidebarExpand || 'expand'
+  const { sidebarMode, toggleSidebarMode } = useDeploymentSidebarMode(isMobile)
   const expand = sidebarMode === 'expand'
-
-  function handleToggle() {
-    setAppSidebarExpand(sidebarMode === 'expand' ? 'collapse' : 'expand')
-  }
-
-  useEffect(() => {
-    const persistedMode = localStorage.getItem('app-detail-collapse-or-expand') || 'expand'
-    setAppSidebarExpand(isMobile ? 'collapse' : persistedMode)
-  }, [isMobile, setAppSidebarExpand])
-
-  useEffect(() => {
-    if (appSidebarExpand)
-      localStorage.setItem('app-detail-collapse-or-expand', appSidebarExpand)
-  }, [appSidebarExpand])
 
   useKeyPress(`${getKeyboardKeyCodeBySystem('ctrl')}.b`, (e) => {
     if (isShortcutFromInputArea(e.target))
       return
 
     e.preventDefault()
-    handleToggle()
+    toggleSidebarMode()
   }, { exactMatch: true, useCapture: true })
 
   return (
@@ -193,7 +196,7 @@ export function DeploymentSidebar({
           <ToggleButton
             className="absolute top-[-3.5px] -right-3 z-20"
             expand={expand}
-            handleToggle={handleToggle}
+            handleToggle={toggleSidebarMode}
           />
         )}
       </div>

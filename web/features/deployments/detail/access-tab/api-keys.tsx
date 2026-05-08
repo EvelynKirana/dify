@@ -20,8 +20,8 @@ export function ApiKeyRow({ apiKey, onCopy, onRevoke }: {
 }) {
   const { t } = useTranslation('deployments')
   const [copied, setCopied] = useState(false)
-  const displayValue = apiKey.maskedKey || apiKey.maskedPrefix || apiKey.id || '—'
-  const environmentLabel = apiKey.environment?.name || apiKey.environmentName || apiKey.environmentId || apiKey.environment?.id
+  const displayValue = apiKey.maskedKey || apiKey.id || '—'
+  const environmentLabel = environmentName(apiKey.environment)
 
   const handleCopy = async () => {
     if (!apiKey.id)

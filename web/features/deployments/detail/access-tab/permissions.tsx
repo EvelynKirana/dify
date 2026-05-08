@@ -95,15 +95,19 @@ type SelectableAccessSubject = AccessSubjectDisplay & {
   subjectType: string
 }
 
+type AccessPolicyOptionWithSubjects = NonNullable<AccessPolicyDetail['options']>[number] & {
+  groups?: AccessSubjectDisplay[]
+  members?: AccessSubjectDisplay[]
+}
+
 function normalizeSubject(subject: AccessSubjectDisplay): SelectableAccessSubject | undefined {
-  const id = subject.id ?? subject.subjectId
+  const id = subject.id
   if (!id || !subject.subjectType)
     return undefined
 
   return {
     ...subject,
     id,
-    subjectId: subject.subjectId ?? id,
     subjectType: subject.subjectType,
   }
 }
@@ -125,8 +129,10 @@ function selectedSubjectsFromPolicy(policy?: AccessPolicyDetail) {
       .map(normalizeSubject)
       .filter((subject): subject is SelectableAccessSubject => Boolean(subject))
   }
-  const selectedOption = policy?.options?.find(option => option.selected)
+  const selectedOption = (
+    policy?.options?.find(option => option.selected)
     ?? policy?.options?.find(option => option.mode === policy?.accessMode)
+  ) as AccessPolicyOptionWithSubjects | undefined
   return [
     ...(selectedOption?.groups ?? []),
     ...(selectedOption?.members ?? []),

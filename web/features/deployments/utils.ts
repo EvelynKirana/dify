@@ -5,6 +5,7 @@ import type {
   EnvironmentDeploymentRow,
   EnvironmentOption,
   ListDeploymentEnvironmentOptionsReply,
+  ReleaseHistoryRow,
   RuntimeBindingDisplay,
 } from './types'
 import { PUBLIC_API_PREFIX } from '@/config'
@@ -30,8 +31,18 @@ export function environmentMode(environment?: ConsoleEnvironmentSummary | Enviro
   return type.includes('isolated') ? 'isolated' : 'shared'
 }
 
-export function environmentBackend(environment?: ConsoleEnvironmentSummary) {
-  const runtime = (environment?.backend || environment?.runtime)?.toLowerCase() ?? ''
+function environmentRuntimeName(environment?: ConsoleEnvironmentSummary | EnvironmentOption) {
+  if (!environment)
+    return ''
+  if ('backend' in environment && environment.backend)
+    return environment.backend
+  if ('runtime' in environment && environment.runtime)
+    return environment.runtime
+  return ''
+}
+
+export function environmentBackend(environment?: ConsoleEnvironmentSummary | EnvironmentOption) {
+  const runtime = environmentRuntimeName(environment).toLowerCase()
   return runtime.includes('host') ? 'host' : 'k8s'
 }
 
@@ -40,16 +51,16 @@ export function environmentHealth(environment?: ConsoleEnvironmentSummary | Envi
   return status.includes('ready') ? 'ready' : 'degraded'
 }
 
-export function releaseLabel(release?: ConsoleReleaseSummary) {
-  return release?.name || release?.displayId || release?.id || '—'
+export function releaseLabel(release?: ConsoleReleaseSummary | ReleaseHistoryRow) {
+  return release?.name || release?.id || '—'
 }
 
-export function releaseCommit(release?: ConsoleReleaseSummary) {
-  return release?.shortCommitId || release?.commitId || '—'
+export function releaseCommit(release?: ConsoleReleaseSummary | ReleaseHistoryRow) {
+  return release && 'shortCommitId' in release ? release.shortCommitId || '—' : '—'
 }
 
 export function runtimeBindingSummary(binding?: RuntimeBindingDisplay) {
-  return binding?.label || binding?.slot || binding?.displayName || binding?.displayValue || binding?.maskedValue || binding?.kind || '—'
+  return binding?.label || binding?.displayValue || binding?.kind || '—'
 }
 
 export function isRuntimeEnvVarBinding(binding?: RuntimeBindingDisplay) {

@@ -102,19 +102,19 @@ export function DeploymentPanel({ row }: {
               <div className="grid grid-cols-1 gap-2 md:grid-cols-2">
                 {modelCredentials.map(c => (
                   <RuntimeBindingItem
-                    key={`${c.kind}-${c.slot}-${c.label}-${c.displayName}-${c.displayValue}-${c.maskedValue}`}
+                    key={`${c.kind}-${c.label}-${c.displayValue}`}
                     binding={c}
                   />
                 ))}
                 {pluginCredentials.map(c => (
                   <RuntimeBindingItem
-                    key={`${c.kind}-${c.slot}-${c.label}-${c.displayName}-${c.displayValue}-${c.maskedValue}`}
+                    key={`${c.kind}-${c.label}-${c.displayValue}`}
                     binding={c}
                   />
                 ))}
                 {envVars.map(v => (
                   <RuntimeBindingItem
-                    key={`${v.kind}-${v.slot}-${v.label}-${v.displayName}-${v.displayValue}`}
+                    key={`${v.kind}-${v.label}-${v.displayValue}`}
                     binding={v}
                   />
                 ))}

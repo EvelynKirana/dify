@@ -1,7 +1,5 @@
 import type * as EnterpriseContract from '@dify/contracts/enterprise/types.gen'
 
-type Timestamp = string
-
 export type EnvironmentMode = 'shared' | 'isolated'
 export type EnvironmentHealth = 'ready' | 'degraded'
 
@@ -9,104 +7,21 @@ export type DeployStatus = 'ready' | 'deploying' | 'deploy_failed'
 
 export type AccessPermissionKind = 'organization' | 'specific' | 'anyone'
 
-export type ConsoleEnvironmentSummary = EnterpriseContract.ConsoleEnvironment & {
-  backend?: string
-  description?: string
-  tags?: string[]
-}
-
-export type ConsoleReleaseSummary = EnterpriseContract.ConsoleRelease & {
-  commitId?: string
-  description?: string
-  displayId?: string
-  status?: string
-}
-
-type ConsoleUser = EnterpriseContract.ConsoleUser & {
-  displayName?: string
-}
-
-export type RuntimeBindingDisplay = EnterpriseContract.ReleaseRuntimeBinding & {
-  displayName?: string
-  maskedValue?: string
-  slot?: string
-}
-
-type RuntimeInstanceDetail = Omit<EnterpriseContract.RuntimeInstanceDetail, 'bindings'> & {
-  bindings?: RuntimeBindingDisplay[]
-}
-
-export type EnvironmentDeploymentRow = Omit<EnterpriseContract.RuntimeInstanceRow, 'currentRelease' | 'detail' | 'environment'> & {
-  currentRelease?: ConsoleReleaseSummary
-  detail?: RuntimeInstanceDetail
-  environment?: ConsoleEnvironmentSummary
-}
-
-type DeploymentEnvironmentOption = EnterpriseContract.DeploymentEnvironmentOption & {
-  description?: string
-  runtime?: string
-  tags?: string[]
-}
-
-export type ListDeploymentEnvironmentOptionsReply = Omit<EnterpriseContract.ListDeploymentEnvironmentOptionsReply, 'environments'> & {
-  environments?: DeploymentEnvironmentOption[]
-}
-
-export type EnvironmentOption = DeploymentEnvironmentOption & {
+export type ConsoleEnvironmentSummary = EnterpriseContract.ConsoleEnvironment
+export type ConsoleReleaseSummary = EnterpriseContract.ConsoleRelease
+export type RuntimeBindingDisplay = EnterpriseContract.ReleaseRuntimeBinding
+export type EnvironmentDeploymentRow = EnterpriseContract.RuntimeInstanceRow
+export type ListDeploymentEnvironmentOptionsReply = EnterpriseContract.ListDeploymentEnvironmentOptionsReply
+export type EnvironmentOption = EnterpriseContract.DeploymentEnvironmentOption & {
   disabled?: boolean
 }
-
-export type DeployedToSummary = EnterpriseContract.DeployedEnvironment & {
-  instanceStatus?: string
-}
-
-export type ReleaseHistoryRow = Omit<EnterpriseContract.ReleaseRow, 'createdBy' | 'deployedTo'> & {
-  commitId?: string
-  createdBy?: ConsoleUser
-  deployedTo?: DeployedToSummary[]
-  description?: string
-  displayId?: string
-  release?: ConsoleReleaseSummary
-  shortCommitId?: string
-  status?: string
-}
-
-export type AccessPermission = Omit<EnterpriseContract.EnvironmentAccessRow, 'currentRelease' | 'environment'> & {
-  currentRelease?: ConsoleReleaseSummary
-  environment?: ConsoleEnvironmentSummary
-}
-
-export type WebAppAccessRow = Omit<EnterpriseContract.WebAppAccessRow, 'environment'> & {
-  environment?: ConsoleEnvironmentSummary
-}
-
-export type DeveloperAPIKeySummary = Omit<EnterpriseContract.DeveloperApiKeyRow, 'environment'> & {
-  createdAt?: Timestamp
-  environment?: ConsoleEnvironmentSummary
-  environmentId?: string
-  environmentName?: string
-  maskedPrefix?: string
-  token?: string
-}
-
-export type AccessSubjectDisplay = Omit<EnterpriseContract.AccessSubjectDisplay, 'memberCount'> & {
-  memberCount?: number | string
-  subjectId?: string
-}
-
-type AccessPolicyOption = EnterpriseContract.AccessModeOption & {
-  groups?: AccessSubjectDisplay[]
-  members?: AccessSubjectDisplay[]
-}
-
-export type AccessPolicyDetail = Omit<EnterpriseContract.AccessPolicyDetail, 'options' | 'subjects'> & {
-  enabled?: boolean
-  id?: string
-  options?: AccessPolicyOption[]
-  subjects?: AccessSubjectDisplay[]
-  version?: number
-}
-
+export type DeployedToSummary = EnterpriseContract.DeployedEnvironment
+export type ReleaseHistoryRow = EnterpriseContract.ReleaseRow
+export type AccessPermission = EnterpriseContract.EnvironmentAccessRow
+export type WebAppAccessRow = EnterpriseContract.WebAppAccessRow
+export type DeveloperAPIKeySummary = EnterpriseContract.DeveloperApiKeyRow
+export type AccessSubjectDisplay = EnterpriseContract.AccessSubjectDisplay
+export type AccessPolicyDetail = EnterpriseContract.AccessPolicyDetail
 export type AccessSubject = EnterpriseContract.AccessSubject
 
 export type GetAppInstanceSettingsReply = EnterpriseContract.GetAppInstanceSettingsReply
