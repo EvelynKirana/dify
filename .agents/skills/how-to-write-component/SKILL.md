@@ -5,9 +5,7 @@ description: React/TypeScript component style guide. Use when writing, refactori
 
 # How To Write A Component
 
-Follow existing project patterns first. Use these rules to resolve unclear component decisions:
-
-Do not copy existing code blindly. Existing implementations are reference material, not automatic precedent; when existing code conflicts with these rules, follow this skill and adapt the approach instead of reproducing the violation.
+Do not copy existing code patterns blindly. Existing implementations are reference material, not automatic precedent; when existing code conflicts with these rules, follow this skill and adapt the approach instead of reproducing the violation.
 
 ## Reuse Existing Implementations
 
