@@ -3,8 +3,9 @@
 import type { ReactNode } from 'react'
 import { cn } from '@langgenius/dify-ui/cn'
 import { toast } from '@langgenius/dify-ui/toast'
+import { useRef } from 'react'
 import { useTranslation } from 'react-i18next'
-import { useCopyFeedback } from './use-copy-feedback'
+import { useClipboard } from '@/hooks/use-clipboard'
 
 type SectionProps = {
   title: string
@@ -39,17 +40,20 @@ type CopyPillProps = {
 
 export function CopyPill({ label, value, prefix, className }: CopyPillProps) {
   const { t } = useTranslation('deployments')
-  const { copied, showCopied } = useCopyFeedback()
+  const copyFailedRef = useRef(false)
+  const { copied, copy } = useClipboard({
+    timeout: 1500,
+    onCopyError: () => {
+      copyFailedRef.current = true
+      toast.error(t('access.copyFailed'))
+    },
+  })
 
   const handleCopy = async () => {
-    try {
-      await navigator.clipboard.writeText(value)
-      showCopied()
+    copyFailedRef.current = false
+    await copy(value)
+    if (!copyFailedRef.current)
       toast.success(t('access.copyToast'))
-    }
-    catch {
-      toast.error(t('access.copyFailed'))
-    }
   }
 
   return (
