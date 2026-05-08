@@ -193,6 +193,11 @@ class ReplaceMemberBindings(_RBACModel):
     account_ids: list[str] = Field(default_factory=list)
 
 
+class ReplaceBindings(_RBACModel):
+    role_ids: list[str] = Field(default_factory=list)
+    account_ids: list[str] = Field(default_factory=list)
+
+
 class ListOption(_RBACModel):
     page_number: int | None = None
     results_per_page: int | None = None
@@ -526,6 +531,24 @@ class RBACService:
             )
             return MemberBindingsResponse.model_validate(data or {})
 
+        @staticmethod
+        def replace_bindings(
+            tenant_id: str,
+            account_id: str | None,
+            app_id: str,
+            policy_id: str,
+            payload: ReplaceBindings,
+        ) -> AccessMatrixItem:
+            data = _inner_call(
+                "PUT",
+                f"{_INNER_PREFIX}/apps/access-policy/bindings",
+                tenant_id=tenant_id,
+                account_id=account_id,
+                params={"app_id": app_id, "policy_id": policy_id},
+                json=payload.model_dump(mode="json"),
+            )
+            return AccessMatrixItem.model_validate(data or {})
+
     # ------------------------------------------------------------------
     # Per-dataset access (screenshot 1: Knowledge Base Access Config).
     # ------------------------------------------------------------------
@@ -608,6 +631,24 @@ class RBACService:
                 json=payload.model_dump(mode="json"),
             )
             return MemberBindingsResponse.model_validate(data or {})
+
+        @staticmethod
+        def replace_bindings(
+            tenant_id: str,
+            account_id: str | None,
+            dataset_id: str,
+            policy_id: str,
+            payload: ReplaceBindings,
+        ) -> AccessMatrixItem:
+            data = _inner_call(
+                "PUT",
+                f"{_INNER_PREFIX}/datasets/access-policy/bindings",
+                tenant_id=tenant_id,
+                account_id=account_id,
+                params={"dataset_id": dataset_id, "policy_id": policy_id},
+                json=payload.model_dump(mode="json"),
+            )
+            return AccessMatrixItem.model_validate(data or {})
 
     # ------------------------------------------------------------------
     # Workspace-level access (screenshot 2: Settings > Access Rules).
@@ -710,6 +751,23 @@ class RBACService:
             return MemberBindingsResponse.model_validate(data or {})
 
         @staticmethod
+        def replace_app_bindings(
+            tenant_id: str,
+            account_id: str | None,
+            policy_id: str,
+            payload: ReplaceBindings,
+        ) -> AccessMatrixItem:
+            data = _inner_call(
+                "PUT",
+                f"{_INNER_PREFIX}/workspace/apps/access-policy/bindings",
+                tenant_id=tenant_id,
+                account_id=account_id,
+                params={"policy_id": policy_id},
+                json=payload.model_dump(mode="json"),
+            )
+            return AccessMatrixItem.model_validate(data or {})
+
+        @staticmethod
         def list_dataset_role_bindings(
             tenant_id: str,
             account_id: str | None,
@@ -772,6 +830,23 @@ class RBACService:
                 json=payload.model_dump(mode="json"),
             )
             return MemberBindingsResponse.model_validate(data or {})
+
+        @staticmethod
+        def replace_dataset_bindings(
+            tenant_id: str,
+            account_id: str | None,
+            policy_id: str,
+            payload: ReplaceBindings,
+        ) -> AccessMatrixItem:
+            data = _inner_call(
+                "PUT",
+                f"{_INNER_PREFIX}/workspace/datasets/access-policy/bindings",
+                tenant_id=tenant_id,
+                account_id=account_id,
+                params={"policy_id": policy_id},
+                json=payload.model_dump(mode="json"),
+            )
+            return AccessMatrixItem.model_validate(data or {})
 
     # ------------------------------------------------------------------
     # Member ↔ role bindings (screenshot 3: Settings > Members > Assign roles).

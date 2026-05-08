@@ -191,27 +191,25 @@ class TestResourceAccess:
         assert call.params == {"app_id": "app-1"}
         assert out.app_id == "app-1"
 
-    def test_app_replace_role_bindings(self, mock_send: MagicMock):
+    def test_app_replace_bindings(self, mock_send: MagicMock):
         mock_send.return_value = {"data": []}
-        payload = svc.ReplaceRoleBindings(role_ids=["workspace.owner"])
-        svc.RBACService.AppAccess.replace_role_bindings("tenant-1", "acct-1", "app-1", "policy-1", payload)
+        payload = svc.ReplaceBindings(role_ids=["workspace.owner"], account_ids=["acct-2"])
+        svc.RBACService.AppAccess.replace_bindings("tenant-1", "acct-1", "app-1", "policy-1", payload)
         call = _call_args(mock_send)
         assert call.method == "PUT"
-        assert call.endpoint == "/rbac/apps/access-policy/role-bindings"
+        assert call.endpoint == "/rbac/apps/access-policy/bindings"
         assert call.params == {"app_id": "app-1", "policy_id": "policy-1"}
-        assert call.json == {"role_ids": ["workspace.owner"]}
+        assert call.json == {"role_ids": ["workspace.owner"], "account_ids": ["acct-2"]}
 
-    def test_dataset_replace_member_bindings(self, mock_send: MagicMock):
+    def test_dataset_replace_bindings(self, mock_send: MagicMock):
         mock_send.return_value = {"data": []}
-        payload = svc.ReplaceMemberBindings(account_ids=["acct-2"])
-        svc.RBACService.DatasetAccess.replace_member_bindings(
-            "tenant-1", "acct-1", "ds-1", "policy-1", payload
-        )
+        payload = svc.ReplaceBindings(role_ids=["workspace.editor"], account_ids=["acct-2"])
+        svc.RBACService.DatasetAccess.replace_bindings("tenant-1", "acct-1", "ds-1", "policy-1", payload)
         call = _call_args(mock_send)
         assert call.method == "PUT"
-        assert call.endpoint == "/rbac/datasets/access-policy/member-bindings"
+        assert call.endpoint == "/rbac/datasets/access-policy/bindings"
         assert call.params == {"dataset_id": "ds-1", "policy_id": "policy-1"}
-        assert call.json == {"account_ids": ["acct-2"]}
+        assert call.json == {"role_ids": ["workspace.editor"], "account_ids": ["acct-2"]}
 
 
 class TestWorkspaceAccess:
@@ -235,17 +233,29 @@ class TestWorkspaceAccess:
         assert call.endpoint == "/rbac/workspace/datasets/access-policy"
         assert call.params is None
 
-    def test_dataset_replace_role_bindings(self, mock_send: MagicMock):
+    def test_workspace_app_replace_bindings(self, mock_send: MagicMock):
         mock_send.return_value = {"data": []}
-        payload = svc.ReplaceRoleBindings(role_ids=["workspace.editor"])
-        svc.RBACService.WorkspaceAccess.replace_dataset_role_bindings(
+        payload = svc.ReplaceBindings(role_ids=["workspace.editor"], account_ids=["acct-2"])
+        svc.RBACService.WorkspaceAccess.replace_app_bindings(
             "tenant-1", "acct-1", "policy-1", payload
         )
         call = _call_args(mock_send)
         assert call.method == "PUT"
-        assert call.endpoint == "/rbac/workspace/datasets/access-policy/role-bindings"
+        assert call.endpoint == "/rbac/workspace/apps/access-policy/bindings"
         assert call.params == {"policy_id": "policy-1"}
-        assert call.json == {"role_ids": ["workspace.editor"]}
+        assert call.json == {"role_ids": ["workspace.editor"], "account_ids": ["acct-2"]}
+
+    def test_workspace_dataset_replace_bindings(self, mock_send: MagicMock):
+        mock_send.return_value = {"data": []}
+        payload = svc.ReplaceBindings(role_ids=["workspace.editor"], account_ids=["acct-2"])
+        svc.RBACService.WorkspaceAccess.replace_dataset_bindings(
+            "tenant-1", "acct-1", "policy-1", payload
+        )
+        call = _call_args(mock_send)
+        assert call.method == "PUT"
+        assert call.endpoint == "/rbac/workspace/datasets/access-policy/bindings"
+        assert call.params == {"policy_id": "policy-1"}
+        assert call.json == {"role_ids": ["workspace.editor"], "account_ids": ["acct-2"]}
 
 
 class TestMyPermissions:
