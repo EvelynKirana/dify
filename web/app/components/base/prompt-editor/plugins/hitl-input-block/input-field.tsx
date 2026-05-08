@@ -203,7 +203,6 @@ const InputField: React.FC<InputFieldProps> = ({
           <TypeSelector
             value={tempPayload.type}
             items={fieldTypeItems}
-            popupClassName="z-[1000000]"
             onSelect={handleTypeChange}
           />
         </div>
@@ -260,7 +259,6 @@ const InputField: React.FC<InputFieldProps> = ({
                     onChange={handleSelectOptionSourceSelectorChange}
                     readonly={false}
                     isJustShowValue
-                    zIndex={1000000}
                     filterVar={varPayload => varPayload.type === VarType.arrayString}
                   />
                   <TypeSwitch
