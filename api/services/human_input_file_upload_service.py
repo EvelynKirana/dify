@@ -8,7 +8,7 @@ from sqlalchemy import Engine, select
 from sqlalchemy.orm import Session, selectinload, sessionmaker
 
 from configs import dify_config
-from graphon.nodes.human_input.enums import HumanInputFormStatus
+from graphon.nodes.human_input.enums import HumanInputFormKind, HumanInputFormStatus
 from libs.datetime_utils import ensure_naive_utc, naive_utc_now
 from models.account import Account, Tenant
 from models.enums import CreatorUserRole
@@ -18,7 +18,7 @@ from models.human_input import (
     HumanInputFormUploadFile,
     HumanInputFormUploadToken,
 )
-from models.model import EndUser
+from models.model import App, EndUser
 from repositories.api_workflow_run_repository import APIWorkflowRunRepository
 from repositories.factory import DifyAPIRepositoryFactory
 from services.human_input_service import FormExpiredError, FormNotFoundError, FormSubmittedError
@@ -53,7 +53,8 @@ class HumanInputFileUploadService:
 
     Standalone HITL uploads must be owned by the original workflow/chatflow
     initiator so that resume-time file restoration continues to flow through the
-    normal file access checks.
+    normal file access checks. Delivery-test forms have no workflow run, so their
+    uploads are scoped to the app creator account inside the form tenant.
     """
 
     _session_maker: sessionmaker[Session]
@@ -152,6 +153,8 @@ class HumanInputFileUploadService:
         form_model: HumanInputForm,
     ) -> Account | EndUser:
         if form_model.workflow_run_id is None:
+            if form_model.form_kind == HumanInputFormKind.DELIVERY_TEST:
+                return self._resolve_delivery_test_upload_owner(session=session, form_model=form_model)
             raise InvalidUploadTokenError()
 
         workflow_run = self._workflow_run_repository.get_workflow_run_by_id(
@@ -190,6 +193,36 @@ class HumanInputFileUploadService:
         # HITL upload runs outside the normal account auth flow, so hydrate the
         # account tenant context explicitly before delegating to FileService.
         account.current_tenant = tenant
+        return account
+
+    def _resolve_delivery_test_upload_owner(
+        self,
+        *,
+        session: Session,
+        form_model: HumanInputForm,
+    ) -> Account:
+        app = session.scalar(
+            select(App)
+            .where(
+                App.id == form_model.app_id,
+                App.tenant_id == form_model.tenant_id,
+            )
+            .limit(1)
+        )
+        if app is None or app.created_by is None:
+            raise InvalidUploadTokenError()
+
+        account = session.scalar(select(Account).where(Account.id == app.created_by).limit(1))
+        if account is None:
+            raise InvalidUploadTokenError()
+
+        tenant = session.scalar(select(Tenant).where(Tenant.id == form_model.tenant_id).limit(1))
+        if tenant is None:
+            raise InvalidUploadTokenError()
+
+        account.current_tenant = tenant
+        if account.current_tenant_id != form_model.tenant_id:
+            raise InvalidUploadTokenError()
         return account
 
     @staticmethod
