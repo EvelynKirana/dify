@@ -1,6 +1,7 @@
 import type { ContractRouterClient } from '@orpc/contract'
 import type { JsonifiedClient } from '@orpc/openapi-client'
 import type { RouterUtils } from '@orpc/tanstack-query'
+import type { Tag } from '@/contract/console/tags'
 import { createORPCClient, onError } from '@orpc/client'
 import { OpenAPILink } from '@orpc/openapi-client/fetch'
 import { createTanstackQueryUtils } from '@orpc/tanstack-query'
@@ -90,9 +91,57 @@ const consoleLink = new OpenAPILink(consoleRouterContract, {
 })
 
 export const consoleClient: JsonifiedClient<ContractRouterClient<typeof consoleRouterContract>> = createORPCClient(consoleLink)
+
 export const consoleQuery: RouterUtils<typeof consoleClient> = createTanstackQueryUtils(consoleClient, {
   path: ['console'],
   experimental_defaults: {
+    tags: {
+      create: {
+        mutationOptions: {
+          onSuccess: (tag, _variables, _onMutateResult, context) => {
+            context.client.setQueryData(
+              consoleQuery.tags.list.queryKey({
+                input: {
+                  query: {
+                    type: tag.type,
+                  },
+                },
+              }),
+              (oldTags: Tag[] | undefined) => oldTags ? [tag, ...oldTags] : oldTags,
+            )
+          },
+        },
+      },
+      update: {
+        mutationOptions: {
+          onSuccess: (_data, variables, _onMutateResult, context) => {
+            context.client.setQueriesData(
+              {
+                queryKey: consoleQuery.tags.list.key({ type: 'query' }),
+              },
+              (oldTags: Tag[] | undefined) => oldTags?.map(tag => tag.id === variables.params.tagId
+                ? {
+                    ...tag,
+                    name: variables.body.name,
+                  }
+                : tag),
+            )
+          },
+        },
+      },
+      delete: {
+        mutationOptions: {
+          onSuccess: (_data, variables, _onMutateResult, context) => {
+            context.client.setQueriesData(
+              {
+                queryKey: consoleQuery.tags.list.key({ type: 'query' }),
+              },
+              (oldTags: Tag[] | undefined) => oldTags?.filter(tag => tag.id !== variables.params.tagId),
+            )
+          },
+        },
+      },
+    },
     enterprise: {
       appDeploy: {
         createAppInstance: {
