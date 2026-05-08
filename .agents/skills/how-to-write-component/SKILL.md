@@ -11,6 +11,14 @@ Do not copy existing code patterns blindly. Existing implementations are referen
 
 - Before creating new UI, hooks, helpers, or styling patterns, search for and reuse existing base components, feature components, shared hooks, utilities, and established design styles. Add new implementations only when the existing ones cannot express the required behavior cleanly.
 
+## Feature Verticals And Local Ownership
+
+- Group code by what it does, not by whether it is a component, hook, type, utility, or constant.
+- Keep code that changes together in the same feature vertical: UI pieces, feature hooks, local types, query helpers, state, constants, and small utilities should stay near the workflow that owns them.
+- Choose vertical boundaries from route, page, product workflow, or team ownership. Split a nested vertical only when it is reused across surfaces or has an independent lifecycle.
+- Expose a small public surface for each vertical. Avoid deep-importing another vertical's private components, hooks, local helpers, or component-specific utilities.
+- Promote code to shared only when multiple verticals need the same stable primitive. Otherwise, keep it local and compose existing shared primitives inside the owning component or feature.
+
 ## Component Declaration And Exports
 
 - Type component signatures directly; do not use `FC` or `React.FC`.
