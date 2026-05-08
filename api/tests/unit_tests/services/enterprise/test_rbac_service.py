@@ -93,6 +93,25 @@ class TestRoles:
         svc.RBACService.Roles.list("tenant-1")
         assert _call_args(mock_send).params is None
 
+    def test_list_coerces_null_permission_keys(self, mock_send: MagicMock):
+        mock_send.return_value = {
+            "data": [
+                {
+                    "id": "role-1",
+                    "tenant_id": "tenant-1",
+                    "type": "workspace",
+                    "category": "global_custom",
+                    "name": "Owner",
+                    "permission_keys": None,
+                }
+            ],
+            "pagination": None,
+        }
+
+        out = svc.RBACService.Roles.list("tenant-1")
+
+        assert out.data[0].permission_keys == []
+
     def test_get_passes_id_query_param(self, mock_send: MagicMock):
         mock_send.return_value = {"id": "role-1", "type": "workspace", "name": "Owner"}
         svc.RBACService.Roles.get("tenant-1", "acct-1", "role-1")
