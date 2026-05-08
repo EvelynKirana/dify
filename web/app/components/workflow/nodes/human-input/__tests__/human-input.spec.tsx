@@ -444,6 +444,56 @@ describe('DSL Import with Human Input Node', () => {
       expect(result.isValid).toBe(false)
     })
 
+    it('should validate that enabled email delivery methods have complete configuration', () => {
+      const t = (key: string) => key
+      const payload = {
+        ...humanInputDefault.defaultValue,
+        delivery_methods: [
+          {
+            id: 'dm-email',
+            type: DeliveryMethodType.Email,
+            enabled: true,
+          },
+        ],
+        user_actions: [
+          { id: 'approve', title: 'Approve', button_style: UserActionButtonType.Primary },
+        ],
+      } as HumanInputNodeType
+
+      const result = humanInputDefault.checkValid(payload, t)
+
+      expect(result.isValid).toBe(false)
+      expect(result.errorMessage).toBe('nodes.humanInput.errorMsg.emailConfigIncomplete')
+    })
+
+    it('should validate email delivery config fields before user actions', () => {
+      const t = (key: string) => key
+      const payload = {
+        ...humanInputDefault.defaultValue,
+        delivery_methods: [
+          {
+            id: 'dm-email',
+            type: DeliveryMethodType.Email,
+            enabled: true,
+            config: {
+              recipients: { whole_workspace: false, items: [] },
+              subject: 'Review request',
+              body: 'Please review {{#url#}}',
+              debug_mode: false,
+            },
+          },
+        ],
+        user_actions: [
+          { id: 'approve', title: 'Approve', button_style: UserActionButtonType.Primary },
+        ],
+      } as HumanInputNodeType
+
+      const result = humanInputDefault.checkValid(payload, t)
+
+      expect(result.isValid).toBe(false)
+      expect(result.errorMessage).toBe('nodes.humanInput.errorMsg.emailConfigIncomplete')
+    })
+
     it('should validate that user actions are required', () => {
       const t = (key: string) => key
       const payload = {
