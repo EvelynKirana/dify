@@ -83,7 +83,6 @@ from .system_variables import SystemVariableKey, get_system_text
 if TYPE_CHECKING:
     from core.tools.__base.tool import Tool
     from core.tools.entities.tool_entities import ToolInvokeMessage as CoreToolInvokeMessage
-    from graphon.file import File
     from graphon.nodes.llm.file_saver import LLMFileSaver
     from graphon.nodes.tool.entities import ToolNodeData
 
