@@ -17,7 +17,7 @@ Follow existing project patterns first. Use these rules to resolve unclear compo
 
 - Type simple one-off props inline. Use a named `Props` type only when reused, exported, complex, or clearer.
 - Use API-generated or API-returned types at component boundaries. Keep small UI conversion helpers beside the component that needs them.
-- Name values by their domain role and keep that name stable across the call chain, especially IDs such as `appInstanceId`. Normalize framework or route params at the boundary instead of passing aliased names through components.
+- Name values by their domain role and backend API contract, and keep that name stable across the call chain, especially IDs such as `appInstanceId`. Normalize framework or route params at the boundary instead of passing aliased names through components.
 - Keep fallback and invariant checks at the lowest component that already handles that state; callers should pass raw values through instead of duplicating checks.
 
 ## State, Queries, And Callbacks
