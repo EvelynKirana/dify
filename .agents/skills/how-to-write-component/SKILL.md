@@ -1,6 +1,6 @@
 ---
 name: how-to-write-component
-description: React/TypeScript component style guide. Use when writing, refactoring, or reviewing React components, especially around props typing, state boundaries, shared local state with Jotai atoms, API types, navigation, memoization, wrappers, and empty-state handling.
+description: React/TypeScript component style guide. Use when writing, refactoring, or reviewing React components, especially around props typing, state boundaries, shared local state with Jotai atoms, API types, query/mutation contracts, navigation, memoization, wrappers, and empty-state handling.
 ---
 
 # How To Write A Component
@@ -28,6 +28,42 @@ Follow existing project patterns first. Use these rules to resolve unclear compo
 - Keep callbacks in a parent only when the parent genuinely coordinates the workflow, such as form submission, shared selection state, cross-row batch behavior, or navigation after a child action.
 - For local UI state shared across siblings, distant children, or feature-local surfaces, use a colocated Jotai `atom`. Keep atoms feature-scoped and UI-owned; do not use them for server/cache state that belongs in query or API data flow.
 - Prefer uncontrolled components when DOM-owned state is enough. Expose style customization through CSS variables before adding controlled props only for visual changes.
+
+## Query And Mutation Contracts
+
+- Keep `web/contract/*` as the single source of truth for API shape.
+- Define contracts with `base.route({...}).output(type<...>())`.
+- Add `.input(type<...>())` only when the request has `params`, `query`, or `body`.
+- Keep contract input shaped as `{ params, query?, body? }`.
+- For no-input `GET` routes, omit `.input(...)`; do not use `.input(type<unknown>())`.
+- Use `{paramName}` in route paths and match the same name in `params`.
+- Register contracts in `web/contract/router.ts` by API prefix.
+- Import contract modules directly from their domain files; do not add barrel files.
+- Consume contract queries directly with `useQuery(consoleQuery.xxx.queryOptions(...))` or `useQuery(marketplaceQuery.xxx.queryOptions(...))`.
+- Avoid wrapping `useQuery` and contract `queryOptions()` in pass-through hooks, such as `useAccessEnvironmentScope`.
+- If three or more call sites share the same extra query options, extract a small `queryOptions` helper instead of a `use-*` hook.
+- Keep feature hooks only when they orchestrate multiple operations, own workflow state, expose shared domain behavior, or normalize a feature-specific API.
+- Treat `web/service/use-*` query and mutation wrappers as legacy migration targets.
+- Do not create new thin `web/service/use-*` wrappers for oRPC contract calls.
+- Inline existing wrappers when they only rename a single `queryOptions()` or `mutationOptions()` call.
+- Avoid wrapper signatures such as `options?: Partial<UseQueryOptions>` because they degrade inference.
+- Do not split `queryKey` and `queryFn` when oRPC `queryOptions()` already fits the use case.
+- For missing required query input, pass `input: skipToken`.
+- Use `enabled` only for extra business gating after the query input is already valid.
+- Consume mutations with `useMutation(consoleQuery.xxx.mutationOptions(...))` or `useMutation(marketplaceQuery.xxx.mutationOptions(...))`.
+- For heavily custom mutation flows, use oRPC clients as `mutationFn` instead of handwritten non-oRPC request logic.
+- Put shared stale time, cache writes, and invalidation in `createTanstackQueryUtils(...experimental_defaults...)` when behavior belongs to a contract operation.
+- Keep operation defaults in `web/service/client.ts` when they need sibling oRPC key builders.
+- Keep multi-operation workflow orchestration in feature vertical hooks.
+- Components may add UI feedback callbacks, but should not own shared cache invalidation decisions.
+- Use `.key()` for namespace invalidation, refetch, and cancel patterns.
+- Use `.queryKey(...)` for exact cache reads and writes.
+- Use `.mutationKey(...)` for mutation defaults, mutation-status filtering, and devtools grouping.
+- Invalidate with `queryClient.invalidateQueries(...)` in mutation `onSuccess`.
+- Do not use deprecated `useInvalid` from `use-base.ts`.
+- Prefer `mutate(...)` by default.
+- Use `mutateAsync(...)` only when Promise semantics are required, such as sequential or parallel mutation flows.
+- Wrap every `await mutateAsync(...)` in `try/catch`.
 
 ## Component Boundaries
 
