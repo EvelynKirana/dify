@@ -14,8 +14,8 @@ import { RollbackModal } from '../components/rollback-modal'
 import { DeploymentSidebar } from './deployment-sidebar'
 import { isInstanceDetailTabKey } from './tabs'
 
-export function InstanceDetail({ instanceId, children }: {
-  instanceId: string
+export function InstanceDetail({ appInstanceId, children }: {
+  appInstanceId: string
   children: ReactNode
 }) {
   const { t } = useTranslation('deployments')
@@ -24,16 +24,16 @@ export function InstanceDetail({ instanceId, children }: {
   const activeTab: InstanceDetailTabKey = isInstanceDetailTabKey(selectedTab) ? selectedTab : 'overview'
   const overviewQuery = useQuery(consoleQuery.enterprise.appDeploy.getAppInstanceOverview.queryOptions({
     input: {
-      params: { appInstanceId: instanceId },
+      params: { appInstanceId },
     },
   }))
 
   useDocumentTitle(t('documentTitle.detail'))
 
   const app = overviewQuery.data?.instance
-  const appId = app?.id
+  const resolvedAppInstanceId = app?.id
 
-  if (!appId && overviewQuery.isLoading) {
+  if (!resolvedAppInstanceId && overviewQuery.isLoading) {
     return (
       <div className="flex h-full items-center justify-center bg-background-body">
         <span className="h-6 w-6 animate-spin rounded-full border-2 border-components-panel-border border-t-transparent" />
@@ -41,7 +41,7 @@ export function InstanceDetail({ instanceId, children }: {
     )
   }
 
-  if (!appId || !app) {
+  if (!resolvedAppInstanceId || !app) {
     return (
       <div className="flex h-full flex-col items-center justify-center gap-3 bg-background-body">
         <div className="title-xl-semi-bold text-text-primary">{t('detail.notFound')}</div>

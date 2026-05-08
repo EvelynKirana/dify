@@ -11,8 +11,8 @@ import { DEPLOYMENT_PAGE_SIZE } from '../data'
 import { deployedRows } from '../utils'
 import { ReleaseHistoryTable } from './versions-tab/release-history-table'
 
-function CreateReleaseControl({ appId, canCreateRelease }: {
-  appId: string
+function CreateReleaseControl({ appInstanceId, canCreateRelease }: {
+  appInstanceId: string
   canCreateRelease: boolean
 }) {
   const { t } = useTranslation('deployments')
@@ -32,7 +32,7 @@ function CreateReleaseControl({ appId, canCreateRelease }: {
     try {
       const response = await createRelease.mutateAsync({
         params: {
-          appInstanceId: appId,
+          appInstanceId,
         },
         body: {
           name: releaseName,
@@ -149,11 +149,11 @@ function CreateReleaseControl({ appId, canCreateRelease }: {
   )
 }
 
-export function VersionsTab({ instanceId: appId }: {
-  instanceId: string
+export function VersionsTab({ appInstanceId }: {
+  appInstanceId: string
 }) {
   const { t } = useTranslation('deployments')
-  const input = { params: { appInstanceId: appId } }
+  const input = { params: { appInstanceId } }
   const { data: overview } = useQuery(consoleQuery.enterprise.appDeploy.getAppInstanceOverview.queryOptions({
     input,
   }))
@@ -185,7 +185,7 @@ export function VersionsTab({ instanceId: appId }: {
             )
           </span>
         </div>
-        <CreateReleaseControl appId={appId} canCreateRelease={canCreateRelease} />
+        <CreateReleaseControl appInstanceId={appInstanceId} canCreateRelease={canCreateRelease} />
       </div>
 
       {!canCreateRelease && (
@@ -202,7 +202,7 @@ export function VersionsTab({ instanceId: appId }: {
           )
         : (
             <ReleaseHistoryTable
-              appId={appId}
+              appInstanceId={appInstanceId}
               releaseRows={releaseRows}
               deploymentRows={deploymentRows}
             />

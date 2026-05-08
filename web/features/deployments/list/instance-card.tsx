@@ -30,10 +30,10 @@ export function InstanceCard({ app }: {
   if (!app.id)
     return null
 
-  const appId = app.id
-  const appName = app.name ?? appId
+  const appInstanceId = app.id
+  const appName = app.name ?? appInstanceId
   const appMode = toAppMode(app.mode)
-  const detailHref = `/deployments/${appId}/overview`
+  const detailHref = `/deployments/${appInstanceId}/overview`
 
   const statusCount = (status: string) =>
     app.statuses?.find(item => item.status === status)?.count ?? 0
@@ -184,13 +184,13 @@ export function InstanceCard({ app }: {
           </div>
         </div>
       </Link>
-      <InstanceCardActions appId={appId} detailHref={detailHref} />
+      <InstanceCardActions appInstanceId={appInstanceId} detailHref={detailHref} />
     </div>
   )
 }
 
-function InstanceCardActions({ appId, detailHref }: {
-  appId: string
+function InstanceCardActions({ appInstanceId, detailHref }: {
+  appInstanceId: string
   detailHref: string
 }) {
   const { t } = useTranslation('deployments')
@@ -223,7 +223,7 @@ function InstanceCardActions({ appId, detailHref }: {
                 className="gap-2 px-3"
                 onClick={() => {
                   setMenuOpen(false)
-                  openDeployDrawer({ appInstanceId: appId })
+                  openDeployDrawer({ appInstanceId })
                 }}
               >
                 <span className="system-sm-regular text-text-secondary">{t('card.menu.deploy')}</span>

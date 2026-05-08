@@ -1,8 +1,8 @@
 import { AccessTab } from '@/features/deployments/detail/access-tab'
 
 export default async function InstanceDetailAccessPage({ params }: {
-  params: Promise<{ instanceId: string }>
+  params: Promise<{ appInstanceId: string }>
 }) {
-  const { instanceId } = await params
-  return <AccessTab instanceId={instanceId} />
+  const { appInstanceId } = await params
+  return <AccessTab appInstanceId={appInstanceId} />
 }

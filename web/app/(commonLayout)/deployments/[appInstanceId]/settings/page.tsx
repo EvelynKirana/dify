@@ -1,8 +1,8 @@
 import { SettingsTab } from '@/features/deployments/detail/settings-tab'
 
 export default async function InstanceDetailSettingsPage({ params }: {
-  params: Promise<{ instanceId: string }>
+  params: Promise<{ appInstanceId: string }>
 }) {
-  const { instanceId } = await params
-  return <SettingsTab instanceId={instanceId} />
+  const { appInstanceId } = await params
+  return <SettingsTab appInstanceId={appInstanceId} />
 }

@@ -15,8 +15,8 @@ import { getReleaseDeployments } from './release-deployments'
 
 const GRID_TEMPLATE = 'grid-cols-[minmax(0,0.9fr)_minmax(0,1fr)_minmax(0,0.8fr)_minmax(0,1.5fr)_96px]'
 
-export function ReleaseHistoryTable({ appId, releaseRows, deploymentRows }: {
-  appId: string
+export function ReleaseHistoryTable({ appInstanceId, releaseRows, deploymentRows }: {
+  appInstanceId: string
   releaseRows: ReleaseRow[]
   deploymentRows: RuntimeInstanceRow[]
 }) {
@@ -63,7 +63,7 @@ export function ReleaseHistoryTable({ appId, releaseRows, deploymentRows }: {
                   </div>
                 </div>
                 <div className="flex shrink-0 justify-end gap-1">
-                  <DeployReleaseMenu releaseId={release.id!} appInstanceId={appId} />
+                  <DeployReleaseMenu releaseId={release.id!} appInstanceId={appInstanceId} />
                 </div>
               </div>
               <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
@@ -114,7 +114,7 @@ export function ReleaseHistoryTable({ appId, releaseRows, deploymentRows }: {
                     ))}
               </div>
               <div className="flex justify-end gap-1">
-                <DeployReleaseMenu releaseId={release.id!} appInstanceId={appId} />
+                <DeployReleaseMenu releaseId={release.id!} appInstanceId={appInstanceId} />
               </div>
             </div>
           </div>

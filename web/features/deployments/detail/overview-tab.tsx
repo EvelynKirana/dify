@@ -88,27 +88,27 @@ function overviewDeploymentStatus(status?: string): 'deploying' | 'deploy_failed
   return 'ready'
 }
 
-function DeployFromOverviewButton({ appId }: {
-  appId: string
+function DeployFromOverviewButton({ appInstanceId }: {
+  appInstanceId: string
 }) {
   const { t } = useTranslation('deployments')
   const openDeployDrawer = useSetAtom(openDeployDrawerAtom)
 
   return (
-    <Button size="small" variant="primary" onClick={() => openDeployDrawer({ appInstanceId: appId })}>
+    <Button size="small" variant="primary" onClick={() => openDeployDrawer({ appInstanceId })}>
       {t('overview.deploy')}
     </Button>
   )
 }
 
-function BasicInfoSection({ appId }: {
-  appId: string
+function BasicInfoSection({ appInstanceId }: {
+  appInstanceId: string
 }) {
   const { t } = useTranslation('deployments')
   const { t: tCommon } = useTranslation()
   const { data: overview } = useQuery(consoleQuery.enterprise.appDeploy.getAppInstanceOverview.queryOptions({
     input: {
-      params: { appInstanceId: appId },
+      params: { appInstanceId },
     },
   }))
   const overviewApp = overview?.instance
@@ -131,11 +131,11 @@ function BasicInfoSection({ appId }: {
   )
 }
 
-function DeploymentStatusSection({ appId }: {
-  appId: string
+function DeploymentStatusSection({ appInstanceId }: {
+  appInstanceId: string
 }) {
   const { t } = useTranslation('deployments')
-  const input = { params: { appInstanceId: appId } }
+  const input = { params: { appInstanceId } }
   const { data: overview } = useQuery(consoleQuery.enterprise.appDeploy.getAppInstanceOverview.queryOptions({
     input,
   }))
@@ -160,7 +160,7 @@ function DeploymentStatusSection({ appId }: {
     <Section
       title={t('overview.deploymentStatus')}
       action={(
-        <Button nativeButton={false} size="small" variant="secondary" render={<Link href={`/deployments/${appId}/deploy`} />}>
+        <Button nativeButton={false} size="small" variant="secondary" render={<Link href={`/deployments/${appInstanceId}/deploy`} />}>
           {t('overview.viewDeployments')}
           <span className="i-ri-arrow-right-up-line h-3.5 w-3.5" />
         </Button>
@@ -178,7 +178,7 @@ function DeploymentStatusSection({ appId }: {
               {releaseRows.length === 0
                 ? canCreateRelease
                   ? (
-                      <Button nativeButton={false} size="small" variant="primary" render={<Link href={`/deployments/${appId}/versions`} />}>
+                      <Button nativeButton={false} size="small" variant="primary" render={<Link href={`/deployments/${appInstanceId}/versions`} />}>
                         {t('overview.createRelease')}
                       </Button>
                     )
@@ -188,7 +188,7 @@ function DeploymentStatusSection({ appId }: {
                       </Button>
                     )
                 : (
-                    <DeployFromOverviewButton appId={appId} />
+                    <DeployFromOverviewButton appInstanceId={appInstanceId} />
                   )}
             </div>
           )
@@ -214,11 +214,11 @@ function DeploymentStatusSection({ appId }: {
   )
 }
 
-function AccessStatusSection({ appId }: {
-  appId: string
+function AccessStatusSection({ appInstanceId }: {
+  appInstanceId: string
 }) {
   const { t } = useTranslation('deployments')
-  const input = { params: { appInstanceId: appId } }
+  const input = { params: { appInstanceId } }
   const { data: overview } = useQuery(consoleQuery.enterprise.appDeploy.getAppInstanceOverview.queryOptions({
     input,
   }))
@@ -234,7 +234,7 @@ function AccessStatusSection({ appId }: {
     <Section
       title={t('overview.accessStatus')}
       action={(
-        <Button nativeButton={false} size="small" variant="secondary" render={<Link href={`/deployments/${appId}/access`} />}>
+        <Button nativeButton={false} size="small" variant="secondary" render={<Link href={`/deployments/${appInstanceId}/access`} />}>
           {t('overview.configureAccess')}
           <span className="i-ri-arrow-right-up-line h-3.5 w-3.5" />
         </Button>
@@ -266,14 +266,14 @@ function AccessStatusSection({ appId }: {
   )
 }
 
-export function OverviewTab({ instanceId: appId }: {
-  instanceId: string
+export function OverviewTab({ appInstanceId }: {
+  appInstanceId: string
 }) {
   return (
     <div className="flex w-full max-w-[960px] flex-col gap-5 p-6">
-      <BasicInfoSection appId={appId} />
-      <DeploymentStatusSection appId={appId} />
-      <AccessStatusSection appId={appId} />
+      <BasicInfoSection appInstanceId={appInstanceId} />
+      <DeploymentStatusSection appInstanceId={appInstanceId} />
+      <AccessStatusSection appInstanceId={appInstanceId} />
     </div>
   )
 }

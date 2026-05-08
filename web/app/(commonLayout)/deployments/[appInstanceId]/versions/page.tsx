@@ -1,8 +1,8 @@
 import { VersionsTab } from '@/features/deployments/detail/versions-tab'
 
 export default async function InstanceDetailVersionsPage({ params }: {
-  params: Promise<{ instanceId: string }>
+  params: Promise<{ appInstanceId: string }>
 }) {
-  const { instanceId } = await params
-  return <VersionsTab instanceId={instanceId} />
+  const { appInstanceId } = await params
+  return <VersionsTab appInstanceId={appInstanceId} />
 }

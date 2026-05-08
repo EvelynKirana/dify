@@ -18,8 +18,8 @@ import { createdDeveloperApiTokenAtom } from '../../store'
 import { environmentName } from '../../utils'
 import { useCopyFeedback } from './use-copy-feedback'
 
-function ApiKeyRow({ appId, apiKey }: {
-  appId: string
+function ApiKeyRow({ appInstanceId, apiKey }: {
+  appInstanceId: string
   apiKey: DeveloperApiKeyRow
 }) {
   const { t } = useTranslation('deployments')
@@ -31,7 +31,7 @@ function ApiKeyRow({ appId, apiKey }: {
   async function revealApiKey(apiKeyId: string) {
     const response = await consoleClient.enterprise.appDeploy.revealDeveloperApiKey({
       params: {
-        appInstanceId: appId,
+        appInstanceId,
         apiKeyId,
       },
     })
@@ -46,7 +46,7 @@ function ApiKeyRow({ appId, apiKey }: {
 
     revokeApiKey.mutate({
       params: {
-        appInstanceId: appId,
+        appInstanceId,
         apiKeyId: apiKey.id,
       },
     })
@@ -100,8 +100,8 @@ function ApiKeyRow({ appId, apiKey }: {
   )
 }
 
-export function ApiKeyList({ appId, apiKeys }: {
-  appId: string
+export function ApiKeyList({ appInstanceId, apiKeys }: {
+  appInstanceId: string
   apiKeys: DeveloperApiKeyRow[]
 }) {
   return (
@@ -109,7 +109,7 @@ export function ApiKeyList({ appId, apiKeys }: {
       {apiKeys.map(apiKey => (
         <ApiKeyRow
           key={apiKey.id}
-          appId={appId}
+          appInstanceId={appInstanceId}
           apiKey={apiKey}
         />
       ))}
@@ -117,8 +117,8 @@ export function ApiKeyList({ appId, apiKeys }: {
   )
 }
 
-export function ApiKeyGenerateMenu({ appId, environments, apiKeys }: {
-  appId: string
+export function ApiKeyGenerateMenu({ appInstanceId, environments, apiKeys }: {
+  appInstanceId: string
   environments: ConsoleEnvironment[]
   apiKeys: DeveloperApiKeyRow[]
 }) {
@@ -142,7 +142,7 @@ export function ApiKeyGenerateMenu({ appId, environments, apiKeys }: {
     generateApiKey.mutate(
       {
         params: {
-          appInstanceId: appId,
+          appInstanceId,
         },
         body: {
           environmentId,
@@ -152,7 +152,7 @@ export function ApiKeyGenerateMenu({ appId, environments, apiKeys }: {
       {
         onSuccess: (response) => {
           if (response.token)
-            setCreatedApiToken({ appId, token: response.token })
+            setCreatedApiToken({ appInstanceId, token: response.token })
         },
       },
     )

@@ -171,14 +171,14 @@ function SubjectPill({ subject, disabled, onRemove }: {
 }
 
 type SubjectPickerProps = {
-  appId: string
+  appInstanceId: string
   disabled?: boolean
   selectedSubjects: SelectableAccessSubject[]
   onChange: (subjects: SelectableAccessSubject[]) => void
 }
 
 function SubjectPicker({
-  appId,
+  appInstanceId,
   disabled,
   selectedSubjects,
   onChange,
@@ -191,7 +191,7 @@ function SubjectPicker({
   const subjectsQuery = useQuery(consoleQuery.enterprise.appDeploy.searchAccessSubjects.queryOptions({
     input: open
       ? {
-          params: { appInstanceId: appId },
+          params: { appInstanceId },
           query: {
             keyword: debouncedKeyword.trim() || undefined,
             subjectTypes: ['account', 'group'],
@@ -292,13 +292,13 @@ function SubjectPicker({
 }
 
 type EnvironmentPermissionRowProps = {
-  appId: string
+  appInstanceId: string
   environment: ConsoleEnvironment
   summaryPolicy?: EnvironmentAccessRow
 }
 
 export function EnvironmentPermissionRow({
-  appId,
+  appInstanceId,
   environment,
   summaryPolicy,
 }: EnvironmentPermissionRowProps) {
@@ -309,7 +309,7 @@ export function EnvironmentPermissionRow({
     input: environmentId
       ? {
           params: {
-            appInstanceId: appId,
+            appInstanceId,
             environmentId,
           },
         }
@@ -345,7 +345,7 @@ export function EnvironmentPermissionRow({
     try {
       await setEnvironmentAccessPolicy.mutateAsync({
         params: {
-          appInstanceId: appId,
+          appInstanceId,
           environmentId,
         },
         body: {
@@ -403,7 +403,7 @@ export function EnvironmentPermissionRow({
         <div className="flex flex-col gap-2 pl-0 sm:pl-[152px]">
           <div className="flex flex-wrap items-center gap-2">
             <SubjectPicker
-              appId={appId}
+              appInstanceId={appInstanceId}
               selectedSubjects={subjects}
               disabled={isSaving || policyQuery.isLoading}
               onChange={handleSubjectsChange}

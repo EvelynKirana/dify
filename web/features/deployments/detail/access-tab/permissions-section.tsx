@@ -6,14 +6,14 @@ import { EnvironmentPermissionRow } from './permissions'
 import { useAccessEnvironmentScope } from './use-access-environment-scope'
 
 type AccessPermissionsSectionProps = {
-  appId: string
+  appInstanceId: string
 }
 
 export function AccessPermissionsSection({
-  appId,
+  appInstanceId,
 }: AccessPermissionsSectionProps) {
   const { t } = useTranslation('deployments')
-  const { environments, policies } = useAccessEnvironmentScope(appId)
+  const { environments, policies } = useAccessEnvironmentScope(appInstanceId)
 
   return (
     <Section
@@ -33,7 +33,7 @@ export function AccessPermissionsSection({
                 return (
                   <EnvironmentPermissionRow
                     key={env.id}
-                    appId={appId}
+                    appInstanceId={appInstanceId}
                     environment={env}
                     summaryPolicy={policy}
                   />

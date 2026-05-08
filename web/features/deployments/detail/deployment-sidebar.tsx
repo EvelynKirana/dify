@@ -114,8 +114,8 @@ export function DeploymentSidebar({
   const isMobile = media === MediaType.mobile
   const { sidebarMode, toggleSidebarMode } = useDeploymentSidebarMode(isMobile)
   const expand = sidebarMode === 'expand'
-  const instanceId = app.id ?? ''
-  const instanceName = app.name ?? instanceId
+  const appInstanceId = app.id ?? ''
+  const instanceName = app.name ?? appInstanceId
   const appModeLabel = getAppModeLabel(toAppMode(app.mode), tCommon)
 
   useKeyPress(`${getKeyboardKeyCodeBySystem('ctrl')}.b`, (e) => {
@@ -199,7 +199,7 @@ export function DeploymentSidebar({
             mode={sidebarMode}
             iconMap={{ selected: tab.selectedIcon, normal: tab.icon }}
             name={t(`tabs.${tab.key}.name`)}
-            href={`/deployments/${instanceId}/${tab.key}`}
+            href={`/deployments/${appInstanceId}/${tab.key}`}
           />
         ))}
       </nav>

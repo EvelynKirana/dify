@@ -14,7 +14,7 @@ type OpenRollbackParams = {
 }
 
 type CreatedDeveloperApiToken = {
-  appId: string
+  appInstanceId: string
   token: string
 }
 

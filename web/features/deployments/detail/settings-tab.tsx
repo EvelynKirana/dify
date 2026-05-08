@@ -39,12 +39,12 @@ function DeleteInstanceButton({
   const deleteInstance = useMutation(consoleQuery.enterprise.appDeploy.deleteAppInstance.mutationOptions())
   const [isDeleting, setIsDeleting] = useState(false)
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
-  const appId = app.id
-  const appName = app.name ?? appId ?? ''
+  const appInstanceId = app.id
+  const appName = app.name ?? appInstanceId ?? ''
   const canDelete = !hasDeployments && Boolean(settings) && settings?.deleteGuard?.canDelete !== false
 
   const handleDelete = () => {
-    if (!appId)
+    if (!appInstanceId)
       return
 
     void (async () => {
@@ -52,7 +52,7 @@ function DeleteInstanceButton({
       try {
         await deleteInstance.mutateAsync({
           params: {
-            appInstanceId: appId,
+            appInstanceId,
           },
         })
         toast.success(t('settings.deleted'))
@@ -144,15 +144,15 @@ function SettingsForm({ app, settings }: SettingsFormProps) {
   const canSave = Boolean(name.trim() && (name !== initialName || description !== initialDescription) && !isSaving)
 
   const handleSave = () => {
-    const appId = app.id
-    if (!canSave || !appId)
+    const appInstanceId = app.id
+    if (!canSave || !appInstanceId)
       return
     void (async () => {
       setIsSaving(true)
       try {
         await updateInstance.mutateAsync({
           params: {
-            appInstanceId: appId,
+            appInstanceId,
           },
           body: {
             name: name.trim(),
@@ -216,10 +216,10 @@ function SettingsForm({ app, settings }: SettingsFormProps) {
   )
 }
 
-function SettingsFormSection({ appId }: {
-  appId: string
+function SettingsFormSection({ appInstanceId }: {
+  appInstanceId: string
 }) {
-  const appInput = { params: { appInstanceId: appId } }
+  const appInput = { params: { appInstanceId } }
   const { data: overview } = useQuery(consoleQuery.enterprise.appDeploy.getAppInstanceOverview.queryOptions({
     input: appInput,
   }))
@@ -243,10 +243,10 @@ function SettingsFormSection({ appId }: {
   )
 }
 
-function DeleteInstanceControlSection({ appId }: {
-  appId: string
+function DeleteInstanceControlSection({ appInstanceId }: {
+  appInstanceId: string
 }) {
-  const appInput = { params: { appInstanceId: appId } }
+  const appInput = { params: { appInstanceId } }
   const { data: overview } = useQuery(consoleQuery.enterprise.appDeploy.getAppInstanceOverview.queryOptions({
     input: appInput,
   }))
@@ -272,13 +272,13 @@ function DeleteInstanceControlSection({ appId }: {
   )
 }
 
-export function SettingsTab({ instanceId: appId }: {
-  instanceId: string
+export function SettingsTab({ appInstanceId }: {
+  appInstanceId: string
 }) {
   return (
     <div className="flex max-w-[640px] flex-col gap-5 p-6">
-      <SettingsFormSection appId={appId} />
-      <DeleteInstanceControlSection appId={appId} />
+      <SettingsFormSection appInstanceId={appInstanceId} />
+      <DeleteInstanceControlSection appInstanceId={appInstanceId} />
     </div>
   )
 }

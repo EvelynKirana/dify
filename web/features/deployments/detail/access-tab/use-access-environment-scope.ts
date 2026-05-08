@@ -16,8 +16,8 @@ function uniqueEnvironments(environments: (ConsoleEnvironment | undefined)[]) {
   })
 }
 
-export function useAccessEnvironmentScope(appId: string) {
-  const appInput = { params: { appInstanceId: appId } }
+export function useAccessEnvironmentScope(appInstanceId: string) {
+  const appInput = { params: { appInstanceId } }
   const { data: accessConfig } = useQuery(consoleQuery.enterprise.appDeploy.getAppInstanceAccess.queryOptions({
     input: appInput,
   }))

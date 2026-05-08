@@ -9,11 +9,11 @@ import { CopyPill, EndpointRow, Section } from './common'
 import { getUrlOrigin } from './url'
 
 type AccessChannelsSectionProps = {
-  appId: string
+  appInstanceId: string
 }
 
-function AccessChannelsSwitch({ appId, checked }: {
-  appId: string
+function AccessChannelsSwitch({ appInstanceId, checked }: {
+  appInstanceId: string
   checked: boolean
 }) {
   const toggleAccessChannel = useMutation(consoleQuery.enterprise.appDeploy.updateAccessChannels.mutationOptions())
@@ -23,7 +23,7 @@ function AccessChannelsSwitch({ appId, checked }: {
       checked={checked}
       onCheckedChange={(enabled) => {
         toggleAccessChannel.mutate({
-          params: { appInstanceId: appId },
+          params: { appInstanceId },
           body: { enabled },
         })
       }}
@@ -32,12 +32,12 @@ function AccessChannelsSwitch({ appId, checked }: {
 }
 
 export function AccessChannelsSection({
-  appId,
+  appInstanceId,
 }: AccessChannelsSectionProps) {
   const { t } = useTranslation('deployments')
   const { data: accessConfig } = useQuery(consoleQuery.enterprise.appDeploy.getAppInstanceAccess.queryOptions({
     input: {
-      params: { appInstanceId: appId },
+      params: { appInstanceId },
     },
   }))
   const runEnabled = accessConfig?.accessChannels?.enabled ?? false
@@ -51,7 +51,7 @@ export function AccessChannelsSection({
       description={t('access.channels.description')}
       action={(
         <AccessChannelsSwitch
-          appId={appId}
+          appInstanceId={appInstanceId}
           checked={runEnabled}
         />
       )}

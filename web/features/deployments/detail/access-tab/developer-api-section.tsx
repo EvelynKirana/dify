@@ -11,11 +11,11 @@ import { CopyPill, Section } from './common'
 import { useAccessEnvironmentScope } from './use-access-environment-scope'
 
 type DeveloperApiSectionProps = {
-  appId: string
+  appInstanceId: string
 }
 
-function DeveloperApiSwitch({ appId, checked }: {
-  appId: string
+function DeveloperApiSwitch({ appInstanceId, checked }: {
+  appInstanceId: string
   checked: boolean
 }) {
   const toggleDeveloperAPI = useMutation(consoleQuery.enterprise.appDeploy.updateDeveloperApi.mutationOptions())
@@ -25,7 +25,7 @@ function DeveloperApiSwitch({ appId, checked }: {
       checked={checked}
       onCheckedChange={(enabled) => {
         toggleDeveloperAPI.mutate({
-          params: { appInstanceId: appId },
+          params: { appInstanceId },
           body: { enabled },
         })
       }}
@@ -33,13 +33,13 @@ function DeveloperApiSwitch({ appId, checked }: {
   )
 }
 
-function CreatedApiTokenCard({ appId }: {
-  appId: string
+function CreatedApiTokenCard({ appInstanceId }: {
+  appInstanceId: string
 }) {
   const { t } = useTranslation('deployments')
   const createdApiToken = useAtomValue(createdDeveloperApiTokenAtom)
   const setCreatedApiToken = useSetAtom(createdDeveloperApiTokenAtom)
-  const visibleCreatedApiToken = createdApiToken?.appId === appId
+  const visibleCreatedApiToken = createdApiToken?.appInstanceId === appInstanceId
     ? createdApiToken.token
     : undefined
 
@@ -75,10 +75,10 @@ function CreatedApiTokenCard({ appId }: {
 }
 
 export function DeveloperApiSection({
-  appId,
+  appInstanceId,
 }: DeveloperApiSectionProps) {
   const { t } = useTranslation('deployments')
-  const { accessConfig, environments } = useAccessEnvironmentScope(appId)
+  const { accessConfig, environments } = useAccessEnvironmentScope(appInstanceId)
   const apiEnabled = accessConfig?.developerApi?.enabled ?? false
   const apiUrl = accessConfig?.developerApi?.apiUrl
   const apiKeys = accessConfig?.developerApi?.apiKeys ?? []
@@ -89,7 +89,7 @@ export function DeveloperApiSection({
       description={t('access.api.description')}
       action={(
         <DeveloperApiSwitch
-          appId={appId}
+          appInstanceId={appInstanceId}
           checked={apiEnabled}
         />
       )}
@@ -113,12 +113,12 @@ export function DeveloperApiSection({
                   </span>
                 </div>
                 <ApiKeyGenerateMenu
-                  appId={appId}
+                  appInstanceId={appInstanceId}
                   environments={environments}
                   apiKeys={apiKeys}
                 />
               </div>
-              <CreatedApiTokenCard appId={appId} />
+              <CreatedApiTokenCard appInstanceId={appInstanceId} />
               {apiKeys.length === 0
                 ? (
                     <div className="rounded-lg border border-dashed border-components-panel-border bg-components-panel-bg-blur px-4 py-6 text-center system-sm-regular text-text-tertiary">
@@ -129,7 +129,7 @@ export function DeveloperApiSection({
                   )
                 : (
                     <ApiKeyList
-                      appId={appId}
+                      appInstanceId={appInstanceId}
                       apiKeys={apiKeys}
                     />
                   )}

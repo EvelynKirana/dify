@@ -51,15 +51,15 @@ export function DeploymentsNav() {
   const router = useRouter()
   const selectedSegment = useSelectedLayoutSegment()
   const isActive = selectedSegment === 'deployments'
-  const params = useParams<{ instanceId?: string }>()
-  const instanceId = params?.instanceId
+  const params = useParams<{ appInstanceId?: string }>()
+  const appInstanceId = params?.appInstanceId
 
   const openCreateInstanceModal = useSetAtom(openCreateInstanceModalAtom)
   const { data: currentInstance } = useQuery(consoleQuery.enterprise.appDeploy.getAppInstanceOverview.queryOptions({
-    input: instanceId
-      ? { params: { appInstanceId: instanceId } }
+    input: appInstanceId
+      ? { params: { appInstanceId } }
       : skipToken,
-    enabled: isActive && Boolean(instanceId),
+    enabled: isActive && Boolean(appInstanceId),
     select: data => data.instance,
   }))
 
@@ -81,13 +81,13 @@ export function DeploymentsNav() {
       : appNavItems
     : []
 
-  const curNav = instanceId
-    ? navigationItems.find(item => item.id === instanceId)
+  const curNav = appInstanceId
+    ? navigationItems.find(item => item.id === appInstanceId)
     : undefined
 
   function handleCreate() {
     openCreateInstanceModal()
-    if (selectedSegment !== 'deployments' || instanceId)
+    if (selectedSegment !== 'deployments' || appInstanceId)
       router.push('/deployments')
   }
 

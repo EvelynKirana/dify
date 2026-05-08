@@ -81,8 +81,8 @@ function NewDeploymentMenu({ appInstanceId, availableEnvs }: {
   )
 }
 
-export function DeployTab({ instanceId: appInstanceId }: {
-  instanceId: string
+export function DeployTab({ appInstanceId }: {
+  appInstanceId: string
 }) {
   const { t } = useTranslation('deployments')
   const { data: environmentDeployments } = useQuery(consoleQuery.enterprise.appDeploy.listRuntimeInstances.queryOptions({

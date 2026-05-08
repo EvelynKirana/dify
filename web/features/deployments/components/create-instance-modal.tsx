@@ -47,7 +47,7 @@ type AppPickerProps = {
   apps: StudioSourceApp[]
   isLoading: boolean
   value: string
-  onChange: (appId: string) => void
+  onChange: (sourceAppId: string) => void
 }
 
 function AppPicker({ apps, isLoading, value, onChange }: AppPickerProps) {
@@ -225,10 +225,10 @@ function CreateInstanceForm() {
   }))
   const apps = (appList?.data ?? []).map(toStudioSourceAppInfo)
 
-  const [appId, setAppId] = useState<string>('')
+  const [sourceAppId, setSourceAppId] = useState<string>('')
 
-  const selectedApp = apps.find(a => a.id === appId)
-  const canCreate = Boolean(appId && !createInstance.isPending)
+  const selectedApp = apps.find(a => a.id === sourceAppId)
+  const canCreate = Boolean(sourceAppId && !createInstance.isPending)
 
   const handleCreate = async (form: HTMLFormElement) => {
     if (!canCreate)
@@ -243,7 +243,7 @@ function CreateInstanceForm() {
     try {
       const result = await createInstance.mutateAsync({
         body: {
-          sourceAppId: appId,
+          sourceAppId,
           name: name.trim(),
           description: description.trim() || undefined,
         },
@@ -280,8 +280,8 @@ function CreateInstanceForm() {
         <AppPicker
           apps={apps}
           isLoading={isLoading}
-          value={appId}
-          onChange={setAppId}
+          value={sourceAppId}
+          onChange={setSourceAppId}
         />
       </div>
 
