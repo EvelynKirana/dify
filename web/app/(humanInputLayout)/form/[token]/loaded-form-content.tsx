@@ -16,7 +16,7 @@ import DifyLogo from '@/app/components/base/logo/dify-logo'
 type LoadedFormContentProps = {
   formData: FormData
   isSubmitting: boolean
-  onSubmit: (inputs: Record<string, HumanInputFieldValue>, actionID: string) => void
+  onSubmit: (inputs: Record<string, HumanInputFieldValue>, actionID: string, formInputs: FormData['inputs']) => void
 }
 
 const LoadedFormContent = ({
@@ -40,7 +40,7 @@ const LoadedFormContent = ({
   }
 
   const submit = (actionID: string) => {
-    onSubmit(inputs, actionID)
+    onSubmit(inputs, actionID, formData.inputs)
   }
 
   const isActionDisabled = isSubmitting || hasInvalidRequiredHumanInput(formData.inputs, inputs)
