@@ -25,7 +25,7 @@
     "analyze": "next experimental-analyze",
     "analyze-component": "node ./scripts/analyze-component.js",
     "build": "next build",
-    "build:vinext": "vp build",
+    "build:vinext": "vinext build",
     "dev": "next dev",
     "dev:inspect": "next dev --inspect",
     "dev:proxy": "tsx ./scripts/dev-hono-proxy.ts",
