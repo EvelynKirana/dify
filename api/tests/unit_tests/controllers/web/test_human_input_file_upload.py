@@ -31,7 +31,7 @@ def _upload_context() -> SimpleNamespace:
     return SimpleNamespace(
         form_id="form-1",
         upload_token_id="token-row-1",
-        end_user=SimpleNamespace(id="end-user-1", tenant_id="tenant-1"),
+        owner=SimpleNamespace(id="owner-1", current_tenant_id="tenant-1"),
     )
 
 
@@ -90,7 +90,7 @@ def test_local_upload_ignores_source_and_records_form_file_link(monkeypatch: pyt
     assert result["id"] == "file-1"
     file_service.upload_file.assert_called_once()
     assert file_service.upload_file.call_args.kwargs["source"] is None
-    assert file_service.upload_file.call_args.kwargs["user"].id == "end-user-1"
+    assert file_service.upload_file.call_args.kwargs["user"].id == "owner-1"
     service.record_upload_file.assert_called_once_with(
         context=service.validate_upload_token.return_value,
         file_id="file-1",
@@ -115,9 +115,7 @@ def test_local_upload_missing_file_raises_after_valid_token(monkeypatch: pytest.
     service.validate_upload_token.assert_called_once_with("hitl_upload_token-1")
 
 
-def test_remote_upload_validates_token_before_fetching_remote_url(
-    monkeypatch: pytest.MonkeyPatch, app: Flask
-) -> None:
+def test_remote_upload_validates_token_before_fetching_remote_url(monkeypatch: pytest.MonkeyPatch, app: Flask) -> None:
     service = MagicMock()
     service.validate_upload_token.side_effect = InvalidUploadTokenForbiddenError()
     monkeypatch.setattr(upload_module, "HumanInputFileUploadService", lambda engine: service)
@@ -180,6 +178,7 @@ def test_remote_upload_records_form_file_link(monkeypatch: pytest.MonkeyPatch, a
     assert result["url"] == "signed:file-1"
     file_service.upload_file.assert_called_once()
     assert file_service.upload_file.call_args.kwargs["source_url"] == "https://example.com/file.txt"
+    assert file_service.upload_file.call_args.kwargs["user"].id == "owner-1"
     service.record_upload_file.assert_called_once_with(
         context=service.validate_upload_token.return_value,
         file_id="file-1",
