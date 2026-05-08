@@ -22,12 +22,11 @@ Follow existing project patterns first. Use these rules to resolve unclear compo
 
 ## State, Queries, And Callbacks
 
-- Keep local state, query state, handlers, mutations, and derived UI data at the lowest component that uses them. If no such component exists, extract a purpose-built component that owns that logic.
-- Avoid prop drilling. One pass-through layer is acceptable; two or more forwarding-only layers means ownership is in the wrong place.
-- For row-level actions, the row or a purpose-built row container should own the action; list/layout components should pass data and stable IDs, not callbacks they do not use.
-- Keep callbacks in a parent only when the parent genuinely coordinates the workflow, such as form submission, shared selection state, cross-row batch behavior, or navigation after a child action.
-- For local UI state shared across siblings, distant children, or feature-local surfaces, use a colocated Jotai `atom`. Keep atoms feature-scoped and UI-owned; do not use them for server/cache state that belongs in query or API data flow.
-- Prefer uncontrolled components when DOM-owned state is enough. Expose style customization through CSS variables before adding controlled props only for visual changes.
+- Keep local state, queries, mutations, handlers, and derived UI data at the lowest component that uses them. Extract a purpose-built owner component when the logic has no natural home.
+- Avoid prop drilling. One pass-through layer is acceptable; repeated forwarding means ownership should move down or into shared UI state.
+- Keep callbacks in a parent only when it coordinates workflow, such as form submission, shared selection, batch behavior, or navigation. Otherwise, let the child or row own its action.
+- Use colocated, feature-scoped Jotai `atom`s for UI state shared across siblings or distant children. Keep server/cache state in query or API data flow.
+- Prefer uncontrolled components for DOM-owned state. Use CSS variables for visual customization before adding controlled props.
 
 ## Query And Mutation Contracts
 
