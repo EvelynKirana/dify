@@ -146,7 +146,7 @@ const createConfig = (overrides: Partial<EmailConfig> = {}): EmailConfig => ({
 })
 
 const createFormInput = (overrides: Partial<FormInputItem> = {}): FormInputItem => ({
-  type: InputVarType.textInput,
+  type: InputVarType.paragraph,
   output_variable_name: 'user_name',
   default: {
     type: 'variable',
@@ -154,6 +154,16 @@ const createFormInput = (overrides: Partial<FormInputItem> = {}): FormInputItem 
     value: '',
   },
   ...overrides,
+})
+
+const createDynamicSelectInput = (): FormInputItem => ({
+  type: InputVarType.select,
+  output_variable_name: 'decision',
+  option_source: {
+    type: 'variable',
+    selector: ['start', 'choices'],
+    value: [],
+  },
 })
 
 describe('human-input/delivery-method/test-email-sender', () => {
@@ -241,6 +251,68 @@ describe('human-input/delivery-method/test-email-sender', () => {
     await user.click(screen.getByRole('button', { name: 'common.operation.ok' }))
 
     expect(handleOpenChange).toHaveBeenCalledWith(false)
+  })
+
+  it('should submit variables referenced by dynamic select option sources', async () => {
+    const user = userEvent.setup()
+    const { requests } = setupFetch()
+
+    renderWithProviders(
+      <EmailSenderModal
+        nodeId="human-node"
+        deliveryId="delivery-1"
+        open
+        onOpenChange={vi.fn()}
+        jumpToEmailConfigModal={vi.fn()}
+        config={createConfig({
+          body: '{{#url#}}',
+        })}
+        formInputs={[createDynamicSelectInput()]}
+        availableNodes={[
+          {
+            id: 'start',
+            type: 'custom',
+            position: { x: 0, y: 0 },
+            data: {
+              title: 'Start',
+              desc: '',
+              type: BlockEnum.Start,
+            },
+          },
+        ]}
+        nodesOutputVars={[
+          {
+            nodeId: 'start',
+            title: 'Start',
+            vars: [
+              {
+                variable: 'choices',
+                type: VarType.arrayString,
+              },
+            ],
+          },
+        ]}
+      />,
+    )
+
+    const sendButton = screen.getByRole('button', { name: 'workflow.nodes.humanInput.deliveryMethod.emailSender.send' })
+    expect(sendButton).toBeDisabled()
+
+    await user.type(screen.getByPlaceholderText('choices'), 'approve,reject')
+    expect(sendButton).toBeEnabled()
+
+    await user.click(sendButton)
+
+    await waitFor(() => expect(requests).toContainEqual(expect.objectContaining({
+      url: 'http://localhost:5001/console/api/apps/app-1/workflows/draft/human-input/nodes/human-node/delivery-test',
+      method: 'POST',
+      body: {
+        delivery_method_id: 'delivery-1',
+        inputs: {
+          '#start.choices#': 'approve,reject',
+        },
+      },
+    })))
   })
 
   it('should render fallback variable inputs and allow cancelling', async () => {

@@ -10,8 +10,7 @@ import { getProcessedHumanInputFormInputs } from '@/app/components/base/chat/cha
 import { fetchHumanInputNodeStepRunForm, submitHumanInputNodeStepRunForm } from '@/service/workflow'
 import { AppModeEnum } from '@/types/app'
 import useNodeCrud from '../../_base/hooks/use-node-crud'
-import { isParagraphFormInput } from '../types'
-import { isOutput } from '../utils'
+import { getHumanInputFormDependencySelectors, isOutput } from '../utils'
 
 const i18nPrefix = 'nodes.humanInput'
 
@@ -36,13 +35,9 @@ const useSingleRunFormParams = ({
   const [formData, setFormData] = useState<HumanInputFormData | null>(null)
   const [requiredInputs, setRequiredInputs] = useState<Record<string, string>>({})
   const generatedInputs = useMemo(() => {
-    const defaultInputs = inputs.inputs.reduce((acc, input) => {
-      if (isParagraphFormInput(input) && input.default.type === 'variable') {
-        acc.push(`{{#${input.default.selector.join('.')}#}}`)
-      }
-      return acc
-    }, [] as string[])
-    const allInputs = getInputVars([...defaultInputs, inputs.form_content || '']).filter(item => !isOutput(item.value_selector || []))
+    const formInputDependencyInputs = getHumanInputFormDependencySelectors(inputs.inputs)
+      .map(selector => `{{#${selector.join('.')}#}}`)
+    const allInputs = getInputVars([...formInputDependencyInputs, inputs.form_content || '']).filter(item => !isOutput(item.value_selector || []))
     return allInputs
   }, [getInputVars, inputs.form_content, inputs.inputs])
 

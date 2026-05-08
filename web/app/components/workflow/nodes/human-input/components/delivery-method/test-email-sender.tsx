@@ -2,7 +2,6 @@ import type { EmailConfig, FormInputItem } from '../../types'
 import type {
   Node,
   NodeOutPutVar,
-  ValueSelector,
   Var,
 } from '@/app/components/workflow/types'
 import { Button } from '@langgenius/dify-ui/button'
@@ -26,8 +25,7 @@ import { InputVarType, VarType } from '@/app/components/workflow/types'
 import { useAppContext } from '@/context/app-context'
 import { useMembers } from '@/service/use-common'
 import { useTestEmailSender } from '@/service/use-workflow'
-import { isParagraphFormInput } from '../../types'
-import { isOutput } from '../../utils'
+import { getHumanInputFormDependencySelectors, isOutput } from '../../utils'
 import EmailInput from './recipient/email-input'
 
 const i18nPrefix = 'nodes.humanInput'
@@ -97,14 +95,9 @@ const EmailSenderModal = ({
   const accounts = members?.accounts || []
 
   const generatedInputs = useMemo(() => {
-    const defaultValueSelectors = (formInputs || []).reduce((acc, input) => {
-      if (isParagraphFormInput(input) && input.default.type === 'variable') {
-        acc.push(input.default.selector)
-      }
-      return acc
-    }, [] as ValueSelector[])
+    const formInputDependencySelectors = getHumanInputFormDependencySelectors(formInputs || [])
     const valueSelectors = doGetInputVars((formContent || '') + (config?.body || ''))
-    const variables = unionBy([...valueSelectors, ...defaultValueSelectors], item => item.join('.')).map((item) => {
+    const variables = unionBy([...valueSelectors, ...formInputDependencySelectors], item => item.join('.')).map((item) => {
       const varInfo = getNodeInfoById(availableNodes, item[0]!)?.data
 
       return {
