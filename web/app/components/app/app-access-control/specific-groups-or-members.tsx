@@ -5,7 +5,7 @@ import { RiAlertFill, RiCloseCircleFill, RiLockLine, RiOrganizationChart } from 
 import { useCallback, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
 import { AccessMode } from '@/models/access-control'
-import { useAppWhiteListSubjects } from '@/service/access-control'
+import { useAppWhiteListSubjects } from '@/service/access-control/use-app-access-control'
 import useAccessControlStore from '../../../../context/access-control-store'
 import Loading from '../../base/loading'
 import Tooltip from '../../base/tooltip'

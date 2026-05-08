@@ -61,7 +61,7 @@ vi.mock('@/service/use-workflow', () => ({
   }),
 }))
 
-vi.mock('@/service/access-control', () => ({
+vi.mock('@/service/access-control/use-app-access-control', () => ({
   useAppWhiteListSubjects: () => ({
     data: mockAccessSubjects,
   }),

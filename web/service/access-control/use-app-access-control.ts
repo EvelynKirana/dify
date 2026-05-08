@@ -2,8 +2,8 @@ import type { AccessControlAccount, AccessControlGroup, AccessMode, Subject } fr
 import type { App } from '@/types/app'
 import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { systemFeaturesQueryOptions } from '@/service/system-features'
-import { get, post } from './base'
-import { getUserCanAccess } from './share'
+import { get, post } from '../base'
+import { getUserCanAccess } from '../share'
 
 const NAME_SPACE = 'access-control'
 
@@ -24,16 +24,25 @@ type SearchResults = {
   hasMore: boolean
 }
 
-export const useSearchForWhiteListCandidates = (query: { keyword?: string, groupId?: AccessControlGroup['id'], resultsPerPage?: number }, enabled: boolean) => {
+type SearchForWhiteListCandidatesQuery = {
+  keyword?: string
+  groupId?: AccessControlGroup['id']
+  resultsPerPage?: number
+}
+
+export const useSearchForWhiteListCandidates = (query: SearchForWhiteListCandidatesQuery, enabled: boolean) => {
+  const { keyword, groupId, resultsPerPage } = query
+
   return useInfiniteQuery({
-    queryKey: [NAME_SPACE, 'app-whitelist-candidates', query],
+    queryKey: [NAME_SPACE, 'app-whitelist-candidates', keyword, groupId, resultsPerPage],
     queryFn: ({ pageParam }) => {
       const params = new URLSearchParams()
-      Object.keys(query).forEach((key) => {
-        const typedKey = key as keyof typeof query
-        if (query[typedKey])
-          params.append(key, `${query[typedKey]}`)
-      })
+      if (keyword)
+        params.append('keyword', keyword)
+      if (groupId)
+        params.append('groupId', groupId)
+      if (resultsPerPage)
+        params.append('resultsPerPage', `${resultsPerPage}`)
       params.append('pageNumber', `${pageParam}`)
       return get<SearchResults>(`/enterprise/webapp/app/subject/search?${new URLSearchParams(params).toString()}`)
     },
