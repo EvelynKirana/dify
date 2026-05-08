@@ -74,12 +74,10 @@ Dify is an open-source LLM app development platform. Its intuitive interface com
 The easiest way to start the Dify server is through [Docker Compose](docker/docker-compose.yaml). Before running Dify with the following commands, make sure that [Docker](https://docs.docker.com/get-docker/) and [Docker Compose](https://docs.docker.com/compose/install/) are installed on your machine:
 
 ```bash
-cd dify
-cd docker
-./dify-compose up -d
+cd dify/docker
+cp .env.example .env
+docker compose up -d
 ```
-
-On Windows PowerShell, run `.\dify-compose.ps1 up -d` from the `docker` directory.
 
 After running, you can access the Dify dashboard in your browser at [http://localhost/install](http://localhost/install) and start the initialization process.
 
@@ -138,7 +136,7 @@ Star Dify on GitHub and be instantly notified of new releases.
 
 ### Custom configurations
 
-If you need to customize the configuration, add only the values you want to override to `docker/.env`. The default values live in [`docker/.env.default`](docker/.env.default), and the full reference remains in [`docker/.env.example`](docker/.env.example). After making any changes, re-run `./dify-compose up -d` or `.\dify-compose.ps1 up -d` from the `docker` directory. You can find the full list of available environment variables [here](https://docs.dify.ai/getting-started/install-self-hosted/environments).
+If you need to customize the configuration, please refer to the comments in our [.env.example](docker/.env.example) file and update the corresponding values in your `.env` file. Additionally, you might need to make adjustments to the `docker-compose.yaml` file itself, such as changing image versions, port mappings, or volume mounts, based on your specific deployment environment and requirements. After making any changes, please re-run `docker compose up -d`. You can find the full list of available environment variables [here](https://docs.dify.ai/getting-started/install-self-hosted/environments).
 
 ### Metrics Monitoring with Grafana
 
