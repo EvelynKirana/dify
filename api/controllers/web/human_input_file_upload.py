@@ -111,7 +111,7 @@ class HumanInputFileUploadApi(Resource):
                 filename=file.filename or "",
                 content=file.read(),
                 mimetype=file.mimetype,
-                user=context.end_user,
+                user=context.owner,
                 source=None,
             )
         except services.errors.file.FileTooLargeError as file_too_large_error:
@@ -157,7 +157,7 @@ class HumanInputRemoteFileUploadApi(Resource):
                 filename=file_info.filename,
                 content=content,
                 mimetype=file_info.mimetype,
-                user=context.end_user,
+                user=context.owner,
                 source_url=url,
             )
         except services.errors.file.FileTooLargeError as file_too_large_error:

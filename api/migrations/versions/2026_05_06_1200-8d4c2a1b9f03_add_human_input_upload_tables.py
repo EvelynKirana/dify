@@ -9,8 +9,7 @@ Create Date: 2026-05-06 12:00:00.000000
 import sqlalchemy as sa
 from alembic import op
 
-import models as models
-
+import models
 
 # revision identifiers, used by Alembic.
 revision = "8d4c2a1b9f03"
@@ -29,7 +28,6 @@ def upgrade():
         sa.Column("app_id", models.types.StringUUID(), nullable=False),
         sa.Column("form_id", models.types.StringUUID(), nullable=False),
         sa.Column("recipient_id", models.types.StringUUID(), nullable=False),
-        sa.Column("end_user_id", models.types.StringUUID(), nullable=False),
         sa.Column("token", sa.String(length=255), nullable=False),
         sa.PrimaryKeyConstraint("id", name="human_input_form_upload_tokens_pkey"),
         sa.UniqueConstraint("token", name="human_input_form_upload_tokens_token_key"),
@@ -43,10 +41,10 @@ def upgrade():
         sa.Column("created_at", sa.DateTime(), server_default=sa.text("CURRENT_TIMESTAMP"), nullable=False),
         sa.Column("updated_at", sa.DateTime(), server_default=sa.text("CURRENT_TIMESTAMP"), nullable=False),
         sa.Column("tenant_id", models.types.StringUUID(), nullable=False),
+        sa.Column("app_id", models.types.StringUUID(), nullable=False),
         sa.Column("form_id", models.types.StringUUID(), nullable=False),
         sa.Column("upload_file_id", models.types.StringUUID(), nullable=False),
         sa.Column("upload_token_id", models.types.StringUUID(), nullable=False),
-        sa.Column("end_user_id", models.types.StringUUID(), nullable=False),
         sa.PrimaryKeyConstraint("id", name="human_input_form_upload_files_pkey"),
         sa.UniqueConstraint("upload_file_id", name="human_input_form_upload_files_upload_file_id_key"),
     )
