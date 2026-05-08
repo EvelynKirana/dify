@@ -1,17 +1,24 @@
 'use client'
 
+import type {
+  ConsoleEnvironment,
+  EnvironmentAccessRow,
+} from '@dify/contracts/enterprise/types.gen'
 import { Switch } from '@langgenius/dify-ui/switch'
-import { useMutation } from '@tanstack/react-query'
+import { useMutation, useQuery } from '@tanstack/react-query'
 import { useAtomValue, useSetAtom } from 'jotai'
 import { useTranslation } from 'react-i18next'
 import { consoleQuery } from '@/service/client'
 import { createdDeveloperApiTokenAtom } from '../../store'
 import { ApiKeyGenerateMenu, ApiKeyList } from './api-keys'
 import { CopyPill, Section } from './common'
-import { useAccessEnvironmentScope } from './use-access-environment-scope'
 
 type DeveloperApiSectionProps = {
   appInstanceId: string
+}
+
+function permissionEnvironment(row: EnvironmentAccessRow): ConsoleEnvironment | undefined {
+  return row.environment?.id ? row.environment : undefined
 }
 
 function DeveloperApiSwitch({ appInstanceId, checked }: {
@@ -78,10 +85,17 @@ export function DeveloperApiSection({
   appInstanceId,
 }: DeveloperApiSectionProps) {
   const { t } = useTranslation('deployments')
-  const { accessConfig, environments } = useAccessEnvironmentScope(appInstanceId)
+  const { data: accessConfig } = useQuery(consoleQuery.enterprise.appDeploy.getAppInstanceAccess.queryOptions({
+    input: {
+      params: { appInstanceId },
+    },
+  }))
   const apiEnabled = accessConfig?.developerApi?.enabled ?? false
   const apiUrl = accessConfig?.developerApi?.apiUrl
   const apiKeys = accessConfig?.developerApi?.apiKeys ?? []
+  const environments = accessConfig?.permissions
+    ?.map(permissionEnvironment)
+    .filter((environment): environment is ConsoleEnvironment => Boolean(environment)) ?? []
 
   return (
     <Section

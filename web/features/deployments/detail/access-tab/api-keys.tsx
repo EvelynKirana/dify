@@ -13,7 +13,7 @@ import { useMutation } from '@tanstack/react-query'
 import { useSetAtom } from 'jotai'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { consoleClient, consoleQuery } from '@/service/client'
+import { consoleQuery } from '@/service/client'
 import { createdDeveloperApiTokenAtom } from '../../store'
 import { environmentName } from '../../utils'
 import { useCopyFeedback } from './use-copy-feedback'
@@ -25,20 +25,9 @@ function ApiKeyRow({ appInstanceId, apiKey }: {
   const { t } = useTranslation('deployments')
   const { copied, showCopied } = useCopyFeedback()
   const revokeApiKey = useMutation(consoleQuery.enterprise.appDeploy.deleteDeveloperApiKey.mutationOptions())
+  const revealApiKey = useMutation(consoleQuery.enterprise.appDeploy.revealDeveloperApiKey.mutationOptions())
   const displayValue = apiKey.maskedKey || apiKey.id || '—'
   const environmentLabel = environmentName(apiKey.environment)
-
-  async function revealApiKey(apiKeyId: string) {
-    const response = await consoleClient.enterprise.appDeploy.revealDeveloperApiKey({
-      params: {
-        appInstanceId,
-        apiKeyId,
-      },
-    })
-    if (!response.token)
-      throw new Error('Reveal developer API key did not return a token.')
-    return response.token
-  }
 
   function handleRevoke() {
     if (!apiKey.id)
@@ -57,7 +46,16 @@ function ApiKeyRow({ appInstanceId, apiKey }: {
       return
 
     try {
-      const token = await revealApiKey(apiKey.id)
+      const response = await revealApiKey.mutateAsync({
+        params: {
+          appInstanceId,
+          apiKeyId: apiKey.id,
+        },
+      })
+      if (!response.token)
+        throw new Error('Reveal developer API key did not return a token.')
+
+      const token = response.token
       await navigator.clipboard.writeText(token)
       showCopied()
       toast.success(t('access.copyToast'))
