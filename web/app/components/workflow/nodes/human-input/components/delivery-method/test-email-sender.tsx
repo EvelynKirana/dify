@@ -7,6 +7,7 @@ import type {
 import { Button } from '@langgenius/dify-ui/button'
 import { cn } from '@langgenius/dify-ui/cn'
 import { Dialog, DialogCloseButton, DialogContent, DialogTitle } from '@langgenius/dify-ui/dialog'
+import { toast } from '@langgenius/dify-ui/toast'
 import { RiArrowRightSFill } from '@remixicon/react'
 import { noop, unionBy } from 'es-toolkit/compat'
 import { memo, useCallback, useMemo, useState } from 'react'
@@ -15,6 +16,7 @@ import { useStore as useAppStore } from '@/app/components/app/store'
 import Divider from '@/app/components/base/divider'
 import { getInputVars as doGetInputVars } from '@/app/components/base/prompt-editor/constants'
 import FormItem from '@/app/components/workflow/nodes/_base/components/before-run-form/form-item'
+import { formatValue } from '@/app/components/workflow/nodes/_base/components/before-run-form/helpers'
 import {
   getNodeInfoById,
   isConversationVar,
@@ -67,6 +69,45 @@ const getOriginVar = (valueSelector: string[], list: NodeOutPutVar[]) => {
   }
 
   return undefined
+}
+
+const varTypeToInputVarType = (type: VarType) => {
+  if (type === VarType.number)
+    return InputVarType.number
+  if (type === VarType.boolean)
+    return InputVarType.checkbox
+  if ([VarType.object, VarType.array, VarType.arrayNumber, VarType.arrayString, VarType.arrayObject].includes(type))
+    return InputVarType.json
+  if (type === VarType.file)
+    return InputVarType.singleFile
+  if (type === VarType.arrayFile)
+    return InputVarType.multiFiles
+
+  return InputVarType.textInput
+}
+
+const formatEmailSenderInputs = (
+  variables: Array<{ variable: string, type: InputVarType, label: unknown }>,
+  values: Record<string, unknown>,
+) => {
+  const formattedValues: Record<string, unknown> = {}
+  let parseErrorJsonField = ''
+
+  variables.forEach((variable) => {
+    try {
+      formattedValues[variable.variable] = formatValue(values[variable.variable], variable.type)
+    }
+    catch {
+      parseErrorJsonField = typeof variable.label === 'object' && variable.label !== null && 'variable' in variable.label
+        ? String(variable.label.variable)
+        : variable.variable
+    }
+  })
+
+  return {
+    formattedValues,
+    parseErrorJsonField,
+  }
 }
 
 const EmailSenderModal = ({
@@ -126,7 +167,7 @@ const EmailSenderModal = ({
       return {
         label: item.label || item.variable,
         variable: item.variable,
-        type: originalVar.type === VarType.number ? InputVarType.number : InputVarType.textInput,
+        type: varTypeToInputVarType(originalVar.type),
         required: true,
       }
     })
@@ -160,20 +201,25 @@ const EmailSenderModal = ({
   const handleConfirm = useCallback(async () => {
     if (!confirmChecked)
       return
+    const { formattedValues, parseErrorJsonField } = formatEmailSenderInputs(generatedInputs, inputs)
+    if (parseErrorJsonField) {
+      toast.error(t('errorMsg.invalidJson', { ns: 'workflow', field: parseErrorJsonField }))
+      return
+    }
     setSendingEmail(true)
     try {
       await testEmailSender({
         appID: appDetail?.id || '',
         nodeID: nodeId,
         deliveryID: deliveryId,
-        inputs,
+        inputs: formattedValues,
       })
       setDone(true)
     }
     finally {
       setSendingEmail(false)
     }
-  }, [confirmChecked, testEmailSender, appDetail?.id, nodeId, deliveryId, inputs])
+  }, [confirmChecked, generatedInputs, inputs, testEmailSender, appDetail?.id, nodeId, deliveryId, t])
 
   if (done) {
     return (

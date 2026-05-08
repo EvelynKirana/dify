@@ -2,7 +2,7 @@ import type { ReactNode } from 'react'
 import type { EmailConfig, FormInputItem } from '../../../types'
 import type { App, AppSSO } from '@/types/app'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { render, screen, waitFor } from '@testing-library/react'
+import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { useStore as useAppStore } from '@/app/components/app/store'
 import { HooksStoreContext } from '@/app/components/workflow/hooks-store/provider'
@@ -161,7 +161,7 @@ const createDynamicSelectInput = (): FormInputItem => ({
   output_variable_name: 'decision',
   option_source: {
     type: 'variable',
-    selector: ['start', 'choices'],
+    selector: ['code', 'result'],
     value: [],
   },
 })
@@ -243,7 +243,7 @@ describe('human-input/delivery-method/test-email-sender', () => {
         delivery_method_id: 'delivery-1',
         inputs: {
           '#start.user_name#': 'Ada',
-          '#start.score#': '42',
+          '#start.score#': 42,
         },
       },
     }))
@@ -270,23 +270,32 @@ describe('human-input/delivery-method/test-email-sender', () => {
         formInputs={[createDynamicSelectInput()]}
         availableNodes={[
           {
-            id: 'start',
+            id: 'code',
             type: 'custom',
             position: { x: 0, y: 0 },
             data: {
-              title: 'Start',
+              title: 'Code',
               desc: '',
-              type: BlockEnum.Start,
+              type: BlockEnum.Code,
+              variables: [],
+              code_language: 'python3',
+              code: '',
+              outputs: {
+                result: {
+                  type: VarType.arrayString,
+                  children: null,
+                },
+              },
             },
           },
         ]}
         nodesOutputVars={[
           {
-            nodeId: 'start',
-            title: 'Start',
+            nodeId: 'code',
+            title: 'Code',
             vars: [
               {
-                variable: 'choices',
+                variable: 'result',
                 type: VarType.arrayString,
               },
             ],
@@ -298,7 +307,11 @@ describe('human-input/delivery-method/test-email-sender', () => {
     const sendButton = screen.getByRole('button', { name: 'workflow.nodes.humanInput.deliveryMethod.emailSender.send' })
     expect(sendButton).toBeDisabled()
 
-    await user.type(screen.getByPlaceholderText('choices'), 'approve,reject')
+    expect(screen.queryByPlaceholderText('result')).not.toBeInTheDocument()
+
+    fireEvent.change(screen.getByTestId('monaco-editor'), {
+      target: { value: '["approve","reject"]' },
+    })
     expect(sendButton).toBeEnabled()
 
     await user.click(sendButton)
@@ -309,7 +322,7 @@ describe('human-input/delivery-method/test-email-sender', () => {
       body: {
         delivery_method_id: 'delivery-1',
         inputs: {
-          '#start.choices#': 'approve,reject',
+          '#code.result#': ['approve', 'reject'],
         },
       },
     })))
