@@ -7,6 +7,12 @@ description: React/TypeScript component style guide. Use when writing, refactori
 
 Follow existing project patterns first. Use these rules to resolve unclear component decisions:
 
+Do not copy existing code blindly. Existing implementations are reference material, not automatic precedent; when existing code conflicts with these rules, follow this skill and adapt the approach instead of reproducing the violation.
+
+## Reuse Existing Implementations
+
+- Before creating new UI, hooks, helpers, or styling patterns, search for and reuse existing base components, feature components, shared hooks, utilities, and established design styles. Add new implementations only when the existing ones cannot express the required behavior cleanly.
+
 ## Component Declaration And Exports
 
 - Type component signatures directly; do not use `FC` or `React.FC`.

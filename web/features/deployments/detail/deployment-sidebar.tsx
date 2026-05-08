@@ -5,7 +5,7 @@ import type { ComponentProps, PropsWithoutRef } from 'react'
 import type { InstanceDetailTabKey } from './tabs'
 import type { NavIcon } from '@/app/components/app-sidebar/nav-link'
 import { cn } from '@langgenius/dify-ui/cn'
-import { useHover, useKeyPress } from 'ahooks'
+import { useHover, useKeyPress, useLocalStorageState } from 'ahooks'
 import { useRef } from 'react'
 import { useTranslation } from 'react-i18next'
 import { getAppModeLabel } from '@/app/components/app-sidebar/app-info/app-mode-labels'
@@ -15,7 +15,6 @@ import AppIcon from '@/app/components/base/app-icon'
 import Divider from '@/app/components/base/divider'
 import { getKeyboardKeyCodeBySystem } from '@/app/components/workflow/utils'
 import useBreakpoints, { MediaType } from '@/hooks/use-breakpoints'
-import { useLocalStorage } from '@/hooks/use-local-storage'
 import { toAppMode } from '../utils'
 
 type TabDef = {
@@ -82,12 +81,11 @@ function isShortcutFromInputArea(target: EventTarget | null) {
 }
 
 function useDeploymentSidebarMode(isMobile: boolean) {
-  const [persistedMode, setPersistedMode] = useLocalStorage<DeploymentSidebarMode>(
+  const [persistedMode, setPersistedMode] = useLocalStorageState<DeploymentSidebarMode>(
     DEPLOYMENT_SIDEBAR_MODE_KEY,
-    'expand',
-    { raw: true },
+    { defaultValue: 'expand' },
   )
-  const sidebarMode = isMobile ? 'collapse' : persistedMode
+  const sidebarMode = isMobile ? 'collapse' : persistedMode ?? 'expand'
 
   function toggleSidebarMode() {
     setPersistedMode(sidebarMode === 'expand' ? 'collapse' : 'expand')
