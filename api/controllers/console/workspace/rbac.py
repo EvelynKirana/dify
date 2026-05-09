@@ -146,6 +146,15 @@ class RBACRoleItemApi(Resource):
         return {"result": "success"}
 
 
+@console_ns.route("/workspaces/current/rbac/roles/<uuid:role_id>/copy")
+class RBACRoleCopyApi(Resource):
+    @login_required
+    def post(self, role_id):
+        tenant_id, account_id = _current_ids()
+        role = svc.RBACService.Roles.copy(tenant_id, account_id, str(role_id))
+        return _dump(role), 201
+
+
 # ---------------------------------------------------------------------------
 # Access policies (tenant-level permission sets).
 # ---------------------------------------------------------------------------
