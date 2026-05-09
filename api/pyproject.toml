@@ -102,6 +102,7 @@ graphon = { git = "https://github.com/QuantumGhost/graphon", branch = "hitl-form
 default-groups = ["storage", "tools", "vdb-all", "trace-all"]
 package = false
 override-dependencies = [
+    "litellm>=1.83.7",
     "pyarrow>=18.0.0",
 ]
 
