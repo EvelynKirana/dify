@@ -59,6 +59,8 @@ Do not copy existing code patterns blindly. Existing implementations are referen
 - Split deeper components by the data and state each layer actually needs. Each component should access only necessary data, and state should be pushed down to the lowest owner.
 - Keep cohesive forms, menu bodies, and one-off helpers local unless they need their own state, reuse, or semantic boundary.
 - Separate hidden secondary surfaces from the trigger's main flow. For dialogs, dropdowns, popovers, and similar branches, extract a small local component that owns the trigger, open state, and hidden content when that branch obscures the parent flow.
+- Preserve composability by separating behavior ownership from layout ownership. A dropdown action may own its trigger, open state, and menu content; the caller should own placement such as slots, offsets, and alignment.
+- Avoid unnecessary DOM hierarchy. Do not add wrapper elements unless they provide layout, semantics, accessibility, state ownership, or integration with a library API; prefer fragments or styling an existing element when possible.
 - Avoid shallow wrappers and prop renaming. Call the original function directly unless the wrapper adds validation, orchestration, error handling, state ownership, or a real semantic boundary.
 
 ## Navigation
