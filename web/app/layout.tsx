@@ -5,6 +5,7 @@ import { Provider as JotaiProvider } from 'jotai/react'
 import { ThemeProvider } from 'next-themes'
 import { NuqsAdapter } from 'nuqs/adapters/next/app'
 import AmplitudeProvider from '@/app/components/base/amplitude'
+import { IS_PROD } from '@/config'
 import { TanstackQueryInitializer } from '@/context/query-client'
 import { getDatasetMap } from '@/env'
 import { getLocaleOnServer } from '@/i18n-config/server'
@@ -33,7 +34,7 @@ const LocaleLayout = async ({
 }) => {
   const locale = await getLocaleOnServer()
   const datasetMap = getDatasetMap()
-  const nonce = (await headers()).get('x-nonce') ?? undefined
+  const nonce = IS_PROD ? (await headers()).get('x-nonce') ?? undefined : undefined
 
   return (
     <html lang={locale ?? 'en'} className="h-full" suppressHydrationWarning>
