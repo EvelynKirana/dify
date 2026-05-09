@@ -16,22 +16,7 @@ import {
   toAppMode,
   webappUrl,
 } from '../utils'
-
-function Section({ title, action, children }: {
-  title: string
-  action?: ReactNode
-  children: ReactNode
-}) {
-  return (
-    <div className="flex flex-col gap-3 rounded-xl border border-components-panel-border bg-components-panel-bg p-4">
-      <div className="flex items-center justify-between">
-        <div className="system-sm-semibold text-text-primary">{title}</div>
-        {action}
-      </div>
-      {children}
-    </div>
-  )
-}
+import { Section } from './common'
 
 function InfoRow({ label, value, mono }: {
   label: string

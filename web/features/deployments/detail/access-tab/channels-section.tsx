@@ -5,7 +5,8 @@ import { useMutation, useQuery } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import { consoleQuery } from '@/service/client'
 import { environmentName, webappUrl } from '../../utils'
-import { CopyPill, EndpointRow, Section } from './common'
+import { Section } from '../common'
+import { CopyPill, EndpointRow } from './common'
 import { getUrlOrigin } from './url'
 
 type AccessChannelsSectionProps = {

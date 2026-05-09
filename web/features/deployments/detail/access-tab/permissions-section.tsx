@@ -6,7 +6,7 @@ import type {
 import { useQuery } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import { consoleQuery } from '@/service/client'
-import { Section } from './common'
+import { Section } from '../common'
 import { EnvironmentPermissionRow } from './permissions'
 
 type AccessPermissionsSectionProps = {

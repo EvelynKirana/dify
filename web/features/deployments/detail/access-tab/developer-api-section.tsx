@@ -10,8 +10,9 @@ import { useAtomValue, useSetAtom } from 'jotai'
 import { useTranslation } from 'react-i18next'
 import { consoleQuery } from '@/service/client'
 import { createdDeveloperApiTokenAtom } from '../../store'
+import { Section } from '../common'
 import { ApiKeyGenerateMenu, ApiKeyList } from './api-keys'
-import { CopyPill, Section } from './common'
+import { CopyPill } from './common'
 
 type DeveloperApiSectionProps = {
   appInstanceId: string
