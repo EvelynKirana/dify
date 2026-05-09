@@ -432,6 +432,7 @@ class WorkflowBasedAppRunner:
                     rendered_content=event.rendered_content,
                     action_id=event.action_id,
                     action_text=event.action_text,
+                    submitted_data=event.submitted_data,
                 )
             )
         elif isinstance(event, NodeRunHumanInputFormTimeoutEvent):

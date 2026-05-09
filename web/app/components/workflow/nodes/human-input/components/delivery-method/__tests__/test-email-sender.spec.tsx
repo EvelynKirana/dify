@@ -1,12 +1,15 @@
+/* eslint-disable react/no-context-provider -- use-context-selector contexts require .Provider in tests. */
 import type { ReactNode } from 'react'
-import type { EmailConfig, FormInputItem } from '../../../types'
+import type { EmailConfig, FormInputItem, ParagraphFormInput, SelectFormInput } from '../../../types'
+import type { CodeNodeType } from '@/app/components/workflow/nodes/code/types'
 import type { App, AppSSO } from '@/types/app'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { render, screen, waitFor } from '@testing-library/react'
+import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { useStore as useAppStore } from '@/app/components/app/store'
 import { HooksStoreContext } from '@/app/components/workflow/hooks-store/provider'
 import { createHooksStore } from '@/app/components/workflow/hooks-store/store'
+import { CodeLanguage } from '@/app/components/workflow/nodes/code/types'
 import { BlockEnum, InputVarType, VarType } from '@/app/components/workflow/types'
 import { AppContext, initialLangGeniusVersionInfo, initialWorkspaceInfo, userProfilePlaceholder } from '@/context/app-context'
 import EmailSenderModal from '../test-email-sender'
@@ -145,8 +148,8 @@ const createConfig = (overrides: Partial<EmailConfig> = {}): EmailConfig => ({
   ...overrides,
 })
 
-const createFormInput = (overrides: Partial<FormInputItem> = {}): FormInputItem => ({
-  type: InputVarType.textInput,
+const createFormInput = (overrides: Partial<ParagraphFormInput> = {}): FormInputItem => ({
+  type: InputVarType.paragraph,
   output_variable_name: 'user_name',
   default: {
     type: 'variable',
@@ -154,6 +157,16 @@ const createFormInput = (overrides: Partial<FormInputItem> = {}): FormInputItem 
     value: '',
   },
   ...overrides,
+})
+
+const createDynamicSelectInput = (): SelectFormInput => ({
+  type: InputVarType.select,
+  output_variable_name: 'decision',
+  option_source: {
+    type: 'variable',
+    selector: ['code', 'result'],
+    value: [],
+  },
 })
 
 describe('human-input/delivery-method/test-email-sender', () => {
@@ -233,7 +246,7 @@ describe('human-input/delivery-method/test-email-sender', () => {
         delivery_method_id: 'delivery-1',
         inputs: {
           '#start.user_name#': 'Ada',
-          '#start.score#': '42',
+          '#start.score#': 42,
         },
       },
     }))
@@ -241,6 +254,81 @@ describe('human-input/delivery-method/test-email-sender', () => {
     await user.click(screen.getByRole('button', { name: 'common.operation.ok' }))
 
     expect(handleOpenChange).toHaveBeenCalledWith(false)
+  })
+
+  it('should submit variables referenced by dynamic select option sources', async () => {
+    const user = userEvent.setup()
+    const { requests } = setupFetch()
+
+    renderWithProviders(
+      <EmailSenderModal
+        nodeId="human-node"
+        deliveryId="delivery-1"
+        open
+        onOpenChange={vi.fn()}
+        jumpToEmailConfigModal={vi.fn()}
+        config={createConfig({
+          body: '{{#url#}}',
+        })}
+        formInputs={[createDynamicSelectInput()]}
+        availableNodes={[
+          {
+            id: 'code',
+            type: 'custom',
+            position: { x: 0, y: 0 },
+            data: {
+              title: 'Code',
+              desc: '',
+              type: BlockEnum.Code,
+              variables: [],
+              code_language: CodeLanguage.python3,
+              code: '',
+              outputs: {
+                result: {
+                  type: VarType.arrayString,
+                  children: null,
+                },
+              },
+            } as CodeNodeType,
+          },
+        ]}
+        nodesOutputVars={[
+          {
+            nodeId: 'code',
+            title: 'Code',
+            vars: [
+              {
+                variable: 'result',
+                type: VarType.arrayString,
+              },
+            ],
+          },
+        ]}
+      />,
+    )
+
+    const sendButton = screen.getByRole('button', { name: 'workflow.nodes.humanInput.deliveryMethod.emailSender.send' })
+    expect(sendButton).toBeDisabled()
+
+    expect(screen.queryByPlaceholderText('result')).not.toBeInTheDocument()
+
+    fireEvent.change(screen.getByTestId('monaco-editor'), {
+      target: { value: '["approve","reject"]' },
+    })
+    expect(sendButton).toBeEnabled()
+
+    await user.click(sendButton)
+
+    await waitFor(() => expect(requests).toContainEqual(expect.objectContaining({
+      url: 'http://localhost:5001/console/api/apps/app-1/workflows/draft/human-input/nodes/human-node/delivery-test',
+      method: 'POST',
+      body: {
+        delivery_method_id: 'delivery-1',
+        inputs: {
+          '#code.result#': ['approve', 'reject'],
+        },
+      },
+    })))
   })
 
   it('should render fallback variable inputs and allow cancelling', async () => {

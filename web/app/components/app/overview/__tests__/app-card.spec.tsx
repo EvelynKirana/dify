@@ -26,6 +26,7 @@ vi.mock('react-i18next', () => ({
   useTranslation: () => ({
     t: (key: string) => key,
   }),
+  Trans: ({ i18nKey }: { i18nKey?: string }) => i18nKey ?? null,
 }))
 
 vi.mock('@/context/app-context', () => ({
@@ -479,7 +480,7 @@ describe('AppCard', () => {
   })
 
   it('should report refresh failures from access control updates', async () => {
-    const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+    const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => { })
     mockFetchAppDetailDirect.mockRejectedValueOnce(new Error('refresh failed'))
 
     render(

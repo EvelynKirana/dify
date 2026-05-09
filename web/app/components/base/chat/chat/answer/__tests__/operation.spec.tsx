@@ -248,6 +248,13 @@ describe('Operation', () => {
       expect(screen.getByTestId('log-btn'))!.toBeInTheDocument()
     })
 
+    it('should keep hover-only controls visible when a descendant popup is open', () => {
+      renderOperation({ ...baseProps, showPromptLog: true })
+
+      expect(screen.getByTestId('operation-actions')).toHaveClass('group-has-[[data-popup-open]]:flex')
+      expect(screen.getByTestId('log-btn').parentElement).toHaveClass('group-has-[[data-popup-open]]:block')
+    })
+
     it('should not show prompt log for opening statements', () => {
       const item = { ...baseItem, isOpeningStatement: true }
       renderOperation({ ...baseProps, item, showPromptLog: true })
@@ -441,9 +448,8 @@ describe('Operation', () => {
       renderOperation()
       const thumbDown = screen.getByTestId('operation-bar').querySelector('.i-ri-thumb-down-line')!.closest('button')!
       await user.click(thumbDown)
-      // Check if modal title/labels fallback works
-      // Check if modal title/labels fallback works
-      expect(screen.getByRole('tooltip'))!.toBeInTheDocument()
+      expect(screen.getByRole('dialog', { name: 'Provide Feedback' }))!.toBeInTheDocument()
+      expect(screen.getByLabelText('Feedback Content'))!.toBeInTheDocument()
       mockT.mockImplementation(key => key)
     })
   })

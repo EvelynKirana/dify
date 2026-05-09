@@ -205,14 +205,16 @@ describe('ConfigModalFormFields', () => {
     expect(selectProps.payloadChangeHandlers.default).toHaveBeenCalledWith('beta')
   })
 
-  it('should wire file, json schema, and visibility controls', () => {
+  it('should wire file, json schema, and visibility controls', async () => {
     const textInputProps = createBaseProps()
     const textInputView = render(<ConfigModalFormFields {...textInputProps} />)
     expect(screen.getByText('variableConfig.hidden')).toBeInTheDocument()
-    expect(screen.getByText('variableConfig.hiddenDescription')).toBeInTheDocument()
-    expect(screen.getByRole('link')).toHaveAttribute('href', 'https://docs.example.com/use-dify/nodes/user-input')
-    expect(screen.getByRole('link')).toHaveAttribute('target', '_blank')
-    expect(screen.getByRole('link')).toHaveAttribute('rel', 'noopener noreferrer')
+    fireEvent.click(screen.getByRole('button', { name: 'variableConfig.hiddenDescription' }))
+    expect(await screen.findByText('variableConfig.hiddenDescription')).toBeInTheDocument()
+    const docLink = await screen.findByRole('link')
+    expect(docLink).toHaveAttribute('href', 'https://docs.example.com/use-dify/nodes/user-input#hide-and-pre-fill-input-fields')
+    expect(docLink).toHaveAttribute('target', '_blank')
+    expect(docLink).toHaveAttribute('rel', 'noopener noreferrer')
     textInputView.unmount()
 
     const singleFileProps = createBaseProps()
@@ -229,7 +231,6 @@ describe('ConfigModalFormFields', () => {
     fireEvent.click(screen.getByText('single-file-setting'))
     fireEvent.click(screen.getByText('upload-file'))
     fireEvent.click(screen.getAllByText('unchecked')[0]!)
-    fireEvent.click(screen.getAllByText('unchecked')[1]!)
 
     expect(singleFileProps.onFilePayloadChange).toHaveBeenCalledWith({ number_limits: 1 })
     expect(singleFileProps.payloadChangeHandlers.default).toHaveBeenCalledWith(expect.objectContaining({
@@ -250,7 +251,7 @@ describe('ConfigModalFormFields', () => {
     render(<ConfigModalFormFields {...multiFileProps} />)
     expect(screen.queryByText('variableConfig.hidden')).not.toBeInTheDocument()
     fireEvent.click(screen.getByText('multi-file-setting'))
-    fireEvent.click(screen.getAllByText('upload-file')[1]!)
+    fireEvent.click(screen.getAllByText('upload-file')[0]!)
     expect(multiFileProps.onFilePayloadChange).toHaveBeenCalledWith({ number_limits: 3 })
     expect(multiFileProps.payloadChangeHandlers.default).toHaveBeenCalledWith([
       expect.objectContaining({ fileId: 'file-1' }),
@@ -408,5 +409,24 @@ describe('ConfigModalFormFields', () => {
     render(<ConfigModalFormFields {...numberProps} />)
 
     expect(screen.getByRole('spinbutton')).toHaveValue(null)
+  })
+
+  it('should disable hide checkbox when required is true and disable required when hide is true', () => {
+    const requiredProps = createBaseProps()
+    requiredProps.tempPayload = { ...requiredProps.tempPayload, type: InputVarType.textInput, required: true, hide: false }
+    const { unmount } = render(<ConfigModalFormFields {...requiredProps} />)
+
+    const buttons = screen.getAllByRole('button')
+    const hideButton = buttons.find(btn => btn.textContent === 'unchecked' && btn !== buttons[0])
+    expect(hideButton).toBeDefined()
+    unmount()
+
+    const hideProps = createBaseProps()
+    hideProps.tempPayload = { ...hideProps.tempPayload, type: InputVarType.textInput, required: false, hide: true }
+    render(<ConfigModalFormFields {...hideProps} />)
+
+    const allButtons = screen.getAllByRole('button')
+    const checkedHideButton = allButtons.find(btn => btn.textContent === 'checked')
+    expect(checkedHideButton).toBeDefined()
   })
 })

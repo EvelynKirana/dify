@@ -12,8 +12,8 @@ import { useKeyPress } from 'ahooks'
 import {
 
   memo,
+  use,
   useCallback,
-  useContext,
   useEffect,
   useMemo,
   useState,
@@ -126,7 +126,7 @@ const AppPublisher = ({
   const [workflowLaunchValues, setWorkflowLaunchValues] = useState<Record<string, WorkflowLaunchInputValue>>({})
   const [publishingToMarketplace, setPublishingToMarketplace] = useState(false)
 
-  const workflowStore = useContext(WorkflowContext)
+  const workflowStore = use(WorkflowContext)
   const appDetail = useAppStore(state => state.appDetail)
   const setAppDetail = useAppStore(s => s.setAppDetail)
   const { canAccess: canAccessSnippetsAndEvaluation } = useSnippetAndEvaluationPlanAccess()
@@ -136,7 +136,6 @@ const AppPublisher = ({
 
   const appURL = getPublisherAppUrl({ appBaseUrl: appBaseURL, accessToken, mode: appDetail?.mode })
   const isChatApp = [AppModeEnum.CHAT, AppModeEnum.AGENT_CHAT, AppModeEnum.COMPLETION].includes(appDetail?.mode || AppModeEnum.CHAT)
-
   const hiddenLaunchVariables = useMemo<WorkflowHiddenStartVariable[]>(
     () => (inputs ?? []).filter(input => input.hide === true),
     [inputs],
@@ -366,6 +365,8 @@ const AppPublisher = ({
   const workflowToolMessage = !hasPublishedVersion || !workflowToolAvailable
     ? t('common.workflowAsToolDisabledHint', { ns: 'workflow' })
     : undefined
+
+
   const upgradeHighlightStyle = useMemo(() => ({
     background: 'linear-gradient(97deg, var(--components-input-border-active-prompt-1, rgba(11, 165, 236, 0.95)) -3.64%, var(--components-input-border-active-prompt-2, rgba(21, 90, 239, 0.95)) 45.14%)',
     WebkitBackgroundClip: 'text',

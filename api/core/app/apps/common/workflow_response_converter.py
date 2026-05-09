@@ -408,17 +408,19 @@ class WorkflowResponseConverter:
         self, *, event: QueueHumanInputFormFilledEvent, task_id: str
     ) -> HumanInputFormFilledResponse:
         run_id = self._ensure_workflow_run_id()
-        return HumanInputFormFilledResponse(
-            task_id=task_id,
-            workflow_run_id=run_id,
-            data=HumanInputFormFilledResponse.Data(
-                node_id=event.node_id,
-                node_title=event.node_title,
-                rendered_content=event.rendered_content,
-                action_id=event.action_id,
-                action_text=event.action_text,
-            ),
+        data = HumanInputFormFilledResponse.Data(
+            node_id=event.node_id,
+            node_title=event.node_title,
+            rendered_content=event.rendered_content,
+            action_id=event.action_id,
+            action_text=event.action_text,
         )
+        if event.submitted_data is not None:
+            runtime_type_converter = WorkflowRuntimeTypeConverter()
+
+            data.submitted_data = runtime_type_converter.value_to_json_encodable_recursive(event.submitted_data)
+
+        return HumanInputFormFilledResponse(task_id=task_id, workflow_run_id=run_id, data=data)
 
     def human_input_form_timeout_to_stream_response(
         self, *, event: QueueHumanInputFormTimeoutEvent, task_id: str
@@ -842,24 +844,24 @@ class WorkflowResponseConverter:
             return []
 
         files: list[Mapping[str, Any]] = []
-        if isinstance(value, FileSegment):
-            files.append(value.value.to_dict())
-        elif isinstance(value, ArrayFileSegment):
-            files.extend([i.to_dict() for i in value.value])
-        elif isinstance(value, File):
-            files.append(value.to_dict())
-        elif isinstance(value, list):
-            for item in value:
-                file = cls._get_file_var_from_value(item)
+        match value:
+            case FileSegment():
+                files.append(value.value.to_dict())
+            case ArrayFileSegment():
+                files.extend([i.to_dict() for i in value.value])
+            case File():
+                files.append(value.to_dict())
+            case list():
+                for item in value:
+                    file = cls._get_file_var_from_value(item)
+                    if file:
+                        files.append(file)
+            case dict():
+                file = cls._get_file_var_from_value(value)
                 if file:
                     files.append(file)
-        elif isinstance(
-            value,
-            dict,
-        ):
-            file = cls._get_file_var_from_value(value)
-            if file:
-                files.append(file)
+            case _:
+                pass
 
         return files
 

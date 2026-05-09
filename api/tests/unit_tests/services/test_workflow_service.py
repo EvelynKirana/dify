@@ -61,7 +61,7 @@ class TestWorkflowAssociatedDataFactory:
     def create_app_mock(
         app_id: str = "app-123",
         tenant_id: str = "tenant-456",
-        mode: str = AppMode.WORKFLOW.value,
+        mode: str = AppMode.WORKFLOW,
         workflow_id: str | None = None,
         **kwargs,
     ) -> MagicMock:
@@ -93,7 +93,7 @@ class TestWorkflowAssociatedDataFactory:
         tenant_id: str = "tenant-456",
         app_id: str = "app-123",
         version: str = Workflow.VERSION_DRAFT,
-        workflow_type: str = WorkflowType.WORKFLOW.value,
+        workflow_type: str = WorkflowType.WORKFLOW,
         graph: dict[str, Any] | None = None,
         features: dict[str, Any] | None = None,
         unique_hash: str | None = None,
@@ -584,7 +584,7 @@ class TestWorkflowService:
             id="published-workflow-id",
             tenant_id=app.tenant_id,
             app_id=app.id,
-            type=WorkflowType.WORKFLOW.value,
+            type=WorkflowType.WORKFLOW,
             version="2026-03-19T00:00:00",
             graph=json.dumps(TestWorkflowAssociatedDataFactory.create_valid_workflow_graph()),
             features=json.dumps(legacy_features),
@@ -597,7 +597,7 @@ class TestWorkflowService:
             id="draft-workflow-id",
             tenant_id=app.tenant_id,
             app_id=app.id,
-            type=WorkflowType.WORKFLOW.value,
+            type=WorkflowType.WORKFLOW,
             version=Workflow.VERSION_DRAFT,
             graph=json.dumps({"nodes": [], "edges": []}),
             features=json.dumps({}),
@@ -685,7 +685,7 @@ class TestWorkflowService:
         Different app modes have different feature configurations.
         This ensures the features match the expected schema for workflow apps.
         """
-        app = TestWorkflowAssociatedDataFactory.create_app_mock(mode=AppMode.WORKFLOW.value)
+        app = TestWorkflowAssociatedDataFactory.create_app_mock(mode=AppMode.WORKFLOW)
         features = {"file_upload": {"enabled": False}}
 
         with patch("services.workflow_service.WorkflowAppConfigManager.config_validate") as mock_validate:
@@ -696,7 +696,7 @@ class TestWorkflowService:
 
     def test_validate_features_structure_advanced_chat_mode(self, workflow_service):
         """Test validate_features_structure for advanced chat mode."""
-        app = TestWorkflowAssociatedDataFactory.create_app_mock(mode=AppMode.ADVANCED_CHAT.value)
+        app = TestWorkflowAssociatedDataFactory.create_app_mock(mode=AppMode.ADVANCED_CHAT)
         features = {"opening_statement": "Hello"}
 
         with patch("services.workflow_service.AdvancedChatAppConfigManager.config_validate") as mock_validate:
@@ -707,7 +707,7 @@ class TestWorkflowService:
 
     def test_validate_features_structure_invalid_mode_raises_error(self, workflow_service):
         """Test validate_features_structure raises error for invalid mode."""
-        app = TestWorkflowAssociatedDataFactory.create_app_mock(mode=AppMode.COMPLETION.value)
+        app = TestWorkflowAssociatedDataFactory.create_app_mock(mode=AppMode.COMPLETION)
         features = {}
 
         with pytest.raises(ValueError, match="Invalid app mode"):
@@ -1326,7 +1326,7 @@ class TestWorkflowService:
         The conversion creates equivalent workflow nodes from the chat configuration,
         giving users more control and customization options.
         """
-        app = TestWorkflowAssociatedDataFactory.create_app_mock(mode=AppMode.CHAT.value)
+        app = TestWorkflowAssociatedDataFactory.create_app_mock(mode=AppMode.CHAT)
         account = TestWorkflowAssociatedDataFactory.create_account_mock()
         args = {
             "name": "Converted Workflow",
@@ -1337,7 +1337,7 @@ class TestWorkflowService:
 
         with patch("services.workflow_service.WorkflowConverter") as MockConverter:
             mock_converter = MockConverter.return_value
-            mock_new_app = TestWorkflowAssociatedDataFactory.create_app_mock(mode=AppMode.WORKFLOW.value)
+            mock_new_app = TestWorkflowAssociatedDataFactory.create_app_mock(mode=AppMode.WORKFLOW)
             mock_converter.convert_to_workflow.return_value = mock_new_app
 
             result = workflow_service.convert_to_workflow(app, account, args)
@@ -1353,13 +1353,13 @@ class TestWorkflowService:
         Completion apps are simpler (single prompt-response), so the
         conversion creates a basic workflow with fewer nodes.
         """
-        app = TestWorkflowAssociatedDataFactory.create_app_mock(mode=AppMode.COMPLETION.value)
+        app = TestWorkflowAssociatedDataFactory.create_app_mock(mode=AppMode.COMPLETION)
         account = TestWorkflowAssociatedDataFactory.create_account_mock()
         args = {"name": "Converted Workflow"}
 
         with patch("services.workflow_service.WorkflowConverter") as MockConverter:
             mock_converter = MockConverter.return_value
-            mock_new_app = TestWorkflowAssociatedDataFactory.create_app_mock(mode=AppMode.WORKFLOW.value)
+            mock_new_app = TestWorkflowAssociatedDataFactory.create_app_mock(mode=AppMode.WORKFLOW)
             mock_converter.convert_to_workflow.return_value = mock_new_app
 
             result = workflow_service.convert_to_workflow(app, account, args)
@@ -1373,7 +1373,7 @@ class TestWorkflowService:
         Only chat and completion apps can be converted to workflows.
         Apps that are already workflows or have other modes cannot be converted.
         """
-        app = TestWorkflowAssociatedDataFactory.create_app_mock(mode=AppMode.WORKFLOW.value)
+        app = TestWorkflowAssociatedDataFactory.create_app_mock(mode=AppMode.WORKFLOW)
         account = TestWorkflowAssociatedDataFactory.create_account_mock()
         args = {}
 
@@ -2087,7 +2087,7 @@ class TestSetupVariablePool:
     This helper initialises the VariablePool used for single-step workflow execution.
     """
 
-    def _make_workflow(self, workflow_type: str = WorkflowType.WORKFLOW.value) -> MagicMock:
+    def _make_workflow(self, workflow_type: str = WorkflowType.WORKFLOW) -> MagicMock:
         wf = MagicMock(spec=Workflow)
         wf.app_id = "app-1"
         wf.id = "wf-1"
@@ -2176,7 +2176,7 @@ class TestSetupVariablePool:
         from models.workflow import WorkflowType
 
         # Arrange
-        workflow = self._make_workflow(workflow_type=WorkflowType.CHAT.value)
+        workflow = self._make_workflow(workflow_type=WorkflowType.CHAT)
 
         # Act
         with (
@@ -2650,6 +2650,7 @@ class TestWorkflowServiceHumanInputOperations:
         mock_node = MagicMock()
         mock_node.node_data = MagicMock()
         mock_node.node_data.outputs_field_names.return_value = ["field1"]
+        mock_node.node_data.inputs = []
 
         with (
             patch("services.workflow_service.db"),
@@ -2657,7 +2658,10 @@ class TestWorkflowServiceHumanInputOperations:
             patch("models.workflow.Workflow.get_node_type_from_node_config", return_value=BuiltinNodeTypes.HUMAN_INPUT),
             patch.object(service, "_build_human_input_variable_pool"),
             patch("services.workflow_service.HumanInputNode", return_value=mock_node),
-            patch("services.workflow_service.validate_human_input_submission"),
+            patch(
+                "services.workflow_service.HumanInputService.validate_and_normalize_submission",
+                return_value={"field1": "val1"},
+            ) as mock_validate,
             patch("services.workflow_service.Session"),
             patch("services.workflow_service.DraftVariableSaver") as mock_saver_cls,
         ):
@@ -2665,6 +2669,7 @@ class TestWorkflowServiceHumanInputOperations:
                 app_model=app_model, account=account, node_id="node-1", form_inputs={"field1": "val1"}, action="submit"
             )
             assert result["__action_id"] == "submit"
+            mock_validate.assert_called_once()
             mock_saver_cls.return_value.save.assert_called_once()
 
     def test_test_human_input_delivery_success(self, service: WorkflowService) -> None:

@@ -9,6 +9,7 @@ from core.app.apps.workflow_app_runner import WorkflowBasedAppRunner
 from core.app.entities.app_invoke_entities import InvokeFrom, UserFrom
 from core.app.entities.queue_entities import (
     QueueAgentLogEvent,
+    QueueHumanInputFormFilledEvent,
     QueueIterationCompletedEvent,
     QueueLoopCompletedEvent,
     QueueNodeExceptionEvent,
@@ -30,6 +31,7 @@ from graphon.graph_events import (
     NodeRunAgentLogEvent,
     NodeRunExceptionEvent,
     NodeRunFailedEvent,
+    NodeRunHumanInputFormFilledEvent,
     NodeRunIterationSucceededEvent,
     NodeRunLoopFailedEvent,
     NodeRunRetryEvent,
@@ -39,6 +41,7 @@ from graphon.graph_events import (
 )
 from graphon.node_events import NodeRunResult
 from graphon.runtime import GraphRuntimeState, VariablePool
+from graphon.variables.segments import StringSegment
 from graphon.variables.variables import StringVariable
 
 
@@ -90,7 +93,7 @@ class TestWorkflowBasedAppRunner:
         with pytest.raises(ValueError, match="Neither single_iteration_run nor single_loop_run"):
             runner._prepare_single_node_execution(workflow, None, None, user_id="00000000-0000-0000-0000-000000000001")
 
-    def test_get_graph_and_variable_pool_for_single_node_run(self, monkeypatch):
+    def test_get_graph_and_variable_pool_for_single_node_run(self, monkeypatch: pytest.MonkeyPatch):
         runner = WorkflowBasedAppRunner(queue_manager=SimpleNamespace(), app_id="app")
         graph_runtime_state = GraphRuntimeState(
             variable_pool=VariablePool(system_variables=default_system_variables()),
@@ -142,7 +145,9 @@ class TestWorkflowBasedAppRunner:
         assert graph is not None
         assert variable_pool is graph_runtime_state.variable_pool
 
-    def test_get_graph_and_variable_pool_preloads_constructor_variables_before_graph_init(self, monkeypatch):
+    def test_get_graph_and_variable_pool_preloads_constructor_variables_before_graph_init(
+        self, monkeypatch: pytest.MonkeyPatch
+    ):
         variable_loader = SimpleNamespace(
             load_variables=lambda selectors: (
                 [
@@ -232,7 +237,7 @@ class TestWorkflowBasedAppRunner:
         assert graph is not None
         assert variable_pool.get(["sys", "conversation_id"]).value == "conv-1"
 
-    def test_handle_graph_run_events_and_pause_notifications(self, monkeypatch):
+    def test_handle_graph_run_events_and_pause_notifications(self, monkeypatch: pytest.MonkeyPatch):
         published: list[object] = []
 
         class _QueueManager:
@@ -360,6 +365,38 @@ class TestWorkflowBasedAppRunner:
         assert any(isinstance(event, QueueAgentLogEvent) for event in published)
         assert any(isinstance(event, QueueIterationCompletedEvent) for event in published)
         assert any(isinstance(event, QueueLoopCompletedEvent) for event in published)
+
+    def test_handle_human_input_form_filled_event_preserves_submitted_data(self):
+        published: list[object] = []
+
+        class _QueueManager:
+            def publish(self, event, publish_from):
+                published.append(event)
+
+        runner = WorkflowBasedAppRunner(queue_manager=_QueueManager(), app_id="app")
+        graph_runtime_state = GraphRuntimeState(
+            variable_pool=VariablePool(system_variables=default_system_variables()),
+            start_at=0.0,
+        )
+        workflow_entry = SimpleNamespace(graph_engine=SimpleNamespace(graph_runtime_state=graph_runtime_state))
+
+        runner._handle_event(
+            workflow_entry,
+            NodeRunHumanInputFormFilledEvent(
+                id="exec",
+                node_id="node",
+                node_type=BuiltinNodeTypes.HUMAN_INPUT,
+                node_title="Human Input",
+                rendered_content="content",
+                action_id="approve",
+                action_text="Approve",
+                submitted_data={"decision": StringSegment(value="approve")},
+            ),
+        )
+
+        queue_event = published[-1]
+        assert isinstance(queue_event, QueueHumanInputFormFilledEvent)
+        assert queue_event.submitted_data == {"decision": StringSegment(value="approve")}
 
     @pytest.mark.parametrize(
         ("event_factory", "queue_event_cls"),
