@@ -6,16 +6,20 @@ import type {
 } from '@dify/contracts/enterprise/types.gen'
 import { Switch } from '@langgenius/dify-ui/switch'
 import { useMutation, useQuery } from '@tanstack/react-query'
-import { useAtomValue, useSetAtom } from 'jotai'
+import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { consoleQuery } from '@/service/client'
-import { createdDeveloperApiTokenAtom } from '../../store'
 import { Section } from '../common'
 import { ApiKeyGenerateMenu, ApiKeyList } from './api-keys'
 import { CopyPill } from './common'
 
 type DeveloperApiSectionProps = {
   appInstanceId: string
+}
+
+type CreatedApiToken = {
+  appInstanceId: string
+  token: string
 }
 
 function permissionEnvironment(row: EnvironmentAccessRow): ConsoleEnvironment | undefined {
@@ -41,18 +45,11 @@ function DeveloperApiSwitch({ appInstanceId, checked }: {
   )
 }
 
-function CreatedApiTokenCard({ appInstanceId }: {
-  appInstanceId: string
+function CreatedApiTokenCard({ token, onDismiss }: {
+  token: string
+  onDismiss: () => void
 }) {
   const { t } = useTranslation('deployments')
-  const createdApiToken = useAtomValue(createdDeveloperApiTokenAtom)
-  const setCreatedApiToken = useSetAtom(createdDeveloperApiTokenAtom)
-  const visibleCreatedApiToken = createdApiToken?.appInstanceId === appInstanceId
-    ? createdApiToken.token
-    : undefined
-
-  if (!visibleCreatedApiToken)
-    return null
 
   return (
     <div className="flex flex-col gap-2 rounded-lg border border-components-panel-border bg-components-panel-bg-blur p-3">
@@ -67,7 +64,7 @@ function CreatedApiTokenCard({ appInstanceId }: {
         </div>
         <button
           type="button"
-          onClick={() => setCreatedApiToken(undefined)}
+          onClick={onDismiss}
           aria-label={t('access.api.dismissToken')}
           className="flex size-6 shrink-0 items-center justify-center rounded-md text-text-tertiary hover:bg-state-base-hover hover:text-text-secondary"
         >
@@ -76,7 +73,7 @@ function CreatedApiTokenCard({ appInstanceId }: {
       </div>
       <CopyPill
         label={t('access.api.newTokenLabel')}
-        value={visibleCreatedApiToken}
+        value={token}
       />
     </div>
   )
@@ -86,6 +83,7 @@ export function DeveloperApiSection({
   appInstanceId,
 }: DeveloperApiSectionProps) {
   const { t } = useTranslation('deployments')
+  const [createdApiToken, setCreatedApiToken] = useState<CreatedApiToken>()
   const { data: accessConfig } = useQuery(consoleQuery.enterprise.appDeploy.getAppInstanceAccess.queryOptions({
     input: {
       params: { appInstanceId },
@@ -97,6 +95,9 @@ export function DeveloperApiSection({
   const environments = accessConfig?.permissions
     ?.map(permissionEnvironment)
     .filter((environment): environment is ConsoleEnvironment => Boolean(environment)) ?? []
+  const visibleCreatedApiToken = createdApiToken?.appInstanceId === appInstanceId
+    ? createdApiToken.token
+    : undefined
 
   return (
     <Section
@@ -131,9 +132,15 @@ export function DeveloperApiSection({
                   appInstanceId={appInstanceId}
                   environments={environments}
                   apiKeys={apiKeys}
+                  onCreatedToken={token => setCreatedApiToken({ appInstanceId, token })}
                 />
               </div>
-              <CreatedApiTokenCard appInstanceId={appInstanceId} />
+              {visibleCreatedApiToken && (
+                <CreatedApiTokenCard
+                  token={visibleCreatedApiToken}
+                  onDismiss={() => setCreatedApiToken(undefined)}
+                />
+              )}
               {apiKeys.length === 0
                 ? (
                     <div className="rounded-lg border border-dashed border-components-panel-border bg-components-panel-bg-blur px-4 py-6 text-center system-sm-regular text-text-tertiary">

@@ -9,11 +9,9 @@ import {
   DropdownMenuTrigger,
 } from '@langgenius/dify-ui/dropdown-menu'
 import { useMutation } from '@tanstack/react-query'
-import { useSetAtom } from 'jotai'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { consoleQuery } from '@/service/client'
-import { createdDeveloperApiTokenAtom } from '../../store'
 import { environmentName } from '../../utils'
 
 function ApiKeyRow({ appInstanceId, apiKey }: {
@@ -79,14 +77,14 @@ export function ApiKeyList({ appInstanceId, apiKeys }: {
   )
 }
 
-export function ApiKeyGenerateMenu({ appInstanceId, environments, apiKeys }: {
+export function ApiKeyGenerateMenu({ appInstanceId, environments, apiKeys, onCreatedToken }: {
   appInstanceId: string
   environments: ConsoleEnvironment[]
   apiKeys: DeveloperApiKeyRow[]
+  onCreatedToken: (token: string) => void
 }) {
   const { t } = useTranslation('deployments')
   const [open, setOpen] = useState(false)
-  const setCreatedApiToken = useSetAtom(createdDeveloperApiTokenAtom)
   const generateApiKey = useMutation(consoleQuery.enterprise.appDeploy.createDeveloperApiKey.mutationOptions())
   const selectableEnvironments = environments.filter(env => env.id)
   const disabled = selectableEnvironments.length === 0
@@ -114,7 +112,7 @@ export function ApiKeyGenerateMenu({ appInstanceId, environments, apiKeys }: {
       {
         onSuccess: (response) => {
           if (response.token)
-            setCreatedApiToken({ appInstanceId, token: response.token })
+            onCreatedToken(response.token)
         },
       },
     )

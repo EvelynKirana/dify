@@ -6,18 +6,12 @@ type OpenDeployDrawerParams = {
   releaseId?: string
 }
 
-type CreatedDeveloperApiToken = {
-  appInstanceId: string
-  token: string
-}
-
 export const deployDrawerOpenAtom = atom(false)
 export const deployDrawerAppInstanceIdAtom = atom<string | undefined>(undefined)
 export const deployDrawerEnvironmentIdAtom = atom<string | undefined>(undefined)
 export const deployDrawerReleaseIdAtom = atom<string | undefined>(undefined)
 
 export const createInstanceModalOpenAtom = atom(false)
-export const createdDeveloperApiTokenAtom = atom<CreatedDeveloperApiToken | undefined>(undefined)
 
 export const openDeployDrawerAtom = atom(null, (_get, set, params: OpenDeployDrawerParams) => {
   set(deployDrawerAppInstanceIdAtom, params.appInstanceId)
