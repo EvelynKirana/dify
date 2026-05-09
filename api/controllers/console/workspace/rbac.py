@@ -6,7 +6,7 @@ from typing import Any
 
 from flask import request
 from flask_restx import Resource
-from pydantic import AliasChoices, BaseModel, ConfigDict, Field, ValidationError
+from pydantic import AliasChoices, BaseModel, ConfigDict, Field, ValidationError, field_validator
 from werkzeug.exceptions import Forbidden, NotFound
 
 from configs import dify_config
@@ -246,6 +246,13 @@ class _ReplaceBindingsRequest(BaseModel):
     role_ids: list[str] = []
     account_ids: list[str] = []
 
+    @field_validator("role_ids", "account_ids", mode="before")
+    @classmethod
+    def _coerce_bindings(cls, value: Any) -> list[str]:
+        if value is None:
+            return []
+        return value
+
 
 @console_ns.route("/workspaces/current/rbac/my-permissions")
 class RBACMyPermissionsApi(Resource):
@@ -465,6 +472,13 @@ class RBACWorkspaceDatasetMemberBindingsApi(Resource):
 
 class _ReplaceMemberRolesRequest(BaseModel):
     role_ids: list[str] = []
+
+    @field_validator("role_ids", mode="before")
+    @classmethod
+    def _coerce_role_ids(cls, value: Any) -> list[str]:
+        if value is None:
+            return []
+        return value
 
 
 @console_ns.route("/workspaces/current/rbac/members/<uuid:member_id>/rbac-roles")

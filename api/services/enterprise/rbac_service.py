@@ -113,6 +113,13 @@ class AccessMatrixItem(_RBACModel):
     role_ids: list[str] = Field(default_factory=list)
     account_ids: list[str] = Field(default_factory=list)
 
+    @field_validator("role_ids", "account_ids", mode="before")
+    @classmethod
+    def _coerce_empty_lists(cls, value: Any) -> list[str]:
+        if value is None:
+            return []
+        return value
+
 
 class AppAccessMatrix(_RBACModel):
     app_id: str = ""
@@ -194,15 +201,36 @@ class AccessPolicyUpdate(_RBACModel):
 class ReplaceRoleBindings(_RBACModel):
     role_ids: list[str] = Field(default_factory=list)
 
+    @field_validator("role_ids", mode="before")
+    @classmethod
+    def _coerce_role_ids(cls, value: Any) -> list[str]:
+        if value is None:
+            return []
+        return value
+
 
 
 class ReplaceMemberBindings(_RBACModel):
     account_ids: list[str] = Field(default_factory=list)
 
+    @field_validator("account_ids", mode="before")
+    @classmethod
+    def _coerce_account_ids(cls, value: Any) -> list[str]:
+        if value is None:
+            return []
+        return value
+
 
 class ReplaceBindings(_RBACModel):
     role_ids: list[str] = Field(default_factory=list)
     account_ids: list[str] = Field(default_factory=list)
+
+    @field_validator("role_ids", "account_ids", mode="before")
+    @classmethod
+    def _coerce_bindings(cls, value: Any) -> list[str]:
+        if value is None:
+            return []
+        return value
 
 
 class ListOption(_RBACModel):

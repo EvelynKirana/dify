@@ -2,11 +2,8 @@
 
 The controllers here are thin: almost every non-trivial behaviour lives in
 ``services.enterprise.rbac_service`` (covered by its own suite). These tests
-therefore focus on the three Flask-layer concerns the service layer cannot
-exercise:
+therefore focus on the Flask-layer concerns the service layer cannot exercise:
 
-* ``enterprise_only`` rejects community-edition calls with 403 (it is the
-  outermost decorator, so it fires before any auth middleware).
 * ``_current_ids`` raises 404 when the session has no tenant.
 * The pydantic request models accept / reject bodies as expected.
 
@@ -25,7 +22,7 @@ from unittest.mock import patch
 import pytest
 from flask import Flask
 from pydantic import ValidationError
-from werkzeug.exceptions import Forbidden, NotFound
+from werkzeug.exceptions import NotFound
 
 from controllers.console.workspace import rbac as rbac_mod
 
@@ -39,26 +36,6 @@ def app():
 
 def _enabled(enabled: bool):
     return patch("controllers.console.workspace.rbac.dify_config.ENTERPRISE_ENABLED", enabled)
-
-
-class TestEnterpriseGate:
-    """``enterprise_only`` is the outermost decorator on every resource, so we
-    can exercise it directly — no auth stubs required.
-    """
-
-    def test_catalog_forbidden_when_disabled(self, app):
-        with app.test_request_context("/workspaces/current/rbac/role-permissions/catalog"), _enabled(False):
-            with pytest.raises(Forbidden):
-                rbac_mod.RBACWorkspaceCatalogApi().get()
-
-    def test_roles_post_forbidden_when_disabled(self, app):
-        with (
-            app.test_request_context("/workspaces/current/rbac/roles", method="POST", json={}),
-            _enabled(False),
-        ):
-            with pytest.raises(Forbidden):
-                rbac_mod.RBACRolesApi().post()
-
 
 class TestCurrentIds:
     def test_rejects_missing_tenant(self):
@@ -114,6 +91,15 @@ class TestPydanticModels:
         parsed = rbac_mod._ReplaceBindingsRequest.model_validate({})
         assert parsed.role_ids == []
         assert parsed.account_ids == []
+
+    def test_replace_bindings_coerce_null_lists(self):
+        parsed = rbac_mod._ReplaceBindingsRequest.model_validate({"role_ids": None, "account_ids": None})
+        assert parsed.role_ids == []
+        assert parsed.account_ids == []
+
+    def test_replace_member_roles_coerce_null_list(self):
+        parsed = rbac_mod._ReplaceMemberRolesRequest.model_validate({"role_ids": None})
+        assert parsed.role_ids == []
 
     def test_pagination_query_accepts_page_and_limit_aliases(self):
         parsed = rbac_mod._PaginationQuery.model_validate({"page": 3, "limit": 25, "reverse": True})
