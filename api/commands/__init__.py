@@ -33,6 +33,7 @@ from .vector import (
     old_metadata_migration,
     vdb_migrate,
 )
+from .vector_space import sample_vector_space_usage
 
 __all__ = [
     "add_qdrant_index",
@@ -62,6 +63,7 @@ __all__ = [
     "reset_encrypt_key_pair",
     "reset_password",
     "restore_workflow_runs",
+    "sample_vector_space_usage",
     "setup_datasource_oauth_client",
     "setup_system_tool_oauth_client",
     "setup_system_trigger_oauth_client",

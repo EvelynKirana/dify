@@ -28,6 +28,7 @@ def init_app(app: DifyApp):
         reset_encrypt_key_pair,
         reset_password,
         restore_workflow_runs,
+        sample_vector_space_usage,
         setup_datasource_oauth_client,
         setup_system_tool_oauth_client,
         setup_system_trigger_oauth_client,
@@ -68,6 +69,7 @@ def init_app(app: DifyApp):
         clean_workflow_runs,
         clean_expired_messages,
         export_app_messages,
+        sample_vector_space_usage,
     ]
     for cmd in cmds_to_register:
         app.cli.add_command(cmd)
