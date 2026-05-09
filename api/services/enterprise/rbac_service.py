@@ -391,6 +391,17 @@ class RBACService:
                 params={"id": role_id},
             )
 
+        @staticmethod
+        def copy(tenant_id: str, account_id: str | None, role_id: str) -> RBACRole:
+            data = _inner_call(
+                "POST",
+                f"{_INNER_PREFIX}/roles/copy",
+                tenant_id=tenant_id,
+                account_id=account_id,
+                params={"id": role_id},
+            )
+            return RBACRole.model_validate(data or {})
+
     # ------------------------------------------------------------------
     # Access policies (Settings > Access Rules: create/edit permission sets).
     # ------------------------------------------------------------------

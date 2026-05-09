@@ -156,6 +156,16 @@ class TestRoles:
         assert call.params == {"id": "role-1"}
         assert call.account_id is None
 
+    def test_copy_sends_post_with_id_param(self, mock_send: MagicMock):
+        mock_send.return_value = {"id": "role-1-copy", "type": "workspace", "name": "Owner copy"}
+        svc.RBACService.Roles.copy("tenant-1", "acct-1", "role-1")
+
+        call = _call_args(mock_send)
+        assert call.method == "POST"
+        assert call.endpoint == "/rbac/roles/copy"
+        assert call.params == {"id": "role-1"}
+        assert call.account_id == "acct-1"
+
 
 class TestAccessPolicies:
     def test_list_filters_by_resource_type(self, mock_send: MagicMock):
@@ -261,8 +271,8 @@ class TestWorkspaceAccess:
                         "resource_type": "app",
                         "name": "Workspace App Access",
                     },
-                    "role_ids": None,
-                    "account_ids": None,
+                    "roles": None,
+                    "accounts": None,
                 }
             ],
             "pagination": None,
@@ -270,8 +280,8 @@ class TestWorkspaceAccess:
 
         out = svc.RBACService.WorkspaceAccess.app_matrix("tenant-1")
 
-        assert out.items[0].role_ids == []
-        assert out.items[0].account_ids == []
+        assert out.items[0].roles == []
+        assert out.items[0].accounts == []
 
     def test_workspace_app_replace_bindings(self, mock_send: MagicMock):
         mock_send.return_value = {"data": []}
