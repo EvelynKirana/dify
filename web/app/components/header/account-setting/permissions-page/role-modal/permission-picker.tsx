@@ -7,7 +7,6 @@ import {
   DropdownMenuCheckboxItem,
   DropdownMenuContent,
   DropdownMenuGroup,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@langgenius/dify-ui/dropdown-menu'
 import { useEffect, useMemo, useRef, useState } from 'react'
@@ -20,7 +19,11 @@ type PermissionPickerProps = {
   className?: string
 }
 
-const PermissionPicker = ({ value, onChange, className }: PermissionPickerProps) => {
+const PermissionPicker = ({
+  value,
+  onChange,
+  className,
+}: PermissionPickerProps) => {
   const [open, setOpen] = useState(false)
   const [search, setSearch] = useState('')
   const inputRef = useRef<HTMLInputElement>(null)
@@ -129,11 +132,10 @@ const PermissionPicker = ({ value, onChange, className }: PermissionPickerProps)
             No permissions found
           </div>
         )}
-        {filteredGroups.map((group, groupIndex) => {
+        {filteredGroups.map((group) => {
           const { allChecked, indeterminate } = getGroupState(group)
           return (
             <DropdownMenuGroup key={group.group_key}>
-              {groupIndex > 0 && <DropdownMenuSeparator />}
               <button
                 type="button"
                 className="mx-1 flex h-7 w-[calc(100%-0.5rem)] items-center gap-2 rounded-lg px-2 text-left outline-hidden hover:bg-state-base-hover"

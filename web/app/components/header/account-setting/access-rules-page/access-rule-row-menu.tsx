@@ -1,5 +1,6 @@
 'use client'
 
+import type { AccessPolicy } from '@/models/access-control'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -7,21 +8,42 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@langgenius/dify-ui/dropdown-menu'
-import { useState } from 'react'
+import { toast } from '@langgenius/dify-ui/toast'
+import { useCallback, useState } from 'react'
 import ActionButton from '@/app/components/base/action-button'
+import { useCopyAccessRule, useDeleteAccessRule } from '@/service/access-control/use-workspace-access-rules'
 
 export type AccessRuleRowMenuProps = {
+  rule: AccessPolicy
   onEdit?: () => void
-  onCopy?: () => void
-  onDelete?: () => void
 }
 
 const AccessRuleRowMenu = ({
+  rule,
   onEdit,
-  onCopy,
-  onDelete,
 }: AccessRuleRowMenuProps) => {
   const [open, setOpen] = useState(false)
+
+  const { mutateAsync: copyAccessRule } = useCopyAccessRule(rule.resource_type)
+  const { mutateAsync: deleteAccessRule } = useDeleteAccessRule(rule.resource_type)
+
+  const handleCopyRules = useCallback(() => {
+    copyAccessRule(rule.id, {
+      onSuccess: () => {
+        toast.success('Access rule copied successfully')
+        setOpen(false)
+      },
+    })
+  }, [copyAccessRule, rule.id])
+
+  const handleDelete = useCallback(() => {
+    deleteAccessRule(rule.id, {
+      onSuccess: () => {
+        toast.success('Access rule deleted successfully')
+        setOpen(false)
+      },
+    })
+  }, [deleteAccessRule, rule.id])
 
   return (
     <DropdownMenu open={open} onOpenChange={setOpen}>
@@ -49,7 +71,7 @@ const AccessRuleRowMenu = ({
         </DropdownMenuItem>
         <DropdownMenuItem
           className="system-sm-semibold text-text-secondary"
-          onClick={onCopy}
+          onClick={handleCopyRules}
         >
           Copy
         </DropdownMenuItem>
@@ -57,7 +79,7 @@ const AccessRuleRowMenu = ({
         <DropdownMenuItem
           variant="destructive"
           className="system-sm-semibold"
-          onClick={onDelete}
+          onClick={handleDelete}
         >
           Delete
         </DropdownMenuItem>

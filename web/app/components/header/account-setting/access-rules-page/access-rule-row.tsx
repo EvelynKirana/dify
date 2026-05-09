@@ -1,32 +1,19 @@
 'use client'
 
+import type { AccessPolicyWithBindings } from '@/models/access-control'
 import { cn } from '@langgenius/dify-ui/cn'
+import { toast } from '@langgenius/dify-ui/toast'
 import { memo, useCallback } from 'react'
+import { useUpdateAppAccessRuleBindings, useUpdateDatasetAccessRuleBindings } from '@/service/access-control/use-workspace-access-rules'
 import AccessRuleRowMenu from './access-rule-row-menu'
 import RoleTag from './role-tag'
 
-export type AssignedRole = {
-  id: string
-  name: string
-}
-
-export type AccessRule = {
-  id: string
-  name: string
-  description: string
-  assignedRoles: AssignedRole[]
-  permissions: string[]
-}
-
 export type AccessRuleRowProps = {
-  rule: AccessRule
+  rule: AccessPolicyWithBindings
   className?: string
   showMenu?: boolean
-  onEdit?: (rule: AccessRule) => void
-  onCopy?: (rule: AccessRule) => void
-  onDelete?: (rule: AccessRule) => void
-  onAddRole?: (rule: AccessRule) => void
-  onRemoveRole?: (rule: AccessRule, role: AssignedRole) => void
+  onEdit?: (rule: AccessPolicyWithBindings) => void
+  onAddRole?: (rule: AccessPolicyWithBindings) => void
 }
 
 const AccessRuleRow = ({
@@ -34,38 +21,61 @@ const AccessRuleRow = ({
   className,
   showMenu = true,
   onEdit,
-  onCopy,
-  onDelete,
   onAddRole,
-  onRemoveRole,
 }: AccessRuleRowProps) => {
+  const { policy, role_ids } = rule
+
   const handleEdit = useCallback(() => onEdit?.(rule), [onEdit, rule])
-  const handleCopy = useCallback(() => onCopy?.(rule), [onCopy, rule])
-  const handleDelete = useCallback(() => onDelete?.(rule), [onDelete, rule])
   const handleAddRole = useCallback(() => onAddRole?.(rule), [onAddRole, rule])
+
+  const { mutateAsync: updateAppAccessRuleBindings } = useUpdateAppAccessRuleBindings()
+  const { mutateAsync: updateDatasetAccessRuleBindings } = useUpdateDatasetAccessRuleBindings()
+
+  const handleRemoveRole = useCallback((roleId: string) => {
+    const payload = {
+      id: policy.id,
+      role_ids: role_ids.filter(id => id !== roleId),
+      account_ids: [],
+    }
+    if (policy.resource_type === 'app') {
+      updateAppAccessRuleBindings(payload, {
+        onSuccess: () => {
+          toast.success('Access rule updated successfully')
+        },
+      })
+    }
+    else if (policy.resource_type === 'dataset') {
+      updateDatasetAccessRuleBindings(payload, {
+        onSuccess: () => {
+          toast.success('Access rule updated successfully')
+        },
+      })
+    }
+  }, [policy.id, policy.resource_type, role_ids, updateAppAccessRuleBindings, updateDatasetAccessRuleBindings])
 
   return (
     <div className={cn('flex items-start gap-2 py-3.5', className)}>
       <div className="min-w-0 flex-1">
         <div className="system-sm-semibold text-text-secondary">
-          {rule.name}
+          {policy.name}
         </div>
         <p className="mt-0.5 system-xs-regular text-text-tertiary">
-          {rule.description}
+          {policy.description}
         </p>
         <div className="mt-2 flex flex-wrap items-center gap-1.5">
-          {rule.assignedRoles.map(role => (
+          {role_ids.map(role => (
             <RoleTag
-              key={role.id}
-              label={role.name}
-              onRemove={onRemoveRole ? () => onRemoveRole(rule, role) : undefined}
+              key={role}
+              id={role}
+              label={role}
+              onRemove={handleRemoveRole}
             />
           ))}
           <button
             type="button"
             onClick={handleAddRole}
             className="inline-flex h-6 items-center gap-0.5 rounded-md border border-divider-deep px-1.5 system-xs-medium text-text-tertiary hover:border-divider-solid hover:text-text-secondary"
-            aria-label={`Add role to ${rule.name}`}
+            aria-label={`Add role to ${policy.name}`}
           >
             <span aria-hidden className="i-ri-add-line h-3 w-3" />
             Add
@@ -75,8 +85,7 @@ const AccessRuleRow = ({
       {showMenu && (
         <AccessRuleRowMenu
           onEdit={handleEdit}
-          onCopy={handleCopy}
-          onDelete={handleDelete}
+          rule={policy}
         />
       )}
     </div>

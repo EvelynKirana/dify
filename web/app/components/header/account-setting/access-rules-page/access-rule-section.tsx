@@ -1,21 +1,18 @@
 'use client'
 
-import type { AccessRule, AssignedRole } from './access-rule-row'
+import type { AccessPolicyWithBindings } from '@/models/access-control'
 import { Button } from '@langgenius/dify-ui/button'
 import { cn } from '@langgenius/dify-ui/cn'
 import { memo } from 'react'
 import AccessRuleRow from './access-rule-row'
 
-export type AccessRuleSectionProps = {
+type AccessRuleSectionProps = {
   title: string
-  rules: AccessRule[]
+  rules: AccessPolicyWithBindings[]
   createButtonLabel: string
   onCreate?: () => void
-  onEditRule?: (rule: AccessRule) => void
-  onCopyRule?: (rule: AccessRule) => void
-  onDeleteRule?: (rule: AccessRule) => void
-  onAddRole?: (rule: AccessRule) => void
-  onRemoveRole?: (rule: AccessRule, role: AssignedRole) => void
+  onEditRule?: (rule: AccessPolicyWithBindings) => void
+  onAddRole?: (rule: AccessPolicyWithBindings) => void
   className?: string
 }
 
@@ -25,10 +22,7 @@ const AccessRuleSection = ({
   createButtonLabel,
   onCreate,
   onEditRule,
-  onCopyRule,
-  onDeleteRule,
   onAddRole,
-  onRemoveRole,
   className,
 }: AccessRuleSectionProps) => {
   return (
@@ -44,14 +38,11 @@ const AccessRuleSection = ({
       <div className="overflow-hidden">
         {rules.map((rule, index) => (
           <AccessRuleRow
-            key={rule.id}
+            key={rule.policy.id}
             rule={rule}
             className={cn(index > 0 && 'border-t border-divider-subtle')}
             onEdit={onEditRule}
-            onCopy={onCopyRule}
-            onDelete={onDeleteRule}
             onAddRole={onAddRole}
-            onRemoveRole={onRemoveRole}
           />
         ))}
       </div>

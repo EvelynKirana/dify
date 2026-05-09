@@ -4,12 +4,18 @@ import { cn } from '@langgenius/dify-ui/cn'
 import { memo } from 'react'
 
 export type RoleTagProps = {
+  id: string
   label: string
-  onRemove?: () => void
+  onRemove?: (id: string) => void
   className?: string
 }
 
-const RoleTag = ({ label, onRemove, className }: RoleTagProps) => {
+const RoleTag = ({
+  id,
+  label,
+  onRemove,
+  className,
+}: RoleTagProps) => {
   return (
     <span
       className={cn(
@@ -25,7 +31,7 @@ const RoleTag = ({ label, onRemove, className }: RoleTagProps) => {
           aria-label={`Remove ${label}`}
           onClick={(e) => {
             e.stopPropagation()
-            onRemove()
+            onRemove(id)
           }}
           className="flex h-4 w-4 items-center justify-center rounded text-text-tertiary hover:bg-state-base-hover hover:text-text-secondary"
         >

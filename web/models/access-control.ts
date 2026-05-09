@@ -115,17 +115,7 @@ export type AccessPolicy = {
   updated_at: string
 }
 
-export type GetAccessPoliciesRequest = {
-  resource_type?: AccessPolicyResourceType
-} & PaginationParameters
-
-export type GetAccessPoliciesResponse = {
-  data: AccessPolicy[]
-  pagination: Pagination
-}
-
 export type CreateAccessPolicyRequest = {
-  resource_type: AccessPolicyResourceType
   name: string
   description?: string
   permission_keys?: PermissionKey[]

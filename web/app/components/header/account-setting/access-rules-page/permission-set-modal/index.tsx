@@ -1,6 +1,6 @@
 'use client'
 
-import type { ResourceType } from './permissions-data'
+import type { AccessPolicyResourceType } from '@/models/access-control'
 import { Button } from '@langgenius/dify-ui/button'
 import { cn } from '@langgenius/dify-ui/cn'
 import {
@@ -10,40 +10,40 @@ import {
   DialogDescription,
   DialogTitle,
 } from '@langgenius/dify-ui/dialog'
-import { useMemo, useState } from 'react'
+import { useState } from 'react'
 import Input from '@/app/components/base/input'
 import Textarea from '@/app/components/base/textarea'
+import { usePermissionsGroups } from './hooks'
 import PermissionPicker from './permission-picker'
-import { getPermissionMap } from './permissions-data'
 
 export type PermissionSetModalMode = 'create' | 'edit'
 
 export type PermissionSetFormValues = {
   name: string
   description: string
-  permissions: string[]
+  permissionKeys: string[]
 }
 
 export type PermissionSetModalProps = {
   open: boolean
   mode: PermissionSetModalMode
-  resourceType: ResourceType
+  resourceType: AccessPolicyResourceType
   initialValues?: Partial<PermissionSetFormValues>
   onClose: () => void
   onSubmit: (values: PermissionSetFormValues) => void
 }
 
-const RESOURCE_LABEL: Record<ResourceType, string> = {
+const RESOURCE_LABEL: Record<AccessPolicyResourceType, string> = {
   app: 'App',
-  knowledge_base: 'Knowledge Base',
+  dataset: 'Knowledge Base',
 }
 
-const buildTitle = (mode: PermissionSetModalMode, resource: ResourceType): string => {
+const buildTitle = (mode: PermissionSetModalMode, resource: AccessPolicyResourceType): string => {
   const verb = mode === 'create' ? 'Create' : 'Edit'
   return `${verb} ${RESOURCE_LABEL[resource]} permission set`
 }
 
-const buildDescription = (mode: PermissionSetModalMode, resource: ResourceType): string => {
+const buildDescription = (mode: PermissionSetModalMode, resource: AccessPolicyResourceType): string => {
   if (mode === 'edit')
     return 'Modify the name, description, and permissions granted for this permission set.'
   if (resource === 'app')
@@ -62,9 +62,9 @@ const PermissionSetModalBody = ({
 }: PermissionSetModalBodyProps) => {
   const [name, setName] = useState(initialValues?.name ?? '')
   const [description, setDescription] = useState(initialValues?.description ?? '')
-  const [permissions, setPermissions] = useState<string[]>(initialValues?.permissions ?? [])
+  const [permissionKeys, setPermissionKeys] = useState<string[]>(initialValues?.permissionKeys ?? [])
 
-  const permissionMap = useMemo(() => getPermissionMap(resourceType), [resourceType])
+  const { permissionMap } = usePermissionsGroups(resourceType)
 
   const trimmedName = name.trim()
   const canSubmit = trimmedName.length > 0
@@ -75,13 +75,13 @@ const PermissionSetModalBody = ({
     onSubmit({
       name: trimmedName,
       description: description.trim(),
-      permissions,
+      permissionKeys,
     })
     onClose()
   }
 
-  const handleRemovePermission = (id: string) => {
-    setPermissions(prev => prev.filter(p => p !== id))
+  const handleRemovePermission = (key: string) => {
+    setPermissionKeys(prev => prev.filter(p => p !== key))
   }
 
   return (
@@ -132,15 +132,15 @@ const PermissionSetModalBody = ({
 
         <div className="flex flex-col gap-2">
           <div className="system-sm-medium text-text-secondary">Permissions</div>
-          {permissions.length > 0 && (
+          {permissionKeys.length > 0 && (
             <div className="flex flex-wrap gap-1.5">
-              {permissions.map((id) => {
-                const p = permissionMap[id]
+              {permissionKeys.map((key) => {
+                const p = permissionMap[key]
                 if (!p)
                   return null
                 return (
                   <span
-                    key={id}
+                    key={key}
                     className={cn(
                       'inline-flex items-center gap-1 rounded-md bg-util-colors-indigo-indigo-50 px-1.5 py-0.5 system-xs-medium text-text-accent',
                       'border-[0.5px] border-components-panel-border',
@@ -151,7 +151,7 @@ const PermissionSetModalBody = ({
                       type="button"
                       className="flex h-3.5 w-3.5 items-center justify-center rounded hover:bg-state-base-hover"
                       aria-label={`Remove ${p.name}`}
-                      onClick={() => handleRemovePermission(id)}
+                      onClick={() => handleRemovePermission(key)}
                     >
                       <span aria-hidden className="i-ri-close-line h-3 w-3" />
                     </button>
@@ -162,8 +162,8 @@ const PermissionSetModalBody = ({
           )}
           <PermissionPicker
             resourceType={resourceType}
-            value={permissions}
-            onChange={setPermissions}
+            value={permissionKeys}
+            onChange={setPermissionKeys}
           />
         </div>
       </div>

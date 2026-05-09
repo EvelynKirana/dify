@@ -13,16 +13,18 @@ export const useWorkspacePermissionCatalog = () => {
   })
 }
 
-export const useAppPermissionCatalog = () => {
+export const useAppPermissionCatalog = (enabled?: boolean) => {
   return useQuery({
     queryKey: [NAME_SPACE, 'app'],
     queryFn: () => get<PermissionGroups>('/workspaces/current/rbac/role-permissions/catalog/app'),
+    enabled: enabled ?? true,
   })
 }
 
-export const useDatasetPermissionCatalog = () => {
+export const useDatasetPermissionCatalog = (enabled?: boolean) => {
   return useQuery({
     queryKey: [NAME_SPACE, 'dataset'],
     queryFn: () => get<PermissionGroups>('/workspaces/current/rbac/role-permissions/catalog/dataset'),
+    enabled: enabled ?? true,
   })
 }

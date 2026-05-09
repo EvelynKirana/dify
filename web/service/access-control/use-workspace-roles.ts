@@ -1,8 +1,10 @@
 import type {
   CreateRoleRequest,
   PaginationParameters,
+  Role,
   RoleListResponse,
 } from '@/models/access-control'
+import type { CommonResponse } from '@/models/common'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { del, get, post, put } from '../base'
 
@@ -21,7 +23,7 @@ export const useCreateWorkspaceRole = () => {
   return useMutation({
     mutationKey: [NAME_SPACE, 'create-workspace-role'],
     mutationFn: (data: CreateRoleRequest) =>
-      post<RoleListResponse>('/workspaces/current/rbac/roles', {
+      post<Role>('/workspaces/current/rbac/roles', {
         body: { ...data },
       }),
     onSuccess: () => {
@@ -36,7 +38,7 @@ export const useUpdateWorkspaceRole = () => {
   return useMutation({
     mutationKey: [NAME_SPACE, 'update-workspace-role'],
     mutationFn: (data: CreateRoleRequest & { id: string }) =>
-      put<RoleListResponse>(`/workspaces/current/rbac/roles/${data.id}`, {
+      put<Role>(`/workspaces/current/rbac/roles/${data.id}`, {
         body: { ...data },
       }),
     onSuccess: () => {
@@ -51,7 +53,7 @@ export const useDeleteWorkspaceRole = () => {
   return useMutation({
     mutationKey: [NAME_SPACE, 'delete-workspace-role'],
     mutationFn: (id: string) =>
-      del(`/workspaces/current/rbac/roles/${id}`),
+      del<CommonResponse>(`/workspaces/current/rbac/roles/${id}`),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [NAME_SPACE, 'workspace-role-list'] })
     },

@@ -1,21 +1,20 @@
 'use client'
 
-import type { PermissionGroup, ResourceType } from './permissions-data'
+import type { AccessPolicyResourceType, PermissionGroup } from '@/models/access-control'
 import { cn } from '@langgenius/dify-ui/cn'
 import {
   DropdownMenu,
+  DropdownMenuCheckboxItem,
   DropdownMenuContent,
+  DropdownMenuGroup,
   DropdownMenuTrigger,
 } from '@langgenius/dify-ui/dropdown-menu'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import Checkbox from '@/app/components/base/checkbox'
-import {
-  filterPermissionNodes,
-  PERMISSION_NODES_BY_RESOURCE,
-} from './permissions-data'
+import { usePermissionsGroups } from './hooks'
 
 type PermissionPickerProps = {
-  resourceType: ResourceType
+  resourceType: AccessPolicyResourceType
   value: string[]
   onChange: (next: string[]) => void
   className?: string
@@ -42,12 +41,19 @@ const PermissionPicker = ({
     return () => clearTimeout(timer)
   }, [open])
 
-  const nodes = PERMISSION_NODES_BY_RESOURCE[resourceType]
+  const { groups } = usePermissionsGroups(resourceType)
 
-  const filtered = useMemo(
-    () => filterPermissionNodes(nodes, search),
-    [nodes, search],
-  )
+  const filteredGroups = useMemo<PermissionGroup[]>(() => {
+    const q = search.trim().toLowerCase()
+    if (!q)
+      return groups
+    return groups
+      .map(group => ({
+        ...group,
+        permissions: group.permissions.filter(i => i.name.toLowerCase().includes(q)),
+      }))
+      .filter(group => group.permissions.length > 0)
+  }, [search, groups])
 
   const selectedSet = useMemo(() => new Set(value), [value])
 
@@ -59,19 +65,19 @@ const PermissionPicker = ({
   }
 
   const getGroupState = (group: PermissionGroup) => {
-    const checkedCount = group.items.reduce(
-      (acc, i) => acc + (selectedSet.has(i.id) ? 1 : 0),
+    const checkedCount = group.permissions.reduce(
+      (acc, i) => acc + (selectedSet.has(i.key) ? 1 : 0),
       0,
     )
     return {
-      allChecked: checkedCount > 0 && checkedCount === group.items.length,
-      indeterminate: checkedCount > 0 && checkedCount < group.items.length,
+      allChecked: checkedCount > 0 && checkedCount === group.permissions.length,
+      indeterminate: checkedCount > 0 && checkedCount < group.permissions.length,
     }
   }
 
   const toggleGroup = (group: PermissionGroup) => {
     const { allChecked, indeterminate } = getGroupState(group)
-    const ids = group.items.map(i => i.id)
+    const ids = group.permissions.map(i => i.key)
     if (allChecked || indeterminate) {
       const idSet = new Set(ids)
       onChange(value.filter(v => !idSet.has(v)))
@@ -122,71 +128,46 @@ const PermissionPicker = ({
         sideOffset={4}
         popupClassName="max-h-80 w-[var(--anchor-width)] py-1"
       >
-        {filtered.length === 0 && (
+        {filteredGroups.length === 0 && (
           <div className="px-3 py-6 text-center system-sm-regular text-text-tertiary">
             No permissions found
           </div>
         )}
-        {filtered.map((node) => {
-          if (node.kind === 'leaf') {
-            const checked = selectedSet.has(node.leaf.id)
-            return (
-              <button
-                key={node.leaf.id}
-                type="button"
-                role="menuitemcheckbox"
-                aria-checked={checked}
-                onClick={() => togglePermission(node.leaf.id)}
-                className="mx-1 flex h-7 w-[calc(100%-0.5rem)] items-center gap-2 rounded-lg px-2 text-left outline-hidden hover:bg-state-base-hover"
-              >
-                <Checkbox checked={checked} className="pointer-events-none" />
-                <span className="system-sm-regular text-text-secondary">
-                  {node.leaf.name}
-                </span>
-              </button>
-            )
-          }
-          const { allChecked, indeterminate } = getGroupState(node.group)
+        {filteredGroups.map((group) => {
+          const { allChecked, indeterminate } = getGroupState(group)
           return (
-            <div key={node.group.id} className="flex flex-col">
+            <DropdownMenuGroup key={group.group_key}>
               <button
                 type="button"
-                role="menuitemcheckbox"
-                aria-checked={allChecked ? true : indeterminate ? 'mixed' : false}
-                onClick={() => toggleGroup(node.group)}
                 className="mx-1 flex h-7 w-[calc(100%-0.5rem)] items-center gap-2 rounded-lg px-2 text-left outline-hidden hover:bg-state-base-hover"
+                onClick={() => toggleGroup(group)}
               >
                 <Checkbox
                   checked={allChecked}
                   indeterminate={indeterminate}
                   className="pointer-events-none"
                 />
-                <span className="system-sm-regular text-text-secondary">
-                  {node.group.label}
+                <span className="system-xs-medium-uppercase tracking-wide text-text-tertiary">
+                  {group.group_name}
                 </span>
               </button>
-              {node.group.items.map((item) => {
-                const checked = selectedSet.has(item.id)
+              {group.permissions.map((item) => {
+                const checked = selectedSet.has(item.key)
                 return (
-                  <button
-                    key={item.id}
-                    type="button"
-                    role="menuitemcheckbox"
-                    aria-checked={checked}
-                    onClick={() => togglePermission(item.id)}
-                    className={cn(
-                      'mx-1 flex h-7 w-[calc(100%-0.5rem)] items-center gap-2 rounded-lg pr-2 pl-7 text-left outline-hidden hover:bg-state-base-hover',
-                      checked && 'bg-state-accent-hover hover:bg-state-accent-hover',
-                    )}
+                  <DropdownMenuCheckboxItem
+                    key={item.key}
+                    checked={checked}
+                    onCheckedChange={() => togglePermission(item.key)}
+                    className="gap-2 pl-6"
                   >
                     <Checkbox checked={checked} className="pointer-events-none" />
                     <span className="system-sm-regular text-text-secondary">
                       {item.name}
                     </span>
-                  </button>
+                  </DropdownMenuCheckboxItem>
                 )
               })}
-            </div>
+            </DropdownMenuGroup>
           )
         })}
       </DropdownMenuContent>
