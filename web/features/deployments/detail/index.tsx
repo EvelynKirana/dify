@@ -35,7 +35,7 @@ export function InstanceDetail({ appInstanceId, children }: {
   if (!resolvedAppInstanceId && overviewQuery.isLoading) {
     return (
       <div className="flex h-full items-center justify-center bg-background-body">
-        <span className="h-6 w-6 animate-spin rounded-full border-2 border-components-panel-border border-t-transparent" />
+        <span className="size-6 animate-spin rounded-full border-2 border-components-panel-border border-t-transparent" />
       </div>
     )
   }
@@ -45,7 +45,7 @@ export function InstanceDetail({ appInstanceId, children }: {
       <div className="flex h-full flex-col items-center justify-center gap-3 bg-background-body">
         <div className="title-xl-semi-bold text-text-primary">{t('detail.notFound')}</div>
         <Button nativeButton={false} variant="secondary" render={<Link href="/deployments" />}>
-          <span aria-hidden className="i-ri-arrow-left-line h-4 w-4" />
+          <span aria-hidden className="i-ri-arrow-left-line size-4" />
           {t('detail.backToInstances')}
         </Button>
       </div>
@@ -54,7 +54,7 @@ export function InstanceDetail({ appInstanceId, children }: {
 
   return (
     <>
-      <div className="relative flex h-full overflow-hidden rounded-t-2xl shadow-[0_0_5px_rgba(0,0,0,0.05),0_0_2px_-1px_rgba(0,0,0,0.03)]">
+      <div className="relative flex h-full overflow-hidden rounded-t-2xl shadow-xs">
         <DeploymentSidebar
           app={app}
         />

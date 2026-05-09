@@ -69,9 +69,9 @@ function CreatedApiTokenCard({ appInstanceId }: {
           type="button"
           onClick={() => setCreatedApiToken(undefined)}
           aria-label={t('access.api.dismissToken')}
-          className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md text-text-tertiary hover:bg-state-base-hover hover:text-text-secondary"
+          className="flex size-6 shrink-0 items-center justify-center rounded-md text-text-tertiary hover:bg-state-base-hover hover:text-text-secondary"
         >
-          <span className="i-ri-close-line h-3.5 w-3.5" />
+          <span className="i-ri-close-line size-3.5" />
         </button>
       </div>
       <CopyPill

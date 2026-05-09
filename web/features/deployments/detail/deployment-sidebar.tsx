@@ -129,7 +129,7 @@ export function DeploymentSidebar({
       ref={sidebarRef}
       className={cn(
         'flex shrink-0 flex-col border-r border-divider-burn bg-background-default-subtle transition-all',
-        expand ? 'w-[216px]' : 'w-14',
+        expand ? 'w-54' : 'w-14',
       )}
     >
       <div className={cn('shrink-0', expand ? 'p-2' : 'p-1')}>
@@ -178,7 +178,7 @@ export function DeploymentSidebar({
         />
         {!isMobile && isHoveringSidebar && (
           <ToggleButton
-            className="absolute top-[-3.5px] -right-3 z-20"
+            className="absolute -top-1 -right-3 z-20"
             expand={expand}
             handleToggle={toggleSidebarMode}
           />

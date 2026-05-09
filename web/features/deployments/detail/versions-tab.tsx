@@ -57,12 +57,12 @@ function CreateReleaseControl({ appInstanceId, canCreateRelease }: {
         disabled={!canCreateRelease}
         onClick={() => setIsCreating(true)}
       >
-        <span className="i-ri-add-line h-3.5 w-3.5" />
+        <span className="i-ri-add-line size-3.5" />
         {t('versions.createRelease')}
       </Button>
 
       <Dialog open={isCreating} onOpenChange={setIsCreating}>
-        <DialogContent className="w-[560px] overflow-hidden p-0">
+        <DialogContent className="w-140 overflow-hidden p-0">
           <DialogCloseButton />
           <form
             onSubmit={(event) => {
@@ -114,7 +114,7 @@ function CreateReleaseControl({ appInstanceId, canCreateRelease }: {
                   name="description"
                   placeholder={t('versions.releaseDescriptionPlaceholder')}
                   maxLength={512}
-                  className="min-h-[96px] w-full resize-none appearance-none rounded-md border border-transparent bg-components-input-bg-normal p-2 system-sm-regular text-components-input-text-filled caret-primary-600 outline-hidden placeholder:text-components-input-text-placeholder hover:border-components-input-border-hover hover:bg-components-input-bg-hover focus:border-components-input-border-active focus:bg-components-input-bg-active focus:shadow-xs"
+                  className="min-h-24 w-full resize-none appearance-none rounded-md border border-transparent bg-components-input-bg-normal p-2 system-sm-regular text-components-input-text-filled caret-primary-600 outline-hidden placeholder:text-components-input-text-placeholder hover:border-components-input-border-hover hover:bg-components-input-bg-hover focus:border-components-input-border-active focus:bg-components-input-bg-active focus:shadow-xs"
                 />
               </div>
             </div>
@@ -135,7 +135,7 @@ function CreateReleaseControl({ appInstanceId, canCreateRelease }: {
                 <Button
                   type="submit"
                   variant="primary"
-                  className="min-w-[88px]"
+                  className="min-w-22"
                   disabled={!canCreateRelease || createRelease.isPending}
                 >
                   {createRelease.isPending ? t('versions.creating') : t('versions.create')}
@@ -174,7 +174,7 @@ export function VersionsTab({ appInstanceId }: {
   const canCreateRelease = overview?.instance?.canCreateRelease ?? true
 
   return (
-    <div className="flex w-full max-w-[960px] flex-col gap-4 p-6">
+    <div className="flex w-full max-w-240 flex-col gap-4 p-6">
       <div className="flex items-center justify-between gap-3">
         <div className="system-sm-semibold text-text-primary">
           {t('versions.releaseHistory')}

@@ -53,10 +53,10 @@ export function DeployReleaseMenu({ appInstanceId, releaseId }: {
         )}
       >
         {t('versions.deploy')}
-        <span className="i-ri-arrow-down-s-line h-3.5 w-3.5" />
+        <span className="i-ri-arrow-down-s-line size-3.5" />
       </DropdownMenuTrigger>
       {open && (
-        <DropdownMenuContent placement="bottom-end" sideOffset={4} popupClassName="w-[220px]">
+        <DropdownMenuContent placement="bottom-end" sideOffset={4} popupClassName="w-55">
           {environments.map((env) => {
             const envId = env.id!
             const row = deploymentRows.find(item => environmentId(item.environment) === envId)

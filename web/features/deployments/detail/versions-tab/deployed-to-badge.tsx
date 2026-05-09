@@ -28,10 +28,10 @@ export function DeployedToBadge({ item }: {
             )}
           >
             {item.state === 'deploying'
-              ? <span className="i-ri-loader-4-line h-3.5 w-3.5 animate-spin" />
+              ? <span className="i-ri-loader-4-line size-3.5 animate-spin" />
               : item.state === 'failed'
-                ? <span className="i-ri-alert-line h-3.5 w-3.5" />
-                : <span className="h-1.5 w-1.5 rounded-full bg-current" />}
+                ? <span className="i-ri-alert-line size-3.5" />
+                : <span className="size-1.5 rounded-full bg-current" />}
             {item.environmentName}
           </span>
         )}

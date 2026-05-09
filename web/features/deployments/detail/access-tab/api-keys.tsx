@@ -39,23 +39,23 @@ function ApiKeyRow({ appInstanceId, apiKey }: {
 
   return (
     <div className="flex items-center gap-3 py-1.5">
-      <div className="flex min-w-[140px] flex-col">
+      <div className="flex min-w-35 flex-col">
         <span className="system-sm-medium text-text-primary">{apiKey.name || apiKey.id}</span>
         <span className="system-xs-regular text-text-tertiary">
           {t('access.api.envPrefix', { env: environmentLabel })}
         </span>
       </div>
-      <div className="flex min-w-0 flex-1 items-center gap-1 rounded-lg border-[0.5px] border-components-input-border-active bg-components-input-bg-normal pr-1 pl-2">
-        <div className="min-w-0 flex-1 truncate font-mono text-[13px] font-medium text-text-secondary">
+      <div className="flex min-w-0 flex-1 items-center gap-1 rounded-lg border border-components-input-border-active bg-components-input-bg-normal pr-1 pl-2">
+        <div className="min-w-0 flex-1 truncate font-mono system-sm-medium text-text-secondary">
           {displayValue}
         </div>
         <button
           type="button"
           onClick={handleRevoke}
           aria-label={t('access.revoke')}
-          className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md text-text-tertiary hover:bg-state-destructive-hover hover:text-text-destructive"
+          className="flex size-6 shrink-0 items-center justify-center rounded-md text-text-tertiary hover:bg-state-destructive-hover hover:text-text-destructive"
         >
-          <span className="i-ri-delete-bin-line h-3.5 w-3.5" />
+          <span className="i-ri-delete-bin-line size-3.5" />
         </button>
       </div>
     </div>
@@ -131,12 +131,12 @@ export function ApiKeyGenerateMenu({ appInstanceId, environments, apiKeys }: {
           disabled && 'cursor-not-allowed opacity-50',
         )}
       >
-        <span className="i-ri-add-line h-3.5 w-3.5" />
+        <span className="i-ri-add-line size-3.5" />
         {t('access.api.newKey')}
-        <span className="i-ri-arrow-down-s-line h-3.5 w-3.5" />
+        <span className="i-ri-arrow-down-s-line size-3.5" />
       </DropdownMenuTrigger>
       {open && !disabled && (
-        <DropdownMenuContent placement="bottom-end" sideOffset={4} popupClassName="w-[220px]">
+        <DropdownMenuContent placement="bottom-end" sideOffset={4} popupClassName="w-55">
           {selectableEnvironments.map(env => (
             <DropdownMenuItem
               key={env.id}

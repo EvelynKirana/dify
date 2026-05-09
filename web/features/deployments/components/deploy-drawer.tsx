@@ -49,14 +49,14 @@ export function DeployDrawer() {
       open={open}
       onOpenChange={next => !next && closeDeployDrawer()}
     >
-      <DialogContent className="w-[560px] max-w-[90vw]">
+      <DialogContent className="w-140 max-w-[90vw]">
         <DialogCloseButton />
         {!drawerAppInstanceId
           ? <div className="p-4 text-text-tertiary">{t('deployDrawer.notFound')}</div>
           : (!releaseHistory || !environmentOptionsReply)
               ? (
                   <div className="flex items-center gap-2 p-4 system-sm-regular text-text-tertiary">
-                    <span className="h-4 w-4 animate-spin rounded-full border-2 border-components-panel-border border-t-transparent" />
+                    <span className="size-4 animate-spin rounded-full border-2 border-components-panel-border border-t-transparent" />
                     {t('createModal.loadingApps')}
                   </div>
                 )

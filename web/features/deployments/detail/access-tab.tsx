@@ -8,7 +8,7 @@ export function AccessTab({ appInstanceId }: {
   appInstanceId: string
 }) {
   return (
-    <div className="flex w-full max-w-[960px] flex-col gap-5 p-6">
+    <div className="flex w-full max-w-240 flex-col gap-5 p-6">
       <AccessPermissionsSection appInstanceId={appInstanceId} />
       <AccessChannelsSection appInstanceId={appInstanceId} />
       <DeveloperApiSection appInstanceId={appInstanceId} />

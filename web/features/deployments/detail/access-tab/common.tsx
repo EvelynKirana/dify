@@ -24,25 +24,25 @@ export function CopyPill({ label, value, prefix, className }: CopyPillProps) {
   return (
     <div
       className={cn(
-        'flex h-8 items-center rounded-lg border-[0.5px] border-components-input-border-active bg-components-input-bg-normal pr-1 pl-1.5',
+        'flex h-8 items-center gap-1 rounded-lg border border-components-input-border-active bg-components-input-bg-normal pr-1 pl-1.5',
         className,
       )}
     >
-      <div className="mr-0.5 flex h-5 shrink-0 items-center rounded-md border border-divider-subtle px-1.5 text-[11px] font-medium text-text-tertiary">
+      <div className="flex h-5 shrink-0 items-center rounded-md border border-divider-subtle px-1.5 system-2xs-medium text-text-tertiary">
         {label}
       </div>
       {prefix}
-      <div className="min-w-0 flex-1 truncate px-1 font-mono text-[13px] font-medium text-text-secondary">
+      <div className="min-w-0 flex-1 truncate px-1 font-mono system-sm-medium text-text-secondary">
         {value}
       </div>
-      <div className="mx-1 h-[14px] w-px shrink-0 bg-divider-regular" />
+      <div className="h-3.5 w-px shrink-0 bg-divider-regular" />
       <button
         type="button"
         onClick={() => copy(value)}
         aria-label={t('access.copy')}
-        className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md text-text-tertiary hover:bg-state-base-hover hover:text-text-secondary"
+        className="flex size-6 shrink-0 items-center justify-center rounded-md text-text-tertiary hover:bg-state-base-hover hover:text-text-secondary"
       >
-        <span className={cn(copied ? 'i-ri-check-line' : 'i-ri-file-copy-line', 'h-3.5 w-3.5')} />
+        <span className={cn(copied ? 'i-ri-check-line' : 'i-ri-file-copy-line', 'size-3.5')} />
       </button>
     </div>
   )
@@ -58,10 +58,10 @@ type EndpointRowProps = {
 export function EndpointRow({ envName, label, value, openLabel }: EndpointRowProps) {
   return (
     <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5">
-      <span className="min-w-[140px] system-xs-regular text-text-tertiary">
+      <span className="min-w-35 system-xs-regular text-text-tertiary">
         {envName}
       </span>
-      <CopyPill label={label} value={value} className="min-w-[260px] flex-1" />
+      <CopyPill label={label} value={value} className="min-w-65 flex-1" />
       {openLabel && (
         <a
           href={value}
@@ -69,7 +69,7 @@ export function EndpointRow({ envName, label, value, openLabel }: EndpointRowPro
           rel="noreferrer"
           className="inline-flex h-8 shrink-0 items-center gap-1.5 rounded-lg border border-components-button-secondary-border bg-components-button-secondary-bg px-3 system-sm-medium text-components-button-secondary-text hover:bg-components-button-secondary-bg-hover"
         >
-          <span className="i-ri-external-link-line h-3.5 w-3.5" />
+          <span className="i-ri-external-link-line size-3.5" />
           {openLabel}
         </a>
       )}

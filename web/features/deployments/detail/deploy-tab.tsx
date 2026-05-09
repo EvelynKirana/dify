@@ -38,12 +38,12 @@ function NewDeploymentMenu({ appInstanceId, availableEnvs }: {
           'hover:bg-components-button-primary-bg-hover',
         )}
       >
-        <span className="i-ri-rocket-line h-3.5 w-3.5" />
+        <span className="i-ri-rocket-line size-3.5" />
         {t('deployTab.newDeployment')}
-        <span className="i-ri-arrow-down-s-line h-3.5 w-3.5" />
+        <span className="i-ri-arrow-down-s-line size-3.5" />
       </DropdownMenuTrigger>
       {open && (
-        <DropdownMenuContent placement="bottom-end" sideOffset={4} popupClassName="w-[220px]">
+        <DropdownMenuContent placement="bottom-end" sideOffset={4} popupClassName="w-55">
           <DropdownMenuItem
             className="gap-2 px-3"
             onClick={() => {
@@ -99,7 +99,7 @@ export function DeployTab({ appInstanceId }: {
   const availableEnvs = environmentOptions.filter(env => env.id && !deployedEnvIds.has(env.id))
 
   return (
-    <div className="flex w-full max-w-[960px] flex-col gap-4 p-6">
+    <div className="flex w-full max-w-240 flex-col gap-4 p-6">
       <div className="flex items-center justify-between">
         <div className="system-sm-semibold text-text-primary">
           {t('deployTab.envCount')}

@@ -22,16 +22,16 @@ function NewInstanceAction({ icon, label, disabled, onClick }: NewInstanceAction
       disabled={disabled}
       title={disabled ? t('newInstance.comingSoon') : undefined}
       className={cn(
-        'mb-1 flex w-full items-center rounded-lg px-6 py-[7px] text-left text-[13px] leading-[18px] font-medium text-text-tertiary hover:bg-state-base-hover hover:text-text-secondary',
+        'mb-1 flex h-8 w-full items-center gap-2 rounded-lg px-6 text-left system-sm-medium text-text-tertiary hover:bg-state-base-hover hover:text-text-secondary',
         disabled
           ? 'cursor-not-allowed opacity-50 hover:bg-transparent hover:text-text-tertiary'
           : 'cursor-pointer',
       )}
     >
-      <span aria-hidden className={cn('mr-2 h-4 w-4 shrink-0', icon)} />
+      <span aria-hidden className={cn('size-4 shrink-0', icon)} />
       <span className="min-w-0 flex-1 truncate">{label}</span>
       {disabled && (
-        <span className="ml-2 shrink-0 rounded-md bg-state-base-hover px-1.5 system-2xs-medium text-text-tertiary">
+        <span className="shrink-0 rounded-md bg-state-base-hover px-1.5 system-2xs-medium text-text-tertiary">
           {t('newInstance.comingSoon')}
         </span>
       )}
@@ -56,9 +56,9 @@ export function NewInstanceCard() {
   const { t } = useTranslation('deployments')
 
   return (
-    <div className="relative col-span-1 inline-flex h-[160px] flex-col justify-between rounded-xl border-[0.5px] border-components-card-border bg-components-card-bg">
+    <div className="relative col-span-1 inline-flex h-40 flex-col justify-between rounded-xl border border-components-card-border bg-components-card-bg">
       <div className="grow rounded-t-xl p-2">
-        <div className="px-6 pt-2 pb-1 text-xs leading-[18px] font-medium text-text-tertiary">
+        <div className="px-6 pt-2 pb-1 text-xs/[18px] font-medium text-text-tertiary">
           {t('newInstance.title')}
         </div>
         <CreateFromStudioAction />

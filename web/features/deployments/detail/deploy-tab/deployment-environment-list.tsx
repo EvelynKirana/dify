@@ -95,12 +95,12 @@ function DeploymentRowActions({ appInstanceId, envId, row }: {
         <DropdownMenu modal={false} open={menuOpen} onOpenChange={setMenuOpen}>
           <DropdownMenuTrigger
             aria-label={t('deployTab.moreActions')}
-            className="flex h-7 w-7 items-center justify-center rounded-md text-text-tertiary hover:bg-state-base-hover hover:text-text-secondary"
+            className="flex size-7 items-center justify-center rounded-md text-text-tertiary hover:bg-state-base-hover hover:text-text-secondary"
           >
-            <span className="i-ri-more-line h-4 w-4" />
+            <span className="i-ri-more-line size-4" />
           </DropdownMenuTrigger>
           {menuOpen && (
-            <DropdownMenuContent placement="bottom-end" sideOffset={4} popupClassName="w-[200px]">
+            <DropdownMenuContent placement="bottom-end" sideOffset={4} popupClassName="w-50">
               <DropdownMenuItem
                 className="gap-2 px-3"
                 onClick={handleRuntimeAction}
@@ -130,7 +130,7 @@ function DeploymentEnvironmentRow({ appInstanceId, row, isExpanded, onToggle }: 
   const chevron = !isUndeployed && (
     <span
       className={cn(
-        'i-ri-arrow-down-s-line h-4 w-4 shrink-0 text-text-tertiary transition-transform',
+        'i-ri-arrow-down-s-line size-4 shrink-0 text-text-tertiary transition-transform',
         isExpanded && 'rotate-180',
       )}
     />

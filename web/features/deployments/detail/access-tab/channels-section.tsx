@@ -115,7 +115,7 @@ export function AccessChannelsSection({
                           <CopyPill
                             label={t('access.cli.domain')}
                             value={cliDomain}
-                            className="min-w-[260px] flex-1"
+                            className="min-w-65 flex-1"
                           />
                           <a
                             href={cliDocsUrl}
@@ -123,7 +123,7 @@ export function AccessChannelsSection({
                             rel="noreferrer"
                             className="inline-flex h-8 shrink-0 items-center gap-1.5 rounded-lg border border-components-button-secondary-border bg-components-button-secondary-bg px-3 system-sm-medium text-components-button-secondary-text hover:bg-components-button-secondary-bg-hover"
                           >
-                            <span className="i-ri-download-cloud-2-line h-3.5 w-3.5" />
+                            <span className="i-ri-download-cloud-2-line size-3.5" />
                             {t('access.cli.install')}
                           </a>
                           <a
@@ -132,7 +132,7 @@ export function AccessChannelsSection({
                             rel="noreferrer"
                             className="inline-flex h-8 shrink-0 items-center gap-1.5 rounded-lg border border-components-button-secondary-border bg-components-button-secondary-bg px-3 system-sm-medium text-components-button-secondary-text hover:bg-components-button-secondary-bg-hover"
                           >
-                            <span className="i-ri-book-open-line h-3.5 w-3.5" />
+                            <span className="i-ri-book-open-line size-3.5" />
                             {t('access.cli.docs')}
                           </a>
                         </div>

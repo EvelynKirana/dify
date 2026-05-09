@@ -32,7 +32,7 @@ function getEnvironmentFilterOption(env: DeploymentEnvironmentOption & { id: str
   return {
     value: env.id,
     text: env.name || env.id,
-    icon: <span className="i-ri-stack-line h-[14px] w-[14px]" />,
+    icon: <span className="i-ri-stack-line size-[14px]" />,
     disabled: env.deployable === false,
     disabledReason: env.disabledReason,
   }
@@ -53,13 +53,13 @@ export function EnvironmentFilter() {
     {
       value: 'all',
       text: t('filter.allEnvs'),
-      icon: <span className="i-ri-apps-2-line h-[14px] w-[14px]" />,
+      icon: <span className="i-ri-apps-2-line size-[14px]" />,
     },
     ...environments.map(getEnvironmentFilterOption),
     {
       value: 'not-deployed',
       text: t('filter.notDeployed'),
-      icon: <span className="i-ri-inbox-line h-[14px] w-[14px]" />,
+      icon: <span className="i-ri-inbox-line size-[14px]" />,
     },
   ]
   const selectedOption = filterOptions.find(option => option.value === activeFilter) ?? filterOptions[0]
@@ -68,25 +68,25 @@ export function EnvironmentFilter() {
     <DropdownMenu modal={false} open={open} onOpenChange={setOpen}>
       <DropdownMenuTrigger
         className={cn(
-          'flex h-8 cursor-pointer items-center gap-1 rounded-lg border-[0.5px] border-transparent bg-components-input-bg-normal px-2 text-left select-none',
+          'flex h-8 cursor-pointer items-center gap-1 rounded-lg border border-transparent bg-components-input-bg-normal px-2 text-left select-none',
           open && 'shadow-xs',
         )}
       >
         <div className="p-px text-text-tertiary">
           {selectedOption?.icon}
         </div>
-        <div className="max-w-[160px] min-w-0 truncate text-[13px] leading-[18px] text-text-secondary">
+        <div className="max-w-40 min-w-0 truncate system-sm-regular text-text-secondary">
           {selectedOption?.text}
         </div>
         <div className="shrink-0 p-px">
-          <span className={cn('i-ri-arrow-down-s-line h-3.5 w-3.5 text-text-tertiary transition-transform', open && 'rotate-180')} />
+          <span className={cn('i-ri-arrow-down-s-line size-3.5 text-text-tertiary transition-transform', open && 'rotate-180')} />
         </div>
       </DropdownMenuTrigger>
       {open && (
         <DropdownMenuContent
           placement="bottom-start"
           sideOffset={4}
-          popupClassName="w-[240px] rounded-lg border-[0.5px] border-components-panel-border bg-components-panel-bg-blur shadow-lg backdrop-blur-[5px]"
+          popupClassName="w-60 rounded-lg border border-components-panel-border bg-components-panel-bg-blur shadow-lg backdrop-blur-xs"
         >
           <div className="max-h-72 overflow-auto p-1">
             {filterOptions.map(option => (
@@ -101,16 +101,16 @@ export function EnvironmentFilter() {
                 title={option.disabled ? option.disabledReason : undefined}
                 aria-disabled={option.disabled}
                 className={cn(
-                  'flex items-center gap-2 rounded-lg py-[6px] pr-2 pl-3 select-none',
+                  'flex items-center gap-2 rounded-lg py-1.5 pr-2 pl-3 select-none',
                   option.disabled
                     ? 'cursor-not-allowed opacity-50'
                     : 'cursor-pointer hover:bg-state-base-hover',
                 )}
               >
                 <span className="shrink-0 text-text-tertiary">{option.icon}</span>
-                <span className="grow truncate text-sm leading-5 text-text-tertiary">{option.text}</span>
+                <span className="grow truncate text-sm/5 text-text-tertiary">{option.text}</span>
                 {option.value === activeFilter && (
-                  <span className="i-custom-vender-line-general-check h-4 w-4 shrink-0 text-text-secondary" />
+                  <span className="i-custom-vender-line-general-check size-4 shrink-0 text-text-secondary" />
                 )}
               </DropdownMenuItem>
             ))}

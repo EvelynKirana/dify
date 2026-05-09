@@ -80,7 +80,7 @@ function DeleteInstanceButton({
       </Button>
 
       <AlertDialog open={showDeleteConfirm} onOpenChange={open => !open && setShowDeleteConfirm(false)}>
-        <AlertDialogContent className="w-[520px]">
+        <AlertDialogContent className="w-130">
           <div className="flex flex-col gap-3 px-6 pt-6 pb-2">
             <AlertDialogTitle className="title-2xl-semi-bold text-text-primary">
               {t('settings.deleteConfirmTitle')}
@@ -183,7 +183,7 @@ function SettingsForm({ app, settings }: SettingsFormProps) {
           type="text"
           value={name}
           onChange={e => setName(e.target.value)}
-          className="flex h-8 items-center rounded-lg border-[0.5px] border-components-input-border-active bg-components-input-bg-normal px-3 text-[13px] font-medium text-text-secondary outline-hidden placeholder:text-text-quaternary"
+          className="flex h-8 items-center rounded-lg border border-components-input-border-active bg-components-input-bg-normal px-3 system-sm-medium text-text-secondary outline-hidden placeholder:text-text-quaternary"
         />
       </div>
       <div className="flex flex-col gap-2">
@@ -194,7 +194,7 @@ function SettingsForm({ app, settings }: SettingsFormProps) {
           id="settings-desc"
           value={description}
           onChange={e => setDescription(e.target.value)}
-          className="min-h-[96px] rounded-lg border-[0.5px] border-components-input-border-active bg-components-input-bg-normal px-3 py-2 text-[13px] text-text-secondary outline-hidden placeholder:text-text-quaternary"
+          className="min-h-24 rounded-lg border border-components-input-border-active bg-components-input-bg-normal px-3 py-2 system-sm-regular text-text-secondary outline-hidden placeholder:text-text-quaternary"
         />
       </div>
       <div className="flex justify-end gap-2">
@@ -276,7 +276,7 @@ export function SettingsTab({ appInstanceId }: {
   appInstanceId: string
 }) {
   return (
-    <div className="flex max-w-[640px] flex-col gap-5 p-6">
+    <div className="flex max-w-160 flex-col gap-5 p-6">
       <SettingsFormSection appInstanceId={appInstanceId} />
       <DeleteInstanceControlSection appInstanceId={appInstanceId} />
     </div>

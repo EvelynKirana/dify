@@ -54,7 +54,7 @@ function AccessOverviewRow({ label, enabled, hint, meta }: AccessOverviewRowProp
       )}
       >
         <span className={cn(
-          'h-1.5 w-1.5 rounded-full',
+          'size-1.5 rounded-full',
           enabled ? 'bg-util-colors-green-green-500' : 'bg-text-quaternary',
         )}
         />
@@ -147,14 +147,14 @@ function DeploymentStatusSection({ appInstanceId }: {
       action={(
         <Button nativeButton={false} size="small" variant="secondary" render={<Link href={`/deployments/${appInstanceId}/deploy`} />}>
           {t('overview.viewDeployments')}
-          <span className="i-ri-arrow-right-up-line h-3.5 w-3.5" />
+          <span className="i-ri-arrow-right-up-line size-3.5" />
         </Button>
       )}
     >
       {deployments.length === 0
         ? (
             <div className="flex flex-col items-center gap-3 rounded-lg border border-dashed border-components-panel-border bg-components-panel-bg-blur px-4 py-8 text-center">
-              <span className="i-ri-rocket-line h-5 w-5 text-text-quaternary" />
+              <span className="i-ri-rocket-line size-5 text-text-quaternary" />
               <div className="system-sm-regular text-text-tertiary">
                 {releaseRows.length === 0
                   ? t(canCreateRelease ? 'overview.noReleaseYet' : 'overview.noReleaseSourceUnavailable')
@@ -221,7 +221,7 @@ function AccessStatusSection({ appInstanceId }: {
       action={(
         <Button nativeButton={false} size="small" variant="secondary" render={<Link href={`/deployments/${appInstanceId}/access`} />}>
           {t('overview.configureAccess')}
-          <span className="i-ri-arrow-right-up-line h-3.5 w-3.5" />
+          <span className="i-ri-arrow-right-up-line size-3.5" />
         </Button>
       )}
     >
@@ -255,7 +255,7 @@ export function OverviewTab({ appInstanceId }: {
   appInstanceId: string
 }) {
   return (
-    <div className="flex w-full max-w-[960px] flex-col gap-5 p-6">
+    <div className="flex w-full max-w-240 flex-col gap-5 p-6">
       <BasicInfoSection appInstanceId={appInstanceId} />
       <DeploymentStatusSection appInstanceId={appInstanceId} />
       <AccessStatusSection appInstanceId={appInstanceId} />

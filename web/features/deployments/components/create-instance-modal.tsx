@@ -139,7 +139,7 @@ function CreateInstanceForm() {
           type="text"
           placeholder={sourceApp?.name ?? t('createModal.namePlaceholder')}
           required
-          className="flex h-8 items-center rounded-lg border-[0.5px] border-components-input-border-active bg-components-input-bg-normal px-3 text-[13px] font-medium text-text-secondary outline-hidden placeholder:text-text-quaternary"
+          className="flex h-8 items-center rounded-lg border border-components-input-border-active bg-components-input-bg-normal px-3 system-sm-medium text-text-secondary outline-hidden placeholder:text-text-quaternary"
         />
       </div>
 
@@ -151,7 +151,7 @@ function CreateInstanceForm() {
           id="instance-desc"
           name="description"
           placeholder={t('createModal.descriptionPlaceholder')}
-          className="min-h-[80px] rounded-lg border-[0.5px] border-components-input-border-active bg-components-input-bg-normal px-3 py-2 text-[13px] text-text-secondary outline-hidden placeholder:text-text-quaternary"
+          className="min-h-20 rounded-lg border border-components-input-border-active bg-components-input-bg-normal px-3 py-2 system-sm-regular text-text-secondary outline-hidden placeholder:text-text-quaternary"
         />
       </div>
 
@@ -176,7 +176,7 @@ export function CreateInstanceModal() {
       open={open}
       onOpenChange={next => !next && closeModal()}
     >
-      <DialogContent className="w-[520px] max-w-[90vw]">
+      <DialogContent className="w-130 max-w-[90vw]">
         <DialogCloseButton />
         {open && <CreateInstanceForm />}
       </DialogContent>

@@ -94,8 +94,8 @@ export function DeploymentsNav() {
   return (
     <Nav
       isApp={false}
-      icon={<span aria-hidden className="i-ri-rocket-line h-4 w-4" />}
-      activeIcon={<span aria-hidden className="i-ri-rocket-fill h-4 w-4" />}
+      icon={<span aria-hidden className="i-ri-rocket-line size-4" />}
+      activeIcon={<span aria-hidden className="i-ri-rocket-fill size-4" />}
       text={t('menus.deployments', { ns: 'common' })}
       activeSegment="deployments"
       link="/deployments"

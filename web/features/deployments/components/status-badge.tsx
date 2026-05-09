@@ -25,7 +25,7 @@ export function StatusBadge({ status, className }: {
   return (
     <span className={cn(baseBadge, statusStyles[status], className)}>
       {status === 'deploying' && (
-        <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-current" />
+        <span className="size-1.5 animate-pulse rounded-full bg-current" />
       )}
       {t(statusKey[status])}
     </span>
