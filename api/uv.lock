@@ -2013,7 +2013,7 @@ dependencies = [
 [package.metadata]
 requires-dist = [
     { name = "opensearch-py", specifier = "==3.1.0" },
-    { name = "tenacity", specifier = ">=9.1.4" },
+    { name = "tenacity", specifier = ">=8.0.0" },
 ]
 
 [[package]]
