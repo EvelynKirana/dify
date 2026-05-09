@@ -161,7 +161,7 @@ const Apps = ({
           <TryApp
             appId={currentTryAppParams?.appId || ''}
             app={currentTryAppParams?.app}
-            category={currentTryAppParams?.app?.category}
+            categories={currentTryAppParams?.app?.categories}
             onClose={hideTryAppPanel}
             onCreate={handleShowFromTryApp}
           />

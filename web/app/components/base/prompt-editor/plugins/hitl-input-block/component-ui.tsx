@@ -8,12 +8,19 @@ import { useBoolean } from 'ahooks'
 import * as React from 'react'
 import { useCallback, useEffect, useMemo, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
-import { InputVarType } from '@/app/components/workflow/types'
+import {
+  createDefaultParagraphFormInput,
+  isFileFormInput,
+  isParagraphFormInput,
+  isSelectFormInput,
+} from '@/app/components/workflow/nodes/human-input/types'
 import ActionButton from '../../../action-button'
 import { VariableX } from '../../../icons/src/vender/workflow'
 import Modal from '../../../modal'
 import InputField from './input-field'
 import VariableBlock from './variable-block'
+
+const i18nPrefix = 'nodes.humanInput.insertInputField'
 
 type HITLInputComponentUIProps = {
   nodeId: string
@@ -36,15 +43,7 @@ type HITLInputComponentUIProps = {
 const HITLInputComponentUI: FC<HITLInputComponentUIProps> = ({
   nodeId,
   varName,
-  formInput = {
-    type: InputVarType.paragraph,
-    output_variable_name: varName,
-    default: {
-      type: 'constant',
-      selector: [],
-      value: '',
-    },
-  },
+  formInput,
   onChange,
   onRename,
   onRemove,
@@ -56,6 +55,10 @@ const HITLInputComponentUI: FC<HITLInputComponentUIProps> = ({
   readonly,
 }) => {
   const { t } = useTranslation()
+  const resolvedFormInput = formInput || createDefaultParagraphFormInput(varName)
+  const paragraphDefault = isParagraphFormInput(resolvedFormInput)
+    ? resolvedFormInput.default
+    : null
   const [isShowEditModal, {
     setTrue: showEditModal,
     setFalse: hideEditModal,
@@ -72,8 +75,7 @@ const HITLInputComponentUI: FC<HITLInputComponentUIProps> = ({
       if (editBtn)
         editBtn.removeEventListener('click', showEditModal)
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+  }, [showEditModal])
 
   const removeBtnRef = useRef<HTMLDivElement>(null)
   useEffect(() => {
@@ -97,8 +99,36 @@ const HITLInputComponentUI: FC<HITLInputComponentUIProps> = ({
   }, [hideEditModal, onChange, onRename, varName])
 
   const isDefaultValueVariable = useMemo(() => {
-    return formInput.default?.type === 'variable'
-  }, [formInput.default?.type])
+    return paragraphDefault?.type === 'variable'
+  }, [paragraphDefault])
+  const inputTypeLabel = useMemo(() => {
+    if (isParagraphFormInput(resolvedFormInput))
+      return t('variableConfig.paragraph', { ns: 'appDebug' })
+    if (isSelectFormInput(resolvedFormInput))
+      return t('variableConfig.select', { ns: 'appDebug' })
+    if (isFileFormInput(resolvedFormInput))
+      return t('variableConfig.single-file', { ns: 'appDebug' })
+    return t('variableConfig.multi-files', { ns: 'appDebug' })
+  }, [resolvedFormInput, t])
+  const variableSelector = useMemo(() => {
+    if (isDefaultValueVariable)
+      return paragraphDefault?.selector || []
+    if (isSelectFormInput(resolvedFormInput) && resolvedFormInput.option_source.type === 'variable')
+      return resolvedFormInput.option_source.selector
+    return null
+  }, [isDefaultValueVariable, paragraphDefault?.selector, resolvedFormInput])
+  const summaryText = useMemo(() => {
+    if (isParagraphFormInput(resolvedFormInput))
+      return paragraphDefault?.value || inputTypeLabel
+
+    if (isSelectFormInput(resolvedFormInput)) {
+      if (resolvedFormInput.option_source.type === 'variable')
+        return t(`${i18nPrefix}.variable`, { ns: 'workflow' })
+      return resolvedFormInput.option_source.value.join(', ') || inputTypeLabel
+    }
+
+    return inputTypeLabel
+  }, [inputTypeLabel, paragraphDefault?.value, resolvedFormInput, t])
 
   return (
     <div
@@ -112,22 +142,27 @@ const HITLInputComponentUI: FC<HITLInputComponentUIProps> = ({
         </div>
       </div>
 
-      <div className="flex w-full items-center gap-x-0.5 pr-5">
+      <div className="flex w-full items-center gap-x-2 pr-5">
         <div className="min-w-0 grow">
-          {/* Default Value Info */}
-          {isDefaultValueVariable && (
-            <VariableBlock
-              variables={formInput.default?.selector}
-              workflowNodesMap={workflowNodesMap}
-              getVarType={getVarType}
-              environmentVariables={environmentVariables}
-              conversationVariables={conversationVariables}
-              ragVariables={ragVariables}
-            />
-          )}
-          {!isDefaultValueVariable && (
-            <div className="max-w-full truncate system-xs-medium text-components-input-text-filled">{formInput.default?.value}</div>
-          )}
+          {variableSelector
+            ? (
+                <VariableBlock
+                  variables={variableSelector}
+                  workflowNodesMap={workflowNodesMap}
+                  getVarType={getVarType}
+                  environmentVariables={environmentVariables}
+                  conversationVariables={conversationVariables}
+                  ragVariables={ragVariables}
+                />
+              )
+            : (
+                <div className="max-w-full truncate system-xs-medium text-components-input-text-filled">
+                  {summaryText}
+                </div>
+              )}
+        </div>
+        <div className="shrink-0 system-2xs-medium text-text-tertiary uppercase">
+          {inputTypeLabel}
         </div>
 
         {/* Actions */}
@@ -166,7 +201,7 @@ const HITLInputComponentUI: FC<HITLInputComponentUIProps> = ({
           <InputField
             nodeId={nodeId}
             isEdit
-            payload={formInput}
+            payload={resolvedFormInput}
             onChange={handleChange}
             onCancel={hideEditModal}
           />

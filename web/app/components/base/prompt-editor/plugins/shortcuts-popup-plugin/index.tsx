@@ -158,7 +158,7 @@ export default function ShortcutsPopupPlugin({
         apply({ availableWidth, availableHeight, elements }) {
           Object.assign(elements.floating.style, {
             maxWidth: `${Math.min(400, availableWidth)}px`,
-            maxHeight: `${Math.min(300, availableHeight)}px`,
+            maxHeight: `${Math.min(560, availableHeight)}px`,
             overflow: 'auto',
           })
         },
@@ -236,7 +236,7 @@ export default function ShortcutsPopupPlugin({
 
     setOpen(true)
     onOpen?.()
-  }, [onOpen])
+  }, [editor, onOpen, refs])
 
   const closePortal = useCallback(() => {
     setOpen(false)
@@ -273,6 +273,9 @@ export default function ShortcutsPopupPlugin({
       /* v8 ignore next 2 -- outside-click listener can race with ref cleanup during close/unmount; null-ref path is a safety guard. @preserve */
       if (!portalRef.current)
         return
+      const target = e.target as HTMLElement | null
+      if (target?.closest('[data-base-ui-portal]'))
+        return
       if (!portalRef.current.contains(e.target as Node))
         closePortal()
     }
@@ -295,7 +298,7 @@ export default function ShortcutsPopupPlugin({
         refs.setFloating(node)
       }}
       className={cn(
-        useContainer ? '' : 'z-999999',
+        useContainer ? '' : 'z-1002',
         'absolute rounded-xl bg-components-panel-bg-blur shadow-lg',
         className,
       )}

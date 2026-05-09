@@ -6,15 +6,26 @@ from core.workflow.node_runtime import DifyHumanInputNodeRuntime
 from core.workflow.system_variables import default_system_variables
 from graphon.entities import GraphInitParams
 from graphon.enums import BuiltinNodeTypes
+from graphon.file import FileTransferMethod, FileType
 from graphon.graph_events import (
     NodeRunHumanInputFormFilledEvent,
     NodeRunHumanInputFormTimeoutEvent,
     NodeRunStartedEvent,
 )
-from graphon.nodes.human_input.entities import HumanInputNodeData
+from graphon.nodes.human_input.entities import (
+    FileInputConfig,
+    FileListInputConfig,
+    HumanInputNodeData,
+    ParagraphInputConfig,
+    SelectInputConfig,
+    StringListSource,
+    UserActionConfig,
+)
 from graphon.nodes.human_input.enums import HumanInputFormStatus
 from graphon.nodes.human_input.human_input_node import HumanInputNode
 from graphon.runtime import GraphRuntimeState, VariablePool
+from graphon.variables.segments import ArrayFileSegment, FileSegment, StringSegment
+from graphon.variables.types import SegmentType
 from libs.datetime_utils import naive_utc_now
 
 
@@ -48,7 +59,14 @@ def _create_human_input_node(
     )
 
 
-def _build_node(form_content: str = "Please enter your name:\n\n{{#$output.name#}}") -> HumanInputNode:
+def _build_node(
+    form_content: str = (
+        "Please enter your name:\n\n{{#$output.name#}}\n"
+        "Decision: {{#$output.decision#}}\n"
+        "Attachment: {{#$output.attachment#}}\n"
+        "Attachments: {{#$output.attachments#}}"
+    ),
+) -> HumanInputNode:
     system_variables = default_system_variables()
     graph_runtime_state = GraphRuntimeState(
         variable_pool=VariablePool(system_variables=system_variables, user_inputs={}, environment_variables=[]),
@@ -76,19 +94,15 @@ def _build_node(form_content: str = "Please enter your name:\n\n{{#$output.name#
             "title": "Human Input",
             "form_content": form_content,
             "inputs": [
-                {
-                    "type": "text_input",
-                    "output_variable_name": "name",
-                    "default": {"type": "constant", "value": ""},
-                }
+                ParagraphInputConfig(output_variable_name="name").model_dump(mode="json"),
+                SelectInputConfig(
+                    output_variable_name="decision",
+                    option_source=StringListSource(type="constant", value=["approve", "reject"]),
+                ).model_dump(mode="json"),
+                FileInputConfig(output_variable_name="attachment").model_dump(mode="json"),
+                FileListInputConfig(output_variable_name="attachments", number_limits=2).model_dump(mode="json"),
             ],
-            "user_actions": [
-                {
-                    "id": "Accept",
-                    "title": "Approve",
-                    "button_style": "default",
-                }
-            ],
+            "user_actions": [UserActionConfig(id="Accept", title="Approve").model_dump(mode="json")],
         },
     }
 
@@ -97,7 +111,28 @@ def _build_node(form_content: str = "Please enter your name:\n\n{{#$output.name#
         rendered_content=form_content,
         submitted=True,
         selected_action_id="Accept",
-        submitted_data={"name": "Alice"},
+        submitted_data={
+            "name": "Alice",
+            "decision": "approve",
+            "attachment": {
+                "type": "document",
+                "transfer_method": "remote_url",
+                "remote_url": "https://example.com/resume.pdf",
+                "filename": "resume.pdf",
+                "extension": ".pdf",
+                "mime_type": "application/pdf",
+            },
+            "attachments": [
+                {
+                    "type": "image",
+                    "transfer_method": "remote_url",
+                    "remote_url": "https://example.com/a.png",
+                    "filename": "a.png",
+                    "extension": ".png",
+                    "mime_type": "image/png",
+                }
+            ],
+        },
         status=HumanInputFormStatus.SUBMITTED,
         expiration_time=naive_utc_now() + datetime.timedelta(days=1),
     )
@@ -138,20 +173,8 @@ def _build_timeout_node() -> HumanInputNode:
         "data": {
             "title": "Human Input",
             "form_content": "Please enter your name:\n\n{{#$output.name#}}",
-            "inputs": [
-                {
-                    "type": "text_input",
-                    "output_variable_name": "name",
-                    "default": {"type": "constant", "value": ""},
-                }
-            ],
-            "user_actions": [
-                {
-                    "id": "Accept",
-                    "title": "Approve",
-                    "button_style": "default",
-                }
-            ],
+            "inputs": [ParagraphInputConfig(output_variable_name="name").model_dump(mode="json")],
+            "user_actions": [UserActionConfig(id="Accept", title="Approve").model_dump(mode="json")],
         },
     }
 
@@ -184,9 +207,25 @@ def test_human_input_node_emits_form_filled_event_before_succeeded():
 
     filled_event = events[1]
     assert filled_event.node_title == "Human Input"
-    assert filled_event.rendered_content.endswith("Alice")
+    assert filled_event.rendered_content == (
+        "Please enter your name:\n\nAlice\n"
+        "Decision: approve\n"
+        "Attachment: [file]\n"
+        "Attachments: [1 files]"
+    )
     assert filled_event.action_id == "Accept"
     assert filled_event.action_text == "Approve"
+    assert filled_event.submitted_data["name"] == StringSegment(value="Alice")
+    assert filled_event.submitted_data["decision"] == StringSegment(value="approve")
+    assert isinstance(filled_event.submitted_data["attachment"], FileSegment)
+    assert filled_event.submitted_data["attachment"].value_type == SegmentType.FILE
+    assert filled_event.submitted_data["attachment"].value.filename == "resume.pdf"
+    assert filled_event.submitted_data["attachment"].value.type == FileType.DOCUMENT
+    assert filled_event.submitted_data["attachment"].value.transfer_method == FileTransferMethod.REMOTE_URL
+    assert isinstance(filled_event.submitted_data["attachments"], ArrayFileSegment)
+    assert filled_event.submitted_data["attachments"].value_type == SegmentType.ARRAY_FILE
+    assert filled_event.submitted_data["attachments"].value[0].filename == "a.png"
+    assert filled_event.submitted_data["attachments"].value[0].type == FileType.IMAGE
 
 
 def test_human_input_node_emits_timeout_event_before_succeeded():

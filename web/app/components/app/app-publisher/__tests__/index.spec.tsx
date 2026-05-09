@@ -43,6 +43,7 @@ vi.mock('react-i18next', () => ({
   useTranslation: () => ({
     t: (key: string) => key,
   }),
+  Trans: ({ i18nKey }: { i18nKey?: string }) => i18nKey ?? null,
 }))
 
 vi.mock('ahooks', async () => {
@@ -119,6 +120,21 @@ vi.mock('@/service/use-workflow', () => ({
   useInvalidateAppWorkflow: () => mockInvalidateAppWorkflow,
 }))
 
+vi.mock('@/service/use-tools', () => ({
+  useWorkflowToolDetailByAppID: () => ({
+    data: undefined,
+    isLoading: false,
+  }),
+  useInvalidateAllWorkflowTools: () => vi.fn(),
+  useInvalidateWorkflowToolDetailByAppID: () => vi.fn(),
+}))
+
+vi.mock('@/context/app-context', () => ({
+  useAppContext: () => ({
+    isCurrentWorkspaceManager: true,
+  }),
+}))
+
 vi.mock('@langgenius/dify-ui/toast', () => ({
   toast: {
     error: (...args: unknown[]) => mockToastError(...args),
@@ -150,25 +166,16 @@ vi.mock('../../app-access-control', () => ({
   ),
 }))
 
-vi.mock('@/app/components/base/portal-to-follow-elem', async () => {
-  const ReactModule = await vi.importActual<typeof import('react')>('react')
-  const OpenContext = ReactModule.createContext(false)
+vi.mock('@/app/components/tools/workflow-tool', () => ({
+  WorkflowToolDrawer: ({ onHide }: { onHide: () => void }) => (
+    <div data-testid="workflow-tool-drawer">
+      workflow tool drawer
+      <button onClick={onHide}>close-workflow-tool-drawer</button>
+    </div>
+  ),
+}))
 
-  return {
-    PortalToFollowElem: ({ children, open }: { children: React.ReactNode, open: boolean }) => (
-      <OpenContext value={open}>
-        <div>{children}</div>
-      </OpenContext>
-    ),
-    PortalToFollowElemTrigger: ({ children, onClick }: { children: React.ReactNode, onClick?: () => void }) => (
-      <div onClick={onClick}>{children}</div>
-    ),
-    PortalToFollowElemContent: ({ children }: { children: React.ReactNode }) => {
-      const open = ReactModule.use(OpenContext)
-      return open ? <div>{children}</div> : null
-    },
-  }
-})
+vi.mock('@langgenius/dify-ui/popover', () => import('@/__mocks__/base-ui-popover'))
 
 vi.mock('../sections', () => ({
   PublisherSummarySection: (props: Record<string, any>) => {
@@ -197,6 +204,7 @@ vi.mock('../sections', () => ({
             <button onClick={() => props.handleOpenRunConfig(`${props.appURL}?mode=batch`)}>publisher-batch-run-config</button>
           </>
         )}
+        <button onClick={props.onConfigureWorkflowTool}>publisher-workflow-tool</button>
       </div>
     )
   },
@@ -364,6 +372,25 @@ describe('AppPublisher', () => {
         '_blank',
       )
     })
+  })
+
+  it('should keep workflow tool drawer mounted after closing the publish popover', () => {
+    mockAppDetail = {
+      ...mockAppDetail,
+      mode: AppModeEnum.WORKFLOW,
+    }
+
+    render(
+      <AppPublisher
+        publishedAt={Date.now()}
+      />,
+    )
+
+    fireEvent.click(screen.getByText('common.publish'))
+    fireEvent.click(screen.getByText('publisher-workflow-tool'))
+
+    expect(screen.queryByTestId('popover-content')).not.toBeInTheDocument()
+    expect(screen.getByTestId('workflow-tool-drawer')).toBeInTheDocument()
   })
 
   it('should close embedded and access control panels through child callbacks', async () => {

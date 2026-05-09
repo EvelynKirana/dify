@@ -11,6 +11,7 @@ from unittest.mock import Mock
 import pytest
 from werkzeug.exceptions import NotFound
 
+from controllers.common.human_input import HumanInputFormSubmitPayload
 from controllers.service_api.app.human_input_form import WorkflowHumanInputFormApi
 from models.human_input import RecipientType
 from tests.unit_tests.controllers.service_api.conftest import _unwrap
@@ -144,6 +145,71 @@ class TestWorkflowHumanInputFormApi:
             form_data={"name": "Alice"},
             submission_end_user_id="end-user-1",
         )
+
+    def test_post_accepts_select_file_and_file_list_inputs(self, app, monkeypatch: pytest.MonkeyPatch) -> None:
+        form = SimpleNamespace(
+            app_id="app-1",
+            tenant_id="tenant-1",
+            recipient_type=RecipientType.STANDALONE_WEB_APP,
+        )
+        service_mock = Mock()
+        service_mock.get_form_by_token.return_value = form
+        workflow_module = sys.modules["controllers.service_api.app.human_input_form"]
+        monkeypatch.setattr(workflow_module, "HumanInputService", lambda _engine: service_mock)
+        monkeypatch.setattr(workflow_module, "db", SimpleNamespace(engine=object()))
+
+        api = WorkflowHumanInputFormApi()
+        handler = _unwrap(api.post)
+        app_model = SimpleNamespace(id="app-1", tenant_id="tenant-1")
+        end_user = SimpleNamespace(id="end-user-1")
+        inputs = {
+            "decision": "approve",
+            "attachment": {
+                "transfer_method": "local_file",
+                "upload_file_id": "4e0d1b87-52f2-49f6-b8c6-95cd9c954b3e",
+                "type": "document",
+            },
+            "attachments": [
+                {
+                    "transfer_method": "local_file",
+                    "upload_file_id": "1a77f0df-c0e6-461c-987c-e72526f341ee",
+                    "type": "document",
+                },
+                {
+                    "transfer_method": "remote_url",
+                    "url": "https://example.com/report.pdf",
+                    "type": "document",
+                },
+            ],
+        }
+
+        with app.test_request_context(
+            "/form/human_input/token-1",
+            method="POST",
+            json={"inputs": inputs, "action": "approve", "user": "external-1"},
+        ):
+            response, status = handler(api, app_model=app_model, end_user=end_user, form_token="token-1")
+
+        assert response == {}
+        assert status == 200
+        service_mock.submit_form_by_token.assert_called_once_with(
+            recipient_type=RecipientType.STANDALONE_WEB_APP,
+            form_token="token-1",
+            selected_action_id="approve",
+            form_data=inputs,
+            submission_end_user_id="end-user-1",
+        )
+
+    def test_submit_payload_schema_documents_select_file_and_file_list_inputs(self) -> None:
+        schema = HumanInputFormSubmitPayload.model_json_schema()
+
+        inputs_schema = schema["properties"]["inputs"]
+        assert "select input" in inputs_schema["description"]
+        examples = inputs_schema["examples"]
+        assert examples[0]["decision"] == "approve"
+        assert examples[0]["attachment"]["transfer_method"] == "local_file"
+        assert examples[0]["attachment"]["upload_file_id"] == "4e0d1b87-52f2-49f6-b8c6-95cd9c954b3e"
+        assert examples[0]["attachments"][1]["transfer_method"] == "remote_url"
 
     @pytest.mark.parametrize(
         "recipient_type",
