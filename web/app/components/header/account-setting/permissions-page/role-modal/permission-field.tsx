@@ -1,8 +1,8 @@
 'use client'
 
 import { cn } from '@langgenius/dify-ui/cn'
+import { useWorkspacePermissionGroups } from './hooks'
 import PermissionPicker from './permission-picker'
-import { PERMISSION_MAP } from './permissions-data'
 
 export type PermissionFieldProps = {
   value: string[]
@@ -15,6 +15,8 @@ const PermissionField = ({
   onChange,
   readonly = false,
 }: PermissionFieldProps) => {
+  const { permissionMap } = useWorkspacePermissionGroups()
+
   const handleRemove = (id: string) => {
     onChange(value.filter(p => p !== id))
   }
@@ -24,13 +26,13 @@ const PermissionField = ({
       <div className="system-sm-medium text-text-secondary">Permissions</div>
       {value.length > 0 && (
         <div className="flex flex-wrap gap-1.5">
-          {value.map((id) => {
-            const p = PERMISSION_MAP[id]
+          {value.map((key) => {
+            const p = permissionMap[key]
             if (!p)
               return null
             return (
               <span
-                key={id}
+                key={key}
                 className={cn(
                   'inline-flex items-center gap-1 rounded-md bg-util-colors-indigo-indigo-50 px-1.5 py-0.5 system-xs-medium text-text-accent',
                   'border-[0.5px] border-components-panel-border',
@@ -42,7 +44,7 @@ const PermissionField = ({
                     type="button"
                     className="flex h-3.5 w-3.5 items-center justify-center rounded hover:bg-state-base-hover"
                     aria-label={`Remove ${p.name}`}
-                    onClick={() => handleRemove(id)}
+                    onClick={() => handleRemove(key)}
                   >
                     <span aria-hidden className="i-ri-close-line h-3 w-3" />
                   </button>
@@ -52,6 +54,13 @@ const PermissionField = ({
           })}
         </div>
       )}
+      {
+        value.length === 0 && (
+          <div className="system-sm-regular text-text-tertiary">
+            No permissions assigned yet
+          </div>
+        )
+      }
       {!readonly && (
         <PermissionPicker value={value} onChange={onChange} />
       )}

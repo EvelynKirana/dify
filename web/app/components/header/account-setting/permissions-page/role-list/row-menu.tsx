@@ -1,5 +1,5 @@
 'use client'
-import type { Role, RoleType } from '.'
+import type { Role, RoleCategory } from '@/models/access-control'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -7,25 +7,27 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@langgenius/dify-ui/dropdown-menu'
+import { toast } from '@langgenius/dify-ui/toast'
 import { useCallback, useState } from 'react'
 import ActionButton from '@/app/components/base/action-button'
+import { useDeleteWorkspaceRole } from '@/service/access-control/use-workspace-roles'
 
 type RowMenuProps = {
-  roleType: RoleType
+  roleCategory: RoleCategory
   role: Role
   onView?: (role: Role) => void
   onEdit?: (role: Role) => void
-  onDelete?: (role: Role) => void
 }
 
 const RowMenu = ({
-  roleType,
+  roleCategory,
   role,
   onView,
   onEdit,
-  onDelete,
 }: RowMenuProps) => {
   const [open, setOpen] = useState(false)
+
+  const { mutateAsync: deleteRole } = useDeleteWorkspaceRole()
 
   const handleView = useCallback(() => onView?.(role), [onView, role])
 
@@ -35,7 +37,14 @@ const RowMenu = ({
     // TODO: wire up to API when backend is ready
   }, [])
 
-  const handleDelete = useCallback(() => onDelete?.(role), [onDelete, role])
+  const handleDelete = useCallback(() => {
+    deleteRole(role.id, {
+      onSuccess: () => {
+        toast.success('Role deleted successfully')
+        setOpen(false)
+      },
+    })
+  }, [deleteRole, role.id])
 
   return (
     <DropdownMenu open={open} onOpenChange={setOpen}>
@@ -44,14 +53,14 @@ const RowMenu = ({
       </DropdownMenuTrigger>
       <DropdownMenuContent placement="bottom-end" sideOffset={4} popupClassName="min-w-[160px]">
         {
-          roleType === 'system' && (
+          roleCategory === 'global_system_default' && (
             <DropdownMenuItem className="system-sm-semibold text-text-secondary" onClick={handleView}>
               View
             </DropdownMenuItem>
           )
         }
         {
-          roleType === 'custom' && (
+          roleCategory === 'global_custom' && (
             <>
               <DropdownMenuItem className="system-sm-semibold text-text-secondary" onClick={handleEdit}>
                 Edit

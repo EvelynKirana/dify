@@ -1,14 +1,18 @@
-export enum SubjectType {
-  GROUP = 'group',
-  ACCOUNT = 'account',
-}
+export const SubjectType = {
+  GROUP: 'group',
+  ACCOUNT: 'account',
+} as const
 
-export enum AccessMode {
-  PUBLIC = 'public',
-  SPECIFIC_GROUPS_MEMBERS = 'private',
-  ORGANIZATION = 'private_all',
-  EXTERNAL_MEMBERS = 'sso_verified',
-}
+export type SubjectType = typeof SubjectType[keyof typeof SubjectType]
+
+export const AccessMode = {
+  PUBLIC: 'public',
+  SPECIFIC_GROUPS_MEMBERS: 'private',
+  ORGANIZATION: 'private_all',
+  EXTERNAL_MEMBERS: 'sso_verified',
+} as const
+
+export type AccessMode = typeof AccessMode[keyof typeof AccessMode]
 
 export type AccessControlGroup = {
   id: 'string'
@@ -28,3 +32,147 @@ export type SubjectGroup = { subjectId: string, subjectType: SubjectType, groupD
 export type SubjectAccount = { subjectId: string, subjectType: SubjectType, accountData: AccessControlAccount }
 
 export type Subject = SubjectGroup | SubjectAccount
+
+export type Permission = {
+  key: string
+  name: string
+  description: string
+}
+export type PermissionGroup = {
+  group_key: string
+  group_name: string
+  description: string
+  permissions: Permission[]
+}
+
+export type PermissionGroups = {
+  groups: PermissionGroup[]
+}
+
+export type PermissionKey = string
+
+export type RoleType = 'workspace' | 'app' | 'dataset'
+
+export type RoleCategory = 'global_system_default' | 'global_custom'
+
+export type Role = {
+  id: string
+  tenant_id: string
+  type: RoleType
+  category: RoleCategory
+  name: string
+  description: string
+  is_builtin: boolean
+  permission_keys: PermissionKey[]
+}
+
+export type Pagination = {
+  total_count: number
+  per_page: number
+  current_page: number
+  total_pages: number
+}
+
+export type PaginationParameters = {
+  page?: number
+  limit?: number
+  reverse?: boolean
+}
+
+export type RoleListResponse = {
+  data: Role[]
+  pagination: Pagination
+}
+
+export type CreateRoleRequest = {
+  name: string
+  description?: string
+  permission_keys?: PermissionKey[]
+}
+
+export type UpdateRolesRequest = {
+  id: string
+  name: string
+  description?: string
+  permission_keys?: PermissionKey[]
+}
+
+export type AccessPolicyResourceType = 'app' | 'dataset'
+
+export type AccessPolicyCategory = 'global_system_default' | 'global_custom'
+
+export type AccessPolicy = {
+  id: string
+  tenant_id: string
+  resource_type: AccessPolicyResourceType
+  policy_key: string
+  name: string
+  description: string
+  permission_keys: PermissionKey[]
+  is_builtin: boolean
+  category: AccessPolicyCategory
+  created_at: string
+  updated_at: string
+}
+
+export type GetAccessPoliciesRequest = {
+  resource_type?: AccessPolicyResourceType
+} & PaginationParameters
+
+export type GetAccessPoliciesResponse = {
+  data: AccessPolicy[]
+  pagination: Pagination
+}
+
+export type CreateAccessPolicyRequest = {
+  resource_type: AccessPolicyResourceType
+  name: string
+  description?: string
+  permission_keys?: PermissionKey[]
+}
+
+export type UpdateAccessPolicyRequest = {
+  id: string
+  name: string
+  description?: string
+  permission_keys?: PermissionKey[]
+}
+
+export type Bindings = {
+  role_ids: string[]
+  account_ids: string[]
+}
+
+export type AccessPolicyWithBindings = {
+  policy: AccessPolicy
+} & Bindings
+
+export type GetAppAccessPolicyByAppIdResponse = {
+  app_id: string
+  items: AccessPolicyWithBindings[]
+}
+
+export type GetDatasetAccessPolicyByDatasetIdResponse = {
+  dataset_id: string
+  items: AccessPolicyWithBindings[]
+}
+
+export type GetAppAccessPoliciesResponse = {
+  items: AccessPolicyWithBindings[]
+  pagination: Pagination
+}
+
+export type GetDatasetAccessPoliciesResponse = {
+  items: AccessPolicyWithBindings[]
+  pagination: Pagination
+}
+
+export type UpdateRolesOfMemberRequest = {
+  member_id: string
+  role_ids: string[]
+}
+
+export type UpdateRolesOfMemberResponse = {
+  account_id: string
+  roles: Role[]
+}

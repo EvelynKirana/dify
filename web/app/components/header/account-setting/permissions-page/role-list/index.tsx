@@ -1,20 +1,12 @@
 'use client'
 
+import type { Role, RoleCategory } from '@/models/access-control'
 import { cn } from '@langgenius/dify-ui/cn'
 import Row from './row'
 
-export type Role = {
-  id: string
-  name: string
-  description: string
-  permissions?: string[]
-}
-
-export type RoleType = 'system' | 'custom'
-
 export type RoleListGroup = {
   id: string
-  type: RoleType
+  category: RoleCategory
   title: string
   items: Role[]
 }
@@ -24,7 +16,6 @@ export type RoleListProps = {
   className?: string
   onView?: (role: Role) => void
   onEdit?: (role: Role) => void
-  onDelete?: (role: Role) => void
 }
 
 const RoleList = ({
@@ -32,7 +23,6 @@ const RoleList = ({
   className,
   onView,
   onEdit,
-  onDelete,
 }: RoleListProps) => {
   return (
     <div className={cn('flex flex-col', className)}>
@@ -53,11 +43,10 @@ const RoleList = ({
                 )}
                 name={row.name}
                 description={row.description}
-                roleType={group.type}
+                roleCategory={group.category}
                 role={row}
                 onView={onView}
                 onEdit={onEdit}
-                onDelete={onDelete}
               />
             ))}
           </div>

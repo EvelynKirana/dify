@@ -1,6 +1,6 @@
 'use client'
 
-import type { PermissionGroup } from './permissions-data'
+import type { PermissionGroup } from '@/models/access-control'
 import { cn } from '@langgenius/dify-ui/cn'
 import {
   DropdownMenu,
@@ -12,7 +12,7 @@ import {
 } from '@langgenius/dify-ui/dropdown-menu'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import Checkbox from '@/app/components/base/checkbox'
-import { PERMISSION_GROUPS } from './permissions-data'
+import { useWorkspacePermissionGroups } from './hooks'
 
 type PermissionPickerProps = {
   value: string[]
@@ -37,17 +37,19 @@ const PermissionPicker = ({ value, onChange, className }: PermissionPickerProps)
     return () => clearTimeout(timer)
   }, [open])
 
+  const { groups } = useWorkspacePermissionGroups()
+
   const filteredGroups = useMemo<PermissionGroup[]>(() => {
     const q = search.trim().toLowerCase()
     if (!q)
-      return PERMISSION_GROUPS
-    return PERMISSION_GROUPS
+      return groups
+    return groups
       .map(group => ({
         ...group,
-        items: group.items.filter(i => i.name.toLowerCase().includes(q)),
+        permissions: group.permissions.filter(i => i.name.toLowerCase().includes(q)),
       }))
-      .filter(group => group.items.length > 0)
-  }, [search])
+      .filter(group => group.permissions.length > 0)
+  }, [search, groups])
 
   const selectedSet = useMemo(() => new Set(value), [value])
 
@@ -59,19 +61,19 @@ const PermissionPicker = ({ value, onChange, className }: PermissionPickerProps)
   }
 
   const getGroupState = (group: PermissionGroup) => {
-    const checkedCount = group.items.reduce(
-      (acc, i) => acc + (selectedSet.has(i.id) ? 1 : 0),
+    const checkedCount = group.permissions.reduce(
+      (acc, i) => acc + (selectedSet.has(i.key) ? 1 : 0),
       0,
     )
     return {
-      allChecked: checkedCount > 0 && checkedCount === group.items.length,
-      indeterminate: checkedCount > 0 && checkedCount < group.items.length,
+      allChecked: checkedCount > 0 && checkedCount === group.permissions.length,
+      indeterminate: checkedCount > 0 && checkedCount < group.permissions.length,
     }
   }
 
   const toggleGroup = (group: PermissionGroup) => {
     const { allChecked, indeterminate } = getGroupState(group)
-    const ids = group.items.map(i => i.id)
+    const ids = group.permissions.map(i => i.key)
     if (allChecked || indeterminate) {
       const idSet = new Set(ids)
       onChange(value.filter(v => !idSet.has(v)))
@@ -130,7 +132,7 @@ const PermissionPicker = ({ value, onChange, className }: PermissionPickerProps)
         {filteredGroups.map((group, groupIndex) => {
           const { allChecked, indeterminate } = getGroupState(group)
           return (
-            <DropdownMenuGroup key={group.id}>
+            <DropdownMenuGroup key={group.group_key}>
               {groupIndex > 0 && <DropdownMenuSeparator />}
               <button
                 type="button"
@@ -143,16 +145,16 @@ const PermissionPicker = ({ value, onChange, className }: PermissionPickerProps)
                   className="pointer-events-none"
                 />
                 <span className="system-xs-medium-uppercase tracking-wide text-text-tertiary">
-                  {group.label}
+                  {group.group_name}
                 </span>
               </button>
-              {group.items.map((item) => {
-                const checked = selectedSet.has(item.id)
+              {group.permissions.map((item) => {
+                const checked = selectedSet.has(item.key)
                 return (
                   <DropdownMenuCheckboxItem
-                    key={item.id}
+                    key={item.key}
                     checked={checked}
-                    onCheckedChange={() => togglePermission(item.id)}
+                    onCheckedChange={() => togglePermission(item.key)}
                     className="gap-2 pl-6"
                   >
                     <Checkbox checked={checked} className="pointer-events-none" />

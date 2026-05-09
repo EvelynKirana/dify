@@ -1,6 +1,6 @@
 'use client'
 
-import type { Role } from '../role-list'
+import type { Role } from '@/models/access-control'
 import { Button } from '@langgenius/dify-ui/button'
 import {
   Dialog,
@@ -9,23 +9,25 @@ import {
   DialogDescription,
   DialogTitle,
 } from '@langgenius/dify-ui/dialog'
-import { useState } from 'react'
+import { useCallback, useState } from 'react'
 import Input from '@/app/components/base/input'
 import Textarea from '@/app/components/base/textarea'
 import PermissionField from './permission-field'
 
 export type RoleModalMode = 'create' | 'view' | 'edit'
 
-export type RoleModalRole = Role & {
-  permissions?: string[]
+export type submitRoleData = {
+  name: string
+  description?: string
+  permissionKeys?: string[]
 }
 
 export type RoleModalProps = {
   mode: RoleModalMode
   open: boolean
-  role?: RoleModalRole
+  role?: Role
   onClose: () => void
-  onSubmit?: (data: { name: string, description: string, permissions: string[] }) => void
+  onSubmit?: (data: submitRoleData) => void
 }
 
 const TITLES: Record<RoleModalMode, { title: string, description: string }> = {
@@ -52,13 +54,21 @@ const RoleModal = ({
 }: RoleModalProps) => {
   const [name, setName] = useState(role?.name ?? '')
   const [desc, setDesc] = useState(role?.description ?? '')
-  const [permissions, setPermissions] = useState<string[]>(role?.permissions ?? [])
+  const [permissionKeys, setPermissionKeys] = useState<string[]>(role?.permission_keys ?? [])
 
   const readonly = mode === 'view'
   const { title, description } = TITLES[mode]
 
+  const onRoleNameChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    setName(e.target.value)
+  }, [])
+
+  const onRoleDescChange = useCallback((e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    setDesc(e.target.value)
+  }, [])
+
   const handleSubmit = () => {
-    onSubmit?.({ name: name.trim(), description: desc.trim(), permissions })
+    onSubmit?.({ name: name.trim(), description: desc.trim(), permissionKeys })
     onClose()
   }
 
@@ -94,7 +104,7 @@ const RoleModal = ({
             <Input
               id="role-name"
               value={name}
-              onChange={e => setName(e.target.value)}
+              onChange={onRoleNameChange}
               placeholder="e.g. Marketing Lead"
               disabled={readonly}
             />
@@ -106,15 +116,15 @@ const RoleModal = ({
             <Textarea
               id="role-description"
               value={desc}
-              onChange={e => setDesc(e.target.value)}
+              onChange={onRoleDescChange}
               placeholder="Describe what this role is responsible for"
               disabled={readonly}
               className="min-h-24 resize-none"
             />
           </div>
           <PermissionField
-            value={permissions}
-            onChange={setPermissions}
+            value={permissionKeys}
+            onChange={setPermissionKeys}
             readonly={readonly}
           />
         </div>

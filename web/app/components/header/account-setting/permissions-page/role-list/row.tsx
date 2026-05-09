@@ -1,4 +1,4 @@
-import type { Role, RoleType } from '.'
+import type { Role, RoleCategory } from '@/models/access-control'
 import { cn } from '@langgenius/dify-ui/cn'
 import { memo } from 'react'
 import RowMenu from './row-menu'
@@ -7,22 +7,20 @@ type RowProps = {
   className?: string
   name: string
   description: string
-  roleType: RoleType
+  roleCategory: RoleCategory
   role: Role
   onView?: (role: Role) => void
   onEdit?: (role: Role) => void
-  onDelete?: (role: Role) => void
 }
 
 const Row = ({
   className,
   name,
   description,
-  roleType,
+  roleCategory,
   role,
   onView,
   onEdit,
-  onDelete,
 }: RowProps) => {
   return (
     <div
@@ -36,15 +34,14 @@ const Row = ({
           {name}
         </div>
         <p className="mt-1 system-sm-regular text-text-tertiary">
-          {description}
+          {description || 'No description'}
         </p>
       </div>
       <RowMenu
-        roleType={roleType}
+        roleCategory={roleCategory}
         role={role}
         onView={onView}
         onEdit={onEdit}
-        onDelete={onDelete}
       />
     </div>
   )
