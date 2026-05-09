@@ -252,6 +252,27 @@ class TestWorkspaceAccess:
         assert call.endpoint == "/rbac/workspace/datasets/access-policy"
         assert call.params is None
 
+    def test_workspace_matrix_coerces_null_bindings(self, mock_send: MagicMock):
+        mock_send.return_value = {
+            "items": [
+                {
+                    "policy": {
+                        "id": "policy-1",
+                        "resource_type": "app",
+                        "name": "Workspace App Access",
+                    },
+                    "role_ids": None,
+                    "account_ids": None,
+                }
+            ],
+            "pagination": None,
+        }
+
+        out = svc.RBACService.WorkspaceAccess.app_matrix("tenant-1")
+
+        assert out.items[0].role_ids == []
+        assert out.items[0].account_ids == []
+
     def test_workspace_app_replace_bindings(self, mock_send: MagicMock):
         mock_send.return_value = {"data": []}
         payload = svc.ReplaceBindings(role_ids=["workspace.editor"], account_ids=["acct-2"])
