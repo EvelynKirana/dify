@@ -84,7 +84,7 @@ export function InstanceCard({ app }: {
   const statusTooltip = primaryStatus === 'none'
     ? t('card.tooltip.notDeployed')
     : (
-        <div className="flex min-w-[180px] flex-col gap-1">
+        <div className="flex min-w-45 flex-col gap-1">
           <div className="system-xs-medium text-text-secondary">{t('overview.deploymentStatus')}</div>
           {statusSummaryTooltip.map(item => (
             <div key={item.status} className="flex justify-between gap-3">
@@ -115,13 +115,13 @@ export function InstanceCard({ app }: {
 
   return (
     <div
-      className="group relative col-span-1 inline-flex h-[160px] cursor-pointer flex-col rounded-xl border border-solid border-components-card-border bg-components-card-bg shadow-sm transition-all duration-200 ease-in-out hover:shadow-lg"
+      className="group relative col-span-1 inline-flex h-40 cursor-pointer flex-col rounded-xl border border-solid border-components-card-border bg-components-card-bg shadow-xs transition-all duration-200 ease-in-out hover:shadow-lg"
     >
       <Link
         href={detailHref}
-        className="flex h-full flex-col rounded-xl outline-none focus-visible:ring-2 focus-visible:ring-state-accent-solid"
+        className="flex h-full flex-col rounded-xl outline-hidden focus-visible:ring-2 focus-visible:ring-state-accent-solid"
       >
-        <div className="flex h-[66px] shrink-0 grow-0 items-center gap-3 px-[14px] pt-[14px] pb-3">
+        <div className="flex h-16.5 shrink-0 grow-0 items-center gap-3 px-3.5 pt-3.5 pb-3">
           <div className="relative shrink-0">
             <AppIcon
               size="large"
@@ -131,20 +131,20 @@ export function InstanceCard({ app }: {
             />
             <AppTypeIcon
               type={appMode}
-              wrapperClassName="absolute -bottom-0.5 -right-0.5 w-4 h-4 shadow-sm"
-              className="h-3 w-3"
+              wrapperClassName="absolute -bottom-0.5 -right-0.5 size-4 shadow-xs"
+              className="size-3"
             />
           </div>
           <div className="w-0 grow py-px">
-            <div className="flex items-center text-sm leading-5 font-semibold text-text-secondary">
+            <div className="flex items-center text-sm/5 font-semibold text-text-secondary">
               <div className="truncate" title={appName}>{appName}</div>
             </div>
-            <div className="truncate text-[10px] leading-[18px] font-medium text-text-tertiary" title={appModeLabel}>
+            <div className="truncate text-2xs/4.5 font-medium text-text-tertiary" title={appModeLabel}>
               {appModeLabel}
             </div>
           </div>
         </div>
-        <div className="flex grow flex-col gap-2 px-[14px]">
+        <div className="flex grow flex-col gap-2 px-3.5">
           <Tooltip>
             <TooltipTrigger
               render={(
@@ -155,7 +155,7 @@ export function InstanceCard({ app }: {
                       healthPillClass,
                     )}
                   >
-                    <span className={cn('h-1.5 w-1.5 rounded-full', healthDotClass)} />
+                    <span className={cn('size-1.5 rounded-full', healthDotClass)} />
                     {primaryText}
                   </span>
                   {secondaryParts.length > 0 && (
@@ -169,15 +169,15 @@ export function InstanceCard({ app }: {
             <TooltipContent>{statusTooltip}</TooltipContent>
           </Tooltip>
           <div className="flex min-w-0 items-center gap-1.5 system-xs-regular text-text-tertiary">
-            <span aria-hidden className="i-ri-apps-2-line h-3.5 w-3.5 shrink-0 text-text-quaternary" />
+            <span aria-hidden className="i-ri-apps-2-line size-3.5 shrink-0 text-text-quaternary" />
             <span className="truncate" title={app.sourceAppName ?? appName}>
               {t('card.fromApp', { name: app.sourceAppName ?? appName })}
             </span>
           </div>
         </div>
-        <div className="absolute right-0 bottom-1 left-0 flex h-[42px] shrink-0 items-center pt-1 pr-[6px] pb-[6px] pl-[14px]">
-          <div className="mr-[41px] flex min-w-0 grow items-center gap-1.5 system-xs-regular text-text-tertiary">
-            <span aria-hidden className="i-ri-time-line h-3.5 w-3.5 shrink-0 text-text-quaternary" />
+        <div className="absolute right-0 bottom-1 left-0 flex h-10.5 shrink-0 items-center pt-1 pr-12 pb-1.5 pl-3.5">
+          <div className="flex min-w-0 grow items-center gap-1.5 system-xs-regular text-text-tertiary">
+            <span aria-hidden className="i-ri-time-line size-3.5 shrink-0 text-text-quaternary" />
             <span className="truncate">
               {lastDeployedAt
                 ? t('card.lastDeployed', { time: formatTimeFromNow(lastDeployedAt) })
@@ -186,7 +186,7 @@ export function InstanceCard({ app }: {
           </div>
         </div>
       </Link>
-      <div className="pointer-events-auto absolute right-[6px] bottom-1 flex h-[42px] items-center">
+      <div className="pointer-events-auto absolute right-1.5 bottom-1 flex h-10.5 items-center">
         <InstanceCardActions appInstanceId={appInstanceId} />
       </div>
     </div>
@@ -203,12 +203,12 @@ function InstanceCardActions({ appInstanceId }: {
       <DropdownMenuTrigger
         aria-label={t('card.moreActions')}
         className={cn(
-          'flex h-8 w-8 items-center justify-center rounded-md border-none bg-transparent p-2 hover:bg-state-base-hover data-popup-open:bg-state-base-hover data-popup-open:shadow-none',
+          'flex size-8 items-center justify-center rounded-md border-none bg-transparent p-2 hover:bg-state-base-hover data-popup-open:bg-state-base-hover data-popup-open:shadow-none',
         )}
       >
-        <span aria-hidden className="i-ri-more-fill h-4 w-4 text-text-tertiary" />
+        <span aria-hidden className="i-ri-more-fill size-4 text-text-tertiary" />
       </DropdownMenuTrigger>
-      <DropdownMenuContent placement="bottom-end" sideOffset={4} popupClassName="w-[216px]">
+      <DropdownMenuContent placement="bottom-end" sideOffset={4} popupClassName="w-54">
         {INSTANCE_CARD_MENU_TAB_KEYS.map((tabKey) => {
           const href = getInstanceTabHref(appInstanceId, tabKey)
 

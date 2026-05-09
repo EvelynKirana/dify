@@ -10,6 +10,7 @@ Do not copy existing code patterns blindly. Existing implementations are referen
 ## Reuse Existing Implementations
 
 - Before creating new UI, hooks, helpers, or styling patterns, search for and reuse existing base components, feature components, shared hooks, utilities, and established design styles. Add new implementations only when the existing ones cannot express the required behavior cleanly.
+- When styling components with Tailwind CSS, use Tailwind CSS v4.1+ syntax and the `tailwind-css-rules` skill: prefer v4 utility names, opacity modifiers, `gap`, `text-size/line-height`, `min-h-dvh`, and avoid deprecated utilities and `@apply`.
 
 ## Feature Verticals And Local Ownership
 
