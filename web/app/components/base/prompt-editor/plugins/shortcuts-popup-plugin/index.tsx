@@ -236,7 +236,7 @@ export default function ShortcutsPopupPlugin({
 
     setOpen(true)
     onOpen?.()
-  }, [onOpen])
+  }, [editor, onOpen, refs])
 
   const closePortal = useCallback(() => {
     setOpen(false)
@@ -298,7 +298,7 @@ export default function ShortcutsPopupPlugin({
         refs.setFloating(node)
       }}
       className={cn(
-        useContainer ? '' : 'z-999999',
+        useContainer ? '' : 'z-1002',
         'absolute rounded-xl bg-components-panel-bg-blur shadow-lg',
         className,
       )}

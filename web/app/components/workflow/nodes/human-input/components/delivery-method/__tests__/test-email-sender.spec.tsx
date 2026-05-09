@@ -1,5 +1,7 @@
+/* eslint-disable react/no-context-provider -- use-context-selector contexts require .Provider in tests. */
 import type { ReactNode } from 'react'
-import type { EmailConfig, FormInputItem } from '../../../types'
+import type { EmailConfig, FormInputItem, ParagraphFormInput, SelectFormInput } from '../../../types'
+import type { CodeNodeType } from '@/app/components/workflow/nodes/code/types'
 import type { App, AppSSO } from '@/types/app'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { fireEvent, render, screen, waitFor } from '@testing-library/react'
@@ -7,6 +9,7 @@ import userEvent from '@testing-library/user-event'
 import { useStore as useAppStore } from '@/app/components/app/store'
 import { HooksStoreContext } from '@/app/components/workflow/hooks-store/provider'
 import { createHooksStore } from '@/app/components/workflow/hooks-store/store'
+import { CodeLanguage } from '@/app/components/workflow/nodes/code/types'
 import { BlockEnum, InputVarType, VarType } from '@/app/components/workflow/types'
 import { AppContext, initialLangGeniusVersionInfo, initialWorkspaceInfo, userProfilePlaceholder } from '@/context/app-context'
 import EmailSenderModal from '../test-email-sender'
@@ -145,7 +148,7 @@ const createConfig = (overrides: Partial<EmailConfig> = {}): EmailConfig => ({
   ...overrides,
 })
 
-const createFormInput = (overrides: Partial<FormInputItem> = {}): FormInputItem => ({
+const createFormInput = (overrides: Partial<ParagraphFormInput> = {}): FormInputItem => ({
   type: InputVarType.paragraph,
   output_variable_name: 'user_name',
   default: {
@@ -156,7 +159,7 @@ const createFormInput = (overrides: Partial<FormInputItem> = {}): FormInputItem 
   ...overrides,
 })
 
-const createDynamicSelectInput = (): FormInputItem => ({
+const createDynamicSelectInput = (): SelectFormInput => ({
   type: InputVarType.select,
   output_variable_name: 'decision',
   option_source: {
@@ -278,7 +281,7 @@ describe('human-input/delivery-method/test-email-sender', () => {
               desc: '',
               type: BlockEnum.Code,
               variables: [],
-              code_language: 'python3',
+              code_language: CodeLanguage.python3,
               code: '',
               outputs: {
                 result: {
@@ -286,7 +289,7 @@ describe('human-input/delivery-method/test-email-sender', () => {
                   children: null,
                 },
               },
-            },
+            } as CodeNodeType,
           },
         ]}
         nodesOutputVars={[

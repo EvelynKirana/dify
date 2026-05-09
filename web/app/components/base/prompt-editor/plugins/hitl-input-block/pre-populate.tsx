@@ -29,7 +29,6 @@ type PlaceholderProps = {
     value: ValueSelector
     onChange: (valueSelector: ValueSelector | string) => void
     readonly: boolean
-    zIndex: number
     filterVar: (varPayload: Var) => boolean
     isJustShowValue?: boolean
   }
@@ -85,7 +84,6 @@ const PrePopulate: FC<Props> = ({
     value: valueSelector || [],
     onChange: onValueSelectorChange!,
     readonly: false,
-    zIndex: 1000000, // bigger than shortcut plugin popup
     filterVar: (varPayload: Var) => {
       return [VarType.string, VarType.number, VarType.secret].includes(varPayload.type)
     },
