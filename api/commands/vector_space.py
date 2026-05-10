@@ -1,5 +1,6 @@
 import csv
 import json
+import secrets
 from dataclasses import dataclass
 from decimal import Decimal
 from pathlib import Path
@@ -120,10 +121,11 @@ def _normalize_model_name(model_name: str) -> str:
 
 
 def _tidb_storage_usage_bytes(binding: TidbAuthBinding, timeout: float) -> int:
-    if not binding.qdrant_endpoint:
+    endpoint = _binding_qdrant_endpoint(binding, timeout)
+    if not endpoint:
         raise ValueError("qdrant_endpoint is empty")
 
-    endpoint = binding.qdrant_endpoint.rstrip("/")
+    endpoint = endpoint.rstrip("/")
     with httpx.Client(timeout=timeout, verify=False) as client:
         response = client.get(f"{endpoint}/cluster", headers={"api-key": f"{binding.account}:{binding.password}"})
         response.raise_for_status()
@@ -133,6 +135,35 @@ def _tidb_storage_usage_bytes(binding: TidbAuthBinding, timeout: float) -> int:
     row_based = int(storage.get("row_based") or 0)
     columnar = int(storage.get("columnar") or 0)
     return row_based + columnar
+
+
+def _extract_qdrant_endpoint(cluster_response: dict[str, Any]) -> str | None:
+    endpoints = cluster_response.get("endpoints") or {}
+    public = endpoints.get("public") or {}
+    host = public.get("host")
+    if host:
+        return f"https://qdrant-{host}"
+    return None
+
+
+def _fetch_qdrant_endpoint(binding: TidbAuthBinding, timeout: float) -> str | None:
+    if not (dify_config.TIDB_API_URL and dify_config.TIDB_PUBLIC_KEY and dify_config.TIDB_PRIVATE_KEY):
+        return None
+
+    try:
+        with httpx.Client(timeout=timeout) as client:
+            response = client.get(
+                f"{dify_config.TIDB_API_URL.rstrip('/')}/clusters/{binding.cluster_id}",
+                auth=httpx.DigestAuth(dify_config.TIDB_PUBLIC_KEY, dify_config.TIDB_PRIVATE_KEY),
+            )
+            response.raise_for_status()
+            return _extract_qdrant_endpoint(response.json())
+    except Exception:
+        return None
+
+
+def _binding_qdrant_endpoint(binding: TidbAuthBinding, timeout: float) -> str | None:
+    return binding.qdrant_endpoint or dify_config.TIDB_ON_QDRANT_URL or _fetch_qdrant_endpoint(binding, timeout)
 
 
 def _extract_vector_size(collection_payload: dict[str, Any]) -> int | None:
@@ -160,11 +191,12 @@ def _qdrant_collection_dim(
 ) -> int | None:
     if collection_name in dim_cache:
         return dim_cache[collection_name]
-    if not binding.qdrant_endpoint:
+    endpoint = _binding_qdrant_endpoint(binding, timeout)
+    if not endpoint:
         dim_cache[collection_name] = None
         return None
 
-    endpoint = binding.qdrant_endpoint.rstrip("/")
+    endpoint = endpoint.rstrip("/")
     try:
         with httpx.Client(timeout=timeout, verify=False) as client:
             response = client.get(
@@ -202,23 +234,6 @@ def _dataset_collection_name(dataset: Dataset) -> str:
     return Dataset.gen_collection_name_by_id(dataset.id)
 
 
-def _active_tidb_bindings(tenant_ids: tuple[str, ...], limit: int, offset: int) -> list[TidbAuthBinding]:
-    stmt = (
-        select(TidbAuthBinding)
-        .where(
-            TidbAuthBinding.tenant_id.is_not(None),
-            TidbAuthBinding.active == True,
-            TidbAuthBinding.status == TidbAuthBindingStatus.ACTIVE,
-        )
-        .order_by(TidbAuthBinding.created_at.desc())
-    )
-    if tenant_ids:
-        stmt = stmt.where(TidbAuthBinding.tenant_id.in_(tenant_ids))
-    else:
-        stmt = stmt.limit(limit).offset(offset)
-    return list(db.session.scalars(stmt).all())
-
-
 def _completed_document_filter() -> tuple[Any, ...]:
     return (
         DatasetDocument.indexing_status == IndexingStatus.COMPLETED,
@@ -233,6 +248,93 @@ def _completed_segment_filter() -> tuple[Any, ...]:
         DocumentSegment.enabled == True,
         DocumentSegment.index_node_id.is_not(None),
     )
+
+
+def _tenant_has_local_points(tenant_id: str) -> bool:
+    return bool(
+        db.session.scalar(
+            select(DocumentSegment.id)
+            .join(DatasetDocument, DatasetDocument.id == DocumentSegment.document_id)
+            .where(
+                DocumentSegment.tenant_id == tenant_id,
+                DatasetDocument.doc_form != IndexStructureType.PARENT_CHILD_INDEX,
+                *_completed_document_filter(),
+                *_completed_segment_filter(),
+            )
+            .limit(1)
+        )
+    )
+
+
+def _active_tidb_bindings(
+    tenant_ids: tuple[str, ...],
+    limit: int,
+    offset: int,
+    candidate_page_size: int,
+    max_candidates: int,
+    random_offset: bool,
+    quiet: bool,
+) -> list[TidbAuthBinding]:
+    active_binding_filters = (
+        TidbAuthBinding.tenant_id.is_not(None),
+        TidbAuthBinding.active == True,
+        TidbAuthBinding.status == TidbAuthBindingStatus.ACTIVE,
+    )
+    base_stmt = select(TidbAuthBinding).where(*active_binding_filters)
+    if tenant_ids:
+        stmt = base_stmt.where(TidbAuthBinding.tenant_id.in_(tenant_ids)).order_by(TidbAuthBinding.created_at.desc())
+        return list(db.session.scalars(stmt).all())
+
+    selected = []
+    scanned = 0
+    skipped_used = 0
+    active_binding_count = db.session.scalar(select(func.count(TidbAuthBinding.id)).where(*active_binding_filters)) or 0
+    if active_binding_count <= 0:
+        return []
+
+    scan_start_offset = offset
+    if random_offset:
+        max_start_offset = max(int(active_binding_count) - 1, 0)
+        scan_start_offset = secrets.randbelow(max_start_offset + 1)
+        _log(
+            f"Random active binding scan start: offset={scan_start_offset}, active_bindings={active_binding_count}.",
+            quiet,
+        )
+
+    page_offset = scan_start_offset
+    wrapped = False
+    while len(selected) < limit and scanned < max_candidates:
+        page_limit = min(candidate_page_size, max_candidates - scanned)
+        stmt = base_stmt.order_by(TidbAuthBinding.created_at.desc()).limit(page_limit).offset(page_offset)
+        candidates = list(db.session.scalars(stmt).all())
+        if not candidates and random_offset and not wrapped and scan_start_offset > 0:
+            page_offset = 0
+            wrapped = True
+            continue
+        if not candidates:
+            break
+
+        _log(
+            f"Scanning {len(candidates)} active TiDB binding candidate(s) "
+            f"from offset={page_offset}; selected={len(selected)}/{limit}.",
+            quiet,
+        )
+        for binding in candidates:
+            scanned += 1
+            if binding.tenant_id and _tenant_has_local_points(binding.tenant_id):
+                selected.append(binding)
+                if len(selected) >= limit:
+                    break
+            else:
+                skipped_used += 1
+
+        page_offset += len(candidates)
+
+    _log(
+        f"Candidate scan finished: scanned={scanned}, selected={len(selected)}, skipped_empty={skipped_used}.",
+        quiet,
+    )
+    return selected
 
 
 def _count_dataset_points(dataset: Dataset) -> CollectionPointStats:
@@ -398,7 +500,12 @@ def _log(message: str, quiet: bool) -> None:
     help="Sample TiDB vector storage usage and compare it with local formula estimates.",
 )
 @click.option("--tenant-id", multiple=True, help="Tenant ID to sample. Can be repeated.")
-@click.option("--limit", default=20, show_default=True, help="Number of active TiDB tenants to sample.")
+@click.option(
+    "--limit",
+    default=20,
+    show_default=True,
+    help="Number of active TiDB tenants with local vector points to sample.",
+)
 @click.option("--offset", default=0, show_default=True, help="Offset when sampling active TiDB tenants.")
 @click.option("--default-dim", default=3072, show_default=True, help="Fallback embedding dimension.")
 @click.option(
@@ -409,6 +516,24 @@ def _log(message: str, quiet: bool) -> None:
 )
 @click.option("--fetch-qdrant-dim/--no-fetch-qdrant-dim", default=True, show_default=True)
 @click.option("--include-annotations/--exclude-annotations", default=True, show_default=True)
+@click.option(
+    "--candidate-page-size",
+    default=200,
+    show_default=True,
+    help="Number of active TiDB bindings to inspect per candidate scan page.",
+)
+@click.option(
+    "--max-candidates",
+    default=2000,
+    show_default=True,
+    help="Maximum active TiDB bindings to inspect when tenant IDs are not specified.",
+)
+@click.option(
+    "--random-offset/--no-random-offset",
+    default=True,
+    show_default=True,
+    help="Start candidate scan from a random active TiDB binding offset.",
+)
 @click.option("--timeout", default=10.0, show_default=True, help="HTTP timeout for TiDB/Qdrant calls.")
 @click.option("--output", type=click.Path(dir_okay=False, path_type=Path), help="CSV output path. Defaults to stdout.")
 @click.option("--quiet", is_flag=True, help="Suppress progress logs. CSV output is unaffected.")
@@ -420,19 +545,34 @@ def sample_vector_space_usage(
     overheads: str,
     fetch_qdrant_dim: bool,
     include_annotations: bool,
+    candidate_page_size: int,
+    max_candidates: int,
+    random_offset: bool,
     timeout: float,
     output: Path | None,
     quiet: bool,
 ):
     overhead_values = _parse_overheads(overheads)
-    bindings = _active_tidb_bindings(tenant_id, limit, offset)
-    sample_scope = f" for tenant_id={','.join(tenant_id)}" if tenant_id else f" with limit={limit}, offset={offset}"
+    bindings = _active_tidb_bindings(
+        tenant_id,
+        limit,
+        offset,
+        candidate_page_size,
+        max_candidates,
+        random_offset,
+        quiet,
+    )
+    sample_scope = (
+        f" for tenant_id={','.join(tenant_id)}"
+        if tenant_id
+        else f" with local vector points, limit={limit}, offset={offset}, max_candidates={max_candidates}"
+    )
     _log(
         f"Sampling {len(bindings)} active TiDB binding(s){sample_scope}.",
         quiet,
     )
     if not bindings:
-        _log("No active TiDB bindings found. Nothing to sample.", quiet)
+        _log("No active TiDB bindings with local vector points found. Nothing to sample.", quiet)
 
     fieldnames = [
         "tenant_id",
