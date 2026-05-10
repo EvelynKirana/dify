@@ -156,6 +156,7 @@ class LLMQuotaLayer(GraphEngineLayer):
         except Exception:
             logger.exception("Failed to send quota abort command")
 
+    @staticmethod
     def _supports_quota(node: Node) -> bool:
         return node.node_type in _QUOTA_NODE_TYPES
 
