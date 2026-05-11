@@ -3990,7 +3990,7 @@ Get list of datasets
 | keyword | query | Search keyword | No | string |
 | limit | query | Number of items per page (default: 20) | No | string |
 | page | query | Page number (default: 1) | No | string |
-| tag_ids | query | Filter by tag IDs (list) | No | string |
+| tag_names | query | Filter by tag names (list) | No | string |
 
 ##### Responses
 
@@ -10607,7 +10607,7 @@ Enum class for api provider schema type.
 | mode | string | App mode filter<br>*Enum:* `"advanced-chat"`, `"agent-chat"`, `"all"`, `"channel"`, `"chat"`, `"completion"`, `"workflow"` | No |
 | name |  | Filter by app name | No |
 | page | integer | Page number (1-99999) | No |
-| tag_ids |  | Filter by tag IDs | No |
+| tag_names |  | Filter by tag names | No |
 
 #### AppMCPServerResponse
 
@@ -10976,7 +10976,7 @@ Condition detail
 | keyword |  | Search keyword | No |
 | limit | integer | Number of items per page | No |
 | page | integer | Page number | No |
-| tag_ids | [ string ] | Filter by tag IDs | No |
+| tag_names | [ string ] | Filter by tag names | No |
 
 #### Conversation
 
