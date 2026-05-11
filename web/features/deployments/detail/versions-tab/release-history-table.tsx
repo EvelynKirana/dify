@@ -1,10 +1,15 @@
 'use client'
 
 import type { ReleaseRow, RuntimeInstanceRow } from '@dify/contracts/enterprise/types.gen'
+import type { ReactNode } from 'react'
 import { cn } from '@langgenius/dify-ui/cn'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@langgenius/dify-ui/tooltip'
+import { useQuery } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
+import { consoleQuery } from '@/service/client'
+import { DEPLOYMENT_PAGE_SIZE } from '../../data'
 import {
+  deployedRows,
   formatDate,
   releaseCommit,
   releaseLabel,
@@ -15,9 +20,27 @@ import { getReleaseDeployments } from './release-deployments'
 
 const GRID_TEMPLATE = 'grid-cols-[minmax(0,0.9fr)_minmax(0,1fr)_minmax(0,0.8fr)_minmax(0,1.5fr)_96px]'
 
-export function ReleaseHistoryTable({ appInstanceId, releaseRows, deploymentRows }: {
+type ReleaseRowWithId = ReleaseRow & {
+  id: string
+}
+
+function hasReleaseId(row: ReleaseRow): row is ReleaseRowWithId {
+  return Boolean(row.id)
+}
+
+function ReleaseHistoryTableState({ children }: {
+  children: ReactNode
+}) {
+  return (
+    <div className="rounded-xl border border-dashed border-components-panel-border bg-components-panel-bg-blur px-4 py-12 text-center system-sm-regular text-text-tertiary">
+      {children}
+    </div>
+  )
+}
+
+function ReleaseHistoryRows({ appInstanceId, releaseRows, deploymentRows }: {
   appInstanceId: string
-  releaseRows: ReleaseRow[]
+  releaseRows: ReleaseRowWithId[]
   deploymentRows: RuntimeInstanceRow[]
 }) {
   const { t } = useTranslation('deployments')
@@ -63,7 +86,7 @@ export function ReleaseHistoryTable({ appInstanceId, releaseRows, deploymentRows
                   </div>
                 </div>
                 <div className="flex shrink-0 justify-end gap-1">
-                  <DeployReleaseMenu releaseId={release.id!} appInstanceId={appInstanceId} releaseRows={releaseRows} />
+                  <DeployReleaseMenu releaseId={release.id} appInstanceId={appInstanceId} releaseRows={releaseRows} />
                 </div>
               </div>
               <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
@@ -114,12 +137,72 @@ export function ReleaseHistoryTable({ appInstanceId, releaseRows, deploymentRows
                     ))}
               </div>
               <div className="flex justify-end gap-1">
-                <DeployReleaseMenu releaseId={release.id!} appInstanceId={appInstanceId} releaseRows={releaseRows} />
+                <DeployReleaseMenu releaseId={release.id} appInstanceId={appInstanceId} releaseRows={releaseRows} />
               </div>
             </div>
           </div>
         )
       })}
     </div>
+  )
+}
+
+export function ReleaseHistoryTable({ appInstanceId }: {
+  appInstanceId: string
+}) {
+  const { t } = useTranslation('deployments')
+  const input = { params: { appInstanceId } }
+  const overviewQuery = useQuery(consoleQuery.enterprise.appDeploy.getAppInstanceOverview.queryOptions({
+    input,
+  }))
+  const releaseHistoryQuery = useQuery(consoleQuery.enterprise.appDeploy.listReleases.queryOptions({
+    input: {
+      ...input,
+      query: {
+        pageNumber: 1,
+        resultsPerPage: DEPLOYMENT_PAGE_SIZE,
+      },
+    },
+  }))
+  const releaseRows = releaseHistoryQuery.data?.data?.filter(hasReleaseId) ?? []
+  const shouldLoadRuntimeInstances = releaseRows.length > 0
+  const environmentDeploymentsQuery = useQuery(consoleQuery.enterprise.appDeploy.listRuntimeInstances.queryOptions({
+    input,
+    enabled: shouldLoadRuntimeInstances,
+  }))
+  const isLoading = releaseHistoryQuery.isLoading
+    || (releaseRows.length === 0 && overviewQuery.isLoading)
+    || (shouldLoadRuntimeInstances && environmentDeploymentsQuery.isLoading)
+  const sourceAppUnavailable = overviewQuery.data?.instance?.canCreateRelease === false
+  const deploymentRows = deployedRows(environmentDeploymentsQuery.data?.data)
+
+  if (isLoading) {
+    return (
+      <ReleaseHistoryTableState>
+        <span
+          aria-label={t('versions.releaseHistory')}
+          className="inline-flex items-center"
+          role="status"
+        >
+          <span className="size-4 animate-spin rounded-full border-2 border-components-panel-border border-t-transparent" />
+        </span>
+      </ReleaseHistoryTableState>
+    )
+  }
+
+  if (releaseRows.length === 0) {
+    return (
+      <ReleaseHistoryTableState>
+        {sourceAppUnavailable ? t('versions.emptySourceUnavailable') : t('versions.emptyWithCreate')}
+      </ReleaseHistoryTableState>
+    )
+  }
+
+  return (
+    <ReleaseHistoryRows
+      appInstanceId={appInstanceId}
+      releaseRows={releaseRows}
+      deploymentRows={deploymentRows}
+    />
   )
 }

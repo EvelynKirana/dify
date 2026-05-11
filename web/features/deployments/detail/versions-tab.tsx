@@ -7,17 +7,20 @@ import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import Input from '@/app/components/base/input'
 import { consoleQuery } from '@/service/client'
-import { DEPLOYMENT_PAGE_SIZE } from '../data'
-import { deployedRows } from '../utils'
 import { ReleaseHistoryTable } from './versions-tab/release-history-table'
 
-function CreateReleaseControl({ appInstanceId, canCreateRelease }: {
+function CreateReleaseControl({ appInstanceId }: {
   appInstanceId: string
-  canCreateRelease: boolean
 }) {
   const { t } = useTranslation('deployments')
   const createRelease = useMutation(consoleQuery.enterprise.appDeploy.createRelease.mutationOptions())
   const [isCreating, setIsCreating] = useState(false)
+  const { data: overview } = useQuery(consoleQuery.enterprise.appDeploy.getAppInstanceOverview.queryOptions({
+    input: {
+      params: { appInstanceId },
+    },
+  }))
+  const canCreateRelease = overview ? overview.instance?.canCreateRelease ?? true : false
 
   async function handleCreateRelease(form: HTMLFormElement) {
     if (!canCreateRelease || createRelease.isPending)
@@ -149,64 +152,42 @@ function CreateReleaseControl({ appInstanceId, canCreateRelease }: {
   )
 }
 
+function SourceAppUnavailableNotice({ appInstanceId }: {
+  appInstanceId: string
+}) {
+  const { t } = useTranslation('deployments')
+  const { data: overview } = useQuery(consoleQuery.enterprise.appDeploy.getAppInstanceOverview.queryOptions({
+    input: {
+      params: { appInstanceId },
+    },
+  }))
+  if (overview?.instance?.canCreateRelease !== false)
+    return null
+
+  return (
+    <div className="rounded-lg border border-divider-subtle bg-background-default-subtle px-3 py-2 system-sm-regular text-text-tertiary">
+      {t('versions.sourceAppUnavailable')}
+    </div>
+  )
+}
+
 export function VersionsTab({ appInstanceId }: {
   appInstanceId: string
 }) {
   const { t } = useTranslation('deployments')
-  const input = { params: { appInstanceId } }
-  const { data: overview } = useQuery(consoleQuery.enterprise.appDeploy.getAppInstanceOverview.queryOptions({
-    input,
-  }))
-  const { data: releaseHistory } = useQuery(consoleQuery.enterprise.appDeploy.listReleases.queryOptions({
-    input: {
-      ...input,
-      query: {
-        pageNumber: 1,
-        resultsPerPage: DEPLOYMENT_PAGE_SIZE,
-      },
-    },
-  }))
-  const { data: environmentDeployments } = useQuery(consoleQuery.enterprise.appDeploy.listRuntimeInstances.queryOptions({
-    input,
-  }))
-  const releaseRows = releaseHistory?.data?.filter(row => row.id) ?? []
-  const deploymentRows = deployedRows(environmentDeployments?.data)
-  const canCreateRelease = overview?.instance?.canCreateRelease ?? true
 
   return (
     <div className="flex w-full max-w-240 flex-col gap-4 p-6">
       <div className="flex items-center justify-between gap-3">
         <div className="system-sm-semibold text-text-primary">
           {t('versions.releaseHistory')}
-          {' '}
-          <span className="system-sm-regular text-text-tertiary">
-            (
-            {releaseRows.length}
-            )
-          </span>
         </div>
-        <CreateReleaseControl appInstanceId={appInstanceId} canCreateRelease={canCreateRelease} />
+        <CreateReleaseControl appInstanceId={appInstanceId} />
       </div>
 
-      {!canCreateRelease && (
-        <div className="rounded-lg border border-divider-subtle bg-background-default-subtle px-3 py-2 system-sm-regular text-text-tertiary">
-          {t('versions.sourceAppUnavailable')}
-        </div>
-      )}
+      <SourceAppUnavailableNotice appInstanceId={appInstanceId} />
 
-      {releaseRows.length === 0
-        ? (
-            <div className="rounded-xl border border-dashed border-components-panel-border bg-components-panel-bg-blur px-4 py-12 text-center system-sm-regular text-text-tertiary">
-              {canCreateRelease ? t('versions.emptyWithCreate') : t('versions.emptySourceUnavailable')}
-            </div>
-          )
-        : (
-            <ReleaseHistoryTable
-              appInstanceId={appInstanceId}
-              releaseRows={releaseRows}
-              deploymentRows={deploymentRows}
-            />
-          )}
+      <ReleaseHistoryTable appInstanceId={appInstanceId} />
     </div>
   )
 }
