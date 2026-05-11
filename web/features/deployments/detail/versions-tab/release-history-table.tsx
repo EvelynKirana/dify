@@ -63,7 +63,7 @@ export function ReleaseHistoryTable({ appInstanceId, releaseRows, deploymentRows
                   </div>
                 </div>
                 <div className="flex shrink-0 justify-end gap-1">
-                  <DeployReleaseMenu releaseId={release.id!} appInstanceId={appInstanceId} />
+                  <DeployReleaseMenu releaseId={release.id!} appInstanceId={appInstanceId} releaseRows={releaseRows} />
                 </div>
               </div>
               <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
@@ -114,7 +114,7 @@ export function ReleaseHistoryTable({ appInstanceId, releaseRows, deploymentRows
                     ))}
               </div>
               <div className="flex justify-end gap-1">
-                <DeployReleaseMenu releaseId={release.id!} appInstanceId={appInstanceId} />
+                <DeployReleaseMenu releaseId={release.id!} appInstanceId={appInstanceId} releaseRows={releaseRows} />
               </div>
             </div>
           </div>

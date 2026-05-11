@@ -1,6 +1,6 @@
 'use client'
 
-import type { DeploymentBindingOptionSlot, DeploymentRuntimeBinding, ReleaseRow } from '@dify/contracts/enterprise/types.gen'
+import type { DeploymentBindingOptionSlot, DeploymentRuntimeBinding, ReleaseRow, RuntimeInstanceRow } from '@dify/contracts/enterprise/types.gen'
 import type { EnvironmentOption } from '@/features/deployments/types'
 import { Button } from '@langgenius/dify-ui/button'
 import { DialogDescription, DialogTitle } from '@langgenius/dify-ui/dialog'
@@ -12,9 +12,12 @@ import { useTranslation } from 'react-i18next'
 import { consoleQuery } from '@/service/client'
 import { closeDeployDrawerAtom } from '../../store'
 import {
+  activeRelease,
+  environmentId,
   environmentMode,
   environmentName,
   releaseCommit,
+  releaseDeploymentAction,
   releaseLabel,
 } from '../../utils'
 import {
@@ -27,6 +30,7 @@ type DeployFormProps = {
   appInstanceId: string
   environments: EnvironmentOption[]
   releases: ReleaseRow[]
+  deploymentRows: RuntimeInstanceRow[]
   defaultReleaseId?: string
   lockedEnvId?: string
   presetReleaseId?: string
@@ -204,6 +208,7 @@ export function DeployForm({
   appInstanceId,
   environments,
   releases,
+  deploymentRows,
   defaultReleaseId,
   lockedEnvId,
   presetReleaseId,
@@ -213,7 +218,7 @@ export function DeployForm({
   const startDeploy = useMutation(consoleQuery.enterprise.appDeploy.createDeployment.mutationOptions())
   const presetRelease = presetReleaseId ? releases.find(r => r.id === presetReleaseId) : undefined
   const displayedRelease: ReleaseRow | undefined = presetRelease ?? (presetReleaseId ? { id: presetReleaseId } : undefined)
-  const isPromote = Boolean(presetReleaseId)
+  const isExistingRelease = Boolean(presetReleaseId)
 
   const [selectedEnvId, setSelectedEnvId] = useState<string>(
     () => lockedEnvId ?? environments.find(env => !env.disabled)?.id ?? environments[0]?.id ?? '',
@@ -225,6 +230,14 @@ export function DeployForm({
   )
   const selectedRelease = releases.find(release => release.id === selectedReleaseId)
   const targetReleaseId = displayedRelease?.id ?? selectedRelease?.id ?? selectedReleaseId
+  const targetRelease = displayedRelease ?? selectedRelease ?? (targetReleaseId ? { id: targetReleaseId } : undefined)
+  const selectedDeploymentRow = deploymentRows.find(row => environmentId(row.environment) === selectedEnvironmentId)
+  const action = releaseDeploymentAction({
+    targetRelease,
+    currentRelease: activeRelease(selectedDeploymentRow),
+    releaseRows: releases,
+    isExistingRelease,
+  })
   const bindingOptions = useQuery(consoleQuery.enterprise.appDeploy.listDeploymentBindingOptions.queryOptions({
     input: appInstanceId && targetReleaseId
       ? {
@@ -254,11 +267,29 @@ export function DeployForm({
   )
 
   const lockedEnv = lockedEnvId ? environments.find(e => e.id === lockedEnvId) : undefined
+  const actionTitle = action === 'rollback'
+    ? t('deployDrawer.rollbackTitle')
+    : action === 'promote'
+      ? t('deployDrawer.promoteTitle')
+      : action === 'deployExistingRelease'
+        ? t('deployDrawer.deployExistingReleaseTitle')
+        : t('deployDrawer.title')
+  const actionDescription = action === 'rollback'
+    ? t('deployDrawer.rollbackDescription')
+    : action === 'promote'
+      ? t('deployDrawer.promoteDescription')
+      : action === 'deployExistingRelease'
+        ? t('deployDrawer.deployExistingReleaseDescription')
+        : t('deployDrawer.description')
   const submitLabel = isSubmitting
     ? t('deployDrawer.deploying')
-    : isPromote
-      ? t('deployDrawer.promote')
-      : t('deployDrawer.deploy')
+    : action === 'rollback'
+      ? t('deployDrawer.rollback')
+      : action === 'promote'
+        ? t('deployDrawer.promote')
+        : action === 'deployExistingRelease'
+          ? t('deployDrawer.deployExistingRelease')
+          : t('deployDrawer.deploy')
 
   const handleDeploy = () => {
     if (!canDeploy || !targetReleaseId)
@@ -288,15 +319,15 @@ export function DeployForm({
     <div className="flex flex-col gap-5">
       <div>
         <DialogTitle className="title-xl-semi-bold text-text-primary">
-          {isPromote ? t('deployDrawer.promoteTitle') : t('deployDrawer.title')}
+          {actionTitle}
         </DialogTitle>
         <DialogDescription className="mt-1 system-sm-regular text-text-tertiary">
-          {isPromote ? t('deployDrawer.promoteDescription') : t('deployDrawer.description')}
+          {actionDescription}
         </DialogDescription>
       </div>
 
       <Field label={t('deployDrawer.releaseLabel')}>
-        {isPromote && displayedRelease
+        {isExistingRelease && displayedRelease
           ? (
               <div className="flex flex-col gap-1">
                 <div className="flex items-center justify-between rounded-lg border border-components-panel-border bg-components-panel-bg-blur px-3 py-2">

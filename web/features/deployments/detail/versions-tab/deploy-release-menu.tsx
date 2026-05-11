@@ -1,5 +1,6 @@
 'use client'
 
+import type { ReleaseRow } from '@dify/contracts/enterprise/types.gen'
 import { cn } from '@langgenius/dify-ui/cn'
 import {
   DropdownMenu,
@@ -20,11 +21,13 @@ import {
   environmentId,
   environmentName,
   environmentOptionsFromOptionsReply,
+  releaseDeploymentAction,
 } from '../../utils'
 
-export function DeployReleaseMenu({ appInstanceId, releaseId }: {
+export function DeployReleaseMenu({ appInstanceId, releaseId, releaseRows }: {
   appInstanceId: string
   releaseId: string
+  releaseRows: ReleaseRow[]
 }) {
   const { t } = useTranslation('deployments')
   const openDeployDrawer = useSetAtom(openDeployDrawerAtom)
@@ -42,6 +45,7 @@ export function DeployReleaseMenu({ appInstanceId, releaseId }: {
   const environmentOptions = environmentOptionsFromOptionsReply(environmentOptionsReply)
   const environments = environmentOptions.filter(env => env.id)
   const deploymentRows = deployedRows(environmentDeployments?.data)
+  const targetRelease = releaseRows.find(release => release.id === releaseId) ?? { id: releaseId }
 
   return (
     <DropdownMenu modal={false} open={open} onOpenChange={setOpen}>
@@ -63,6 +67,12 @@ export function DeployReleaseMenu({ appInstanceId, releaseId }: {
             const isCurrent = activeRelease(row)?.id === releaseId
             const isEnvironmentDeploying = row ? deploymentStatus(row) === 'deploying' : false
             const disabled = Boolean(env.disabled || isCurrent || isEnvironmentDeploying)
+            const action = releaseDeploymentAction({
+              targetRelease,
+              currentRelease: activeRelease(row),
+              releaseRows,
+              isExistingRelease: true,
+            })
             return (
               <DropdownMenuItem
                 key={envId}
@@ -81,7 +91,7 @@ export function DeployReleaseMenu({ appInstanceId, releaseId }: {
                     : isCurrent
                       ? t('versions.currentOn', { name: environmentName(env) })
                       : row
-                        ? t('versions.promoteTo', { name: environmentName(env) })
+                        ? t(action === 'rollback' ? 'versions.rollbackTo' : 'versions.promoteTo', { name: environmentName(env) })
                         : t('versions.deployTo', { name: environmentName(env) })}
                 </span>
               </DropdownMenuItem>
