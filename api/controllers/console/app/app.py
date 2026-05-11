@@ -30,6 +30,7 @@ from core.ops.ops_trace_manager import OpsTraceManager
 from core.rag.entities import PreProcessingRule, Rule, Segmentation
 from core.rag.retrieval.retrieval_methods import RetrievalMethod
 from core.trigger.constants import TRIGGER_NODE_TYPES
+from configs import dify_config
 from extensions.ext_database import db
 from fields.base import ResponseModel
 from graphon.enums import WorkflowExecutionStatus
@@ -41,6 +42,7 @@ from models.workflow import resolve_workflow_kind
 from services.app_dsl_service import AppDslService
 from services.app_service import AppService
 from services.enterprise.enterprise_service import EnterpriseService
+from services.enterprise import rbac_service as enterprise_rbac_service
 from services.entities.dsl_entities import ImportMode, ImportStatus
 from services.entities.knowledge_entities.knowledge_entities import (
     DataSource,
@@ -354,6 +356,7 @@ class AppPartial(ResponseModel):
     has_draft_trigger: bool | None = None
     workflow_type: str | None = None
     workflow_kind: str | None = None
+    permission_keys: list[str] = Field(default_factory=list)
 
     @computed_field(return_type=str | None)  # type: ignore
     @property
@@ -500,6 +503,20 @@ class AppListApi(Resource):
             for app in app_pagination.items:
                 if str(app.id) in res:
                     app.access_mode = res[str(app.id)].access_mode
+
+        if app_pagination.items:
+            if dify_config.RBAC_ENABLED:
+                app_ids = [str(app.id) for app in app_pagination.items]
+                permission_keys_map = enterprise_rbac_service.RBACService.AppPermissions.batch_get(
+                    str(current_tenant_id),
+                    current_user.id,
+                    app_ids,
+                )
+                for app in app_pagination.items:
+                    app.permission_keys = permission_keys_map.get(str(app.id), [])
+            else:
+                for app in app_pagination.items:
+                    app.permission_keys = []
 
         workflow_capable_app_ids = [
             str(app.id) for app in app_pagination.items if app.mode in {"workflow", "advanced-chat"}

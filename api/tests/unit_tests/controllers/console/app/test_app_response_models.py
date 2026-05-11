@@ -13,6 +13,8 @@ from flask.views import MethodView
 from pydantic import ValidationError
 from werkzeug.datastructures import MultiDict
 
+from configs import dify_config
+
 # kombu references MethodView as a global when importing celery/kombu pools.
 if not hasattr(builtins, "MethodView"):
     builtins.MethodView = MethodView  # type: ignore[attr-defined]
@@ -293,6 +295,7 @@ def test_app_partial_serialization_uses_aliases(app_models):
         create_user_name="Creator",
         author_name="Author",
         has_draft_trigger=True,
+        permission_keys=["app.acl.view_layout"],
     )
 
     serialized = AppPartial.model_validate(app_obj, from_attributes=True).model_dump(mode="json")
@@ -305,6 +308,7 @@ def test_app_partial_serialization_uses_aliases(app_models):
     assert serialized["model_config"]["model"] == {"provider": "openai", "name": "gpt-4o"}
     assert serialized["workflow"]["id"] == "wf-1"
     assert serialized["tags"][0]["name"] == "Utilities"
+    assert serialized["permission_keys"] == ["app.acl.view_layout"]
 
 
 def test_app_detail_with_site_includes_nested_serialization(app_models):
@@ -368,6 +372,7 @@ def test_app_pagination_aliases_per_page_and_has_next(app_models):
         icon="first-icon",
         created_at=_ts(15),
         updated_at=_ts(15),
+        permission_keys=["app.acl.edit"],
     )
     item_two = SimpleNamespace(
         id="app-11",
@@ -395,3 +400,52 @@ def test_app_pagination_aliases_per_page_and_has_next(app_models):
     assert len(serialized["data"]) == 2
     assert serialized["data"][0]["icon_url"] == "signed:first-icon"
     assert serialized["data"][1]["icon_url"] is None
+    assert serialized["data"][0]["permission_keys"] == ["app.acl.edit"]
+
+
+def test_app_list_api_attaches_permission_keys(app, app_module):
+    method = app_module.AppListApi.get
+    while hasattr(method, "__wrapped__"):
+        method = method.__wrapped__
+
+    app_obj = SimpleNamespace(
+        id="app-1",
+        name="List App",
+        desc_or_prompt="Summary",
+        mode_compatible_with_agent="chat",
+        mode="chat",
+        created_at=_ts(15),
+        updated_at=_ts(15),
+        permission_keys=[],
+    )
+    pagination = SimpleNamespace(page=1, per_page=20, total=1, has_next=False, items=[app_obj])
+
+    with app.test_request_context("/apps"):
+        with pytest.MonkeyPatch.context() as monkeypatch:
+            monkeypatch.setattr(dify_config, "RBAC_ENABLED", True)
+            monkeypatch.setattr(
+                app_module,
+                "current_account_with_tenant",
+                lambda: (SimpleNamespace(id="acct-1"), "tenant-1"),
+            )
+            monkeypatch.setattr(
+                app_module.AppService,
+                "get_paginate_apps",
+                lambda self, user_id, tenant_id, args_dict: pagination,
+            )
+            monkeypatch.setattr(
+                app_module.FeatureService,
+                "get_system_features",
+                lambda: SimpleNamespace(webapp_auth=SimpleNamespace(enabled=False)),
+            )
+            monkeypatch.setattr(
+                app_module.enterprise_rbac_service.RBACService.AppPermissions,
+                "batch_get",
+                lambda tenant_id, account_id, app_ids: {"app-1": ["app.acl.view_layout", "app.acl.edit"]},
+            )
+
+            resp, status = method(app_module.AppListApi())
+
+    assert status == 200
+    assert app_obj.permission_keys == ["app.acl.view_layout", "app.acl.edit"]
+    assert resp["data"][0]["permission_keys"] == ["app.acl.view_layout", "app.acl.edit"]

@@ -316,7 +316,8 @@ class TestMyPermissions:
             "dataset": {"default_permission_keys": [], "overrides": []},
         }
 
-        out = svc.RBACService.MyPermissions.get("tenant-1", "acct-1")
+        with patch(f"{MODULE}.dify_config.RBAC_ENABLED", True):
+            out = svc.RBACService.MyPermissions.get("tenant-1", "acct-1")
 
         call = _call_args(mock_send)
         assert call.method == "GET"
@@ -325,6 +326,74 @@ class TestMyPermissions:
         assert call.params is None
         assert out.workspace.permission_keys == ["workspace.member.manage"]
 
+    @pytest.mark.parametrize(
+        ("role", "workspace_keys", "app_keys", "dataset_keys"),
+        [
+            (
+                "owner",
+                ["workspace.member.manage", "workspace.role.manage"],
+                ["app.acl.view_layout", "app.acl.test_and_run", "app.acl.edit", "app.acl.access_config"],
+                ["dataset.acl.readonly", "dataset.acl.edit", "dataset.acl.use"],
+            ),
+            (
+                "admin",
+                ["workspace.member.manage", "workspace.role.manage"],
+                ["app.acl.view_layout", "app.acl.test_and_run", "app.acl.edit", "app.acl.access_config"],
+                ["dataset.acl.readonly", "dataset.acl.edit", "dataset.acl.use"],
+            ),
+            (
+                "editor",
+                [],
+                ["app.acl.view_layout", "app.acl.test_and_run", "app.acl.edit", "app.acl.access_config"],
+                ["dataset.acl.readonly", "dataset.acl.edit", "dataset.acl.use"],
+            ),
+            (
+                "normal",
+                [],
+                ["app.acl.view_layout", "app.acl.test_and_run"],
+                [],
+            ),
+            (
+                "dataset_operator",
+                [],
+                [],
+                ["dataset.acl.readonly", "dataset.acl.edit", "dataset.acl.use"],
+            ),
+        ],
+    )
+    def test_get_uses_legacy_role_permissions_when_rbac_disabled(
+        self,
+        mock_send: MagicMock,
+        role: str,
+        workspace_keys: list[str],
+        app_keys: list[str],
+        dataset_keys: list[str],
+    ):
+        with (
+            patch(f"{MODULE}.dify_config.RBAC_ENABLED", False),
+            patch(f"{MODULE}.db.session.scalar", return_value=role),
+        ):
+            out = svc.RBACService.MyPermissions.get("tenant-1", "acct-1")
+
+        mock_send.assert_not_called()
+        assert out.workspace.permission_keys == workspace_keys
+        assert out.app.default_permission_keys == app_keys
+        assert out.dataset.default_permission_keys == dataset_keys
+        assert out.app.overrides == []
+        assert out.dataset.overrides == []
+
+    def test_get_returns_empty_when_role_missing_and_rbac_disabled(self, mock_send: MagicMock):
+        with (
+            patch(f"{MODULE}.dify_config.RBAC_ENABLED", False),
+            patch(f"{MODULE}.db.session.scalar", return_value=None),
+        ):
+            out = svc.RBACService.MyPermissions.get("tenant-1", "acct-1")
+
+        mock_send.assert_not_called()
+        assert out.workspace.permission_keys == []
+        assert out.app.default_permission_keys == []
+        assert out.dataset.default_permission_keys == []
+
     def test_get_with_single_resource_filters(self, mock_send: MagicMock):
         mock_send.return_value = {
             "workspace": {"permission_keys": []},
@@ -332,7 +401,8 @@ class TestMyPermissions:
             "dataset": {"default_permission_keys": [], "overrides": []},
         }
 
-        out = svc.RBACService.MyPermissions.get("tenant-1", "acct-1", app_id="app-1")
+        with patch(f"{MODULE}.dify_config.RBAC_ENABLED", True):
+            out = svc.RBACService.MyPermissions.get("tenant-1", "acct-1", app_id="app-1")
 
         call = _call_args(mock_send)
         assert call.method == "GET"
@@ -397,6 +467,46 @@ class TestMemberRoles:
         assert call.json == {"account_ids": ["acct-2", "acct-3"]}
         assert out[0].account_id == "acct-2"
         assert len(out[0].roles) == 2
+
+
+class TestResourcePermissions:
+    def test_app_permissions_batch_get(self, mock_send: MagicMock):
+        mock_send.return_value = {
+            "data": [
+                {"resource_id": "app-1", "permission_keys": ["app.acl.view_layout", "app.acl.edit"]},
+                {"resource_id": "app-2", "permission_keys": []},
+            ]
+        }
+
+        out = svc.RBACService.AppPermissions.batch_get("tenant-1", "acct-1", ["app-1", "app-2"])
+
+        call = _call_args(mock_send)
+        assert call.method == "POST"
+        assert call.endpoint == "/rbac/apps/permission-keys/batch"
+        assert call.json == {"app_ids": ["app-1", "app-2"]}
+        assert out == {
+            "app-1": ["app.acl.view_layout", "app.acl.edit"],
+            "app-2": [],
+        }
+
+    def test_dataset_permissions_batch_get(self, mock_send: MagicMock):
+        mock_send.return_value = {
+            "data": [
+                {"resource_id": "ds-1", "permission_keys": ["dataset.acl.readonly"]},
+                {"resource_id": "ds-2", "permission_keys": ["dataset.acl.edit"]},
+            ]
+        }
+
+        out = svc.RBACService.DatasetPermissions.batch_get("tenant-1", "acct-1", ["ds-1", "ds-2"])
+
+        call = _call_args(mock_send)
+        assert call.method == "POST"
+        assert call.endpoint == "/rbac/datasets/permission-keys/batch"
+        assert call.json == {"dataset_ids": ["ds-1", "ds-2"]}
+        assert out == {
+            "ds-1": ["dataset.acl.readonly"],
+            "ds-2": ["dataset.acl.edit"],
+        }
 
 
 class TestListOption:
