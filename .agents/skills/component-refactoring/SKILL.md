@@ -45,45 +45,6 @@ pnpm analyze-component <path> --json
 ```
 
 ### Complexity Score Interpretation
-
-| Score | Level | Action |
-|-------|-------|--------|
-| 0-25 | 🟢 Simple | Ready for testing |
-| 26-50 | 🟡 Medium | Consider minor refactoring |
-| 51-75 | 🟠 Complex | **Refactor before testing** |
-| 76-100 | 🔴 Very Complex | **Must refactor** |
-
-## Core Refactoring Patterns
-
-### Pattern 1: Extract Custom Hooks
-
-**When**: Component has complex state management, multiple `useState`/`useEffect`, or business logic mixed with UI.
-
-**Dify Convention**: Place hooks in a `hooks/` subdirectory or alongside the component as `use-<feature>.ts`.
-
-```typescript
-// ❌ Before: Complex state logic in component
-function Configuration() {
-  const [modelConfig, setModelConfig] = useState<ModelConfig>(...)
-  const [datasetConfigs, setDatasetConfigs] = useState<DatasetConfigs>(...)
-  const [completionParams, setCompletionParams] = useState<FormValue>({})
-  
-  // 50+ lines of state management logic...
-  
-  return <div>...</div>
-}
-
-// ✅ After: Extract to custom hook
-// hooks/use-model-config.ts
-export const useModelConfig = (appId: string) => {
-  const [modelConfig, setModelConfig] = useState<ModelConfig>(...)
-  const [completionParams, setCompletionParams] = useState<FormValue>({})
-  
-  // Related state management logic here
-  
-  return { modelConfig, setModelConfig, completionParams, setCompletionParams }
-}
-
 // Component becomes cleaner
 function Configuration() {
   const { modelConfig, setModelConfig } = useModelConfig(appId)
@@ -98,7 +59,6 @@ function Configuration() {
 
 ### Pattern 2: Extract Sub-Components
 
-**When**: Single component has multiple UI sections, conditional rendering blocks, or repeated patterns.
 
 **Dify Convention**: Place sub-components in subdirectories or as separate files in the same directory.
 
