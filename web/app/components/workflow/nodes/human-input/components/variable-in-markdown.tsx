@@ -1,5 +1,4 @@
 /* eslint-disable react-refresh/only-export-components */
-import type { ReactNode } from 'react'
 import type { FormInputItem } from '../types'
 import { cn } from '@langgenius/dify-ui/cn'
 import { Select, SelectContent, SelectItem, SelectItemIndicator, SelectItemText, SelectTrigger } from '@langgenius/dify-ui/select'
@@ -150,14 +149,14 @@ export const Variable: React.FC<{ path: string }> = ({ path }) => {
   )
 }
 
-const SelectPreview: React.FC<{ label: string, options: string[], triggerContent?: ReactNode }> = ({ label, options, triggerContent }) => {
+const SelectPreview: React.FC<{ label: string, options: string[] }> = ({ label, options }) => {
   const [value, setValue] = React.useState(options[0] || label)
 
   return (
     <div data-testid="human-input-note-select-preview" className="my-3">
       <Select value={value} onValueChange={nextValue => nextValue && setValue(nextValue)}>
         <SelectTrigger size="large" className="w-full rounded-[10px]" aria-label="human-input-note-select">
-          {triggerContent || value}
+          {value}
         </SelectTrigger>
         <SelectContent listClassName="max-h-[140px] overflow-y-auto">
           {options.map(option => (
@@ -214,20 +213,19 @@ export const Note: React.FC<{ input: FormInputItem, nodeName: (nodeId: string) =
   const { t } = useTranslation()
   if (isSelectFormInput(input)) {
     const isVariable = input.option_source.type === 'variable'
-    const variablePath = isVariable
-      ? sourceToVariablePath(input.option_source, nodeName)
-      : ''
-    const label = isVariable
-      ? variablePath || t('nodes.humanInput.insertInputField.variable', { ns: 'workflow' })
-      : input.option_source.value[0] || t('variableConfig.select', { ns: 'appDebug' })
-    const options = isVariable ? [label] : input.option_source.value
-    return (
-      <SelectPreview
-        label={label}
-        options={options}
-        triggerContent={variablePath ? <Variable path={variablePath} /> : undefined}
-      />
-    )
+    if (isVariable) {
+      const variablePath = sourceToVariablePath(input.option_source, nodeName)
+      return (
+        <div className="my-3 rounded-[10px] bg-components-input-bg-normal px-2.5 py-2">
+          {variablePath
+            ? <Variable path={variablePath} />
+            : <span>{t('nodes.humanInput.insertInputField.variable', { ns: 'workflow' })}</span>}
+        </div>
+      )
+    }
+
+    const label = input.option_source.value[0] || t('variableConfig.select', { ns: 'appDebug' })
+    return <SelectPreview label={label} options={input.option_source.value} />
   }
 
   if (isFileFormInput(input)) {

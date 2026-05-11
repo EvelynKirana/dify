@@ -142,7 +142,7 @@ describe('variable-in-markdown', () => {
       expect(screen.getByText('Approved')).toBeInTheDocument()
     })
 
-    it('should render variable source information for dynamic select inputs', () => {
+    it('should render dynamic select inputs as variable information without a select control', () => {
       render(
         <Note
           input={{
@@ -158,7 +158,8 @@ describe('variable-in-markdown', () => {
         />,
       )
 
-      expect(screen.getByTestId('human-input-note-select-preview')).toBeInTheDocument()
+      expect(screen.queryByTestId('human-input-note-select-preview')).not.toBeInTheDocument()
+      expect(screen.queryByRole('combobox', { name: 'human-input-note-select' })).not.toBeInTheDocument()
       expect(screen.getByText('{{Start Node/options}}')).toBeInTheDocument()
     })
 
