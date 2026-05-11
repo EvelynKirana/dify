@@ -117,6 +117,7 @@ class AccessPolicyRoleBinding(_RBACModel):
     resource_type: str
     resource_id: str = ""
     role_id: str
+    role_name: str = ""
     created_at: int = 0
 
 
@@ -127,6 +128,7 @@ class AccessPolicyMemberBinding(_RBACModel):
     resource_type: str
     resource_id: str = ""
     account_id: str
+    account_name: str = ""
     created_at: int = 0
 
 

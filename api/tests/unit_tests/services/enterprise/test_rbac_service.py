@@ -220,6 +220,44 @@ class TestResourceAccess:
         assert call.params == {"app_id": "app-1"}
         assert out.app_id == "app-1"
 
+    def test_app_role_bindings_preserve_role_name(self, mock_send: MagicMock):
+        mock_send.return_value = {
+            "data": [
+                {
+                    "id": "binding-1",
+                    "tenant_id": "tenant-1",
+                    "access_policy_id": "policy-1",
+                    "resource_type": "app",
+                    "resource_id": "app-1",
+                    "role_id": "role-1",
+                    "role_name": "Owner",
+                }
+            ]
+        }
+
+        out = svc.RBACService.AppAccess.list_role_bindings("tenant-1", "acct-1", "app-1", "policy-1")
+
+        assert out.data[0].role_name == "Owner"
+
+    def test_app_member_bindings_preserve_account_name(self, mock_send: MagicMock):
+        mock_send.return_value = {
+            "data": [
+                {
+                    "id": "binding-1",
+                    "tenant_id": "tenant-1",
+                    "access_policy_id": "policy-1",
+                    "resource_type": "app",
+                    "resource_id": "app-1",
+                    "account_id": "acct-1",
+                    "account_name": "Alice",
+                }
+            ]
+        }
+
+        out = svc.RBACService.AppAccess.list_member_bindings("tenant-1", "acct-1", "app-1", "policy-1")
+
+        assert out.data[0].account_name == "Alice"
+
     def test_app_replace_bindings(self, mock_send: MagicMock):
         mock_send.return_value = {"data": []}
         payload = svc.ReplaceBindings(role_ids=["workspace.owner"], account_ids=["acct-2"])
