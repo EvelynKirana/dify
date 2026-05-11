@@ -208,7 +208,7 @@ function List({
                 {t('showMyCreatedAppsOnly', { ns: 'app' })}
               </div>
             </label>
-            <TagFilter type="app" value={tagNames} onChange={setTagNames} onOpenTagManagement={() => setShowTagManagementModal(true)} />
+            <TagFilter type="app" value={tagNames} onChange={setTagNames} onManageTags={() => setShowTagManagementModal(true)} />
             <Input
               showLeftIcon
               showClearIcon
@@ -242,7 +242,7 @@ function List({
                     app={app}
                     onlineUsers={workflowOnlineUsersMap[app.id] ?? []}
                     onRefresh={refetch}
-                    onOpenTagManagement={() => setShowTagManagementModal(true)}
+                    onManageTags={() => setShowTagManagementModal(true)}
                   />
                 ))
               : <Empty />}

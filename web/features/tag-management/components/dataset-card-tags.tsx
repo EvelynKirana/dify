@@ -9,7 +9,7 @@ type DatasetCardTagsProps = {
   embeddingAvailable: boolean
   tags: Tag[]
   onClick: (e: MouseEvent) => void
-  onOpenTagManagement?: () => void
+  onManageTags?: () => void
   onTagsChange?: () => void
 }
 
@@ -18,7 +18,7 @@ export const DatasetCardTags = ({
   embeddingAvailable,
   tags,
   onClick,
-  onOpenTagManagement = () => {},
+  onManageTags = () => {},
   onTagsChange,
 }: DatasetCardTagsProps) => {
   const [selectorOpen, setSelectorOpen] = useState(false)
@@ -35,7 +35,7 @@ export const DatasetCardTags = ({
           type="knowledge"
           targetId={datasetId}
           value={tags}
-          onManageTags={onOpenTagManagement}
+          onManageTags={onManageTags}
           onActiveChange={setSelectorOpen}
           onTagsChange={onTagsChange}
         />

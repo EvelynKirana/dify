@@ -18,13 +18,13 @@ type TagFilterProps = {
   type: TagType
   value: string[]
   onChange: (v: string[]) => void
-  onOpenTagManagement?: () => void
+  onManageTags?: () => void
 }
 export const TagFilter = ({
   type,
   value,
   onChange,
-  onOpenTagManagement = () => {},
+  onManageTags = () => {},
 }: TagFilterProps) => {
   const { t } = useTranslation()
   const [open, setOpen] = useState(false)
@@ -117,7 +117,7 @@ export const TagFilter = ({
             type={type}
             inputValue={inputValue}
             onInputValueChange={setInputValue}
-            onOpenTagManagement={onOpenTagManagement}
+            onManageTags={onManageTags}
             onClose={() => setOpen(false)}
           />
         </ComboboxContent>

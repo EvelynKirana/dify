@@ -65,7 +65,7 @@ const List = () => {
               tooltip={t('allKnowledgeDescription', { ns: 'dataset' }) as string}
             />
           )}
-          <TagFilter type="knowledge" value={tagNames} onChange={setTagNames} onOpenTagManagement={() => setShowTagManagementModal(true)} />
+          <TagFilter type="knowledge" value={tagNames} onChange={setTagNames} onManageTags={() => setShowTagManagementModal(true)} />
           <Input
             showLeftIcon
             showClearIcon
@@ -89,7 +89,7 @@ const List = () => {
           </Button>
         </div>
       </div>
-      <Datasets tagNames={tagNames} keywords={searchKeywords} includeAll={includeAll} onOpenTagManagement={() => setShowTagManagementModal(true)} />
+      <Datasets tagNames={tagNames} keywords={searchKeywords} includeAll={includeAll} onManageTags={() => setShowTagManagementModal(true)} />
       {!systemFeatures.branding.enabled && <DatasetFooter />}
       <TagManagementModal
         type="knowledge"

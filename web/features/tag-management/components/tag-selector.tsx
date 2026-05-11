@@ -237,7 +237,7 @@ export const TagSelector = ({
           type={type}
           inputValue={inputValue}
           onInputValueChange={setInputValue}
-          onOpenTagManagement={onManageTags}
+          onManageTags={onManageTags}
           onClose={() => handleOpenChange(false)}
         />
       </ComboboxContent>

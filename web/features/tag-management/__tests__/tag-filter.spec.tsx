@@ -191,13 +191,13 @@ describe('TagFilter', () => {
 
     it('should open manage tags modal and close dropdown', async () => {
       const user = userEvent.setup()
-      const onOpenTagManagement = vi.fn()
-      render(<TagFilter {...defaultProps} onOpenTagManagement={onOpenTagManagement} />)
+      const onManageTags = vi.fn()
+      render(<TagFilter {...defaultProps} onManageTags={onManageTags} />)
 
       await user.click(screen.getByText(i18n.placeholder))
       await user.click(screen.getByText(i18n.manageTags))
 
-      expect(onOpenTagManagement).toHaveBeenCalledTimes(1)
+      expect(onManageTags).toHaveBeenCalledTimes(1)
     })
   })
 

@@ -5,14 +5,14 @@ import { TagSelector } from '@/features/tag-management/components/tag-selector'
 type AppCardTagsProps = {
   appId: string
   tags: Tag[]
-  onOpenTagManagement?: () => void
+  onManageTags?: () => void
   onTagsChange?: () => void
 }
 
 export const AppCardTags = ({
   appId,
   tags,
-  onOpenTagManagement = () => {},
+  onManageTags = () => {},
   onTagsChange,
 }: AppCardTagsProps) => {
   const [selectorOpen, setSelectorOpen] = useState(false)
@@ -24,7 +24,7 @@ export const AppCardTags = ({
         type="app"
         targetId={appId}
         value={tags}
-        onManageTags={onOpenTagManagement}
+        onManageTags={onManageTags}
         onActiveChange={setSelectorOpen}
         onTagsChange={onTagsChange}
       />

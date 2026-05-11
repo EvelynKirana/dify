@@ -9,7 +9,7 @@ type TagPanelProps = {
   type: TagType
   inputValue: string
   onInputValueChange: (value: string) => void
-  onOpenTagManagement?: () => void
+  onManageTags?: () => void
   onClose?: () => void
 }
 
@@ -17,7 +17,7 @@ export const TagPanel = ({
   type,
   inputValue,
   onInputValueChange,
-  onOpenTagManagement,
+  onManageTags,
   onClose,
 }: TagPanelProps) => {
   const { t } = useTranslation()
@@ -95,7 +95,7 @@ export const TagPanel = ({
           type="button"
           className="flex w-full cursor-pointer touch-manipulation items-center gap-x-1 rounded-lg px-2 py-1.5 text-left outline-hidden hover:bg-state-base-hover focus-visible:ring-1 focus-visible:ring-components-input-border-active"
           onClick={() => {
-            onOpenTagManagement?.()
+            onManageTags?.()
             onClose?.()
           }}
         >

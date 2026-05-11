@@ -56,14 +56,14 @@ describe('AppCardTags', () => {
 
   describe('Callbacks', () => {
     it('should forward tag management and tag change callbacks', () => {
-      const onOpenTagManagement = vi.fn()
+      const onManageTags = vi.fn()
       const onTagsChange = vi.fn()
 
       render(
         <AppCardTags
           appId="app-1"
           tags={tags}
-          onOpenTagManagement={onOpenTagManagement}
+          onManageTags={onManageTags}
           onTagsChange={onTagsChange}
         />,
       )
@@ -71,7 +71,7 @@ describe('AppCardTags', () => {
       fireEvent.click(screen.getByText('Manage Tags'))
       fireEvent.click(screen.getByText('Tags Changed'))
 
-      expect(onOpenTagManagement).toHaveBeenCalledTimes(1)
+      expect(onManageTags).toHaveBeenCalledTimes(1)
       expect(onTagsChange).toHaveBeenCalledTimes(1)
     })
 

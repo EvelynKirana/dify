@@ -17,13 +17,13 @@ const EXTERNAL_PROVIDER = 'external'
 type DatasetCardProps = {
   dataset: DataSet
   onSuccess?: () => void
-  onOpenTagManagement?: () => void
+  onManageTags?: () => void
 }
 
 const DatasetCard = ({
   dataset,
   onSuccess,
-  onOpenTagManagement = () => {},
+  onManageTags = () => {},
 }: DatasetCardProps) => {
   const { push } = useRouter()
 
@@ -75,7 +75,7 @@ const DatasetCard = ({
           embeddingAvailable={dataset.embedding_available}
           tags={dataset.tags}
           onClick={handleTagAreaClick}
-          onOpenTagManagement={onOpenTagManagement}
+          onManageTags={onManageTags}
           onTagsChange={onSuccess}
         />
         <DatasetCardFooter dataset={dataset} />

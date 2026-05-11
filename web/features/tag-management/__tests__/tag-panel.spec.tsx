@@ -31,7 +31,7 @@ type PanelHarnessProps = {
   type?: TagType
   value?: Tag[]
   tagList?: Tag[]
-  onOpenTagManagement?: () => void
+  onManageTags?: () => void
 }
 
 const tagToString = (tag: TagComboboxItem) => tag.name
@@ -42,7 +42,7 @@ const PanelHarness = ({
   type = 'app',
   value = [appTags[0]!],
   tagList = [...appTags, knowledgeTag],
-  onOpenTagManagement,
+  onManageTags,
 }: PanelHarnessProps) => {
   const [selectedTags, setSelectedTags] = useState<Tag[]>(value)
   const [inputValue, setInputValue] = useState('')
@@ -82,7 +82,7 @@ const PanelHarness = ({
         type={type}
         inputValue={inputValue}
         onInputValueChange={setInputValue}
-        onOpenTagManagement={onOpenTagManagement}
+        onManageTags={onManageTags}
       />
     </Combobox>
   )
@@ -183,12 +183,12 @@ describe('TagPanel', () => {
 
   it('opens tag management through a semantic button', async () => {
     const user = userEvent.setup()
-    const onOpenTagManagement = vi.fn()
-    render(<PanelHarness onOpenTagManagement={onOpenTagManagement} />)
+    const onManageTags = vi.fn()
+    render(<PanelHarness onManageTags={onManageTags} />)
 
     await user.click(screen.getByRole('button', { name: i18n.manageTags }))
 
-    expect(onOpenTagManagement).toHaveBeenCalledTimes(1)
+    expect(onManageTags).toHaveBeenCalledTimes(1)
   })
 
   it('renders knowledge tags when the panel type is knowledge', () => {

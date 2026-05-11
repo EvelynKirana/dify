@@ -76,7 +76,7 @@ type AppCardProps = {
   app: App
   onlineUsers?: WorkflowOnlineUser[]
   onRefresh?: () => void
-  onOpenTagManagement?: () => void
+  onManageTags?: () => void
 }
 
 type AppCardOperationsMenuProps = {
@@ -207,7 +207,7 @@ const AppCardOperationsMenuContent: React.FC<AppCardOperationsMenuContentProps> 
   )
 }
 
-const AppCard = ({ app, onlineUsers = [], onRefresh, onOpenTagManagement = () => {} }: AppCardProps) => {
+const AppCard = ({ app, onlineUsers = [], onRefresh, onManageTags = () => {} }: AppCardProps) => {
   const { t } = useTranslation()
   const deleteAppNameInputId = useId()
   const { data: systemFeatures } = useSuspenseQuery(systemFeaturesQueryOptions())
@@ -514,7 +514,7 @@ const AppCard = ({ app, onlineUsers = [], onRefresh, onOpenTagManagement = () =>
                   <AppCardTags
                     appId={app.id}
                     tags={app.tags}
-                    onOpenTagManagement={onOpenTagManagement}
+                    onManageTags={onManageTags}
                     onTagsChange={onRefresh}
                   />
                 </div>

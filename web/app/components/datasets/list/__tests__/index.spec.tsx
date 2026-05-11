@@ -113,10 +113,10 @@ vi.mock('@/features/tag-management/components/tag-management-modal', () => ({
 
 // Mock TagFilter
 vi.mock('@/features/tag-management/components/tag-filter', () => ({
-  TagFilter: ({ onChange, onOpenTagManagement }: { value: string[], onChange: (val: string[]) => void, onOpenTagManagement: () => void }) => (
+  TagFilter: ({ onChange, onManageTags }: { value: string[], onChange: (val: string[]) => void, onManageTags: () => void }) => (
     <div data-testid="tag-filter">
       <button onClick={() => onChange(['Finance', 'Support'])}>Select Tags</button>
-      <button onClick={onOpenTagManagement}>Manage Tags</button>
+      <button onClick={onManageTags}>Manage Tags</button>
     </div>
   ),
 }))

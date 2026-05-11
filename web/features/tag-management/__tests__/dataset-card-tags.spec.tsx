@@ -85,12 +85,12 @@ describe('DatasetCardTags', () => {
     })
 
     it('should open tag management when requested', () => {
-      const onOpenTagManagement = vi.fn()
-      render(<DatasetCardTags {...defaultProps} onOpenTagManagement={onOpenTagManagement} />)
+      const onManageTags = vi.fn()
+      render(<DatasetCardTags {...defaultProps} onManageTags={onManageTags} />)
 
       fireEvent.click(screen.getByText('Open Management'))
 
-      expect(onOpenTagManagement).toHaveBeenCalledTimes(1)
+      expect(onManageTags).toHaveBeenCalledTimes(1)
     })
   })
 
@@ -156,8 +156,8 @@ describe('DatasetCardTags', () => {
   })
 
   describe('Edge Cases', () => {
-    it('should handle undefined onOpenTagManagement', () => {
-      render(<DatasetCardTags {...defaultProps} onOpenTagManagement={undefined} />)
+    it('should handle undefined onManageTags', () => {
+      render(<DatasetCardTags {...defaultProps} onManageTags={undefined} />)
       expect(() => fireEvent.click(screen.getByText('Open Management'))).not.toThrow()
     })
 
