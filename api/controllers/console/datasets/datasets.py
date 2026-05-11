@@ -57,6 +57,7 @@ from models.enums import ApiTokenType, SegmentStatus
 from models.provider_ids import ModelProviderID
 from services.api_token_service import ApiTokenCache
 from services.dataset_service import DatasetPermissionService, DatasetService, DocumentService
+from services.enterprise import rbac_service as enterprise_rbac_service
 
 # Register models for flask_restx to avoid dict type issues in Swagger
 dataset_base_model = get_or_create_model("DatasetBase", dataset_fields)
@@ -125,6 +126,14 @@ def _validate_doc_form(value: str | None) -> str | None:
     if value not in Dataset.DOC_FORM_LIST:
         raise ValueError("Invalid doc_form.")
     return value
+
+
+def _ensure_permission_keys(dataset: Dataset, *, enabled: bool) -> None:
+    if not enabled:
+        setattr(dataset, "permission_keys", [])
+        return
+    if not isinstance(getattr(dataset, "permission_keys", None), list):
+        setattr(dataset, "permission_keys", [])
 
 
 class DatasetCreatePayload(BaseModel):
@@ -329,6 +338,19 @@ class DatasetListApi(Resource):
                 query.include_all,
             )
 
+        for dataset in datasets:
+            _ensure_permission_keys(dataset, enabled=dify_config.RBAC_ENABLED)
+
+        if dify_config.RBAC_ENABLED and datasets:
+            dataset_ids = [str(dataset.id) for dataset in datasets]
+            permission_keys_map = enterprise_rbac_service.RBACService.DatasetPermissions.batch_get(
+                str(current_tenant_id),
+                current_user.id,
+                dataset_ids,
+            )
+            for dataset in datasets:
+                setattr(dataset, "permission_keys", permission_keys_map.get(str(dataset.id), []))
+
         # check embedding setting
         provider_manager = create_plugin_provider_manager(tenant_id=current_tenant_id)
         configurations = provider_manager.get_configurations(tenant_id=current_tenant_id)
@@ -410,6 +432,7 @@ class DatasetListApi(Resource):
         except services.errors.dataset.DatasetNameDuplicateError:
             raise DatasetNameDuplicateError()
 
+        _ensure_permission_keys(dataset, enabled=dify_config.RBAC_ENABLED)
         return marshal(dataset, dataset_detail_fields), 201
 
 
@@ -434,6 +457,7 @@ class DatasetApi(Resource):
             DatasetService.check_dataset_permission(dataset, current_user)
         except services.errors.account.NoPermissionError as e:
             raise Forbidden(str(e))
+        _ensure_permission_keys(dataset, enabled=dify_config.RBAC_ENABLED)
         data = cast(dict[str, Any], marshal(dataset, dataset_detail_fields))
         if dataset.indexing_technique == IndexTechniqueType.HIGH_QUALITY:
             if dataset.embedding_model_provider:
@@ -503,6 +527,7 @@ class DatasetApi(Resource):
         if dataset is None:
             raise NotFound("Dataset not found.")
 
+        _ensure_permission_keys(dataset, enabled=dify_config.RBAC_ENABLED)
         result_data = cast(dict[str, Any], marshal(dataset, dataset_detail_fields))
         tenant_id = current_tenant_id
 

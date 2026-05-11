@@ -93,6 +93,48 @@ class TestDatasetList:
         assert resp["total"] == 1
         assert resp["data"][0]["embedding_available"] is True
 
+    def test_get_with_rbac_enabled_fetches_permission_keys(self, app):
+        api = DatasetListApi()
+        method = unwrap(api.get)
+
+        current_user = self._mock_user()
+        current_user.id = "acct-1"
+        dataset = MagicMock(id="ds-1")
+        datasets = [dataset]
+        marshaled = [self._mock_dataset_dict()]
+
+        with app.test_request_context("/datasets"):
+            with (
+                patch(
+                    "controllers.console.datasets.datasets.current_account_with_tenant",
+                    return_value=(current_user, "tenant-1"),
+                ),
+                patch("controllers.console.datasets.datasets.dify_config.RBAC_ENABLED", True),
+                patch.object(
+                    DatasetService,
+                    "get_datasets",
+                    return_value=(datasets, 1),
+                ),
+                patch(
+                    "controllers.console.datasets.datasets.enterprise_rbac_service.RBACService.DatasetPermissions.batch_get",
+                    return_value={"ds-1": ["dataset.acl.readonly", "dataset.acl.edit"]},
+                ) as mock_batch_get,
+                patch(
+                    "controllers.console.datasets.datasets.marshal",
+                    return_value=marshaled,
+                ),
+                patch.object(
+                    ProviderManager,
+                    "get_configurations",
+                    return_value=MagicMock(get_models=lambda **_: []),
+                ),
+            ):
+                resp, status = method(api)
+
+        assert status == 200
+        assert dataset.permission_keys == ["dataset.acl.readonly", "dataset.acl.edit"]
+        mock_batch_get.assert_called_once_with("tenant-1", "acct-1", ["ds-1"])
+
     def test_get_with_ids_filter(self, app):
         api = DatasetListApi()
         method = unwrap(api.get)

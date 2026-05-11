@@ -3,8 +3,12 @@ from __future__ import annotations
 from enum import StrEnum
 from typing import Any, Generic, TypeVar
 
+from sqlalchemy import select
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
+from configs import dify_config
+from core.db.session_factory import session_factory
+from models import TenantAccountJoin, TenantAccountRole
 from services.enterprise.base import EnterpriseRequest
 
 T = TypeVar("T")
@@ -77,6 +81,15 @@ class RBACRole(_RBACModel):
 class MemberRoleSummary(_RBACModel):
     id: str
     name: str
+
+
+class ResourcePermissionKeys(_RBACModel):
+    resource_id: str
+    permission_keys: list[str] = Field(default_factory=list)
+
+
+class ResourcePermissionKeysBatchResponse(_RBACModel):
+    data: list[ResourcePermissionKeys] = Field(default_factory=list)
 
 
 class AccessPolicy(_RBACModel):
@@ -158,11 +171,6 @@ class MemberRolesBatchResponse(_RBACModel):
     data: list[MemberRolesResponse] = Field(default_factory=list)
 
 
-class ResourcePermissionKeys(_RBACModel):
-    resource_id: str
-    permission_keys: list[str] = Field(default_factory=list)
-
-
 class WorkspacePermissionSnapshot(_RBACModel):
     permission_keys: list[str] = Field(default_factory=list)
 
@@ -176,6 +184,97 @@ class MyPermissionsResponse(_RBACModel):
     workspace: WorkspacePermissionSnapshot = Field(default_factory=WorkspacePermissionSnapshot)
     app: ResourcePermissionSnapshot = Field(default_factory=ResourcePermissionSnapshot)
     dataset: ResourcePermissionSnapshot = Field(default_factory=ResourcePermissionSnapshot)
+
+
+_LEGACY_MY_PERMISSIONS: dict[TenantAccountRole, dict[str, list[str]]] = {
+    TenantAccountRole.OWNER: {
+        "workspace": [
+            "workspace.member.manage",
+            "workspace.role.manage",
+        ],
+        "app": [
+            "app.acl.view_layout",
+            "app.acl.test_and_run",
+            "app.acl.edit",
+            "app.acl.access_config",
+        ],
+        "dataset": [
+            "dataset.acl.readonly",
+            "dataset.acl.edit",
+            "dataset.acl.use",
+        ],
+    },
+    TenantAccountRole.ADMIN: {
+        "workspace": [
+            "workspace.member.manage",
+            "workspace.role.manage",
+        ],
+        "app": [
+            "app.acl.view_layout",
+            "app.acl.test_and_run",
+            "app.acl.edit",
+            "app.acl.access_config",
+        ],
+        "dataset": [
+            "dataset.acl.readonly",
+            "dataset.acl.edit",
+            "dataset.acl.use",
+        ],
+    },
+    TenantAccountRole.EDITOR: {
+        "app": [
+            "app.acl.view_layout",
+            "app.acl.test_and_run",
+            "app.acl.edit",
+            "app.acl.access_config",
+        ],
+        "dataset": [
+            "dataset.acl.readonly",
+            "dataset.acl.edit",
+            "dataset.acl.use",
+        ],
+    },
+    TenantAccountRole.NORMAL: {
+        "app": [
+            "app.acl.view_layout",
+            "app.acl.test_and_run",
+        ],
+    },
+    TenantAccountRole.DATASET_OPERATOR: {
+        "dataset": [
+            "dataset.acl.readonly",
+            "dataset.acl.edit",
+            "dataset.acl.use",
+        ],
+    },
+}
+
+
+def _legacy_my_permissions(tenant_id: str, account_id: str | None) -> MyPermissionsResponse:
+    if not account_id:
+        return MyPermissionsResponse()
+
+    with session_factory.create_session() as session:
+        role = session.scalar(
+            select(TenantAccountJoin.role).where(
+                TenantAccountJoin.tenant_id == tenant_id,
+                TenantAccountJoin.account_id == account_id,
+            )
+        )
+        if not role:
+            return MyPermissionsResponse()
+
+        try:
+            tenant_role = TenantAccountRole(role)
+        except ValueError:
+            return MyPermissionsResponse()
+
+    permissions = _LEGACY_MY_PERMISSIONS.get(tenant_role, {})
+    return MyPermissionsResponse(
+        workspace=WorkspacePermissionSnapshot(permission_keys=list(permissions.get("workspace", []))),
+        app=ResourcePermissionSnapshot(default_permission_keys=list(permissions.get("app", []))),
+        dataset=ResourcePermissionSnapshot(default_permission_keys=list(permissions.get("dataset", []))),
+    )
 
 
 # ---------- Mutation request models ----------
@@ -953,6 +1052,42 @@ class RBACService:
             )
             return MemberRolesResponse.model_validate(data or {})
 
+    class AppPermissions:
+        @staticmethod
+        def batch_get(
+            tenant_id: str,
+            account_id: str | None,
+            app_ids: list[str],
+        ) -> dict[str, list[str]]:
+            if not app_ids:
+                return {}
+            data = _inner_call(
+                "POST",
+                f"{_INNER_PREFIX}/apps/permission-keys/batch",
+                tenant_id=tenant_id,
+                account_id=account_id,
+                json={"app_ids": app_ids},
+            )
+            return _parse_resource_permission_keys_batch(data, resource_id_key="app_id")
+
+    class DatasetPermissions:
+        @staticmethod
+        def batch_get(
+            tenant_id: str,
+            account_id: str | None,
+            dataset_ids: list[str],
+        ) -> dict[str, list[str]]:
+            if not dataset_ids:
+                return {}
+            data = _inner_call(
+                "POST",
+                f"{_INNER_PREFIX}/datasets/permission-keys/batch",
+                tenant_id=tenant_id,
+                account_id=account_id,
+                json={"dataset_ids": dataset_ids},
+            )
+            return _parse_resource_permission_keys_batch(data, resource_id_key="dataset_id")
+
     class MyPermissions:
         @staticmethod
         def get(
@@ -962,6 +1097,9 @@ class RBACService:
             app_id: str | None = None,
             dataset_id: str | None = None,
         ) -> MyPermissionsResponse:
+            if not dify_config.RBAC_ENABLED:
+                return _legacy_my_permissions(tenant_id, account_id)
+
             data = _inner_call(
                 "GET",
                 f"{_INNER_PREFIX}/my-permissions",
@@ -978,3 +1116,39 @@ class RBACService:
                 or None,
             )
             return MyPermissionsResponse.model_validate(data or {})
+
+
+def _parse_resource_permission_keys_batch(data: Any, *, resource_id_key: str) -> dict[str, list[str]]:
+    if not data:
+        return {}
+
+    if isinstance(data, dict):
+        permissions = data.get("permissions")
+        if isinstance(permissions, dict):
+            return {str(key): [str(item) for item in (value or [])] for key, value in permissions.items()}
+
+        items = data.get("data")
+        if items is None:
+            items = data.get("items")
+        if items is None:
+            items = data.get("apps") if resource_id_key == "app_id" else data.get("datasets")
+        if isinstance(items, dict):
+            items = [
+                {"resource_id": key, "permission_keys": value}
+                for key, value in items.items()
+            ]
+    elif isinstance(data, list):
+        items = data
+    else:
+        items = []
+
+    result: dict[str, list[str]] = {}
+    for item in items or []:
+        if not isinstance(item, dict):
+            continue
+        resource_id = item.get("resource_id") or item.get(resource_id_key)
+        if not resource_id:
+            continue
+        permission_keys = item.get("permission_keys") or []
+        result[str(resource_id)] = [str(permission_key) for permission_key in permission_keys]
+    return result
