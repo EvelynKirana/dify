@@ -1,6 +1,6 @@
 'use client'
 
-import type { DeploymentBindingOptionSlot, DeploymentRuntimeBinding, ReleaseRow, RuntimeInstanceRow } from '@dify/contracts/enterprise/types.gen'
+import type { DeploymentBindingOptionSlot, DeploymentRuntimeBinding, ReleaseRow } from '@dify/contracts/enterprise/types.gen'
 import type { EnvironmentOption } from '@/features/deployments/types'
 import { Button } from '@langgenius/dify-ui/button'
 import { DialogDescription, DialogTitle } from '@langgenius/dify-ui/dialog'
@@ -13,6 +13,7 @@ import { consoleQuery } from '@/service/client'
 import { closeDeployDrawerAtom } from '../../store'
 import {
   activeRelease,
+  deployedRows,
   environmentId,
   environmentMode,
   environmentName,
@@ -30,7 +31,6 @@ type DeployFormProps = {
   appInstanceId: string
   environments: EnvironmentOption[]
   releases: ReleaseRow[]
-  deploymentRows: RuntimeInstanceRow[]
   defaultReleaseId?: string
   lockedEnvId?: string
   presetReleaseId?: string
@@ -208,7 +208,6 @@ export function DeployForm({
   appInstanceId,
   environments,
   releases,
-  deploymentRows,
   defaultReleaseId,
   lockedEnvId,
   presetReleaseId,
@@ -216,6 +215,11 @@ export function DeployForm({
   const { t } = useTranslation('deployments')
   const closeDeployDrawer = useSetAtom(closeDeployDrawerAtom)
   const startDeploy = useMutation(consoleQuery.enterprise.appDeploy.createDeployment.mutationOptions())
+  const { data: environmentDeployments } = useQuery(consoleQuery.enterprise.appDeploy.listRuntimeInstances.queryOptions({
+    input: {
+      params: { appInstanceId },
+    },
+  }))
   const presetRelease = presetReleaseId ? releases.find(r => r.id === presetReleaseId) : undefined
   const displayedRelease: ReleaseRow | undefined = presetRelease ?? (presetReleaseId ? { id: presetReleaseId } : undefined)
   const isExistingRelease = Boolean(presetReleaseId)
@@ -231,6 +235,7 @@ export function DeployForm({
   const selectedRelease = releases.find(release => release.id === selectedReleaseId)
   const targetReleaseId = displayedRelease?.id ?? selectedRelease?.id ?? selectedReleaseId
   const targetRelease = displayedRelease ?? selectedRelease ?? (targetReleaseId ? { id: targetReleaseId } : undefined)
+  const deploymentRows = deployedRows(environmentDeployments?.data)
   const selectedDeploymentRow = deploymentRows.find(row => environmentId(row.environment) === selectedEnvironmentId)
   const action = releaseDeploymentAction({
     targetRelease,
@@ -313,6 +318,15 @@ export function DeployForm({
         toast.error(t('deployDrawer.deployFailed'))
       }
     })()
+  }
+
+  if (!environmentDeployments) {
+    return (
+      <div className="flex items-center gap-2 p-4 system-sm-regular text-text-tertiary">
+        <span className="size-4 animate-spin rounded-full border-2 border-components-panel-border border-t-transparent" />
+        {t('createModal.loadingApps')}
+      </div>
+    )
   }
 
   return (

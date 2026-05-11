@@ -13,7 +13,7 @@ import {
   deployDrawerOpenAtom,
   deployDrawerReleaseIdAtom,
 } from '../store'
-import { deployedRows, environmentOptionsFromOptionsReply } from '../utils'
+import { environmentOptionsFromOptionsReply } from '../utils'
 import { DeployForm } from './deploy-drawer/form'
 
 export function DeployDrawer() {
@@ -38,18 +38,9 @@ export function DeployDrawer() {
   const { data: environmentOptionsReply } = useQuery(consoleQuery.enterprise.appDeploy.listDeploymentEnvironmentOptions.queryOptions({
     enabled: open,
   }))
-  const { data: environmentDeployments } = useQuery(consoleQuery.enterprise.appDeploy.listRuntimeInstances.queryOptions({
-    input: drawerAppInstanceId
-      ? {
-          params: { appInstanceId: drawerAppInstanceId },
-        }
-      : skipToken,
-    enabled: open && Boolean(drawerAppInstanceId),
-  }))
 
   const environments = environmentOptionsFromOptionsReply(environmentOptionsReply)
   const releases = releaseHistory?.data?.filter(release => release.id) ?? []
-  const deploymentRows = deployedRows(environmentDeployments?.data)
   const defaultReleaseId = releases[0]?.id
   const formKey = `${drawerAppInstanceId ?? 'none'}-${drawerEnvironmentId ?? 'any'}-${drawerReleaseId ?? 'new'}-${open ? '1' : '0'}`
 
@@ -62,7 +53,7 @@ export function DeployDrawer() {
         <DialogCloseButton />
         {!drawerAppInstanceId
           ? <div className="p-4 text-text-tertiary">{t('deployDrawer.notFound')}</div>
-          : (!releaseHistory || !environmentOptionsReply || !environmentDeployments)
+          : (!releaseHistory || !environmentOptionsReply)
               ? (
                   <div className="flex items-center gap-2 p-4 system-sm-regular text-text-tertiary">
                     <span className="size-4 animate-spin rounded-full border-2 border-components-panel-border border-t-transparent" />
@@ -75,7 +66,6 @@ export function DeployDrawer() {
                     appInstanceId={drawerAppInstanceId}
                     environments={environments}
                     releases={releases}
-                    deploymentRows={deploymentRows}
                     defaultReleaseId={defaultReleaseId}
                     lockedEnvId={drawerEnvironmentId}
                     presetReleaseId={drawerReleaseId}
