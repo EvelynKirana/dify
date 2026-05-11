@@ -157,7 +157,8 @@ class EnterpriseRequest(BaseRequest):
         if account_id:
             inner_headers[INNER_ACCOUNT_ID_HEADER] = account_id
         url = f"{cls.rbac_base_url}{endpoint}"
-        mounts = cls._build_mounts()
+        logger.info(f"Sending request to {url}")
+        # mounts = cls._build_mounts()
 
         try:
             traceparent = generate_traceparent_header()
@@ -167,7 +168,7 @@ class EnterpriseRequest(BaseRequest):
         except Exception:
             logger.debug("Failed to generate traceparent header", exc_info=True)
 
-        with httpx.Client(mounts=mounts) as client:
+        with httpx.Client() as client:
             request_kwargs: dict[str, Any] = {"json": json, "params": params, "headers": {"Content-Type": "application/json", cls.secret_key_header: cls.secret_key, **inner_headers}}
             if timeout is not None:
                 request_kwargs["timeout"] = timeout
