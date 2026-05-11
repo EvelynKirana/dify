@@ -10,7 +10,7 @@ import * as React from 'react'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import ContentItem from '@/app/components/base/chat/chat/answer/human-input-content/content-item'
-import { getButtonStyle, hasInvalidSelectOrFileInput, initializeInputs, splitByOutputVar } from '@/app/components/base/chat/chat/answer/human-input-content/utils'
+import { getButtonStyle, getRenderedFormInputs, hasInvalidSelectOrFileInput, initializeInputs, splitByOutputVar } from '@/app/components/base/chat/chat/answer/human-input-content/utils'
 
 type Props = {
   nodeName: string
@@ -28,8 +28,9 @@ const FormContent = ({
   onSubmit,
 }: Props) => {
   const { t } = useTranslation()
-  const defaultInputs = initializeInputs(data.inputs, data.resolved_default_values || {})
   const contentList = splitByOutputVar(data.form_content)
+  const renderedFormInputs = getRenderedFormInputs(data.inputs, data.form_content)
+  const defaultInputs = initializeInputs(renderedFormInputs, data.resolved_default_values || {})
   const [inputs, setInputs] = useState(defaultInputs)
   const [isSubmitting, setIsSubmitting] = useState(false)
 
@@ -40,7 +41,7 @@ const FormContent = ({
     }))
   }
 
-  const hasEmptySelectOrFileInput = hasInvalidSelectOrFileInput(data.inputs, inputs)
+  const hasEmptySelectOrFileInput = hasInvalidSelectOrFileInput(renderedFormInputs, inputs)
 
   const submit = async (actionID: string) => {
     setIsSubmitting(true)

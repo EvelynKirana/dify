@@ -7,15 +7,16 @@ import { Button } from '@langgenius/dify-ui/button'
 import * as React from 'react'
 import { useCallback, useState } from 'react'
 import ContentItem from './content-item'
-import { getButtonStyle, getProcessedHumanInputFormInputs, hasInvalidSelectOrFileInput, initializeInputs, splitByOutputVar } from './utils'
+import { getButtonStyle, getProcessedHumanInputFormInputs, getRenderedFormInputs, hasInvalidSelectOrFileInput, initializeInputs, splitByOutputVar } from './utils'
 
 const HumanInputForm = ({
   formData,
   onSubmit,
 }: HumanInputFormProps) => {
   const formToken = formData.form_token
-  const defaultInputs = initializeInputs(formData.inputs, formData.resolved_default_values || {})
   const contentList = splitByOutputVar(formData.form_content)
+  const renderedFormInputs = getRenderedFormInputs(formData.inputs, formData.form_content)
+  const defaultInputs = initializeInputs(renderedFormInputs, formData.resolved_default_values || {})
   const [inputs, setInputs] = useState(defaultInputs)
   const [isSubmitting, setIsSubmitting] = useState(false)
 
@@ -29,13 +30,13 @@ const HumanInputForm = ({
   const submit = async (formToken: string, actionID: string, inputs: Record<string, HumanInputFieldValue>) => {
     setIsSubmitting(true)
     await onSubmit?.(formToken, {
-      inputs: getProcessedHumanInputFormInputs(formData.inputs, inputs) || {},
+      inputs: getProcessedHumanInputFormInputs(renderedFormInputs, inputs) || {},
       action: actionID,
     })
     setIsSubmitting(false)
   }
 
-  const isActionDisabled = isSubmitting || hasInvalidSelectOrFileInput(formData.inputs, inputs)
+  const isActionDisabled = isSubmitting || hasInvalidSelectOrFileInput(renderedFormInputs, inputs)
 
   return (
     <>
