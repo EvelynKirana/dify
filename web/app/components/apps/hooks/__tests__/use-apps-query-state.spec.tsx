@@ -18,24 +18,24 @@ describe('useAppsQueryState', () => {
 
     expect(result.current.query).toEqual({
       category: 'all',
-      tagIDs: [],
+      tagNames: [],
       keywords: '',
       isCreatedByMe: false,
     })
     expect(typeof result.current.setCategory).toBe('function')
     expect(typeof result.current.setKeywords).toBe('function')
-    expect(typeof result.current.setTagIDs).toBe('function')
+    expect(typeof result.current.setTagNames).toBe('function')
     expect(typeof result.current.setIsCreatedByMe).toBe('function')
   })
 
   it('should parse app list filters from URL', () => {
     const { result } = renderWithAdapter(
-      '?category=workflow&tagIDs=tag1;tag2&keywords=search+term&isCreatedByMe=true',
+      '?category=workflow&tags=Frontend;Backend&keywords=search+term&isCreatedByMe=true',
     )
 
     expect(result.current.query).toEqual({
       category: AppModeEnum.WORKFLOW,
-      tagIDs: ['tag1', 'tag2'],
+      tagNames: ['Frontend', 'Backend'],
       keywords: 'search term',
       isCreatedByMe: true,
     })
@@ -121,27 +121,27 @@ describe('useAppsQueryState', () => {
     const { result, onUrlUpdate } = renderWithAdapter()
 
     act(() => {
-      result.current.setTagIDs(['tag1', 'tag2'])
+      result.current.setTagNames(['Frontend', 'Backend'])
     })
 
     await waitFor(() => expect(onUrlUpdate).toHaveBeenCalled())
     const update = onUrlUpdate.mock.calls.at(-1)![0]
-    expect(result.current.query.tagIDs).toEqual(['tag1', 'tag2'])
-    expect(update.searchParams.get('tagIDs')).toBe('tag1;tag2')
+    expect(result.current.query.tagNames).toEqual(['Frontend', 'Backend'])
+    expect(update.searchParams.get('tags')).toBe('Frontend;Backend')
     expect(update.options.history).toBe('push')
   })
 
-  it('should remove tagIDs from URL when empty', async () => {
-    const { result, onUrlUpdate } = renderWithAdapter('?tagIDs=tag1;tag2')
+  it('should remove tags from URL when empty', async () => {
+    const { result, onUrlUpdate } = renderWithAdapter('?tags=Frontend;Backend')
 
     act(() => {
-      result.current.setTagIDs([])
+      result.current.setTagNames([])
     })
 
     await waitFor(() => expect(onUrlUpdate).toHaveBeenCalled())
     const update = onUrlUpdate.mock.calls.at(-1)![0]
-    expect(result.current.query.tagIDs).toEqual([])
-    expect(update.searchParams.has('tagIDs')).toBe(false)
+    expect(result.current.query.tagNames).toEqual([])
+    expect(update.searchParams.has('tags')).toBe(false)
   })
 
   it('should update created-by-me URL state', async () => {

@@ -342,16 +342,16 @@ class TestAppService:
         app = app_service.create_app(tenant.id, app_params, account)
 
         # Mock TagService to return the app ID for tag filtering
-        with patch("services.app_service.TagService.get_target_ids_by_tag_ids") as mock_tag_service:
+        with patch("services.app_service.TagService.get_target_ids_by_tag_names") as mock_tag_service:
             mock_tag_service.return_value = [app.id]
 
             # Test with tag filter
-            params = AppListParams(page=1, limit=10, mode="chat", tag_ids=["tag1", "tag2"])
+            params = AppListParams(page=1, limit=10, mode="chat", tag_names=["Finance", "Support"])
 
             paginated_apps = app_service.get_paginate_apps(account.id, tenant.id, params)
 
             # Verify tag service was called
-            mock_tag_service.assert_called_once_with("app", tenant.id, ["tag1", "tag2"])
+            mock_tag_service.assert_called_once_with("app", tenant.id, ["Finance", "Support"])
 
             # Verify results
             assert paginated_apps is not None
@@ -359,10 +359,10 @@ class TestAppService:
             assert paginated_apps.items[0].id == app.id
 
         # Test with tag filter that returns no results
-        with patch("services.app_service.TagService.get_target_ids_by_tag_ids") as mock_tag_service:
+        with patch("services.app_service.TagService.get_target_ids_by_tag_names") as mock_tag_service:
             mock_tag_service.return_value = []
 
-            params = AppListParams(page=1, limit=10, mode="chat", tag_ids=["nonexistent_tag"])
+            params = AppListParams(page=1, limit=10, mode="chat", tag_names=["Missing"])
 
             paginated_apps = app_service.get_paginate_apps(account.id, tenant.id, params)
 

@@ -264,7 +264,7 @@ class TestDatasetServiceGetDatasets:
         assert total == 1
 
     def test_get_datasets_with_tag_filtering(self, db_session_with_containers: Session):
-        """Test get_datasets with tag_ids filtering."""
+        """Test get_datasets with tag_names filtering."""
         # Arrange
         account, tenant = DatasetRetrievalTestDataFactory.create_account_with_tenant(db_session_with_containers)
         page = 1
@@ -289,22 +289,22 @@ class TestDatasetServiceGetDatasets:
         tag_2 = DatasetRetrievalTestDataFactory.create_tag_binding(
             db_session_with_containers, tenant.id, account.id, dataset_2.id
         )
-        tag_ids = [tag_1.id, tag_2.id]
+        tag_names = [tag_1.name, tag_2.name]
 
         # Act
-        datasets, total = DatasetService.get_datasets(page, per_page, tenant_id=tenant.id, tag_ids=tag_ids)
+        datasets, total = DatasetService.get_datasets(page, per_page, tenant_id=tenant.id, tag_names=tag_names)
 
         # Assert
-        assert len(datasets) == 2
+        assert {dataset.id for dataset in datasets} == {dataset_1.id, dataset_2.id}
         assert total == 2
 
-    def test_get_datasets_with_empty_tag_ids(self, db_session_with_containers: Session):
-        """Test get_datasets with empty tag_ids skips tag filtering and returns all matching datasets."""
+    def test_get_datasets_with_empty_tag_names(self, db_session_with_containers: Session):
+        """Test get_datasets with empty tag_names skips tag filtering and returns all matching datasets."""
         # Arrange
         account, tenant = DatasetRetrievalTestDataFactory.create_account_with_tenant(db_session_with_containers)
         page = 1
         per_page = 20
-        tag_ids = []
+        tag_names = []
 
         for i in range(3):
             DatasetRetrievalTestDataFactory.create_dataset(
@@ -316,10 +316,10 @@ class TestDatasetServiceGetDatasets:
             )
 
         # Act
-        datasets, total = DatasetService.get_datasets(page, per_page, tenant_id=tenant.id, tag_ids=tag_ids)
+        datasets, total = DatasetService.get_datasets(page, per_page, tenant_id=tenant.id, tag_names=tag_names)
 
         # Assert
-        # When tag_ids is empty, tag filtering is skipped, so normal query results are returned
+        # When tag_names is empty, tag filtering is skipped, so normal query results are returned
         assert len(datasets) == 3
         assert total == 3
 

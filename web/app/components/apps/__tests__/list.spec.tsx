@@ -49,12 +49,12 @@ vi.mock('@/context/app-context', () => ({
 }))
 
 const mockSetKeywords = vi.fn()
-const mockSetTagIDs = vi.fn()
+const mockSetTagNames = vi.fn()
 const mockSetIsCreatedByMe = vi.fn()
 const mockSetCategory = vi.fn()
 const mockQueryState = {
   category: 'all',
-  tagIDs: [] as string[],
+  tagNames: [] as string[],
   keywords: '',
   isCreatedByMe: false,
 }
@@ -64,7 +64,7 @@ vi.mock('../hooks/use-apps-query-state', () => ({
     query: mockQueryState,
     setCategory: mockSetCategory,
     setKeywords: mockSetKeywords,
-    setTagIDs: mockSetTagIDs,
+    setTagNames: mockSetTagNames,
     setIsCreatedByMe: mockSetIsCreatedByMe,
   }),
 }))
@@ -253,7 +253,7 @@ describe('List', () => {
     mockServiceState.isLoading = false
     mockServiceState.isFetchingNextPage = false
     mockQueryState.category = 'all'
-    mockQueryState.tagIDs = []
+    mockQueryState.tagNames = []
     mockQueryState.keywords = ''
     mockQueryState.isCreatedByMe = false
     mockUseWorkflowOnlineUsers.mockClear()
@@ -375,7 +375,7 @@ describe('List', () => {
 
   describe('App List Query', () => {
     it('should build paged query input from active filters', () => {
-      mockQueryState.tagIDs = ['tag-1']
+      mockQueryState.tagNames = ['Frontend']
       mockQueryState.keywords = 'sales'
       mockQueryState.isCreatedByMe = true
       mockQueryState.category = AppModeEnum.WORKFLOW
@@ -389,7 +389,7 @@ describe('List', () => {
           page: 2,
           limit: 30,
           name: 'sales',
-          tag_ids: ['tag-1'],
+          tag_names: ['Frontend'],
           is_created_by_me: true,
           mode: AppModeEnum.WORKFLOW,
         },

@@ -1,13 +1,17 @@
 import type { ReactElement } from 'react'
 import { fireEvent, screen, waitFor } from '@testing-library/react'
+import { NuqsTestingAdapter } from 'nuqs/adapters/testing'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { renderWithSystemFeatures } from '@/__tests__/utils/mock-system-features'
 import List from '../index'
 
 let mockBrandingEnabled = false
-const render = (ui: ReactElement) => renderWithSystemFeatures(ui, {
-  systemFeatures: { branding: { enabled: mockBrandingEnabled } },
-})
+const render = (ui: ReactElement, searchParams = '') => renderWithSystemFeatures(
+  <NuqsTestingAdapter searchParams={searchParams}>{ui}</NuqsTestingAdapter>,
+  {
+    systemFeatures: { branding: { enabled: mockBrandingEnabled } },
+  },
+)
 
 const mockPush = vi.fn()
 const mockReplace = vi.fn()
@@ -71,9 +75,9 @@ vi.mock('@/service/knowledge/use-dataset', () => ({
 
 // Mock Datasets component
 vi.mock('../datasets', () => ({
-  default: ({ tags, keywords, includeAll }: { tags: string[], keywords: string, includeAll: boolean }) => (
+  default: ({ tagNames, keywords, includeAll }: { tagNames: string[], keywords: string, includeAll: boolean }) => (
     <div data-testid="datasets-component">
-      <span data-testid="tags">{tags.join(',')}</span>
+      <span data-testid="tags">{tagNames.join(',')}</span>
       <span data-testid="keywords">{keywords}</span>
       <span data-testid="include-all">{includeAll ? 'true' : 'false'}</span>
     </div>
@@ -111,7 +115,7 @@ vi.mock('@/features/tag-management/components/tag-management-modal', () => ({
 vi.mock('@/features/tag-management/components/tag-filter', () => ({
   TagFilter: ({ onChange, onOpenTagManagement }: { value: string[], onChange: (val: string[]) => void, onOpenTagManagement: () => void }) => (
     <div data-testid="tag-filter">
-      <button onClick={() => onChange(['tag-1', 'tag-2'])}>Select Tags</button>
+      <button onClick={() => onChange(['Finance', 'Support'])}>Select Tags</button>
       <button onClick={onOpenTagManagement}>Manage Tags</button>
     </div>
   ),
@@ -180,6 +184,11 @@ describe('List', () => {
       render(<List />)
       expect(screen.getByTestId('tags')).toHaveTextContent('')
     })
+
+    it('should read tag names from URL', () => {
+      render(<List />, '?tags=Finance;Support')
+      expect(screen.getByTestId('tags')).toHaveTextContent('Finance,Support')
+    })
   })
 
   describe('User Interactions', () => {
@@ -201,13 +210,15 @@ describe('List', () => {
       expect(input).toHaveValue('test search')
     })
 
-    it('should trigger tag filter change', () => {
+    it('should pass selected tag names to Datasets', async () => {
       render(<List />)
-      // Tag filter is rendered and interactive
       const selectTagsBtn = screen.getByText('Select Tags')
       expect(selectTagsBtn).toBeInTheDocument()
       fireEvent.click(selectTagsBtn)
-      // The onChange callback was triggered (debounced)
+
+      await waitFor(() => {
+        expect(screen.getByTestId('tags')).toHaveTextContent('Finance,Support')
+      })
     })
   })
 

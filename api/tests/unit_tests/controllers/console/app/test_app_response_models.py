@@ -10,7 +10,6 @@ from typing import Any
 
 import pytest
 from flask.views import MethodView
-from pydantic import ValidationError
 from werkzeug.datastructures import MultiDict
 
 # kombu references MethodView as a global when importing celery/kombu pools.
@@ -176,22 +175,22 @@ def _dummy_workflow():
     )
 
 
-def test_app_list_query_normalizes_orpc_bracket_tag_ids(app_module):
-    first_tag_id = "8c4ef3d1-58a1-4d94-8a1c-1c171d889e08"
-    second_tag_id = "3c39395b-6d1f-4030-8b17-eaa7cc85221c"
+def test_app_list_query_normalizes_orpc_bracket_tag_names(app_module):
+    first_tag_name = "Finance"
+    second_tag_name = "Support"
     query_args = MultiDict(
         [
             ("page", "1"),
             ("limit", "30"),
-            ("tag_ids[1]", second_tag_id),
-            ("tag_ids[0]", first_tag_id),
+            ("tag_names[1]", second_tag_name),
+            ("tag_names[0]", first_tag_name),
         ]
     )
 
     normalized = app_module._normalize_app_list_query_args(query_args)
     query = app_module.AppListQuery.model_validate(normalized)
 
-    assert query.tag_ids == [first_tag_id, second_tag_id]
+    assert query.tag_names == [first_tag_name, second_tag_name]
 
 
 def test_app_list_query_preserves_regular_query_params(app_module):
@@ -220,55 +219,57 @@ def test_app_list_query_preserves_regular_query_params(app_module):
     assert query.mode == "chat"
     assert query.name == "Sales Copilot"
     assert query.is_created_by_me is True
-    assert query.tag_ids is None
+    assert query.tag_names is None
 
 
-def test_app_list_query_normalizes_empty_bracket_tag_ids_to_none(app_module):
+def test_app_list_query_normalizes_empty_bracket_tag_names_to_none(app_module):
     query_args = MultiDict(
         [
-            ("tag_ids[0]", ""),
-            ("tag_ids[1]", "   "),
+            ("tag_names[0]", ""),
+            ("tag_names[1]", "   "),
         ]
     )
 
     normalized = app_module._normalize_app_list_query_args(query_args)
     query = app_module.AppListQuery.model_validate(normalized)
 
-    assert normalized == {"tag_ids": ["", "   "]}
-    assert query.tag_ids is None
+    assert normalized == {"tag_names": ["", "   "]}
+    assert query.tag_names is None
 
 
-def test_app_list_query_rejects_invalid_bracket_tag_id(app_module):
-    normalized = app_module._normalize_app_list_query_args(MultiDict([("tag_ids[0]", "not-a-uuid")]))
+def test_app_list_query_accepts_non_uuid_bracket_tag_name(app_module):
+    normalized = app_module._normalize_app_list_query_args(MultiDict([("tag_names[0]", "not-a-uuid")]))
 
-    with pytest.raises(ValidationError):
-        app_module.AppListQuery.model_validate(normalized)
+    query = app_module.AppListQuery.model_validate(normalized)
+
+    assert query.tag_names == ["not-a-uuid"]
 
 
-def test_app_list_query_sorts_bracket_tag_ids_by_index(app_module):
-    first_tag_id = "8c4ef3d1-58a1-4d94-8a1c-1c171d889e08"
-    second_tag_id = "3c39395b-6d1f-4030-8b17-eaa7cc85221c"
-    third_tag_id = "9d5ec0f7-4f2b-4e7f-9c13-1e7a034d0eb1"
+def test_app_list_query_sorts_bracket_tag_names_by_index(app_module):
+    first_tag_name = "Finance"
+    second_tag_name = "Support"
+    third_tag_name = "Marketing"
     query_args = MultiDict(
         [
-            ("tag_ids[2]", third_tag_id),
-            ("tag_ids[1]", second_tag_id),
-            ("tag_ids[0]", first_tag_id),
+            ("tag_names[2]", third_tag_name),
+            ("tag_names[1]", second_tag_name),
+            ("tag_names[0]", first_tag_name),
         ]
     )
 
     normalized = app_module._normalize_app_list_query_args(query_args)
     query = app_module.AppListQuery.model_validate(normalized)
 
-    assert query.tag_ids == [first_tag_id, second_tag_id, third_tag_id]
+    assert query.tag_names == [first_tag_name, second_tag_name, third_tag_name]
 
 
-def test_app_list_query_rejects_flat_tag_ids(app_module):
-    tag_id = "8c4ef3d1-58a1-4d94-8a1c-1c171d889e08"
-    normalized = app_module._normalize_app_list_query_args(MultiDict([("tag_ids", tag_id)]))
+def test_app_list_query_does_not_map_old_tag_ids_to_tag_names(app_module):
+    normalized = app_module._normalize_app_list_query_args(
+        MultiDict([("tag_ids", "8c4ef3d1-58a1-4d94-8a1c-1c171d889e08")])
+    )
+    query = app_module.AppListQuery.model_validate(normalized)
 
-    with pytest.raises(ValidationError):
-        app_module.AppListQuery.model_validate(normalized)
+    assert query.tag_names is None
 
 
 def test_app_partial_serialization_uses_aliases(app_models):

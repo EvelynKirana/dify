@@ -34,7 +34,7 @@ const normalizeDatasetsParams = (params: Partial<FetchDatasetsParams['params']> 
     page = 1,
     limit,
     ids,
-    tag_ids,
+    tag_names,
     include_all,
     keyword,
   } = params
@@ -43,7 +43,7 @@ const normalizeDatasetsParams = (params: Partial<FetchDatasetsParams['params']> 
     page,
     ...(limit ? { limit } : {}),
     ...(ids?.length ? { ids } : {}),
-    ...(tag_ids?.length ? { tag_ids } : {}),
+    ...(tag_names?.length ? { tag_names } : {}),
     ...(include_all !== undefined ? { include_all } : {}),
     ...(keyword ? { keyword } : {}),
   }
@@ -81,12 +81,12 @@ export const useInfiniteDatasets = (
 }
 
 export const useDatasetList = (params: DatasetListRequest) => {
-  const { initialPage, tag_ids, limit, include_all, keyword } = params
+  const { initialPage, tag_names, limit, include_all, keyword } = params
   return useInfiniteQuery({
-    queryKey: [...datasetListQueryKey, initialPage, tag_ids, limit, include_all, keyword],
+    queryKey: [...datasetListQueryKey, initialPage, tag_names, limit, include_all, keyword],
     queryFn: ({ pageParam = 1 }) => {
       const urlParams = qs.stringify({
-        tag_ids,
+        tag_names,
         limit,
         include_all,
         keyword,

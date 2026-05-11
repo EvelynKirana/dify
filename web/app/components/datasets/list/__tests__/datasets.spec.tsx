@@ -143,7 +143,7 @@ class MockIntersectionObserver {
 
 describe('Datasets', () => {
   const defaultProps = {
-    tags: [],
+    tagNames: [],
     keywords: '',
     includeAll: false,
   }
@@ -197,12 +197,12 @@ describe('Datasets', () => {
   })
 
   describe('Props', () => {
-    it('should pass tags to useDatasetList', async () => {
+    it('should pass tag names to useDatasetList', async () => {
       const { useDatasetList } = await import('@/service/knowledge/use-dataset')
-      render(<Datasets {...defaultProps} tags={['tag-1', 'tag-2']} />)
+      render(<Datasets {...defaultProps} tagNames={['Finance', 'Support']} />)
       expect(useDatasetList).toHaveBeenCalledWith(
         expect.objectContaining({
-          tag_ids: ['tag-1', 'tag-2'],
+          tag_names: ['Finance', 'Support'],
         }),
       )
     })
@@ -448,8 +448,8 @@ describe('Datasets', () => {
   })
 
   describe('Edge Cases', () => {
-    it('should handle empty tags array', () => {
-      render(<Datasets {...defaultProps} tags={[]} />)
+    it('should handle empty tag names array', () => {
+      render(<Datasets {...defaultProps} tagNames={[]} />)
       expect(screen.getByRole('navigation')).toBeInTheDocument()
     })
 

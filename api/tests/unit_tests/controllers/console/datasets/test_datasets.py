@@ -129,7 +129,7 @@ class TestDatasetList:
         assert status == 200
         assert resp["total"] == 2
 
-    def test_get_with_tag_ids(self, app: Flask):
+    def test_get_with_tag_names(self, app: Flask):
         api = DatasetListApi()
         method = unwrap(api.get)
 
@@ -137,7 +137,7 @@ class TestDatasetList:
         datasets = [MagicMock()]
         marshaled = [self._mock_dataset_dict()]
 
-        with app.test_request_context("/datasets?tag_ids=tag1"):
+        with app.test_request_context("/datasets?tag_names=Finance&tag_names=Support"):
             with (
                 patch(
                     "controllers.console.datasets.datasets.current_account_with_tenant",
@@ -147,7 +147,7 @@ class TestDatasetList:
                     DatasetService,
                     "get_datasets",
                     return_value=(datasets, 1),
-                ),
+                ) as get_datasets_mock,
                 patch(
                     "controllers.console.datasets.datasets.marshal",
                     return_value=marshaled,
@@ -160,6 +160,8 @@ class TestDatasetList:
             ):
                 resp, status = method(api)
 
+        get_datasets_mock.assert_called_once()
+        assert get_datasets_mock.call_args.kwargs["tag_names"] == ["Finance", "Support"]
         assert status == 200
 
     def test_embedding_available_false(self, app: Flask):

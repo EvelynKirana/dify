@@ -202,7 +202,16 @@ class ConsoleDatasetListQuery(BaseModel):
     keyword: str | None = Field(default=None, description="Search keyword")
     include_all: bool = Field(default=False, description="Include all datasets")
     ids: list[str] = Field(default_factory=list, description="Filter by dataset IDs")
-    tag_ids: list[str] = Field(default_factory=list, description="Filter by tag IDs")
+    tag_names: list[str] = Field(default_factory=list, description="Filter by tag names")
+
+    @field_validator("tag_names", mode="before")
+    @classmethod
+    def validate_tag_names(cls, value: list[str] | None) -> list[str]:
+        if not value:
+            return []
+        if not isinstance(value, list):
+            raise ValueError("Unsupported tag_names type.")
+        return [str(item).strip() for item in value if item and str(item).strip()]
 
 
 register_schema_models(
@@ -296,7 +305,7 @@ class DatasetListApi(Resource):
             "limit": "Number of items per page (default: 20)",
             "ids": "Filter by dataset IDs (list)",
             "keyword": "Search keyword",
-            "tag_ids": "Filter by tag IDs (list)",
+            "tag_names": "Filter by tag names (list)",
             "include_all": "Include all datasets (default: false)",
         }
     )
@@ -309,24 +318,24 @@ class DatasetListApi(Resource):
         current_user, current_tenant_id = current_account_with_tenant()
         # Convert query parameters to dict, handling list parameters correctly
         query_params: dict[str, str | list[str]] = dict(request.args.to_dict())
-        # Handle ids and tag_ids as lists (Flask request.args.getlist returns list even for single value)
+        # Handle ids and tag_names as lists (Flask request.args.getlist returns list even for single value)
         if "ids" in request.args:
             query_params["ids"] = request.args.getlist("ids")
-        if "tag_ids" in request.args:
-            query_params["tag_ids"] = request.args.getlist("tag_ids")
+        if "tag_names" in request.args:
+            query_params["tag_names"] = request.args.getlist("tag_names")
         query = ConsoleDatasetListQuery.model_validate(query_params)
         # provider = request.args.get("provider", default="vendor")
         if query.ids:
             datasets, total = DatasetService.get_datasets_by_ids(query.ids, current_tenant_id)
         else:
             datasets, total = DatasetService.get_datasets(
-                query.page,
-                query.limit,
-                current_tenant_id,
-                current_user,
-                query.keyword,
-                query.tag_ids,
-                query.include_all,
+                page=query.page,
+                per_page=query.limit,
+                tenant_id=current_tenant_id,
+                user=current_user,
+                search=query.keyword,
+                include_all=query.include_all,
+                tag_names=query.tag_names,
             )
 
         # check embedding setting

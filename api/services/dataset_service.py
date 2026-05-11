@@ -119,7 +119,16 @@ class AutoDisableLogsDict(TypedDict):
 
 class DatasetService:
     @staticmethod
-    def get_datasets(page, per_page, tenant_id=None, user=None, search=None, tag_ids=None, include_all=False):
+    def get_datasets(
+        page,
+        per_page,
+        tenant_id=None,
+        user=None,
+        search=None,
+        tag_ids=None,
+        include_all=False,
+        tag_names=None,
+    ):
         query = select(Dataset).where(Dataset.tenant_id == tenant_id).order_by(Dataset.created_at.desc(), Dataset.id)
 
         if user:
@@ -172,8 +181,20 @@ class DatasetService:
             escaped_search = helper.escape_like_pattern(search)
             query = query.where(Dataset.name.ilike(f"%{escaped_search}%", escape="\\"))
 
-        # Check if tag_ids is not empty to avoid WHERE false condition
-        if tag_ids and len(tag_ids) > 0:
+        if tag_names and len(tag_names) > 0:
+            if tenant_id is not None:
+                target_ids = TagService.get_target_ids_by_tag_names(
+                    "knowledge",
+                    tenant_id,
+                    tag_names,
+                )
+            else:
+                target_ids = []
+            if target_ids and len(target_ids) > 0:
+                query = query.where(Dataset.id.in_(target_ids))
+            else:
+                return [], 0
+        elif tag_ids and len(tag_ids) > 0:
             if tenant_id is not None:
                 target_ids = TagService.get_target_ids_by_tag_ids(
                     "knowledge",

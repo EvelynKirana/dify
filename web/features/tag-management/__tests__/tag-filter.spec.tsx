@@ -57,23 +57,23 @@ describe('TagFilter', () => {
     })
 
     it('should display the first selected tag name when tags are selected', () => {
-      render(<TagFilter {...defaultProps} value={['tag-1']} />)
+      render(<TagFilter {...defaultProps} value={['Frontend']} />)
       expect(screen.getByText('Frontend')).toBeInTheDocument()
     })
 
     it('should display the count badge when multiple tags are selected', () => {
-      render(<TagFilter {...defaultProps} value={['tag-1', 'tag-2']} />)
+      render(<TagFilter {...defaultProps} value={['Frontend', 'Backend']} />)
       expect(screen.getByText('Frontend')).toBeInTheDocument()
       expect(screen.getByText('+1')).toBeInTheDocument()
     })
 
     it('should display correct count badge for three selected tags', () => {
-      render(<TagFilter {...defaultProps} value={['tag-1', 'tag-2', 'tag-4']} />)
+      render(<TagFilter {...defaultProps} value={['Frontend', 'Backend', 'API Design']} />)
       expect(screen.getByText('+2')).toBeInTheDocument()
     })
 
     it('should not show placeholder when tags are selected', () => {
-      render(<TagFilter {...defaultProps} value={['tag-1']} />)
+      render(<TagFilter {...defaultProps} value={['Frontend']} />)
       expect(screen.queryByText(i18n.placeholder)).not.toBeInTheDocument()
     })
   })
@@ -99,7 +99,7 @@ describe('TagFilter', () => {
       await user.click(screen.getByText(i18n.placeholder))
       await user.click(screen.getByText('Frontend'))
 
-      expect(onChange).toHaveBeenCalledWith(['tag-1'])
+      expect(onChange).toHaveBeenCalledWith(['Frontend'])
     })
 
     it('should select the highlighted tag with keyboard navigation', async () => {
@@ -112,13 +112,13 @@ describe('TagFilter', () => {
       await user.keyboard('{ArrowDown}')
       await user.keyboard('{Enter}')
 
-      expect(onChange).toHaveBeenCalledWith(['tag-2'])
+      expect(onChange).toHaveBeenCalledWith(['Backend'])
     })
 
     it('should call onChange to deselect when an already-selected tag is clicked', async () => {
       const user = userEvent.setup()
       const onChange = vi.fn()
-      render(<TagFilter {...defaultProps} value={['tag-1']} onChange={onChange} />)
+      render(<TagFilter {...defaultProps} value={['Frontend']} onChange={onChange} />)
 
       // Open dropdown — trigger shows the tag name "Frontend"
       await user.click(screen.getByText('Frontend'))
@@ -157,17 +157,17 @@ describe('TagFilter', () => {
     it('should add a tag to the selection', async () => {
       const user = userEvent.setup()
       const onChange = vi.fn()
-      render(<TagFilter {...defaultProps} value={['tag-1']} onChange={onChange} />)
+      render(<TagFilter {...defaultProps} value={['Frontend']} onChange={onChange} />)
 
       await user.click(screen.getByText('Frontend'))
       await user.click(screen.getByTitle('Backend'))
 
-      expect(onChange).toHaveBeenCalledWith(['tag-1', 'tag-2'])
+      expect(onChange).toHaveBeenCalledWith(['Frontend', 'Backend'])
     })
 
     it('should show check icon for selected tags in dropdown', async () => {
       const user = userEvent.setup()
-      render(<TagFilter {...defaultProps} value={['tag-1']} />)
+      render(<TagFilter {...defaultProps} value={['Frontend']} />)
 
       await user.click(screen.getByText('Frontend'))
 
@@ -180,7 +180,7 @@ describe('TagFilter', () => {
     it('should clear all selected tags when clear button is clicked', async () => {
       const user = userEvent.setup()
       const onChange = vi.fn()
-      render(<TagFilter {...defaultProps} value={['tag-1', 'tag-2']} onChange={onChange} />)
+      render(<TagFilter {...defaultProps} value={['Frontend', 'Backend']} onChange={onChange} />)
 
       const clearButton = screen.getByRole('button', { name: i18n.operationClear })
       expect(clearButton).toBeInTheDocument()

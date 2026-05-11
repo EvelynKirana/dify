@@ -75,6 +75,23 @@ class TagService:
         return tag_bindings
 
     @staticmethod
+    def get_target_ids_by_tag_names(tag_type: str, current_tenant_id: str, tag_names: list[str]):
+        if not tag_names:
+            return []
+        tags = db.session.scalars(
+            select(Tag).where(Tag.name.in_(tag_names), Tag.tenant_id == current_tenant_id, Tag.type == tag_type)
+        ).all()
+        if not tags:
+            return []
+        tag_ids = [tag.id for tag in tags]
+        tag_bindings = db.session.scalars(
+            select(TagBinding.target_id).where(
+                TagBinding.tag_id.in_(tag_ids), TagBinding.tenant_id == current_tenant_id
+            )
+        ).all()
+        return tag_bindings
+
+    @staticmethod
     def get_tag_by_tag_name(tag_type: str, current_tenant_id: str, tag_name: str):
         if not tag_type or not tag_name:
             return []

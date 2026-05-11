@@ -192,7 +192,7 @@ export type FetchDatasetsParams = {
   params: {
     page: number
     ids?: string[]
-    tag_ids?: string[]
+    tag_names?: string[]
     limit?: number
     include_all?: boolean
     keyword?: string
@@ -201,7 +201,7 @@ export type FetchDatasetsParams = {
 
 export type DatasetListRequest = {
   initialPage: number
-  tag_ids?: string[]
+  tag_names?: string[]
   limit: number
   include_all?: boolean
   keyword?: string

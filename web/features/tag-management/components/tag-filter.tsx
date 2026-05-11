@@ -38,22 +38,21 @@ export const TagFilter = ({
     },
   }))
 
-  const tagById = useMemo(() => new Map(tagList.map(tag => [tag.id, tag])), [tagList])
+  const tagByName = useMemo(() => new Map(tagList.map(tag => [tag.name, tag])), [tagList])
   const items = useMemo(() => tagList.filter(tag => tag.type === type), [tagList, type])
   const selectedTags = useMemo(() => {
-    return value.flatMap((tagId) => {
-      const tag = tagById.get(tagId)
+    return value.flatMap((tagName) => {
+      const tag = tagByName.get(tagName)
       return tag ? [tag] : []
     })
-  }, [tagById, value])
+  }, [tagByName, value])
 
-  const firstTagId = value[0]
-  const currentTagName = firstTagId ? tagById.get(firstTagId)?.name : undefined
-  const triggerLabel = selectedTags.length ? selectedTags.map(tag => tag.name).join(', ') : t('tag.placeholder', { ns: 'common' })
+  const firstTagName = value[0]
+  const currentTagName = firstTagName
+  const triggerLabel = value.length ? value.join(', ') : t('tag.placeholder', { ns: 'common' })
   const handleValueChange = useCallback((nextTags: Tag[]) => {
-    const unknownTagIds = value.filter(tagId => !tagById.has(tagId))
-    onChange([...unknownTagIds, ...nextTags.map(tag => tag.id)])
-  }, [onChange, tagById, value])
+    onChange(nextTags.map(tag => tag.name))
+  }, [onChange])
 
   return (
     <Combobox

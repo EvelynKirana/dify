@@ -2,7 +2,8 @@
 
 import { Button } from '@langgenius/dify-ui/button'
 import { useSuspenseQuery } from '@tanstack/react-query'
-import { useBoolean, useDebounceFn } from 'ahooks'
+import { useBoolean, useDebounce } from 'ahooks'
+import { parseAsArrayOf, parseAsString, useQueryStates } from 'nuqs'
 
 // Libraries
 import { useState } from 'react'
@@ -33,22 +34,18 @@ const List = () => {
   useDocumentTitle(t('knowledge', { ns: 'dataset' }))
 
   const [keywords, setKeywords] = useState('')
-  const [searchKeywords, setSearchKeywords] = useState('')
-  const { run: handleSearch } = useDebounceFn(() => {
-    setSearchKeywords(keywords)
-  }, { wait: 500 })
-  const handleKeywordsChange = (value: string) => {
-    setKeywords(value)
-    handleSearch()
-  }
-  const [tagFilterValue, setTagFilterValue] = useState<string[]>([])
-  const [tagIDs, setTagIDs] = useState<string[]>([])
-  const { run: handleTagsUpdate } = useDebounceFn(() => {
-    setTagIDs(tagFilterValue)
-  }, { wait: 500 })
-  const handleTagsChange = (value: string[]) => {
-    setTagFilterValue(value)
-    handleTagsUpdate()
+  const searchKeywords = useDebounce(keywords, { wait: 500 })
+  const [{ tagNames }, setListQuery] = useQueryStates({
+    tagNames: parseAsArrayOf(parseAsString, ';')
+      .withDefault([])
+      .withOptions({ history: 'push' }),
+  }, {
+    urlKeys: {
+      tagNames: 'tags',
+    },
+  })
+  const setTagNames = (tagNames: string[]) => {
+    setListQuery({ tagNames })
   }
 
   const isCurrentWorkspaceManager = useAppContextSelector(state => state.isCurrentWorkspaceManager)
@@ -68,14 +65,14 @@ const List = () => {
               tooltip={t('allKnowledgeDescription', { ns: 'dataset' }) as string}
             />
           )}
-          <TagFilter type="knowledge" value={tagFilterValue} onChange={handleTagsChange} onOpenTagManagement={() => setShowTagManagementModal(true)} />
+          <TagFilter type="knowledge" value={tagNames} onChange={setTagNames} onOpenTagManagement={() => setShowTagManagementModal(true)} />
           <Input
             showLeftIcon
             showClearIcon
             wrapperClassName="w-[200px]"
             value={keywords}
-            onChange={e => handleKeywordsChange(e.target.value)}
-            onClear={() => handleKeywordsChange('')}
+            onChange={e => setKeywords(e.target.value)}
+            onClear={() => setKeywords('')}
           />
           {
             isCurrentWorkspaceManager && (
@@ -92,7 +89,7 @@ const List = () => {
           </Button>
         </div>
       </div>
-      <Datasets tags={tagIDs} keywords={searchKeywords} includeAll={includeAll} onOpenTagManagement={() => setShowTagManagementModal(true)} />
+      <Datasets tagNames={tagNames} keywords={searchKeywords} includeAll={includeAll} onOpenTagManagement={() => setShowTagManagementModal(true)} />
       {!systemFeatures.branding.enabled && <DatasetFooter />}
       <TagManagementModal
         type="knowledge"

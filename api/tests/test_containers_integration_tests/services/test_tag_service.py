@@ -412,14 +412,14 @@ class TestTagService:
         assert len(result) == 0
         assert isinstance(result, list)
 
-    def test_get_target_ids_by_tag_ids_success(
+    def test_get_target_ids_by_tag_names_success(
         self, db_session_with_containers: Session, mock_external_service_dependencies
     ):
         """
-        Test successful retrieval of target IDs by tag IDs.
+        Test successful retrieval of target IDs by tag names.
 
         This test verifies:
-        - Proper target ID retrieval for valid tag IDs
+        - Proper target ID retrieval for valid tag names
         - Correct filtering by tag type and tenant
         - Proper handling of tag bindings
         """
@@ -448,8 +448,8 @@ class TestTagService:
             )
 
         # Act: Execute the method under test
-        tag_ids = [tag.id for tag in tags]
-        result = TagService.get_target_ids_by_tag_ids("knowledge", tenant.id, tag_ids)
+        tag_names = [tag.name for tag in tags]
+        result = TagService.get_target_ids_by_tag_names("knowledge", tenant.id, tag_names)
 
         # Assert: Verify the expected outcomes
         assert result is not None
@@ -468,14 +468,14 @@ class TestTagService:
         second_dataset_count = result.count(datasets[1].id)
         assert second_dataset_count == 1
 
-    def test_get_target_ids_by_tag_ids_empty_tag_ids(
+    def test_get_target_ids_by_tag_names_empty_tag_names(
         self, db_session_with_containers: Session, mock_external_service_dependencies
     ):
         """
-        Test target ID retrieval with empty tag IDs list.
+        Test target ID retrieval with empty tag names list.
 
         This test verifies:
-        - Proper handling of empty tag IDs
+        - Proper handling of empty tag names
         - Correct return value for empty input
         """
         # Arrange: Create test data
@@ -484,22 +484,22 @@ class TestTagService:
             db_session_with_containers, mock_external_service_dependencies
         )
 
-        # Act: Execute the method under test with empty tag IDs
-        result = TagService.get_target_ids_by_tag_ids("knowledge", tenant.id, [])
+        # Act: Execute the method under test with empty tag names
+        result = TagService.get_target_ids_by_tag_names("knowledge", tenant.id, [])
 
         # Assert: Verify the expected outcomes
         assert result is not None
         assert len(result) == 0
         assert isinstance(result, list)
 
-    def test_get_target_ids_by_tag_ids_no_matching_tags(
+    def test_get_target_ids_by_tag_names_no_matching_tags(
         self, db_session_with_containers: Session, mock_external_service_dependencies
     ):
         """
         Test target ID retrieval when no tags match the criteria.
 
         This test verifies:
-        - Proper handling of non-existent tag IDs
+        - Proper handling of non-existent tag names
         - Correct return value for no matches
         """
         # Arrange: Create test data
@@ -508,13 +508,10 @@ class TestTagService:
             db_session_with_containers, mock_external_service_dependencies
         )
 
-        # Create non-existent tag IDs
-        import uuid
-
-        non_existent_tag_ids = [str(uuid.uuid4()), str(uuid.uuid4())]
+        non_existent_tag_names = ["missing-tag-1", "missing-tag-2"]
 
         # Act: Execute the method under test
-        result = TagService.get_target_ids_by_tag_ids("knowledge", tenant.id, non_existent_tag_ids)
+        result = TagService.get_target_ids_by_tag_names("knowledge", tenant.id, non_existent_tag_names)
 
         # Assert: Verify the expected outcomes
         assert result is not None

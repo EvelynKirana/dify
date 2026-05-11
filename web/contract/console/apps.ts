@@ -8,7 +8,7 @@ export type AppListQuery = {
   limit?: number
   name?: string
   mode?: AppModeEnum
-  tag_ids?: string[]
+  tag_names?: string[]
   is_created_by_me?: boolean
 }
 

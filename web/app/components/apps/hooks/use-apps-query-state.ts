@@ -16,7 +16,7 @@ const appListQueryParsers = {
   category: parseAsStringLiteral(APP_LIST_CATEGORY_VALUES)
     .withDefault('all')
     .withOptions({ history: 'push' }),
-  tagIDs: parseAsArrayOf(parseAsString, ';')
+  tagNames: parseAsArrayOf(parseAsString, ';')
     .withDefault([])
     .withOptions({ history: 'push' }),
   keywords: parseAsString.withDefault('').withOptions({
@@ -28,7 +28,11 @@ const appListQueryParsers = {
 }
 
 export function useAppsQueryState() {
-  const [query, setQuery] = useQueryStates(appListQueryParsers)
+  const [query, setQuery] = useQueryStates(appListQueryParsers, {
+    urlKeys: {
+      tagNames: 'tags',
+    },
+  })
 
   const setCategory = useCallback((category: AppListCategory) => {
     setQuery({ category })
@@ -38,8 +42,8 @@ export function useAppsQueryState() {
     setQuery({ keywords })
   }, [setQuery])
 
-  const setTagIDs = useCallback((tagIDs: string[]) => {
-    setQuery({ tagIDs })
+  const setTagNames = useCallback((tagNames: string[]) => {
+    setQuery({ tagNames })
   }, [setQuery])
 
   const setIsCreatedByMe = useCallback((isCreatedByMe: boolean) => {
@@ -50,7 +54,7 @@ export function useAppsQueryState() {
     query,
     setCategory,
     setKeywords,
-    setTagIDs,
+    setTagNames,
     setIsCreatedByMe,
-  }), [query, setCategory, setKeywords, setTagIDs, setIsCreatedByMe])
+  }), [query, setCategory, setKeywords, setTagNames, setIsCreatedByMe])
 }

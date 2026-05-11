@@ -37,7 +37,7 @@ class AppListParams(BaseModel):
     limit: int = Field(default=20, ge=1, le=100)
     mode: Literal["completion", "chat", "advanced-chat", "workflow", "agent-chat", "channel", "all"] = "all"
     name: str | None = None
-    tag_ids: list[str] | None = None
+    tag_names: list[str] | None = None
     is_created_by_me: bool | None = None
 
 
@@ -83,8 +83,8 @@ class AppService:
             name = params.name[:30]
             escaped_name = escape_like_pattern(name)
             filters.append(App.name.ilike(f"%{escaped_name}%", escape="\\"))
-        if params.tag_ids and len(params.tag_ids) > 0:
-            target_ids = TagService.get_target_ids_by_tag_ids("app", tenant_id, params.tag_ids)
+        if params.tag_names and len(params.tag_names) > 0:
+            target_ids = TagService.get_target_ids_by_tag_names("app", tenant_id, params.tag_names)
             if target_ids and len(target_ids) > 0:
                 filters.append(App.id.in_(target_ids))
             else:

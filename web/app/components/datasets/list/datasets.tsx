@@ -9,14 +9,14 @@ import DatasetCard from './dataset-card'
 import NewDatasetCard from './new-dataset-card'
 
 type Props = {
-  tags: string[]
+  tagNames: string[]
   keywords: string
   includeAll: boolean
   onOpenTagManagement?: () => void
 }
 
 const Datasets = ({
-  tags,
+  tagNames,
   keywords,
   includeAll,
   onOpenTagManagement = () => {},
@@ -31,7 +31,7 @@ const Datasets = ({
     isFetchingNextPage,
   } = useDatasetList({
     initialPage: 1,
-    tag_ids: tags,
+    tag_names: tagNames,
     limit: 30,
     include_all: includeAll,
     keyword: keywords,

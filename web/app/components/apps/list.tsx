@@ -1,6 +1,5 @@
 'use client'
 
-import type { FC } from 'react'
 import type { AppListQuery } from '@/contract/console/apps'
 import { cn } from '@langgenius/dify-ui/cn'
 import { keepPreviousData, useInfiniteQuery, useSuspenseQuery } from '@tanstack/react-query'
@@ -38,19 +37,19 @@ const CreateFromDSLModal = dynamic(() => import('@/app/components/app/create-fro
 type Props = {
   controlRefreshList?: number
 }
-const List: FC<Props> = ({
+function List({
   controlRefreshList = 0,
-}) => {
+}: Props) {
   const { t } = useTranslation()
   const { data: systemFeatures } = useSuspenseQuery(systemFeaturesQueryOptions())
   const { isCurrentWorkspaceEditor, isCurrentWorkspaceDatasetOperator, isLoadingCurrentWorkspace } = useAppContext()
 
   // eslint-disable-next-line react/use-state -- custom URL query hook, not React.useState
   const {
-    query: { category, tagIDs, keywords, isCreatedByMe },
+    query: { category, tagNames, keywords, isCreatedByMe },
     setCategory,
     setKeywords,
-    setTagIDs,
+    setTagNames,
     setIsCreatedByMe,
   } = useAppsQueryState()
   const debouncedKeywords = useDebounce(keywords, { wait: APP_LIST_SEARCH_DEBOUNCE_MS })
@@ -75,10 +74,10 @@ const List: FC<Props> = ({
     page: 1,
     limit: 30,
     name: debouncedKeywords,
-    ...(tagIDs.length ? { tag_ids: tagIDs } : {}),
+    ...(tagNames.length ? { tag_names: tagNames } : {}),
     ...(isCreatedByMe ? { is_created_by_me: isCreatedByMe } : {}),
     ...(category !== 'all' ? { mode: category } : {}),
-  }), [category, debouncedKeywords, isCreatedByMe, tagIDs])
+  }), [category, debouncedKeywords, isCreatedByMe, tagNames])
 
   const {
     data,
@@ -209,7 +208,7 @@ const List: FC<Props> = ({
                 {t('showMyCreatedAppsOnly', { ns: 'app' })}
               </div>
             </label>
-            <TagFilter type="app" value={tagIDs} onChange={setTagIDs} onOpenTagManagement={() => setShowTagManagementModal(true)} />
+            <TagFilter type="app" value={tagNames} onChange={setTagNames} onOpenTagManagement={() => setShowTagManagementModal(true)} />
             <Input
               showLeftIcon
               showClearIcon

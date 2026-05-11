@@ -1,6 +1,5 @@
 import logging
 import re
-import uuid
 from datetime import datetime
 from typing import Any, Literal
 from uuid import UUID
@@ -61,7 +60,7 @@ ALLOW_CREATE_APP_MODES = ["chat", "agent-chat", "advanced-chat", "workflow", "co
 register_enum_models(console_ns, IconType)
 
 _logger = logging.getLogger(__name__)
-_TAG_IDS_BRACKET_PATTERN = re.compile(r"^tag_ids\[(\d+)\]$")
+_TAG_NAMES_BRACKET_PATTERN = re.compile(r"^tag_names\[(\d+)\]$")
 
 
 class AppListQuery(BaseModel):
@@ -71,44 +70,41 @@ class AppListQuery(BaseModel):
         default="all", description="App mode filter"
     )
     name: str | None = Field(default=None, description="Filter by app name")
-    tag_ids: list[str] | None = Field(default=None, description="Filter by tag IDs")
+    tag_names: list[str] | None = Field(default=None, description="Filter by tag names")
     is_created_by_me: bool | None = Field(default=None, description="Filter by creator")
 
-    @field_validator("tag_ids", mode="before")
+    @field_validator("tag_names", mode="before")
     @classmethod
-    def validate_tag_ids(cls, value: list[str] | None) -> list[str] | None:
+    def validate_tag_names(cls, value: list[str] | None) -> list[str] | None:
         if not value:
             return None
 
         if not isinstance(value, list):
-            raise ValueError("Unsupported tag_ids type.")
+            raise ValueError("Unsupported tag_names type.")
 
         items = [str(item).strip() for item in value if item and str(item).strip()]
         if not items:
             return None
 
-        try:
-            return [str(uuid.UUID(item)) for item in items]
-        except ValueError as exc:
-            raise ValueError("Invalid UUID format in tag_ids.") from exc
+        return items
 
 
 def _normalize_app_list_query_args(query_args: MultiDict[str, str]) -> dict[str, str | list[str]]:
     normalized: dict[str, str | list[str]] = {}
-    indexed_tag_ids: list[tuple[int, str]] = []
+    indexed_tag_names: list[tuple[int, str]] = []
 
     for key in query_args:
-        match = _TAG_IDS_BRACKET_PATTERN.fullmatch(key)
+        match = _TAG_NAMES_BRACKET_PATTERN.fullmatch(key)
         if match:
-            indexed_tag_ids.extend((int(match.group(1)), value) for value in query_args.getlist(key))
+            indexed_tag_names.extend((int(match.group(1)), value) for value in query_args.getlist(key))
             continue
 
         value = query_args.get(key)
         if value is not None:
             normalized[key] = value
 
-    if indexed_tag_ids:
-        normalized["tag_ids"] = [value for _, value in sorted(indexed_tag_ids)]
+    if indexed_tag_names:
+        normalized["tag_names"] = [value for _, value in sorted(indexed_tag_names)]
 
     return normalized
 
@@ -483,7 +479,7 @@ class AppListApi(Resource):
             limit=args.limit,
             mode=args.mode,
             name=args.name,
-            tag_ids=args.tag_ids,
+            tag_names=args.tag_names,
             is_created_by_me=args.is_created_by_me,
         )
 
