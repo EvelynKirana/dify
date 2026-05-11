@@ -15,6 +15,89 @@ from libs.login import current_account_with_tenant, login_required
 from services.enterprise import rbac_service as svc
 
 
+_LEGACY_WORKSPACE_PERMISSION_KEYS: list[str] = [
+    "inviteMembers",
+    "removeMembers",
+    "assignRoles",
+    "workspaceSettings",
+    "manageBilling",
+    "transferOwnership",
+]
+
+_LEGACY_APP_PERMISSION_KEYS: list[str] = [
+    "createApps",
+    "editApps",
+    "useApps",
+]
+
+_LEGACY_DATASET_PERMISSION_KEYS: list[str] = [
+    "createDatasets",
+    "editDatasets",
+    "manageDatasets",
+]
+
+_LEGACY_ENTERPRISE_PERMISSION_KEYS: list[str] = [
+    "workspace.member.manage",
+    "workspace.settings.manage",
+    "workspace.billing.manage",
+    "workspace.owner.transfer",
+    "app.acl.edit",
+    "app.acl.test_and_run",
+    "dataset.acl.edit",
+]
+
+_LEGACY_ROLE_PERMISSION_KEYS: dict[str, list[str]] = {
+    # These legacy role groups predate the RBAC refactor. The mapping keeps the
+    # old workspace roles readable through the new RBAC endpoint by translating
+    # each role into the closest enterprise permission keys that already exist
+    # in the catalog and tests.
+    "owner": [
+        *_LEGACY_WORKSPACE_PERMISSION_KEYS,
+        *_LEGACY_APP_PERMISSION_KEYS,
+        *_LEGACY_DATASET_PERMISSION_KEYS,
+        *_LEGACY_ENTERPRISE_PERMISSION_KEYS,
+    ],
+    "admin": [
+        "inviteMembers",
+        "removeMembers",
+        "assignRoles",
+        "workspaceSettings",
+        "manageBilling",
+        "workspace.member.manage",
+        "workspace.settings.manage",
+        "workspace.billing.manage",
+        "app.acl.edit",
+        "app.acl.test_and_run",
+        "dataset.acl.edit",
+        "createApps",
+        "editApps",
+        "useApps",
+        "createDatasets",
+        "editDatasets",
+        "manageDatasets",
+    ],
+    "editor": [
+        "createApps",
+        "editApps",
+        "useApps",
+        "createDatasets",
+        "editDatasets",
+        "workspace.member.manage",
+        "app.acl.edit",
+        "app.acl.test_and_run",
+        "dataset.acl.edit",
+    ],
+    "normal": [
+        "useApps",
+        "app.acl.test_and_run",
+    ],
+    "dataset_operator": [
+        "manageDatasets",
+        "dataset.acl.edit",
+    ],
+}
+
+
 def _current_ids() -> tuple[str, str]:
     """Return ``(tenant_id, account_id)`` for the authenticated user, or
     raise a 404 when no tenant is associated with the session.
@@ -58,6 +141,49 @@ class _PaginationQuery(BaseModel):
 
 def _pagination_options() -> svc.ListOption:
     return _PaginationQuery.model_validate(request.args.to_dict(flat=True)).to_inner_options()
+
+
+def _legacy_workspace_roles(options: svc.ListOption | None = None) -> svc.Paginated[svc.RBACRole]:
+    """Return the built-in legacy workspace roles in the RBAC list shape.
+
+    This keeps the new `/rbac/roles` endpoint compatible with the original
+    Dify role model when enterprise RBAC is disabled.
+    """
+
+    legacy_roles = [
+        svc.RBACRole(
+            id=role_name,
+            tenant_id="",
+            type=svc.RBACRoleType.WORKSPACE.value,
+            category="global_system_default",
+            name=role_name,
+            description="",
+            is_builtin=True,
+            permission_keys=list(_LEGACY_ROLE_PERMISSION_KEYS[role_name]),
+        )
+        for role_name in ("owner", "admin", "editor", "normal", "dataset_operator")
+    ]
+
+    page_number = options.page_number if options and options.page_number is not None else 1
+    results_per_page = options.results_per_page if options and options.results_per_page is not None else len(legacy_roles)
+    reverse = options.reverse if options and options.reverse is not None else False
+
+    ordered_roles = list(reversed(legacy_roles)) if reverse else legacy_roles
+    start = max(page_number - 1, 0) * results_per_page
+    end = start + results_per_page
+    paged_roles = ordered_roles[start:end]
+    total_count = len(legacy_roles)
+    total_pages = (total_count + results_per_page - 1) // results_per_page if results_per_page > 0 else 0
+
+    return svc.Paginated[svc.RBACRole](
+        data=paged_roles,
+        pagination=svc.Pagination(
+            total_count=total_count,
+            per_page=results_per_page,
+            current_page=page_number,
+            total_pages=total_pages,
+        ),
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -115,6 +241,8 @@ class RBACRolesApi(Resource):
     def get(self):
         tenant_id, account_id = _current_ids()
         options = _pagination_options()
+        if not dify_config.RBAC_ENABLED:
+            return _dump(_legacy_workspace_roles(options))
         return _dump(svc.RBACService.Roles.list(tenant_id, account_id, options=options))
 
     @login_required

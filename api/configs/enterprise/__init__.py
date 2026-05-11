@@ -23,6 +23,11 @@ class EnterpriseFeatureConfig(BaseSettings):
         ge=1, description="Maximum timeout in seconds for enterprise requests", default=5
     )
 
+    RBAC_ENABLED: bool = Field(
+        description="Enable enterprise RBAC APIs. When disabled, compatibility responses fall back to legacy roles.",
+        default=False,
+    )
+
 
 class EnterpriseTelemetryConfig(BaseSettings):
     """
