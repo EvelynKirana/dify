@@ -280,8 +280,8 @@ class TestWorkspaceAccess:
 
         out = svc.RBACService.WorkspaceAccess.app_matrix("tenant-1")
 
-        assert out.items[0].role_ids == []
-        assert out.items[0].account_ids == []
+        assert out.items[0].roles == []
+        assert out.items[0].accounts == []
 
     def test_workspace_app_replace_bindings(self, mock_send: MagicMock):
         mock_send.return_value = {"data": []}
@@ -369,9 +369,12 @@ class TestMyPermissions:
         app_keys: list[str],
         dataset_keys: list[str],
     ):
+        mock_session = MagicMock()
+        mock_session.__enter__.return_value = mock_session
+        mock_session.scalar.return_value = role
         with (
             patch(f"{MODULE}.dify_config.RBAC_ENABLED", False),
-            patch(f"{MODULE}.db.session.scalar", return_value=role),
+            patch(f"{MODULE}.session_factory.create_session", return_value=mock_session),
         ):
             out = svc.RBACService.MyPermissions.get("tenant-1", "acct-1")
 
@@ -383,9 +386,12 @@ class TestMyPermissions:
         assert out.dataset.overrides == []
 
     def test_get_returns_empty_when_role_missing_and_rbac_disabled(self, mock_send: MagicMock):
+        mock_session = MagicMock()
+        mock_session.__enter__.return_value = mock_session
+        mock_session.scalar.return_value = None
         with (
             patch(f"{MODULE}.dify_config.RBAC_ENABLED", False),
-            patch(f"{MODULE}.db.session.scalar", return_value=None),
+            patch(f"{MODULE}.session_factory.create_session", return_value=mock_session),
         ):
             out = svc.RBACService.MyPermissions.get("tenant-1", "acct-1")
 
