@@ -85,6 +85,11 @@ export type AckDeploymentReq = {
   lastError?: LastError
 }
 
+export type AddGroupAppsRequest = {
+  id?: string
+  app_ids?: Array<string>
+}
+
 export type AppInstanceBasicInfo = {
   id?: string
   name?: string
@@ -342,6 +347,11 @@ export type CreateReleaseReply = {
 
 export type CreateReleaseReq = {
   appInstanceId?: string
+  name?: string
+  description?: string
+}
+
+export type CreateResourceGroupRequest = {
   name?: string
   description?: string
 }
@@ -660,6 +670,17 @@ export type GetWorkspaceReply = {
   workspace?: Workspace
 }
 
+export type GroupAppItem = {
+  app_id?: string
+  app_name?: string
+  workspace_id?: string
+  workspace_name?: string
+  app_status?: number
+  token_usage?: string
+  rpm?: string
+  concurrency?: string
+}
+
 export type HealthzReply = {
   message?: string
   status?: string
@@ -683,6 +704,11 @@ export type InfoConfigReply = {
   Branding?: BrandingInfo
   WebAppAuth?: WebAppAuthInfo
   PluginInstallationPermission?: PluginInstallationPermissionInfo
+}
+
+export type InnerAdmission = {
+  marker?: string
+  concurrencyGroupIds?: Array<string>
 }
 
 export type InnerBatchGetWebAppAccessModesByIdReq = {
@@ -750,8 +776,32 @@ export type InnerGetWebAppAccessModeByIdRes = {
   accessMode?: string
 }
 
+export type InnerGroupConfig = {
+  id?: string
+  enabled?: boolean
+  membershipId?: string
+  limits?: Array<LimitConfig>
+}
+
 export type InnerIsUserAllowedToAccessWebAppRes = {
   result?: boolean
+}
+
+export type InnerReleaseAdmissionRequest = {
+  admission?: InnerAdmission
+}
+
+export type InnerReleaseAdmissionResponse = {
+  [key: string]: unknown
+}
+
+export type InnerResolveResponse = {
+  appId?: string
+  groups?: Array<InnerGroupConfig>
+  blocked?: boolean
+  blockGroupId?: string
+  blockReason?: string
+  admission?: InnerAdmission
 }
 
 export type InnerTryAddAccountToDefaultWorkspaceReply = {
@@ -806,6 +856,13 @@ export type LicenseStatus = {
   workspaces?: ResourceQuota
 }
 
+export type LimitConfig = {
+  type?: number
+  threshold?: string
+  action?: number
+  reached?: boolean
+}
+
 export type LimitFields = {
   workspaceMembers?: number
   workspaces?: ResourceQuota
@@ -830,6 +887,11 @@ export type ListEnvironmentsReply = {
   pagination?: Pagination
 }
 
+export type ListGroupAppsResponse = {
+  items?: Array<GroupAppItem>
+  total?: string
+}
+
 export type ListMembersReply = {
   data?: Array<AccountDetail>
   pagination?: Pagination
@@ -838,6 +900,11 @@ export type ListMembersReply = {
 export type ListReleasesReply = {
   data?: Array<ReleaseRow>
   pagination?: Pagination
+}
+
+export type ListResourceGroupsResponse = {
+  items?: Array<ResourceGroupItem>
+  total?: string
 }
 
 export type ListRuntimeInstancesReply = {
@@ -1059,6 +1126,37 @@ export type ResolvedCredential = {
   value?: string
 }
 
+export type ResourceGroupDetail = {
+  id?: string
+  name?: string
+  description?: string
+  enabled?: boolean
+  rpm_limit?: number
+  rpm_action?: number
+  concurrency_limit?: number
+  concurrency_action?: number
+  token_quota?: string
+  token_action?: number
+  created_at?: string
+  updated_at?: string
+}
+
+export type ResourceGroupItem = {
+  id?: string
+  name?: string
+  description?: string
+  enabled?: boolean
+  rpm_limit?: number
+  concurrency_limit?: number
+  token_quota?: string
+  token_usage?: string
+  app_count?: string
+  rpm_status?: number
+  conc_status?: number
+  created_at?: string
+  updated_at?: string
+}
+
 export type ResourceQuota = {
   used?: number
   limit?: number
@@ -1133,6 +1231,23 @@ export type ScimSettings = {
 
 export type SearchAccessSubjectsReply = {
   data?: Array<AccessSubjectDisplay>
+}
+
+export type SearchAppItem = {
+  app_id?: string
+  app_name?: string
+  workspace_id?: string
+  workspace_name?: string
+  app_status?: number
+  icon?: string
+  icon_type?: string
+  icon_background?: string
+  created_by_name?: string
+}
+
+export type SearchAppsResponse = {
+  items?: Array<SearchAppItem>
+  total?: string
 }
 
 export type SearchForWhilteListCandidatesRes = {
@@ -1368,6 +1483,19 @@ export type UpdateOfflineLicenseReq = {
 export type UpdatePluginInstallationSettingsRequest = {
   pluginInstallationScope?: number
   restrictToMarketplaceOnly?: boolean
+}
+
+export type UpdateResourceGroupRequest = {
+  id?: string
+  name?: string
+  description?: string
+  enabled?: boolean
+  rpm_limit?: number
+  rpm_action?: number
+  concurrency_limit?: number
+  concurrency_action?: number
+  token_quota?: string
+  token_action?: number
 }
 
 export type UpdateUserReply = {

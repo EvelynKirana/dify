@@ -81,6 +81,11 @@ export const zAckDeploymentReply = z.object({
   newVersion: z.string().optional(),
 })
 
+export const zAddGroupAppsRequest = z.object({
+  id: z.string().optional(),
+  app_ids: z.array(z.string()).optional(),
+})
+
 export const zAppInstanceBasicInfo = z.object({
   id: z.string().optional(),
   name: z.string().optional(),
@@ -285,6 +290,11 @@ export const zCreateReleaseReply = z.object({
 
 export const zCreateReleaseReq = z.object({
   appInstanceId: z.string().optional(),
+  name: z.string().optional(),
+  description: z.string().optional(),
+})
+
+export const zCreateResourceGroupRequest = z.object({
   name: z.string().optional(),
   description: z.string().optional(),
 })
@@ -570,6 +580,17 @@ export const zGetWebAppWhitelistSubjectsResMember = z.object({
   avatar: z.string().optional(),
 })
 
+export const zGroupAppItem = z.object({
+  app_id: z.string().optional(),
+  app_name: z.string().optional(),
+  workspace_id: z.string().optional(),
+  workspace_name: z.string().optional(),
+  app_status: z.int().optional(),
+  token_usage: z.string().optional(),
+  rpm: z.string().optional(),
+  concurrency: z.string().optional(),
+})
+
 export const zHealthzReply = z.object({
   message: z.string().optional(),
   status: z.string().optional(),
@@ -578,6 +599,11 @@ export const zHealthzReply = z.object({
 export const zHostEnvironmentConfig = z.object({
   machineId: z.string().optional(),
   joinTokenHash: z.string().optional(),
+})
+
+export const zInnerAdmission = z.object({
+  marker: z.string().optional(),
+  concurrencyGroupIds: z.array(z.string()).optional(),
 })
 
 export const zInnerBatchGetWebAppAccessModesByIdReq = z.object({
@@ -653,6 +679,12 @@ export const zInnerIsUserAllowedToAccessWebAppRes = z.object({
   result: z.boolean().optional(),
 })
 
+export const zInnerReleaseAdmissionRequest = z.object({
+  admission: zInnerAdmission.optional(),
+})
+
+export const zInnerReleaseAdmissionResponse = z.record(z.string(), z.unknown())
+
 export const zInnerTryAddAccountToDefaultWorkspaceReply = z.object({
   workspaceId: z.string().optional(),
   joined: z.boolean().optional(),
@@ -719,12 +751,40 @@ export const zAckDeploymentReq = z.object({
   lastError: zLastError.optional(),
 })
 
+export const zLimitConfig = z.object({
+  type: z.int().optional(),
+  threshold: z.string().optional(),
+  action: z.int().optional(),
+  reached: z.boolean().optional(),
+})
+
+export const zInnerGroupConfig = z.object({
+  id: z.string().optional(),
+  enabled: z.boolean().optional(),
+  membershipId: z.string().optional(),
+  limits: z.array(zLimitConfig).optional(),
+})
+
+export const zInnerResolveResponse = z.object({
+  appId: z.string().optional(),
+  groups: z.array(zInnerGroupConfig).optional(),
+  blocked: z.boolean().optional(),
+  blockGroupId: z.string().optional(),
+  blockReason: z.string().optional(),
+  admission: zInnerAdmission.optional(),
+})
+
 export const zListDeploymentBindingOptionsReply = z.object({
   slots: z.array(zDeploymentBindingOptionSlot).optional(),
 })
 
 export const zListDeploymentEnvironmentOptionsReply = z.object({
   environments: z.array(zDeploymentEnvironmentOption).optional(),
+})
+
+export const zListGroupAppsResponse = z.object({
+  items: z.array(zGroupAppItem).optional(),
+  total: z.string().optional(),
 })
 
 export const zLoginTypesReply = z.object({
@@ -957,6 +1017,58 @@ export const zResolveCredentialsReply = z.object({
   resolved: z.array(zResolvedCredential).optional(),
 })
 
+export const zResourceGroupDetail = z.object({
+  id: z.string().optional(),
+  name: z.string().optional(),
+  description: z.string().optional(),
+  enabled: z.boolean().optional(),
+  rpm_limit: z
+    .int()
+    .min(-2147483648, { error: 'Invalid value: Expected int32 to be >= -2147483648' })
+    .max(2147483647, { error: 'Invalid value: Expected int32 to be <= 2147483647' })
+    .optional(),
+  rpm_action: z.int().optional(),
+  concurrency_limit: z
+    .int()
+    .min(-2147483648, { error: 'Invalid value: Expected int32 to be >= -2147483648' })
+    .max(2147483647, { error: 'Invalid value: Expected int32 to be <= 2147483647' })
+    .optional(),
+  concurrency_action: z.int().optional(),
+  token_quota: z.string().optional(),
+  token_action: z.int().optional(),
+  created_at: z.string().optional(),
+  updated_at: z.string().optional(),
+})
+
+export const zResourceGroupItem = z.object({
+  id: z.string().optional(),
+  name: z.string().optional(),
+  description: z.string().optional(),
+  enabled: z.boolean().optional(),
+  rpm_limit: z
+    .int()
+    .min(-2147483648, { error: 'Invalid value: Expected int32 to be >= -2147483648' })
+    .max(2147483647, { error: 'Invalid value: Expected int32 to be <= 2147483647' })
+    .optional(),
+  concurrency_limit: z
+    .int()
+    .min(-2147483648, { error: 'Invalid value: Expected int32 to be >= -2147483648' })
+    .max(2147483647, { error: 'Invalid value: Expected int32 to be <= 2147483647' })
+    .optional(),
+  token_quota: z.string().optional(),
+  token_usage: z.string().optional(),
+  app_count: z.string().optional(),
+  rpm_status: z.int().optional(),
+  conc_status: z.int().optional(),
+  created_at: z.string().optional(),
+  updated_at: z.string().optional(),
+})
+
+export const zListResourceGroupsResponse = z.object({
+  items: z.array(zResourceGroupItem).optional(),
+  total: z.string().optional(),
+})
+
 /**
  * ResourceQuota represents usage quota for a resource
  */
@@ -1113,6 +1225,23 @@ export const zScimSettings = z.object({
 
 export const zSearchAccessSubjectsReply = z.object({
   data: z.array(zAccessSubjectDisplay).optional(),
+})
+
+export const zSearchAppItem = z.object({
+  app_id: z.string().optional(),
+  app_name: z.string().optional(),
+  workspace_id: z.string().optional(),
+  workspace_name: z.string().optional(),
+  app_status: z.int().optional(),
+  icon: z.string().optional(),
+  icon_type: z.string().optional(),
+  icon_background: z.string().optional(),
+  created_by_name: z.string().optional(),
+})
+
+export const zSearchAppsResponse = z.object({
+  items: z.array(zSearchAppItem).optional(),
+  total: z.string().optional(),
 })
 
 export const zSecretKey = z.object({
@@ -1396,6 +1525,27 @@ export const zUpdateOfflineLicenseReq = z.object({
 export const zUpdatePluginInstallationSettingsRequest = z.object({
   pluginInstallationScope: z.int().optional(),
   restrictToMarketplaceOnly: z.boolean().optional(),
+})
+
+export const zUpdateResourceGroupRequest = z.object({
+  id: z.string().optional(),
+  name: z.string().optional(),
+  description: z.string().optional(),
+  enabled: z.boolean().optional(),
+  rpm_limit: z
+    .int()
+    .min(-2147483648, { error: 'Invalid value: Expected int32 to be >= -2147483648' })
+    .max(2147483647, { error: 'Invalid value: Expected int32 to be <= 2147483647' })
+    .optional(),
+  rpm_action: z.int().optional(),
+  concurrency_limit: z
+    .int()
+    .min(-2147483648, { error: 'Invalid value: Expected int32 to be >= -2147483648' })
+    .max(2147483647, { error: 'Invalid value: Expected int32 to be <= 2147483647' })
+    .optional(),
+  concurrency_action: z.int().optional(),
+  token_quota: z.string().optional(),
+  token_action: z.int().optional(),
 })
 
 export const zUpdateUserReply = z.object({

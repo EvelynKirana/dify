@@ -1334,11 +1334,6 @@
       "count": 9
     }
   },
-  "web/app/components/base/markdown-blocks/form.tsx": {
-    "erasable-syntax-only/enums": {
-      "count": 3
-    }
-  },
   "web/app/components/base/markdown-blocks/index.ts": {
     "no-barrel-files/no-barrel-files": {
       "count": 10
@@ -1744,11 +1739,6 @@
   "web/app/components/billing/type.ts": {
     "erasable-syntax-only/enums": {
       "count": 4
-    }
-  },
-  "web/app/components/billing/upgrade-btn/index.tsx": {
-    "ts/no-explicit-any": {
-      "count": 3
     }
   },
   "web/app/components/datasets/common/image-previewer/index.tsx": {
@@ -2528,11 +2518,6 @@
     }
   },
   "web/app/components/plugins/plugin-detail-panel/model-selector/tts-params-panel.tsx": {
-    "ts/no-explicit-any": {
-      "count": 1
-    }
-  },
-  "web/app/components/plugins/plugin-detail-panel/multiple-tool-selector/index.tsx": {
     "ts/no-explicit-any": {
       "count": 1
     }
@@ -4431,11 +4416,6 @@
     }
   },
   "web/app/signin/layout.tsx": {
-    "ts/no-explicit-any": {
-      "count": 1
-    }
-  },
-  "web/app/signin/one-more-step.tsx": {
     "ts/no-explicit-any": {
       "count": 1
     }
