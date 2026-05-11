@@ -8,9 +8,9 @@ import { useTranslation } from 'react-i18next'
 import Nav from '@/app/components/header/nav'
 import { useParams, useRouter, useSelectedLayoutSegment } from '@/next/navigation'
 import { consoleQuery } from '@/service/client'
+import { toAppMode } from '../app-mode'
 import { SOURCE_APPS_PAGE_SIZE } from '../data'
 import { openCreateInstanceModalAtom } from '../store'
-import { toAppMode } from '../utils'
 
 function navItemFromListApp(app: AppInstanceCard): NavItem[] {
   if (!app.id || !app.name)

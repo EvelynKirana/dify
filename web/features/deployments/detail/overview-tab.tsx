@@ -8,14 +8,12 @@ import { useTranslation } from 'react-i18next'
 import { getAppModeLabel } from '@/app/components/app-sidebar/app-info/app-mode-labels'
 import Link from '@/next/link'
 import { consoleQuery } from '@/service/client'
+import { toAppMode } from '../app-mode'
 import { StatusBadge } from '../components/status-badge'
 import { DEPLOYMENT_PAGE_SIZE } from '../data'
+import { releaseLabel } from '../release'
 import { openDeployDrawerAtom } from '../store'
-import {
-  releaseLabel,
-  toAppMode,
-  webappUrl,
-} from '../utils'
+import { webappUrl } from '../webapp-url'
 import { Section } from './common'
 
 function InfoRow({ label, value, mono }: {

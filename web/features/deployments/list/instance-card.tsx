@@ -15,7 +15,7 @@ import { AppTypeIcon } from '@/app/components/app/type-selector'
 import AppIcon from '@/app/components/base/app-icon'
 import { useFormatTimeFromNow } from '@/hooks/use-format-time-from-now'
 import Link from '@/next/link'
-import { toAppMode } from '../utils'
+import { toAppMode } from '../app-mode'
 
 const INSTANCE_CARD_MENU_TAB_KEYS = ['deploy', 'versions', 'settings'] satisfies InstanceDetailTabKey[]
 

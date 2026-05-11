@@ -16,7 +16,7 @@ import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useRouter } from '@/next/navigation'
 import { consoleQuery } from '@/service/client'
-import { deployedRows } from '../utils'
+import { isUndeployedDeploymentRow } from '../runtime-status'
 import { AccessChannelsSection } from './access-tab/channels-section'
 import { DeveloperApiSection } from './access-tab/developer-api-section'
 import { AccessPermissionsSection } from './access-tab/permissions-section'
@@ -264,7 +264,7 @@ function DeleteInstanceControlSection({ appInstanceId }: {
   if (!app?.id)
     return null
 
-  const hasDeployments = deployedRows(environmentDeployments?.data).length > 0
+  const hasDeployments = environmentDeployments?.data?.some(row => Boolean(row.environment?.id) && !isUndeployedDeploymentRow(row)) ?? false
 
   return (
     <DeleteInstanceControl

@@ -4,19 +4,14 @@ import type { ReleaseRuntimeBinding, RuntimeInstanceRow } from '@dify/contracts/
 import type { ReactNode } from 'react'
 import { cn } from '@langgenius/dify-ui/cn'
 import { useTranslation } from 'react-i18next'
+import { environmentBackend, environmentMode } from '../../environment'
+import { formatDate, releaseCommit, releaseLabel } from '../../release'
 import {
-  activeRelease,
-  deploymentId,
-  environmentBackend,
-  environmentMode,
-  formatDate,
   isRuntimeEnvVarBinding,
   isRuntimeModelBinding,
   isRuntimePluginBinding,
-  releaseCommit,
-  releaseLabel,
   runtimeBindingSummary,
-} from '../../utils'
+} from '../../runtime-bindings'
 
 function InfoBlock({ title, children }: {
   title: string
@@ -67,7 +62,7 @@ export function DeploymentPanel({ row }: {
   row: RuntimeInstanceRow
 }) {
   const { t } = useTranslation('deployments')
-  const observed = activeRelease(row)
+  const observed = row.currentRelease
   const env = row.environment
   const endpoints = row.detail?.endpoints
   const detailBindings = row.detail?.bindings ?? []
@@ -79,7 +74,7 @@ export function DeploymentPanel({ row }: {
     <div className="border-t border-divider-subtle bg-background-default-subtle px-4 py-3">
       <div className="grid grid-cols-1 gap-3 xl:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
         <InfoBlock title={t('deployTab.panel.instanceInfo')}>
-          <InfoRow label={t('deployTab.panel.deploymentId')} value={deploymentId(row) || '—'} mono />
+          <InfoRow label={t('deployTab.panel.deploymentId')} value={row.id || '—'} mono />
           <InfoRow label={t('deployTab.panel.replicas')} value={row.detail?.replicas != null ? String(row.detail.replicas) : '—'} />
           <InfoRow label={t('deployTab.panel.runtimeMode')} value={row.detail?.runtimeMode ?? t(environmentMode(env) === 'isolated' ? 'mode.isolated' : 'mode.shared')} suffix={` / ${environmentBackend(env).toUpperCase()}`} />
           <InfoRow label={t('deployTab.panel.runtimeNote')} value={row.detail?.runtimeNote ?? row.status ?? '—'} />

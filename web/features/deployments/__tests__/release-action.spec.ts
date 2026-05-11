@@ -1,6 +1,6 @@
 import type { ConsoleRelease, ReleaseRow } from '@dify/contracts/enterprise/types.gen'
 import { describe, expect, it } from 'vitest'
-import { releaseDeploymentAction } from '../utils'
+import { releaseDeploymentAction } from '../release-action'
 
 function release(overrides: ReleaseRow): ReleaseRow {
   return overrides

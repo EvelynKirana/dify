@@ -2,12 +2,11 @@
 
 import type { RuntimeInstanceRow } from '@dify/contracts/enterprise/types.gen'
 import { useTranslation } from 'react-i18next'
+import { releaseLabel } from '../../release'
 import {
-  activeRelease,
   deploymentStatus,
   isUndeployedDeploymentRow,
-  releaseLabel,
-} from '../../utils'
+} from '../../runtime-status'
 
 export function DeploymentStatusSummary({ row }: {
   row: RuntimeInstanceRow
@@ -28,13 +27,13 @@ export function DeploymentStatusSummary({ row }: {
     return (
       <span className="inline-flex items-center gap-1.5 system-sm-medium text-util-colors-blue-blue-700">
         <span className="i-ri-loader-4-line size-3.5 animate-spin" />
-        {t('deployTab.status.deployingRelease', { release: releaseLabel(activeRelease(row)) })}
+        {t('deployTab.status.deployingRelease', { release: releaseLabel(row.currentRelease) })}
       </span>
     )
   }
 
   if (status === 'deploy_failed') {
-    const hasRunningRelease = !!activeRelease(row)?.id
+    const hasRunningRelease = !!row.currentRelease?.id
     return (
       <span className="inline-flex items-center gap-1.5 system-sm-medium text-util-colors-warning-warning-700">
         <span className="i-ri-alert-line size-3.5" />

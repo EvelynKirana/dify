@@ -1,7 +1,6 @@
 'use client'
 
-import type { DeploymentBindingOptionSlot, DeploymentRuntimeBinding, ReleaseRow } from '@dify/contracts/enterprise/types.gen'
-import type { EnvironmentOption } from '@/features/deployments/types'
+import type { DeploymentBindingOptionSlot, DeploymentEnvironmentOption, DeploymentRuntimeBinding, ReleaseRow } from '@dify/contracts/enterprise/types.gen'
 import { Button } from '@langgenius/dify-ui/button'
 import { DialogDescription, DialogTitle } from '@langgenius/dify-ui/dialog'
 import { toast } from '@langgenius/dify-ui/toast'
@@ -10,17 +9,11 @@ import { useSetAtom } from 'jotai'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { consoleQuery } from '@/service/client'
+import { environmentId, environmentMode, environmentName } from '../../environment'
+import { releaseCommit, releaseLabel } from '../../release'
+import { releaseDeploymentAction } from '../../release-action'
+import { isUndeployedDeploymentRow } from '../../runtime-status'
 import { closeDeployDrawerAtom } from '../../store'
-import {
-  activeRelease,
-  deployedRows,
-  environmentId,
-  environmentMode,
-  environmentName,
-  releaseCommit,
-  releaseDeploymentAction,
-  releaseLabel,
-} from '../../utils'
 import {
   DeploymentSelect,
   EnvironmentRow,
@@ -34,6 +27,10 @@ type DeployFormProps = {
   defaultReleaseId?: string
   lockedEnvId?: string
   presetReleaseId?: string
+}
+
+type EnvironmentOption = DeploymentEnvironmentOption & {
+  disabled?: boolean
 }
 
 type BindingSelections = Record<string, string>
@@ -235,11 +232,11 @@ export function DeployForm({
   const selectedRelease = releases.find(release => release.id === selectedReleaseId)
   const targetReleaseId = displayedRelease?.id ?? selectedRelease?.id ?? selectedReleaseId
   const targetRelease = displayedRelease ?? selectedRelease ?? (targetReleaseId ? { id: targetReleaseId } : undefined)
-  const deploymentRows = deployedRows(environmentDeployments?.data)
+  const deploymentRows = environmentDeployments?.data?.filter(row => Boolean(row.environment?.id) && !isUndeployedDeploymentRow(row)) ?? []
   const selectedDeploymentRow = deploymentRows.find(row => environmentId(row.environment) === selectedEnvironmentId)
   const action = releaseDeploymentAction({
     targetRelease,
-    currentRelease: activeRelease(selectedDeploymentRow),
+    currentRelease: selectedDeploymentRow?.currentRelease,
     releaseRows: releases,
     isExistingRelease,
   })

@@ -13,16 +13,10 @@ import { useSetAtom } from 'jotai'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { consoleQuery } from '@/service/client'
+import { environmentId, environmentName } from '../../environment'
+import { releaseDeploymentAction } from '../../release-action'
+import { deploymentStatus, isUndeployedDeploymentRow } from '../../runtime-status'
 import { openDeployDrawerAtom } from '../../store'
-import {
-  activeRelease,
-  deployedRows,
-  deploymentStatus,
-  environmentId,
-  environmentName,
-  environmentOptionsFromOptionsReply,
-  releaseDeploymentAction,
-} from '../../utils'
 
 export function DeployReleaseMenu({ appInstanceId, releaseId, releaseRows }: {
   appInstanceId: string
@@ -42,9 +36,14 @@ export function DeployReleaseMenu({ appInstanceId, releaseId, releaseRows }: {
     enabled: open,
   }))
 
-  const environmentOptions = environmentOptionsFromOptionsReply(environmentOptionsReply)
+  const environmentOptions = environmentOptionsReply?.environments
+    ?.filter(environment => environment.id)
+    .map(environment => ({
+      ...environment,
+      disabled: environment.deployable === false,
+    })) ?? []
   const environments = environmentOptions.filter(env => env.id)
-  const deploymentRows = deployedRows(environmentDeployments?.data)
+  const deploymentRows = environmentDeployments?.data?.filter(row => Boolean(row.environment?.id) && !isUndeployedDeploymentRow(row)) ?? []
   const targetRelease = releaseRows.find(release => release.id === releaseId) ?? { id: releaseId }
 
   return (
@@ -64,12 +63,13 @@ export function DeployReleaseMenu({ appInstanceId, releaseId, releaseRows }: {
           {environments.map((env) => {
             const envId = env.id!
             const row = deploymentRows.find(item => environmentId(item.environment) === envId)
-            const isCurrent = activeRelease(row)?.id === releaseId
+            const currentRelease = row?.currentRelease
+            const isCurrent = currentRelease?.id === releaseId
             const isEnvironmentDeploying = row ? deploymentStatus(row) === 'deploying' : false
             const disabled = Boolean(env.disabled || isCurrent || isEnvironmentDeploying)
             const action = releaseDeploymentAction({
               targetRelease,
-              currentRelease: activeRelease(row),
+              currentRelease,
               releaseRows,
               isExistingRelease: true,
             })

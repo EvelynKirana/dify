@@ -13,7 +13,6 @@ import {
   deployDrawerOpenAtom,
   deployDrawerReleaseIdAtom,
 } from '../store'
-import { environmentOptionsFromOptionsReply } from '../utils'
 import { DeployForm } from './deploy-drawer/form'
 
 export function DeployDrawer() {
@@ -39,7 +38,12 @@ export function DeployDrawer() {
     enabled: open,
   }))
 
-  const environments = environmentOptionsFromOptionsReply(environmentOptionsReply)
+  const environments = environmentOptionsReply?.environments
+    ?.filter(environment => environment.id)
+    .map(environment => ({
+      ...environment,
+      disabled: environment.deployable === false,
+    })) ?? []
   const releases = releaseHistory?.data?.filter(release => release.id) ?? []
   const defaultReleaseId = releases[0]?.id
   const formKey = `${drawerAppInstanceId ?? 'none'}-${drawerEnvironmentId ?? 'any'}-${drawerReleaseId ?? 'new'}-${open ? '1' : '0'}`

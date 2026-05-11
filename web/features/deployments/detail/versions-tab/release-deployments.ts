@@ -1,10 +1,6 @@
 import type { DeployedEnvironment, ReleaseRow, RuntimeInstanceRow } from '@dify/contracts/enterprise/types.gen'
-import {
-  activeRelease,
-  deploymentStatus,
-  environmentId,
-  environmentName,
-} from '../../utils'
+import { environmentId, environmentName } from '../../environment'
+import { deploymentStatus } from '../../runtime-status'
 
 export type ReleaseDeploymentState = 'active' | 'deploying' | 'failed'
 
@@ -52,7 +48,7 @@ export function getReleaseDeployments(row: ReleaseRow, deploymentRows: RuntimeIn
       return []
 
     const items: ReleaseDeployment[] = []
-    if (activeRelease(deployment)?.id === releaseId) {
+    if (deployment.currentRelease?.id === releaseId) {
       items.push({
         environmentId: envId,
         environmentName: environmentName(deployment.environment),

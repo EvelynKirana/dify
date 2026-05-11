@@ -1,6 +1,6 @@
 ---
 name: how-to-write-component
-description: React/TypeScript component style guide. Use when writing, refactoring, or reviewing React components, especially around props typing, state boundaries, shared local state with Jotai atoms, API types, query/mutation contracts, navigation, memoization, wrappers, and empty-state handling.
+description: React/TypeScript component style guide. Use when writing, refactoring, or reviewing React components, especially around abstraction choices, props typing, state boundaries, shared local state with Jotai atoms, API types, query/mutation contracts, navigation, memoization, wrappers, and empty-state handling.
 ---
 
 # How To Write A Component
@@ -12,6 +12,7 @@ Use this as the decision guide for React/TypeScript component structure. Existin
 - Search before adding UI, hooks, helpers, or styling patterns. Reuse existing base components, feature components, hooks, utilities, and design styles when they fit.
 - Group code by feature workflow, route, or ownership area: components, hooks, local types, query helpers, atoms, constants, and small utilities should live near the code that changes with them.
 - Promote code to shared only when multiple verticals need the same stable primitive. Otherwise keep it local and compose shared primitives inside the owning feature.
+- Prefer local code and purpose-named helpers over catch-all utility modules; inline cheap derived values when that is clearer.
 - Use Tailwind CSS v4.1+ rules via the `tailwind-css-rules` skill. Prefer v4 utilities, `gap`, `text-size/line-height`, `min-h-dvh`, and avoid deprecated utilities and `@apply`.
 
 ## Ownership
@@ -30,9 +31,9 @@ Use this as the decision guide for React/TypeScript component structure. Existin
 - Prefer `function` for top-level components and module helpers. Use arrow functions for local callbacks, handlers, and lambda-style APIs.
 - Prefer named exports. Use default exports only where the framework requires them, such as Next.js route files.
 - Type simple one-off props inline. Use a named `Props` type only when reused, exported, complex, or clearer.
-- Use API-generated or API-returned types at component boundaries. Keep small UI conversion helpers beside the component that needs them.
+- Use API-generated or API-returned types at component boundaries. Keep small UI conversion helpers and one-off UI extensions beside the component that needs them.
 - Name values by their domain role and backend API contract, and keep that name stable across the call chain, especially persistent IDs and route params. Normalize framework or route params at the boundary.
-- Keep fallback and invariant checks at the lowest component that already handles that state; callers should pass raw values through instead of duplicating checks.
+- Keep fallback and invariant checks at the lowest component that already handles that state; avoid defensive fallbacks that mask impossible states.
 
 ## Queries And Mutations
 

@@ -1,7 +1,10 @@
 'use client'
-import type { DeployStatus, EnvironmentHealth, EnvironmentMode } from '../types'
 import { cn } from '@langgenius/dify-ui/cn'
 import { useTranslation } from 'react-i18next'
+
+type DeployStatus = 'ready' | 'deploying' | 'deploy_failed'
+type EnvironmentMode = 'shared' | 'isolated'
+type EnvironmentHealth = 'ready' | 'degraded'
 
 const statusStyles: Record<DeployStatus, string> = {
   ready: 'border-util-colors-green-green-200 bg-util-colors-green-green-50 text-util-colors-green-green-700',

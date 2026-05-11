@@ -15,7 +15,7 @@ import AppIcon from '@/app/components/base/app-icon'
 import Divider from '@/app/components/base/divider'
 import { getKeyboardKeyCodeBySystem } from '@/app/components/workflow/utils'
 import useBreakpoints, { MediaType } from '@/hooks/use-breakpoints'
-import { toAppMode } from '../utils'
+import { toAppMode } from '../app-mode'
 
 type TabDef = {
   key: InstanceDetailTabKey

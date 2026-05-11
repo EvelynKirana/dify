@@ -15,19 +15,15 @@ import { useSetAtom } from 'jotai'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { consoleQuery } from '@/service/client'
-import { openDeployDrawerAtom } from '../../store'
 import {
-  activeRelease,
-  deploymentId,
-  deploymentStatus,
   environmentBackend,
   environmentId,
   environmentMode,
   environmentName,
-  isUndeployedDeploymentRow,
-  releaseCommit,
-  releaseLabel,
-} from '../../utils'
+} from '../../environment'
+import { releaseCommit, releaseLabel } from '../../release'
+import { deploymentStatus, isUndeployedDeploymentRow } from '../../runtime-status'
+import { openDeployDrawerAtom } from '../../store'
 import { DeploymentPanel } from './deployment-panel'
 import { DeploymentStatusSummary } from './deployment-status-summary'
 
@@ -47,7 +43,7 @@ function DeploymentRowActions({ appInstanceId, envId, row }: {
   const status = deploymentStatus(row)
 
   function handleRuntimeAction() {
-    const runtimeInstanceId = deploymentId(row)
+    const runtimeInstanceId = row.id ?? ''
     setMenuOpen(false)
 
     if (status === 'deploying') {
@@ -126,7 +122,7 @@ function DeploymentEnvironmentRow({ appInstanceId, row, isExpanded, onToggle }: 
   const { t } = useTranslation('deployments')
   const envId = environmentId(row.environment)
   const isUndeployed = isUndeployedDeploymentRow(row)
-  const release = activeRelease(row)
+  const release = row.currentRelease
   const chevron = !isUndeployed && (
     <span
       className={cn(

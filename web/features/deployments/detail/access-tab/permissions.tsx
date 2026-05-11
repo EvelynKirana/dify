@@ -7,7 +7,6 @@ import type {
   ConsoleEnvironment,
   EnvironmentAccessRow,
 } from '@dify/contracts/enterprise/types.gen'
-import type { AccessPermissionKind } from '../../types'
 import { cn } from '@langgenius/dify-ui/cn'
 import {
   DropdownMenu,
@@ -22,11 +21,26 @@ import { useDebounce } from 'ahooks'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { consoleQuery } from '@/service/client'
-import {
-  accessModeToPermissionKey,
-  environmentName,
-  permissionKeyToAccessMode,
-} from '../../utils'
+import { environmentName } from '../../environment'
+
+type AccessPermissionKind = 'organization' | 'specific' | 'anyone'
+
+function accessModeToPermissionKey(mode?: string): AccessPermissionKind {
+  const normalized = mode?.toLowerCase() ?? ''
+  if (normalized === 'private')
+    return 'specific'
+  if (normalized === 'public')
+    return 'anyone'
+  return 'organization'
+}
+
+function permissionKeyToAccessMode(key: AccessPermissionKind) {
+  if (key === 'organization')
+    return 'private_all'
+  if (key === 'specific')
+    return 'private'
+  return 'public'
+}
 
 const permissionIcon: Record<AccessPermissionKind, string> = {
   organization: 'i-ri-team-line',

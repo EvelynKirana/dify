@@ -1,5 +1,5 @@
 'use client'
-import type { EnvironmentOption } from '../types'
+import type { DeploymentEnvironmentOption } from '@dify/contracts/enterprise/types.gen'
 import { cn } from '@langgenius/dify-ui/cn'
 import {
   DropdownMenu,
@@ -12,14 +12,14 @@ import { useSetAtom } from 'jotai'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { consoleQuery } from '@/service/client'
+import { environmentId, environmentName } from '../environment'
+import { isUndeployedDeploymentRow } from '../runtime-status'
 import { openDeployDrawerAtom } from '../store'
-import {
-  deployedRows,
-  environmentId,
-  environmentName,
-  environmentOptionsFromOptionsReply,
-} from '../utils'
 import { DeploymentEnvironmentList } from './deploy-tab/deployment-environment-list'
+
+type EnvironmentOption = DeploymentEnvironmentOption & {
+  disabled?: boolean
+}
 
 function NewDeploymentMenu({ appInstanceId, availableEnvs }: {
   appInstanceId: string
@@ -91,9 +91,14 @@ export function DeployTab({ appInstanceId }: {
     },
   }))
   const { data: environmentOptionsReply } = useQuery(consoleQuery.enterprise.appDeploy.listDeploymentEnvironmentOptions.queryOptions())
-  const environmentOptions = environmentOptionsFromOptionsReply(environmentOptionsReply)
+  const environmentOptions = environmentOptionsReply?.environments
+    ?.filter(environment => environment.id)
+    .map(environment => ({
+      ...environment,
+      disabled: environment.deployable === false,
+    })) ?? []
   const rows = environmentDeployments?.data?.filter(row => row.environment?.id) ?? []
-  const deployedRuntimeRows = deployedRows(environmentDeployments?.data)
+  const deployedRuntimeRows = rows.filter(row => !isUndeployedDeploymentRow(row))
 
   const deployedEnvIds = new Set(deployedRuntimeRows.map(row => environmentId(row.environment)))
   const availableEnvs = environmentOptions.filter(env => env.id && !deployedEnvIds.has(env.id))

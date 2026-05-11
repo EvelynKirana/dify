@@ -9,11 +9,11 @@ import { useTranslation } from 'react-i18next'
 import { consoleQuery } from '@/service/client'
 import { DEPLOYMENT_PAGE_SIZE } from '../../data'
 import {
-  deployedRows,
   formatDate,
   releaseCommit,
   releaseLabel,
-} from '../../utils'
+} from '../../release'
+import { isUndeployedDeploymentRow } from '../../runtime-status'
 import { DeployReleaseMenu } from './deploy-release-menu'
 import { DeployedToBadge } from './deployed-to-badge'
 import { getReleaseDeployments } from './release-deployments'
@@ -174,7 +174,7 @@ export function ReleaseHistoryTable({ appInstanceId }: {
     || (releaseRows.length === 0 && overviewQuery.isLoading)
     || (shouldLoadRuntimeInstances && environmentDeploymentsQuery.isLoading)
   const sourceAppUnavailable = overviewQuery.data?.instance?.canCreateRelease === false
-  const deploymentRows = deployedRows(environmentDeploymentsQuery.data?.data)
+  const deploymentRows = environmentDeploymentsQuery.data?.data?.filter(row => Boolean(row.environment?.id) && !isUndeployedDeploymentRow(row)) ?? []
 
   if (isLoading) {
     return (
