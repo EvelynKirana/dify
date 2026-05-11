@@ -128,6 +128,20 @@ describe('TagSelector', () => {
     expect(screen.getByRole('option', { name: /Backend/i })).toBeInTheDocument()
   })
 
+  it('reports active state when the popup opens and closes', async () => {
+    const user = userEvent.setup()
+    const onActiveChange = vi.fn()
+    render(<TagSelector {...defaultProps} onActiveChange={onActiveChange} />)
+
+    const trigger = screen.getByRole('combobox', { name: /Frontend/i })
+    await user.click(trigger)
+    await screen.findByRole('combobox', { name: i18n.selectorPlaceholder })
+    await user.click(trigger)
+
+    expect(onActiveChange).toHaveBeenNthCalledWith(1, true)
+    expect(onActiveChange).toHaveBeenNthCalledWith(2, false)
+  })
+
   it('applies added tags only when the popup closes', async () => {
     const user = userEvent.setup()
     render(<TagSelector {...defaultProps} />)

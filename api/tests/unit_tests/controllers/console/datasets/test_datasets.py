@@ -9,6 +9,7 @@ import services
 from controllers.console import console_ns
 from controllers.console.app.error import ProviderNotInitializeError
 from controllers.console.datasets.datasets import (
+    ConsoleDatasetListQuery,
     DatasetApi,
     DatasetApiBaseUrlApi,
     DatasetApiDeleteApi,
@@ -163,6 +164,11 @@ class TestDatasetList:
         get_datasets_mock.assert_called_once()
         assert get_datasets_mock.call_args.kwargs["tag_names"] == ["Finance", "Support"]
         assert status == 200
+
+    def test_query_model_trims_empty_tag_names(self):
+        query = ConsoleDatasetListQuery.model_validate({"tag_names": ["", " Finance ", "Support", "   "]})
+
+        assert query.tag_names == ["Finance", "Support"]
 
     def test_embedding_available_false(self, app: Flask):
         api = DatasetListApi()

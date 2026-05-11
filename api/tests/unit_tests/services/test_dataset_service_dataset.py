@@ -15,6 +15,7 @@ from .dataset_service_test_helpers import (
     ProviderTokenNotInitError,
     RagPipelineDatasetCreateEntity,
     SimpleNamespace,
+    TenantAccountRole,
     _make_knowledge_configuration,
     _make_retrieval_model,
     _make_session_context,
@@ -22,6 +23,60 @@ from .dataset_service_test_helpers import (
     patch,
     pytest,
 )
+
+
+class TestDatasetServiceList:
+    """Unit tests for dataset list filtering."""
+
+    def test_get_datasets_filters_by_tag_names(self):
+        dataset = DatasetServiceUnitDataFactory.create_dataset_mock(dataset_id="dataset-1")
+        user = SimpleNamespace(id="user-1", current_role=TenantAccountRole.OWNER)
+
+        with (
+            patch("services.dataset_service.db") as mock_db,
+            patch(
+                "services.dataset_service.TagService.get_target_ids_by_tag_names",
+                return_value=["dataset-1"],
+            ) as tag_mock,
+        ):
+            mock_db.session.scalars.return_value.all.return_value = []
+            mock_db.paginate.return_value = SimpleNamespace(items=[dataset], total=1)
+
+            datasets, total = DatasetService.get_datasets(
+                page=1,
+                per_page=20,
+                tenant_id="tenant-1",
+                user=user,
+                include_all=True,
+                tag_names=["Finance", "Support"],
+            )
+
+        assert datasets == [dataset]
+        assert total == 1
+        tag_mock.assert_called_once_with("knowledge", "tenant-1", ["Finance", "Support"])
+        mock_db.paginate.assert_called_once()
+
+    def test_get_datasets_returns_empty_when_tag_names_match_no_targets(self):
+        user = SimpleNamespace(id="user-1", current_role=TenantAccountRole.OWNER)
+
+        with (
+            patch("services.dataset_service.db") as mock_db,
+            patch("services.dataset_service.TagService.get_target_ids_by_tag_names", return_value=[]),
+        ):
+            mock_db.session.scalars.return_value.all.return_value = []
+
+            datasets, total = DatasetService.get_datasets(
+                page=1,
+                per_page=20,
+                tenant_id="tenant-1",
+                user=user,
+                include_all=True,
+                tag_names=["Unknown"],
+            )
+
+        assert datasets == []
+        assert total == 0
+        mock_db.paginate.assert_not_called()
 
 
 class TestDatasetServiceValidation:
