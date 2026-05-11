@@ -70,7 +70,7 @@ class AccountWithRole(_AccountAvatar):
     last_active_at: int | None = None
     created_at: int | None = None
     role: str
-    roles: list[str] = Field(default_factory=list)
+    roles: list[dict[str, str]] = Field(default_factory=list)
     status: str
 
     @field_validator("last_login_at", "last_active_at", "created_at", mode="before")

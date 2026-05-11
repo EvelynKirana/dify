@@ -61,7 +61,7 @@ class TestMemberListApi:
         assert status == 200
         assert len(result["accounts"]) == 1
         assert result["accounts"][0]["role"] == "admin"
-        assert result["accounts"][0]["roles"] == ["admin"]
+        assert result["accounts"][0]["roles"] == [{"id": "admin", "name": "admin"}]
 
     def test_get_with_rbac_enabled_fetches_roles_in_batch(self, app):
         api = MemberListApi()
@@ -82,7 +82,10 @@ class TestMemberListApi:
         )
         role_item = SimpleNamespace(
             account_id="m1",
-            roles=[SimpleNamespace(id="workspace.owner"), SimpleNamespace(id="workspace.editor")],
+            roles=[
+                SimpleNamespace(id="workspace.owner", name="Owner"),
+                SimpleNamespace(id="workspace.editor", name="Editor"),
+            ],
         )
 
         with (
@@ -99,7 +102,10 @@ class TestMemberListApi:
 
         assert status == 200
         assert result["accounts"][0]["role"] == "editor"
-        assert result["accounts"][0]["roles"] == ["workspace.owner", "workspace.editor"]
+        assert result["accounts"][0]["roles"] == [
+            {"id": "workspace.owner", "name": "Owner"},
+            {"id": "workspace.editor", "name": "Editor"},
+        ]
         mock_batch_get.assert_called_once_with("tenant-1", "acct-1", ["m1"])
 
     def test_get_no_tenant(self, app: Flask):

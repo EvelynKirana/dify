@@ -73,11 +73,11 @@ register_enum_models(console_ns, TenantAccountRole)
 register_schema_models(console_ns, AccountWithRole, AccountWithRoleList)
 
 
-def _serialize_member_roles(current_role: str | None, member_role_ids: list[str]) -> list[str]:
-    if member_role_ids:
-        return member_role_ids
+def _serialize_member_roles(current_role: str | None, member_roles: list[enterprise_rbac_service.MemberRoleSummary]) -> list[dict[str, str]]:
+    if member_roles:
+        return [{"id": role.id, "name": role.name} for role in member_roles]
     if current_role:
-        return [current_role]
+        return [{"id": current_role, "name": current_role}]
     return []
 
 
@@ -106,7 +106,7 @@ class MemberListApi(Resource):
                 current_user.id,
                 member_ids,
             )
-            roles_map = {item.account_id: [role.id for role in item.roles] for item in member_roles}
+            roles_map = {item.account_id: item.roles for item in member_roles}
         else:
             roles_map = {}
 
