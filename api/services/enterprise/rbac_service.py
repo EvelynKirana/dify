@@ -916,7 +916,7 @@ class RBACService:
             policy_id: str,
             payload: ReplaceBindings,
         ) -> AccessMatrixItem:
-            logger.info(f"replace app bindings {policy_id} {payload}")
+            logger.info(f"replace app bindings {_INNER_PREFIX}/workspace/apps/access-policy/bindings {policy_id} {payload}")
             data = _inner_call(
                 "PUT",
                 f"{_INNER_PREFIX}/workspace/apps/access-policy/bindings",

@@ -66,7 +66,7 @@ class BaseRequest:
                     continue
                 headers[key] = value
         url = f"{cls.base_url}{endpoint}"
-        mounts = cls._build_mounts()
+        # mounts = cls._build_mounts()
 
         try:
             # ensure traceparent even when OTEL is disabled
@@ -76,7 +76,7 @@ class BaseRequest:
         except Exception:
             logger.debug("Failed to generate traceparent header", exc_info=True)
 
-        with httpx.Client(mounts=mounts) as client:
+        with httpx.Client() as client:
             # IMPORTANT:
             # - In httpx, passing timeout=None disables timeouts (infinite) and overrides the library default.
             # - To preserve httpx's default timeout behavior for existing call sites, only pass the kwarg when set.
