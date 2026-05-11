@@ -142,6 +142,26 @@ describe('variable-in-markdown', () => {
       expect(screen.getByText('Approved')).toBeInTheDocument()
     })
 
+    it('should render variable source information for dynamic select inputs', () => {
+      render(
+        <Note
+          input={{
+            type: InputVarType.select,
+            output_variable_name: 'approval',
+            option_source: {
+              type: 'variable',
+              selector: ['node-1', 'options'],
+              value: [],
+            },
+          }}
+          nodeName={nodeId => nodeId === 'node-1' ? 'Start Node' : nodeId}
+        />,
+      )
+
+      expect(screen.getByTestId('human-input-note-select-preview')).toBeInTheDocument()
+      expect(screen.getByText('{{Start Node/options}}')).toBeInTheDocument()
+    })
+
     it('should open the select preview and show option items', async () => {
       const user = userEvent.setup()
 
