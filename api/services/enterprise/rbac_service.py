@@ -128,12 +128,12 @@ class AccessPolicyMemberBinding(_RBACModel):
 
 class AccessMatrixItem(_RBACModel):
     policy: AccessPolicy | None = None
-    role_ids: list[str] = Field(default_factory=list)
-    account_ids: list[str] = Field(default_factory=list)
+    roles: list[dict[str, Any]] = Field(default_factory=list)
+    accounts: list[dict[str, Any]] = Field(default_factory=list)
 
     @field_validator("role_ids", "account_ids", mode="before")
     @classmethod
-    def _coerce_empty_lists(cls, value: Any) -> list[str]:
+    def _coerce_empty_lists(cls, value: Any) -> list[dict[str, Any]]:
         if value is None:
             return []
         return value
