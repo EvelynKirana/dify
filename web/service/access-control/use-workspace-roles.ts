@@ -59,3 +59,16 @@ export const useDeleteWorkspaceRole = () => {
     },
   })
 }
+
+export const useCopyWorkspaceRole = () => {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationKey: [NAME_SPACE, 'copy-workspace-role'],
+    mutationFn: (id: string) =>
+      post<Role>(`/workspaces/current/rbac/roles/${id}/copy`),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [NAME_SPACE, 'workspace-role-list'] })
+    },
+  })
+}

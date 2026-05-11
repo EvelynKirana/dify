@@ -10,7 +10,7 @@ import {
 import { toast } from '@langgenius/dify-ui/toast'
 import { useCallback, useState } from 'react'
 import ActionButton from '@/app/components/base/action-button'
-import { useDeleteWorkspaceRole } from '@/service/access-control/use-workspace-roles'
+import { useCopyWorkspaceRole, useDeleteWorkspaceRole } from '@/service/access-control/use-workspace-roles'
 
 type RowMenuProps = {
   roleCategory: RoleCategory
@@ -27,15 +27,22 @@ const RowMenu = ({
 }: RowMenuProps) => {
   const [open, setOpen] = useState(false)
 
-  const { mutateAsync: deleteRole } = useDeleteWorkspaceRole()
-
   const handleView = useCallback(() => onView?.(role), [onView, role])
 
   const handleEdit = useCallback(() => onEdit?.(role), [onEdit, role])
 
+  const { mutateAsync: copyRole } = useCopyWorkspaceRole()
+
   const handleDuplicate = useCallback(() => {
-    // TODO: wire up to API when backend is ready
-  }, [])
+    copyRole(role.id, {
+      onSuccess: () => {
+        toast.success('Role duplicated successfully')
+        setOpen(false)
+      },
+    })
+  }, [copyRole, role.id])
+
+  const { mutateAsync: deleteRole } = useDeleteWorkspaceRole()
 
   const handleDelete = useCallback(() => {
     deleteRole(role.id, {
