@@ -66,6 +66,7 @@ class BaseRequest:
                     continue
                 headers[key] = value
         url = f"{cls.base_url}{endpoint}"
+        logger.info(f"Sending request to {url}")
         # mounts = cls._build_mounts()
 
         try:
