@@ -312,7 +312,7 @@ class TestMyPermissions:
     def test_get_without_payload_uses_get(self, mock_send: MagicMock):
         mock_send.return_value = {
             "workspace": {"permission_keys": ["workspace.member.manage"]},
-            "app": {"default_permission_keys": ["app.acl.test_and_run"], "overrides": []},
+            "app": {"default_permission_keys": ["app.acl.view_layout", "app.acl.test_and_run"], "overrides": []},
             "dataset": {"default_permission_keys": [], "overrides": []},
         }
 
@@ -378,8 +378,8 @@ class TestMemberRoles:
                 {
                     "account_id": "acct-2",
                     "roles": [
-                        {"id": "role-1", "type": "workspace", "name": "Admin"},
-                        {"id": "role-2", "type": "workspace", "name": "Editor"},
+                        {"id": "role-1", "name": "Admin"},
+                        {"id": "role-2", "name": "Editor"},
                     ],
                 },
                 {

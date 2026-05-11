@@ -74,6 +74,11 @@ class RBACRole(_RBACModel):
         return value
 
 
+class MemberRoleSummary(_RBACModel):
+    id: str
+    name: str
+
+
 class AccessPolicy(_RBACModel):
     id: str
     tenant_id: str = ""
@@ -146,7 +151,7 @@ class MemberBindingsResponse(_RBACModel):
 
 class MemberRolesResponse(_RBACModel):
     account_id: str
-    roles: list[RBACRole] = Field(default_factory=list)
+    roles: list[MemberRoleSummary] = Field(default_factory=list)
 
 
 class MemberRolesBatchResponse(_RBACModel):

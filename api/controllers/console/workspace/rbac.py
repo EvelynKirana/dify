@@ -16,34 +16,24 @@ from services.enterprise import rbac_service as svc
 
 
 _LEGACY_WORKSPACE_PERMISSION_KEYS: list[str] = [
-    "inviteMembers",
-    "removeMembers",
-    "assignRoles",
-    "workspaceSettings",
-    "manageBilling",
-    "transferOwnership",
+    # These keys are copied from the enterprise RBAC catalog examples in
+    # `dify-rbac.md` so the legacy workspace roles stay in the same key format
+    # as the enterprise RBAC surface.
+    "workspace.member.manage",
+    "workspace.role.manage",
 ]
 
 _LEGACY_APP_PERMISSION_KEYS: list[str] = [
-    "createApps",
-    "editApps",
-    "useApps",
+    "app.acl.view_layout",
+    "app.acl.test_and_run",
+    "app.acl.edit",
+    "app.acl.access_config",
 ]
 
 _LEGACY_DATASET_PERMISSION_KEYS: list[str] = [
-    "createDatasets",
-    "editDatasets",
-    "manageDatasets",
-]
-
-_LEGACY_ENTERPRISE_PERMISSION_KEYS: list[str] = [
-    "workspace.member.manage",
-    "workspace.settings.manage",
-    "workspace.billing.manage",
-    "workspace.owner.transfer",
-    "app.acl.edit",
-    "app.acl.test_and_run",
+    "dataset.acl.readonly",
     "dataset.acl.edit",
+    "dataset.acl.use",
 ]
 
 _LEGACY_ROLE_PERMISSION_KEYS: dict[str, list[str]] = {
@@ -55,45 +45,22 @@ _LEGACY_ROLE_PERMISSION_KEYS: dict[str, list[str]] = {
         *_LEGACY_WORKSPACE_PERMISSION_KEYS,
         *_LEGACY_APP_PERMISSION_KEYS,
         *_LEGACY_DATASET_PERMISSION_KEYS,
-        *_LEGACY_ENTERPRISE_PERMISSION_KEYS,
     ],
     "admin": [
-        "inviteMembers",
-        "removeMembers",
-        "assignRoles",
-        "workspaceSettings",
-        "manageBilling",
-        "workspace.member.manage",
-        "workspace.settings.manage",
-        "workspace.billing.manage",
-        "app.acl.edit",
-        "app.acl.test_and_run",
-        "dataset.acl.edit",
-        "createApps",
-        "editApps",
-        "useApps",
-        "createDatasets",
-        "editDatasets",
-        "manageDatasets",
+        *_LEGACY_WORKSPACE_PERMISSION_KEYS,
+        *_LEGACY_APP_PERMISSION_KEYS,
+        *_LEGACY_DATASET_PERMISSION_KEYS,
     ],
     "editor": [
-        "createApps",
-        "editApps",
-        "useApps",
-        "createDatasets",
-        "editDatasets",
-        "workspace.member.manage",
-        "app.acl.edit",
-        "app.acl.test_and_run",
-        "dataset.acl.edit",
+        *_LEGACY_APP_PERMISSION_KEYS,
+        *_LEGACY_DATASET_PERMISSION_KEYS,
     ],
     "normal": [
-        "useApps",
+        "app.acl.view_layout",
         "app.acl.test_and_run",
     ],
     "dataset_operator": [
-        "manageDatasets",
-        "dataset.acl.edit",
+        *_LEGACY_DATASET_PERMISSION_KEYS,
     ],
 }
 
