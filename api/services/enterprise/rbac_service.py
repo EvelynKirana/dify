@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import logging
+
 from enum import StrEnum
 from typing import Any, Generic, TypeVar
 
@@ -12,6 +14,8 @@ from models import TenantAccountJoin, TenantAccountRole
 from services.enterprise.base import EnterpriseRequest
 
 T = TypeVar("T")
+
+logger = logging.getLogger(__name__)
 
 
 class _RBACModel(BaseModel):
@@ -693,6 +697,7 @@ class RBACService:
             policy_id: str,
             payload: ReplaceBindings,
         ) -> AccessMatrixItem:
+            logger.info(f"replace bindings {policy_id} {payload}")
             data = _inner_call(
                 "PUT",
                 f"{_INNER_PREFIX}/apps/access-policy/bindings",
