@@ -4,9 +4,10 @@ import { describe, expect, it, vi } from 'vitest'
 import { DatasetCardTags } from '../components/dataset-card-tags'
 
 vi.mock('@/features/tag-management/components/tag-selector', () => ({
-  TagSelector: ({ value, onOpenTagManagement }: {
+  TagSelector: ({ value, onManageTags, onActiveChange }: {
     value: Tag[]
-    onOpenTagManagement?: () => void
+    onManageTags?: () => void
+    onActiveChange?: (active: boolean) => void
   }) => (
     <div role="group" aria-label="Tag selector mock">
       <div>{value.map(tag => tag.id).join(',')}</div>
@@ -15,9 +16,11 @@ vi.mock('@/features/tag-management/components/tag-selector', () => ({
         {' '}
         tags
       </div>
-      <button onClick={onOpenTagManagement}>
+      <button onClick={onManageTags}>
         Open Management
       </button>
+      <button onClick={() => onActiveChange?.(true)}>Open Selector</button>
+      <button onClick={() => onActiveChange?.(false)}>Close Selector</button>
     </div>
   ),
 }))
@@ -108,13 +111,28 @@ describe('DatasetCardTags', () => {
       expect(wrapper).not.toHaveClass('opacity-30')
     })
 
-    it('should hide mask with CSS when the tag area is hovered', () => {
+    it('should hide mask with CSS when the tag area is hovered or selector is open', () => {
       const { container } = render(<DatasetCardTags {...defaultProps} />)
       const maskDiv = container.querySelector('.bg-tag-selector-mask-bg')
       expect(maskDiv).toBeInTheDocument()
       expect(maskDiv).toHaveClass('group-hover/tag-area:hidden')
-      expect(maskDiv).toHaveClass('group-focus-within/tag-area:hidden')
+      expect(maskDiv).toHaveClass('group-data-open/tag-area:hidden')
       expect(maskDiv).toHaveClass('group-hover:bg-tag-selector-mask-hover-bg')
+    })
+
+    it('should mark the tag area as open only while the selector is open', () => {
+      const { container } = render(<DatasetCardTags {...defaultProps} />)
+      const wrapper = container.firstElementChild
+      if (!wrapper)
+        throw new Error('Expected dataset card tag wrapper')
+
+      expect(wrapper).not.toHaveAttribute('data-open')
+
+      fireEvent.click(screen.getByText('Open Selector'))
+      expect(wrapper).toHaveAttribute('data-open', '')
+
+      fireEvent.click(screen.getByText('Close Selector'))
+      expect(wrapper).not.toHaveAttribute('data-open')
     })
 
     it('should keep TagSelector visible when tags are empty', () => {

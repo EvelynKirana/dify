@@ -43,7 +43,8 @@ type TagSelectorProps = TagSelectorRootProps & TagSelectorContentProps & {
   targetId: string
   type: TagType
   value: Tag[]
-  onOpenTagManagement?: () => void
+  onManageTags?: () => void
+  onActiveChange?: (active: boolean) => void
   onTagsChange?: () => void
 }
 
@@ -51,7 +52,8 @@ export const TagSelector = ({
   targetId,
   type,
   value,
-  onOpenTagManagement = () => {},
+  onManageTags = () => {},
+  onActiveChange,
   onTagsChange,
   placement = 'bottom-start',
   sideOffset = 4,
@@ -164,7 +166,8 @@ export const TagSelector = ({
     }
 
     setOpen(nextOpen)
-  }, [applyTagBindings, value])
+    onActiveChange?.(nextOpen)
+  }, [applyTagBindings, onActiveChange, value])
 
   const createNewTag = useCallback((name: string) => {
     if (!name || isCreatingTag)
@@ -234,7 +237,7 @@ export const TagSelector = ({
           type={type}
           inputValue={inputValue}
           onInputValueChange={setInputValue}
-          onOpenTagManagement={onOpenTagManagement}
+          onOpenTagManagement={onManageTags}
           onClose={() => handleOpenChange(false)}
         />
       </ComboboxContent>
