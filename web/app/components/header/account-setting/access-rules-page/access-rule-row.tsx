@@ -1,10 +1,13 @@
 'use client'
 
-import type { AccessPolicyWithBindings } from '@/models/access-control'
+import type { AccessPolicyWithBindings, BindingType } from '@/models/access-control'
 import { cn } from '@langgenius/dify-ui/cn'
 import { toast } from '@langgenius/dify-ui/toast'
 import { memo, useCallback } from 'react'
-import { useUpdateAppAccessRuleBindings, useUpdateDatasetAccessRuleBindings } from '@/service/access-control/use-workspace-access-rules'
+import {
+  useUpdateAppAccessRuleBindings,
+  useUpdateDatasetAccessRuleBindings,
+} from '@/service/access-control/use-workspace-access-rules'
 import AccessRuleRowMenu from './access-rule-row-menu'
 import RoleTag from './role-tag'
 
@@ -23,7 +26,8 @@ const AccessRuleRow = ({
   onEdit,
   onAddRole,
 }: AccessRuleRowProps) => {
-  const { policy, role_ids } = rule
+  const { policy, role_ids, account_ids } = rule
+  const { id: policyId, resource_type } = policy
 
   const handleEdit = useCallback(() => onEdit?.(rule), [onEdit, rule])
   const handleAddRole = useCallback(() => onAddRole?.(rule), [onAddRole, rule])
@@ -31,27 +35,33 @@ const AccessRuleRow = ({
   const { mutateAsync: updateAppAccessRuleBindings } = useUpdateAppAccessRuleBindings()
   const { mutateAsync: updateDatasetAccessRuleBindings } = useUpdateDatasetAccessRuleBindings()
 
-  const handleRemoveRole = useCallback((roleId: string) => {
+  const handleRemoveRole = useCallback((id: string, type: BindingType) => {
     const payload = {
-      id: policy.id,
-      role_ids: role_ids.filter(id => id !== roleId),
-      account_ids: [],
+      id: policyId,
+      role_ids: role_ids.map(role => role.id),
+      account_ids: account_ids.map(account => account.id),
     }
-    if (policy.resource_type === 'app') {
+    if (type === 'role') {
+      payload.role_ids = payload.role_ids.filter(roleId => roleId !== id)
+    }
+    else if (type === 'account') {
+      payload.account_ids = payload.account_ids.filter(accountId => accountId !== id)
+    }
+    if (resource_type === 'app') {
       updateAppAccessRuleBindings(payload, {
         onSuccess: () => {
           toast.success('Access rule updated successfully')
         },
       })
     }
-    else if (policy.resource_type === 'dataset') {
+    else if (resource_type === 'dataset') {
       updateDatasetAccessRuleBindings(payload, {
         onSuccess: () => {
           toast.success('Access rule updated successfully')
         },
       })
     }
-  }, [policy.id, policy.resource_type, role_ids, updateAppAccessRuleBindings, updateDatasetAccessRuleBindings])
+  }, [account_ids, policyId, resource_type, role_ids, updateAppAccessRuleBindings, updateDatasetAccessRuleBindings])
 
   return (
     <div className={cn('flex items-start gap-2 py-3.5', className)}>
@@ -65,9 +75,19 @@ const AccessRuleRow = ({
         <div className="mt-2 flex flex-wrap items-center gap-1.5">
           {role_ids.map(role => (
             <RoleTag
-              key={role}
-              id={role}
-              label={role}
+              key={role.id}
+              id={role.id}
+              label={role.name}
+              type="role"
+              onRemove={handleRemoveRole}
+            />
+          ))}
+          {account_ids.map(account => (
+            <RoleTag
+              key={account.id}
+              id={account.id}
+              label={account.name}
+              type="account"
               onRemove={handleRemoveRole}
             />
           ))}

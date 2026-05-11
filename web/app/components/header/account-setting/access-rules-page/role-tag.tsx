@@ -1,18 +1,21 @@
 'use client'
 
+import type { BindingType } from '@/models/access-control'
 import { cn } from '@langgenius/dify-ui/cn'
 import { memo } from 'react'
 
 export type RoleTagProps = {
   id: string
   label: string
-  onRemove?: (id: string) => void
+  type: BindingType
+  onRemove?: (id: string, type: BindingType) => void
   className?: string
 }
 
 const RoleTag = ({
   id,
   label,
+  type,
   onRemove,
   className,
 }: RoleTagProps) => {
@@ -31,7 +34,7 @@ const RoleTag = ({
           aria-label={`Remove ${label}`}
           onClick={(e) => {
             e.stopPropagation()
-            onRemove(id)
+            onRemove(id, type)
           }}
           className="flex h-4 w-4 items-center justify-center rounded text-text-tertiary hover:bg-state-base-hover hover:text-text-secondary"
         >

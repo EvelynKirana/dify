@@ -1,7 +1,8 @@
 import type {
   AccessPolicy,
   AccessPolicyResourceType,
-  Bindings,
+  AccessPolicyWithBindings,
+  BindingsPayload,
   CreateAccessPolicyRequest,
   GetAppAccessPoliciesResponse,
   GetDatasetAccessPoliciesResponse,
@@ -107,9 +108,9 @@ export const useUpdateAppAccessRuleBindings = () => {
 
   return useMutation({
     mutationKey: [NAME_SPACE, 'update-app-bindings'],
-    mutationFn: (data: Bindings & { id: string }) => {
+    mutationFn: (data: BindingsPayload & { id: string }) => {
       const { id, ...rest } = data
-      return put(`/workspaces/current/rbac/workspace/apps/access-policies/${id}/bindings`, {
+      return put<AccessPolicyWithBindings>(`/workspaces/current/rbac/workspace/apps/access-policies/${id}/bindings`, {
         body: {
           ...rest,
         },
@@ -126,9 +127,9 @@ export const useUpdateDatasetAccessRuleBindings = () => {
 
   return useMutation({
     mutationKey: [NAME_SPACE, 'update-dataset-bindings'],
-    mutationFn: (data: Bindings & { id: string }) => {
+    mutationFn: (data: BindingsPayload & { id: string }) => {
       const { id, ...rest } = data
-      return put(`/workspaces/current/rbac/workspace/datasets/access-policies/${id}/bindings`, {
+      return put<AccessPolicyWithBindings>(`/workspaces/current/rbac/workspace/datasets/access-policies/${id}/bindings`, {
         body: {
           ...rest,
         },

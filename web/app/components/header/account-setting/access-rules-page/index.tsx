@@ -130,10 +130,9 @@ const AccessRulesPage = () => {
       </div>
       {addingRule && (
         <AddRuleTargetsModal
-          open
           ruleName={addingRule.policy.name}
-          initialRoleIds={addingRule.role_ids}
-          initialMemberIds={[]}
+          initialRoleIds={addingRule.role_ids.map(role => role.id)}
+          initialMemberIds={addingRule.account_ids.map(account => account.id)}
           onClose={closeAddModal}
           onSubmit={handleAddSubmit}
         />

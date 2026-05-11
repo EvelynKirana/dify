@@ -35,9 +35,7 @@ type AddRuleTargetsModalBaseProps = {
   onSubmit: (selection: { roleIds: string[], memberIds: string[] }) => void
 }
 
-export type AddRuleTargetsModalProps = AddRuleTargetsModalBaseProps & {
-  open: boolean
-}
+export type AddRuleTargetsModalProps = AddRuleTargetsModalBaseProps
 
 const TABS: Array<{ key: TabKey, label: string }> = [
   { key: 'roles', label: 'ROLES' },
@@ -237,11 +235,9 @@ const AddRuleTargetsModalBody = ({
                               <div className="system-sm-semibold text-text-secondary">
                                 {role.name}
                               </div>
-                              {role.description && (
-                                <div className="mt-0.5 system-xs-regular text-text-tertiary">
-                                  {role.description}
-                                </div>
-                              )}
+                              <div className="mt-0.5 system-xs-regular text-text-tertiary">
+                                {role.description || 'No description'}
+                              </div>
                             </div>
                           </div>
                         </li>
@@ -330,7 +326,6 @@ const AddRuleTargetsModalBody = ({
 }
 
 const AddRuleTargetsModal = ({
-  open,
   ruleName,
   initialRoleIds,
   initialMemberIds,
@@ -339,7 +334,7 @@ const AddRuleTargetsModal = ({
 }: AddRuleTargetsModalProps) => {
   return (
     <Dialog
-      open={open}
+      open
       onOpenChange={(nextOpen) => {
         if (!nextOpen)
           onClose()

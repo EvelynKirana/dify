@@ -128,7 +128,20 @@ export type UpdateAccessPolicyRequest = {
   permission_keys?: PermissionKey[]
 }
 
+export type BindingType = 'role' | 'account'
+
 export type Bindings = {
+  role_ids: Array<{
+    id: string
+    name: string
+  }>
+  account_ids: Array<{
+    id: string
+    name: string
+  }>
+}
+
+export type BindingsPayload = {
   role_ids: string[]
   account_ids: string[]
 }
