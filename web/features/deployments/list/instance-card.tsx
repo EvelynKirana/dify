@@ -17,7 +17,7 @@ import { useFormatTimeFromNow } from '@/hooks/use-format-time-from-now'
 import Link from '@/next/link'
 import { toAppMode } from '../utils'
 
-const INSTANCE_CARD_MENU_TAB_KEYS = ['deploy', 'versions', 'access', 'settings'] satisfies InstanceDetailTabKey[]
+const INSTANCE_CARD_MENU_TAB_KEYS = ['deploy', 'versions', 'settings'] satisfies InstanceDetailTabKey[]
 
 function getInstanceTabHref(appInstanceId: string, tabKey: InstanceDetailTabKey) {
   return `/deployments/${appInstanceId}/${tabKey}`

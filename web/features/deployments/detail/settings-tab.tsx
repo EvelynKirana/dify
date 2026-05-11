@@ -17,6 +17,9 @@ import { useTranslation } from 'react-i18next'
 import { useRouter } from '@/next/navigation'
 import { consoleQuery } from '@/service/client'
 import { deployedRows } from '../utils'
+import { AccessChannelsSection } from './access-tab/channels-section'
+import { DeveloperApiSection } from './access-tab/developer-api-section'
+import { AccessPermissionsSection } from './access-tab/permissions-section'
 
 type SettingsFormProps = {
   app: AppInstanceBasicInfo
@@ -276,7 +279,10 @@ export function SettingsTab({ appInstanceId }: {
   appInstanceId: string
 }) {
   return (
-    <div className="flex max-w-160 flex-col gap-5 p-6">
+    <div className="flex w-full max-w-240 flex-col gap-5 p-6">
+      <AccessPermissionsSection appInstanceId={appInstanceId} />
+      <AccessChannelsSection appInstanceId={appInstanceId} />
+      <DeveloperApiSection appInstanceId={appInstanceId} />
       <SettingsFormSection appInstanceId={appInstanceId} />
       <DeleteInstanceControlSection appInstanceId={appInstanceId} />
     </div>

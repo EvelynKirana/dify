@@ -219,7 +219,7 @@ function AccessStatusSection({ appInstanceId }: {
     <Section
       title={t('overview.accessStatus')}
       action={(
-        <Button nativeButton={false} size="small" variant="secondary" render={<Link href={`/deployments/${appInstanceId}/access`} />}>
+        <Button nativeButton={false} size="small" variant="secondary" render={<Link href={`/deployments/${appInstanceId}/settings`} />}>
           {t('overview.configureAccess')}
           <span className="i-ri-arrow-right-up-line size-3.5" />
         </Button>
