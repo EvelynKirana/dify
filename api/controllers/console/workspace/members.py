@@ -30,6 +30,7 @@ from libs.helper import extract_remote_ip
 from libs.login import current_account_with_tenant, login_required
 from models.account import Account, TenantAccountRole
 from services.account_service import AccountService, RegisterService, TenantService
+from services.enterprise import rbac_service as enterprise_rbac_service
 from services.errors.account import AccountAlreadyInTenantError
 from services.feature_service import FeatureService
 
@@ -72,6 +73,19 @@ register_enum_models(console_ns, TenantAccountRole)
 register_schema_models(console_ns, AccountWithRole, AccountWithRoleList)
 
 
+def _serialize_member_roles(current_role: str | None, member_role_ids: list[str]) -> list[str]:
+    if member_role_ids:
+        return member_role_ids
+    if current_role:
+        return [current_role]
+    return []
+
+
+def _normalize_enum_value(value: object) -> str:
+    normalized = getattr(value, "value", value)
+    return str(normalized) if normalized is not None else ""
+
+
 @console_ns.route("/workspaces/current/members")
 class MemberListApi(Resource):
     """List all members of current tenant."""
@@ -85,7 +99,36 @@ class MemberListApi(Resource):
         if not current_user.current_tenant:
             raise ValueError("No current tenant")
         members = TenantService.get_tenant_members(current_user.current_tenant)
-        member_models = TypeAdapter(list[AccountWithRole]).validate_python(members, from_attributes=True)
+        if dify_config.RBAC_ENABLED:
+            member_ids = [member.id for member in members]
+            member_roles = enterprise_rbac_service.RBACService.MemberRoles.batch_get(
+                str(current_user.current_tenant.id),
+                current_user.id,
+                member_ids,
+            )
+            roles_map = {item.account_id: [role.id for role in item.roles] for item in member_roles}
+        else:
+            roles_map = {}
+
+        serialized_members = []
+        for member in members:
+            current_role = _normalize_enum_value(member.current_role)
+            serialized_members.append(
+                {
+                    "id": member.id,
+                    "name": member.name,
+                    "email": member.email,
+                    "avatar": member.avatar,
+                    "last_login_at": member.last_login_at,
+                    "last_active_at": member.last_active_at,
+                    "created_at": member.created_at,
+                    "role": current_role,
+                    "roles": _serialize_member_roles(current_role, roles_map.get(member.id, [])),
+                    "status": _normalize_enum_value(member.status),
+                }
+            )
+
+        member_models = TypeAdapter(list[AccountWithRole]).validate_python(serialized_members)
         response = AccountWithRoleList(accounts=member_models)
         return response.model_dump(mode="json"), 200
 

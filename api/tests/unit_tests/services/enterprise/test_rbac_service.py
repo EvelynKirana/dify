@@ -280,8 +280,8 @@ class TestWorkspaceAccess:
 
         out = svc.RBACService.WorkspaceAccess.app_matrix("tenant-1")
 
-        assert out.items[0].roles == []
-        assert out.items[0].accounts == []
+        assert out.items[0].role_ids == []
+        assert out.items[0].account_ids == []
 
     def test_workspace_app_replace_bindings(self, mock_send: MagicMock):
         mock_send.return_value = {"data": []}
@@ -371,6 +371,32 @@ class TestMemberRoles:
         assert call.endpoint == "/rbac/members/rbac-roles"
         assert call.params == {"account_id": "acct-2"}
         assert call.json == {"role_ids": ["workspace.owner", "workspace.editor"]}
+
+    def test_batch_get(self, mock_send: MagicMock):
+        mock_send.return_value = {
+            "data": [
+                {
+                    "account_id": "acct-2",
+                    "roles": [
+                        {"id": "role-1", "type": "workspace", "name": "Admin"},
+                        {"id": "role-2", "type": "workspace", "name": "Editor"},
+                    ],
+                },
+                {
+                    "account_id": "acct-3",
+                    "roles": [],
+                },
+            ]
+        }
+
+        out = svc.RBACService.MemberRoles.batch_get("tenant-1", "acct-1", ["acct-2", "acct-3"])
+
+        call = _call_args(mock_send)
+        assert call.method == "POST"
+        assert call.endpoint == "/rbac/members/rbac-roles/batch"
+        assert call.json == {"account_ids": ["acct-2", "acct-3"]}
+        assert out[0].account_id == "acct-2"
+        assert len(out[0].roles) == 2
 
 
 class TestListOption:

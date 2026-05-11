@@ -37,6 +37,7 @@ def app():
 def _enabled(enabled: bool):
     return patch("controllers.console.workspace.rbac.dify_config.ENTERPRISE_ENABLED", enabled)
 
+
 class TestCurrentIds:
     def test_rejects_missing_tenant(self):
         with patch("controllers.console.workspace.rbac.current_account_with_tenant") as mock_user:
@@ -117,10 +118,87 @@ class TestPydanticModels:
 
 
 class TestPaginationMapping:
+    def test_roles_get_returns_legacy_compatible_roles_when_rbac_disabled(self, app):
+        with (
+            app.test_request_context("/workspaces/current/rbac/roles?page=1&limit=2"),
+            patch("controllers.console.workspace.rbac.dify_config.RBAC_ENABLED", False),
+            patch("controllers.console.workspace.rbac._current_ids", return_value=("tenant-1", "acct-1")),
+            patch("controllers.console.workspace.rbac.svc.RBACService.Roles.list") as mock_list,
+        ):
+            response = inspect.unwrap(rbac_mod.RBACRolesApi.get)(rbac_mod.RBACRolesApi())
+
+        assert response["data"] == [
+            {
+                "id": "owner",
+                "tenant_id": "",
+                "type": "workspace",
+                "category": "global_system_default",
+                "name": "owner",
+                "description": "",
+                "is_builtin": True,
+                "permission_keys": [
+                    "inviteMembers",
+                    "removeMembers",
+                    "assignRoles",
+                    "workspaceSettings",
+                    "manageBilling",
+                    "transferOwnership",
+                    "createApps",
+                    "editApps",
+                    "useApps",
+                    "createDatasets",
+                    "editDatasets",
+                    "manageDatasets",
+                    "workspace.member.manage",
+                    "workspace.settings.manage",
+                    "workspace.billing.manage",
+                    "workspace.owner.transfer",
+                    "app.acl.edit",
+                    "app.acl.test_and_run",
+                    "dataset.acl.edit",
+                ],
+            },
+            {
+                "id": "admin",
+                "tenant_id": "",
+                "type": "workspace",
+                "category": "global_system_default",
+                "name": "admin",
+                "description": "",
+                "is_builtin": True,
+                "permission_keys": [
+                    "inviteMembers",
+                    "removeMembers",
+                    "assignRoles",
+                    "workspaceSettings",
+                    "manageBilling",
+                    "workspace.member.manage",
+                    "workspace.settings.manage",
+                    "workspace.billing.manage",
+                    "app.acl.edit",
+                    "app.acl.test_and_run",
+                    "dataset.acl.edit",
+                    "createApps",
+                    "editApps",
+                    "useApps",
+                    "createDatasets",
+                    "editDatasets",
+                    "manageDatasets",
+                ],
+            },
+        ]
+        assert response["pagination"] == {
+            "total_count": 5,
+            "per_page": 2,
+            "current_page": 1,
+            "total_pages": 3,
+        }
+        mock_list.assert_not_called()
+
     def test_roles_get_forwards_outer_pagination_params(self, app):
         with (
             app.test_request_context("/workspaces/current/rbac/roles?page=2&limit=50&reverse=true"),
-            _enabled(True),
+            patch("controllers.console.workspace.rbac.dify_config.RBAC_ENABLED", True),
             patch("controllers.console.workspace.rbac._current_ids", return_value=("tenant-1", "acct-1")),
             patch("controllers.console.workspace.rbac.svc.RBACService.Roles.list") as mock_list,
             patch("controllers.console.workspace.rbac._dump", return_value={}),

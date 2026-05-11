@@ -149,6 +149,10 @@ class MemberRolesResponse(_RBACModel):
     roles: list[RBACRole] = Field(default_factory=list)
 
 
+class MemberRolesBatchResponse(_RBACModel):
+    data: list[MemberRolesResponse] = Field(default_factory=list)
+
+
 class ResourcePermissionKeys(_RBACModel):
     resource_id: str
     permission_keys: list[str] = Field(default_factory=list)
@@ -908,6 +912,25 @@ class RBACService:
                 params={"account_id": member_account_id},
             )
             return MemberRolesResponse.model_validate(data or {})
+
+        @staticmethod
+        def batch_get(
+            tenant_id: str,
+            account_id: str | None,
+            member_account_ids: list[str],
+        ) -> list[MemberRolesResponse]:
+            data = _inner_call(
+                "POST",
+                f"{_INNER_PREFIX}/members/rbac-roles/batch",
+                tenant_id=tenant_id,
+                account_id=account_id,
+                json={"account_ids": member_account_ids},
+            )
+            if isinstance(data, list):
+                items = data
+            else:
+                items = (data or {}).get("data") or []
+            return [MemberRolesResponse.model_validate(item) for item in items]
 
         @staticmethod
         def replace(
