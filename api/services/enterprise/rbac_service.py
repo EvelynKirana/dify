@@ -131,7 +131,7 @@ class AccessMatrixItem(_RBACModel):
     roles: list[dict[str, Any]] = Field(default_factory=list)
     accounts: list[dict[str, Any]] = Field(default_factory=list)
 
-    @field_validator("role_ids", "account_ids", mode="before")
+    @field_validator("roles", "accounts", mode="before")
     @classmethod
     def _coerce_empty_lists(cls, value: Any) -> list[dict[str, Any]]:
         if value is None:
