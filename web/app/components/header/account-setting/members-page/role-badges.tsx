@@ -22,17 +22,17 @@ const RoleBadge = ({ label, className }: RoleBadgeProps) => {
 }
 
 export type RoleBadgesProps = {
-  roles: string[]
+  roleNames: string[]
   max?: number
   className?: string
 }
 
-const RoleBadges = ({ roles, max = 2, className }: RoleBadgesProps) => {
-  if (!roles.length)
+const RoleBadges = ({ roleNames, max = 2, className }: RoleBadgesProps) => {
+  if (!roleNames.length)
     return null
 
-  const visible = roles.slice(0, max)
-  const overflow = roles.slice(max)
+  const visible = roleNames.slice(0, max)
+  const overflow = roleNames.slice(max)
 
   return (
     <div className={cn('flex min-w-0 flex-wrap items-center gap-1', className)}>

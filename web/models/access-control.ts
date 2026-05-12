@@ -131,13 +131,13 @@ export type UpdateAccessPolicyRequest = {
 export type BindingType = 'role' | 'account'
 
 export type Bindings = {
-  role_ids: Array<{
-    id: string
-    name: string
+  roles: Array<{
+    role_id: string
+    role_name: string
   }>
-  account_ids: Array<{
-    id: string
-    name: string
+  accounts: Array<{
+    account_id: string
+    account_name: string
   }>
 }
 
@@ -170,12 +170,12 @@ export type GetDatasetAccessPoliciesResponse = {
   pagination: Pagination
 }
 
+export type RolesOfMemberResponse = {
+  account_id: string
+  roles: Role[]
+}
+
 export type UpdateRolesOfMemberRequest = {
   member_id: string
   role_ids: string[]
-}
-
-export type UpdateRolesOfMemberResponse = {
-  account_id: string
-  roles: Role[]
 }

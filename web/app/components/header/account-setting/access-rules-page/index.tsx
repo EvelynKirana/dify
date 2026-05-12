@@ -4,7 +4,7 @@ import type { PermissionSetFormValues, PermissionSetModalMode } from './permissi
 import type { AccessPolicyResourceType, AccessPolicyWithBindings } from '@/models/access-control'
 import { toast } from '@langgenius/dify-ui/toast'
 import { useCallback, useState } from 'react'
-import { useCreateAccessRule, useUpdateAppAccessRuleBindings, useUpdateDatasetAccessRuleBindings } from '@/service/access-control/use-workspace-access-rules'
+import { useCreateAccessRule, useUpdateAccessRule, useUpdateAppAccessRuleBindings, useUpdateDatasetAccessRuleBindings } from '@/service/access-control/use-workspace-access-rules'
 import AddRuleTargetsModal from './add-rule-targets-modal'
 import AppAccessRuleSection from './app-access-rule-section'
 import DatasetAccessRuleSection from './dataset-access-rule-section'
@@ -13,6 +13,7 @@ import PermissionSetModal from './permission-set-modal'
 type PermissionSetModalState = {
   mode: PermissionSetModalMode
   resourceType: AccessPolicyResourceType
+  ruleId?: string
   initialValues?: PermissionSetFormValues
 }
 
@@ -74,6 +75,7 @@ const AccessRulesPage = () => {
       setPermissionSetModalState({
         mode: 'edit',
         resourceType,
+        ruleId: policy.id,
         initialValues: {
           name: policy.name,
           description: policy.description,
@@ -84,23 +86,43 @@ const AccessRulesPage = () => {
     [],
   )
 
-  const { mutateAsync: createAccessRule } = useCreateAccessRule(permissionSetModalState?.resourceType)
+  const { mutateAsync: createAccessRule } = useCreateAccessRule()
+  const { mutateAsync: updateAccessRule } = useUpdateAccessRule()
 
   const handlePermissionSetSubmit = useCallback(
     (values: PermissionSetFormValues) => {
+      const mode = permissionSetModalState?.mode || ''
+      const id = permissionSetModalState?.ruleId || ''
       const { name, description, permissionKeys } = values
-      createAccessRule({
-        name,
-        description,
-        permission_keys: permissionKeys,
-      }, {
-        onSuccess: () => {
-          toast.success('Access rule created successfully')
-          closePermissionSetModal()
-        },
-      })
+      if (mode === 'create') {
+        createAccessRule({
+          name,
+          description,
+          permission_keys: permissionKeys,
+          resourceType: permissionSetModalState!.resourceType,
+        }, {
+          onSuccess: () => {
+            toast.success('Access rule created successfully')
+            closePermissionSetModal()
+          },
+        })
+      }
+      else if (mode === 'edit') {
+        updateAccessRule({
+          id: id!,
+          name,
+          description,
+          permission_keys: permissionKeys,
+          resourceType: permissionSetModalState!.resourceType,
+        }, {
+          onSuccess: () => {
+            toast.success('Access rule updated successfully')
+            closePermissionSetModal()
+          },
+        })
+      }
     },
-    [closePermissionSetModal, createAccessRule],
+    [closePermissionSetModal, createAccessRule, updateAccessRule, permissionSetModalState],
   )
 
   const createApp = useCallback(() => handleCreate('app'), [handleCreate])
@@ -131,8 +153,8 @@ const AccessRulesPage = () => {
       {addingRule && (
         <AddRuleTargetsModal
           ruleName={addingRule.policy.name}
-          initialRoleIds={addingRule.role_ids.map(role => role.id)}
-          initialMemberIds={addingRule.account_ids.map(account => account.id)}
+          initialRoleIds={addingRule.roles.map(role => role.role_id)}
+          initialMemberIds={addingRule.accounts.map(account => account.account_id)}
           onClose={closeAddModal}
           onSubmit={handleAddSubmit}
         />

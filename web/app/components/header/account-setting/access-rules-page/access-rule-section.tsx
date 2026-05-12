@@ -9,6 +9,7 @@ import AccessRuleRow from './access-rule-row'
 type AccessRuleSectionProps = {
   title: string
   rules: AccessPolicyWithBindings[]
+  isLoadingRules: boolean
   createButtonLabel: string
   onCreate?: () => void
   onEditRule?: (rule: AccessPolicyWithBindings) => void
@@ -19,6 +20,7 @@ type AccessRuleSectionProps = {
 const AccessRuleSection = ({
   title,
   rules,
+  isLoadingRules,
   createButtonLabel,
   onCreate,
   onEditRule,
@@ -31,7 +33,12 @@ const AccessRuleSection = ({
         <h3 className="pr-3 system-xs-medium-uppercase tracking-wide text-text-tertiary">
           {title}
         </h3>
-        <Button variant="secondary" size="medium" onClick={onCreate}>
+        <Button
+          variant="secondary"
+          size="medium"
+          onClick={onCreate}
+          disabled={isLoadingRules}
+        >
           {createButtonLabel}
         </Button>
       </div>

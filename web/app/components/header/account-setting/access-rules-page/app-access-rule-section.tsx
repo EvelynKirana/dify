@@ -15,7 +15,7 @@ const AppAccessRuleSection = ({
   onEditRule,
   onAddRole,
 }: AppAccessRuleSectionProps) => {
-  const { data: appAccessRulesResponse } = useWorkspaceAppAccessRules({
+  const { data: appAccessRulesResponse, isLoading } = useWorkspaceAppAccessRules({
     page: 1,
     limit: 20,
   })
@@ -26,6 +26,7 @@ const AppAccessRuleSection = ({
     <AccessRuleSection
       title="App Access Rules"
       rules={appAccessRules}
+      isLoadingRules={isLoading}
       createButtonLabel="Create App permission set"
       onCreate={onCreate}
       onEditRule={onEditRule}

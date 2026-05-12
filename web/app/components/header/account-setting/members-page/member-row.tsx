@@ -10,7 +10,10 @@ import RoleBadges from './role-badges'
 
 type MemberRowProps = {
   member: Member
-  roleLabel: string
+  roles: Array<{
+    id: string
+    name: string
+  }>
   isCurrentUser: boolean
   canManage: boolean
   operatorRole: string
@@ -22,7 +25,7 @@ type MemberRowProps = {
 
 const MemberRow = ({
   member,
-  roleLabel,
+  roles,
   isCurrentUser,
   canManage,
   operatorRole,
@@ -33,6 +36,8 @@ const MemberRow = ({
 }: MemberRowProps) => {
   const { t } = useTranslation()
   const { formatTimeFromNow } = useFormatTimeFromNow()
+
+  const roleNames = roles.map(role => role.name)
 
   const openDetails = useCallback(() => {
     onOpenDetails(member)
@@ -98,7 +103,7 @@ const MemberRow = ({
       >
         <RoleBadges
           className="grow"
-          roles={[roleLabel]}
+          roleNames={roleNames}
         />
         {canManage && (
           <MemberMenu

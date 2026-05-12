@@ -246,6 +246,7 @@
   "members.memberActions": "Member actions",
   "members.memberDetails.assign": "Assign",
   "members.memberDetails.assignedRoles": "Assigned Roles",
+  "members.memberDetails.customGroup": "CUSTOMIZED",
   "members.memberDetails.generalGroup": "GENERAL",
   "members.memberDetails.openAria": "Open member details for {{name}}",
   "members.memberDetails.permissions.assignRoles": "Assign roles",

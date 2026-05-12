@@ -29,13 +29,13 @@ export const useWorkspaceDatasetAccessRules = (params?: PaginationParameters) =>
   })
 }
 
-export const useCreateAccessRule = (resourceType?: AccessPolicyResourceType) => {
+export const useCreateAccessRule = () => {
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationKey: [NAME_SPACE, 'create', resourceType],
-    mutationFn: (data: CreateAccessPolicyRequest) => {
-      const { name, description, permission_keys } = data
+    mutationKey: [NAME_SPACE, 'create'],
+    mutationFn: (data: CreateAccessPolicyRequest & { resourceType: AccessPolicyResourceType }) => {
+      const { name, description, permission_keys, resourceType } = data
       return post<AccessPolicy>('/workspaces/current/rbac/access-policies', {
         body: {
           resource_type: resourceType,
@@ -45,20 +45,18 @@ export const useCreateAccessRule = (resourceType?: AccessPolicyResourceType) => 
         },
       })
     },
-    onSuccess: () => {
-      if (resourceType) {
-        queryClient.invalidateQueries({ queryKey: [NAME_SPACE, resourceType] })
-      }
+    onSuccess: (_, { resourceType }) => {
+      queryClient.invalidateQueries({ queryKey: [NAME_SPACE, resourceType] })
     },
   })
 }
 
-export const useUpdateAccessRule = (resourceType: AccessPolicyResourceType) => {
+export const useUpdateAccessRule = () => {
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationKey: [NAME_SPACE, 'update', resourceType],
-    mutationFn: (data: UpdateAccessPolicyRequest) => {
+    mutationKey: [NAME_SPACE, 'update'],
+    mutationFn: (data: UpdateAccessPolicyRequest & { resourceType: AccessPolicyResourceType }) => {
       const { id, name, description, permission_keys } = data
       return put<AccessPolicy>(`/workspaces/current/rbac/access-policies/${id}`, {
         body: {
@@ -69,7 +67,7 @@ export const useUpdateAccessRule = (resourceType: AccessPolicyResourceType) => {
         },
       })
     },
-    onSuccess: () => {
+    onSuccess: (_, { resourceType }) => {
       queryClient.invalidateQueries({ queryKey: [NAME_SPACE, resourceType] })
     },
   })

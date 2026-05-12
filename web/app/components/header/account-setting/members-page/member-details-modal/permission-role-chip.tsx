@@ -13,7 +13,6 @@ import { getRolePermissionKeys } from './role-permissions'
 export type PermissionRoleChipProps = {
   roleKey: string
   label: string
-  highlighted?: boolean
   onRemove?: () => void
   className?: string
 }
@@ -21,7 +20,6 @@ export type PermissionRoleChipProps = {
 const PermissionRoleChip = ({
   roleKey,
   label,
-  highlighted = false,
   onRemove,
   className,
 }: PermissionRoleChipProps) => {
@@ -32,10 +30,8 @@ const PermissionRoleChip = ({
   const chip = (
     <span
       className={cn(
-        'inline-flex h-6 max-w-full cursor-default items-center gap-1 rounded-md px-1.5 system-xs-medium shadow-xs',
-        highlighted
-          ? 'bg-state-accent-hover text-text-accent'
-          : 'bg-background-body text-text-secondary',
+        'group inline-flex h-6 max-w-full cursor-default items-center gap-1 rounded-md px-1.5 system-xs-medium shadow-xs',
+        'bg-background-body text-text-secondary group-hover:bg-state-accent-hover group-hover:text-text-accent',
         className,
       )}
       data-testid="permission-role-chip"
@@ -56,7 +52,7 @@ const PermissionRoleChip = ({
           }}
           className={cn(
             'flex h-4 w-4 items-center justify-center rounded hover:bg-black/5',
-            highlighted ? 'text-text-accent' : 'text-text-tertiary',
+            'text-text-tertiary',
           )}
         >
           <span aria-hidden className="i-ri-close-line h-3 w-3" />

@@ -15,6 +15,7 @@ import { useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import Checkbox from '@/app/components/base/checkbox'
 import Input from '@/app/components/base/input'
+import { useWorkspaceRoleList } from '@/service/access-control/use-workspace-roles'
 
 export type AssignableRole = {
   id: string
@@ -23,37 +24,30 @@ export type AssignableRole = {
 }
 
 export type AssignRolesModalProps = {
-  open: boolean
   member: Member
   onClose: () => void
   onSubmit: (roleIds: string[]) => void
 }
 
-type AssignRolesModalBodyProps = {
-  roles: AssignableRole[]
-} & Omit<AssignRolesModalProps, 'open'>
-
-// TODO: replace with roles fetched from the permissions API once available.
-const MOCK_ASSIGNABLE_ROLES: AssignableRole[] = [
-  { id: 'admin', name: 'Admin', description: 'Full access to workspace management and settings' },
-  { id: 'editor', name: 'Editor', description: 'Create and edit resources without settings access' },
-  { id: 'member', name: 'Member', description: 'Basic workspace access' },
-  { id: 'auditor', name: 'Auditor', description: 'View application logs and audit trails' },
-  { id: 'tester', name: 'Tester', description: 'Test applications in sandbox environments' },
-]
+type AssignRolesModalBodyProps = AssignRolesModalProps
 
 const AssignRolesModalBody = ({
-  roles,
   member,
   onClose,
   onSubmit,
 }: AssignRolesModalBodyProps) => {
   const { t } = useTranslation()
   const [selected, setSelected] = useState<string[]>(() => {
-    const match = MOCK_ASSIGNABLE_ROLES.find(r => r.id === member.role)
-    return match ? [match.id] : []
+    return member.roles?.map(role => role.id) || []
   })
   const [keyword, setKeyword] = useState('')
+
+  const { data: rolesData, isLoading: rolesLoading } = useWorkspaceRoleList({
+    page: 1,
+    limit: 20,
+  })
+
+  const roles = useMemo(() => rolesData?.data ?? [], [rolesData])
 
   const filteredRoles = useMemo(() => {
     const trimmed = keyword.trim().toLowerCase()
@@ -116,58 +110,62 @@ const AssignRolesModalBody = ({
         className="mt-2 min-h-0 flex-1"
         slotClassNames={{ viewport: 'px-3 overscroll-contain' }}
       >
-        {filteredRoles.length === 0
+        {rolesLoading
           ? (
               <div className="px-3 py-6 text-center system-sm-regular text-text-tertiary">
-                {t('members.assignRolesModal.empty', {
-                  ns: 'common',
-                  defaultValue: 'No matching roles',
-                })}
+                Loading roles...
               </div>
             )
-          : (
-              <ul className="flex flex-col gap-0.5">
-                {filteredRoles.map((role) => {
-                  const checked = selected.includes(role.id)
-                  const handleToggle = () => toggle(role.id)
-                  return (
-                    <li key={role.id}>
-                      <div
-                        role="checkbox"
-                        aria-checked={checked}
-                        tabIndex={0}
-                        className={cn(
-                          'flex cursor-pointer items-start gap-3 rounded-lg px-3 py-2.5 hover:bg-state-base-hover focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-components-input-border-active',
-                          checked && 'bg-state-accent-hover hover:bg-state-accent-hover',
-                        )}
-                        onClick={handleToggle}
-                        onKeyDown={(e) => {
-                          if (e.key === ' ' || e.key === 'Enter') {
-                            e.preventDefault()
-                            handleToggle()
-                          }
-                        }}
-                      >
-                        <Checkbox
-                          checked={checked}
-                          className="pointer-events-none mt-0.5"
-                        />
-                        <div className="min-w-0 flex-1">
-                          <div className="system-sm-semibold text-text-secondary">
-                            {role.name}
-                          </div>
-                          {role.description && (
-                            <div className="mt-0.5 system-xs-regular text-text-tertiary">
-                              {role.description}
-                            </div>
+          : filteredRoles.length === 0
+            ? (
+                <div className="px-3 py-6 text-center system-sm-regular text-text-tertiary">
+                  {t('members.assignRolesModal.empty', {
+                    ns: 'common',
+                    defaultValue: 'No matching roles',
+                  })}
+                </div>
+              )
+            : (
+                <ul className="flex flex-col gap-0.5">
+                  {filteredRoles.map((role) => {
+                    const checked = selected.includes(role.id)
+                    const handleToggle = () => toggle(role.id)
+                    return (
+                      <li key={role.id}>
+                        <div
+                          role="checkbox"
+                          aria-checked={checked}
+                          tabIndex={0}
+                          className={cn(
+                            'flex cursor-pointer items-start gap-3 rounded-lg px-3 py-2.5 hover:bg-state-base-hover focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-components-input-border-active',
+                            checked && 'bg-state-accent-hover hover:bg-state-accent-hover',
                           )}
+                          onClick={handleToggle}
+                          onKeyDown={(e) => {
+                            if (e.key === ' ' || e.key === 'Enter') {
+                              e.preventDefault()
+                              handleToggle()
+                            }
+                          }}
+                        >
+                          <Checkbox
+                            checked={checked}
+                            className="pointer-events-none mt-0.5"
+                          />
+                          <div className="min-w-0 flex-1">
+                            <div className="system-sm-semibold text-text-secondary">
+                              {role.name}
+                            </div>
+                            <div className="mt-0.5 system-xs-regular text-text-tertiary">
+                              {role.description || 'No description'}
+                            </div>
+                          </div>
                         </div>
-                      </div>
-                    </li>
-                  )
-                })}
-              </ul>
-            )}
+                      </li>
+                    )
+                  })}
+                </ul>
+              )}
       </ScrollArea>
 
       <div className="flex shrink-0 items-center justify-between gap-3 border-t border-divider-subtle px-6 py-4">
@@ -175,7 +173,6 @@ const AssignRolesModalBody = ({
           {t('members.assignRolesModal.selectedCount', {
             ns: 'common',
             count: selected.length,
-            defaultValue: '{{count}} selected',
           })}
         </div>
         <div className="flex items-center gap-2">
@@ -192,21 +189,19 @@ const AssignRolesModalBody = ({
 }
 
 const AssignRolesModal = ({
-  open,
   member,
   onClose,
   onSubmit,
 }: AssignRolesModalProps) => {
   return (
     <Dialog
-      open={open}
+      open
       onOpenChange={(nextOpen) => {
         if (!nextOpen)
           onClose()
       }}
     >
       <AssignRolesModalBody
-        roles={MOCK_ASSIGNABLE_ROLES}
         member={member}
         onClose={onClose}
         onSubmit={onSubmit}

@@ -15,7 +15,7 @@ const DatasetAccessRuleSection = ({
   onEditRule,
   onAddRole,
 }: DatasetAccessRuleSectionProps) => {
-  const { data: datasetAccessRulesResponse } = useWorkspaceDatasetAccessRules({
+  const { data: datasetAccessRulesResponse, isLoading } = useWorkspaceDatasetAccessRules({
     page: 1,
     limit: 20,
   })
@@ -26,6 +26,7 @@ const DatasetAccessRuleSection = ({
     <AccessRuleSection
       title="Knowledge Base Access Rules"
       rules={datasetAccessRules}
+      isLoadingRules={isLoading}
       createButtonLabel="Create KB permission set"
       onCreate={onCreate}
       onEditRule={onEditRule}

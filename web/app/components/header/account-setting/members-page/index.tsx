@@ -24,13 +24,6 @@ import TransferOwnershipModal from './transfer-ownership-modal'
 
 const MembersPage = () => {
   const { t } = useTranslation()
-  const RoleMap = {
-    owner: t('members.owner', { ns: 'common' }),
-    admin: t('members.admin', { ns: 'common' }),
-    editor: t('members.editor', { ns: 'common' }),
-    dataset_operator: t('members.datasetOperator', { ns: 'common' }),
-    normal: t('members.normal', { ns: 'common' }),
-  }
   const locale = useLocale()
 
   const { userProfile, currentWorkspace, isCurrentWorkspaceOwner, isCurrentWorkspaceManager } = useAppContext()
@@ -141,7 +134,7 @@ const MembersPage = () => {
               <MemberRow
                 key={account.id}
                 member={account}
-                roleLabel={RoleMap[account.role] || RoleMap.normal}
+                roles={account.roles}
                 isCurrentUser={userProfile.email === account.email}
                 canManage={isCurrentWorkspaceManager}
                 operatorRole={currentWorkspace.role}
@@ -192,7 +185,6 @@ const MembersPage = () => {
         <MemberDetailsModal
           open={!!detailsMember}
           member={detailsMember}
-          roleLabel={RoleMap[detailsMember.role] || RoleMap.normal}
           canAssignRoles={
             isCurrentWorkspaceManager
             && detailsMember.role !== 'owner'

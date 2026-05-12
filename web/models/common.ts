@@ -54,6 +54,10 @@ export type Member = Pick<UserProfileResponse, 'id' | 'name' | 'email' | 'last_l
   avatar: string
   status: 'pending' | 'active' | 'banned' | 'closed'
   role: 'owner' | 'admin' | 'editor' | 'normal' | 'dataset_operator'
+  roles: Array<{
+    id: string
+    name: string
+  }>
 }
 
 enum ProviderName {

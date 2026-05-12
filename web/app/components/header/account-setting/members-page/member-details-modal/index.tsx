@@ -9,15 +9,15 @@ import {
   DialogContent,
   DialogTitle,
 } from '@langgenius/dify-ui/dialog'
-import { memo, useState } from 'react'
+import { memo, useCallback, useState } from 'react'
 import { useTranslation } from 'react-i18next'
+import { useRolesOfMember } from '@/service/access-control/use-member-roles'
 import AssignRolesModal from '../assign-roles-modal'
 import PermissionRoleChip from './permission-role-chip'
 
 export type MemberDetailsModalProps = {
   open: boolean
   member: Member
-  roleLabel: string
   canAssignRoles?: boolean
   onClose: () => void
   onAssignSubmit?: (roleIds: string[]) => void
@@ -26,7 +26,6 @@ export type MemberDetailsModalProps = {
 const MemberDetailsModal = ({
   open,
   member,
-  roleLabel,
   canAssignRoles = false,
   onClose,
   onAssignSubmit,
@@ -34,12 +33,21 @@ const MemberDetailsModal = ({
   const { t } = useTranslation()
   const [assignOpen, setAssignOpen] = useState(false)
 
-  const assignedRoles = [{ key: member.role, label: roleLabel }]
+  const { data: rolesOfMember } = useRolesOfMember(member.id)
 
-  const handleAssignSubmit = (ids: string[]) => {
+  const roles = rolesOfMember?.roles || []
+
+  const builtinRoles = roles.filter(role => role.is_builtin)
+  const customRoles = roles.filter(role => !role.is_builtin)
+
+  const handleClose = useCallback(() => {
+    setAssignOpen(false)
+  }, [])
+
+  const handleAssignSubmit = useCallback((ids: string[]) => {
     onAssignSubmit?.(ids)
     setAssignOpen(false)
-  }
+  }, [onAssignSubmit])
 
   return (
     <>
@@ -87,7 +95,7 @@ const MemberDetailsModal = ({
                   })}
                 </span>
                 <span className="system-xs-medium text-text-tertiary">
-                  {assignedRoles.length}
+                  {roles.length}
                 </span>
               </div>
               {canAssignRoles && (
@@ -108,33 +116,50 @@ const MemberDetailsModal = ({
               )}
             </div>
 
-            <div className="mt-4">
-              <div className="mb-2 system-2xs-medium-uppercase text-text-tertiary">
-                {t('members.memberDetails.generalGroup', {
-                  ns: 'common',
-                  defaultValue: 'GENERAL',
-                })}
+            {builtinRoles.length > 0 && (
+              <div className="mt-4">
+                <div className="mb-2 system-2xs-medium-uppercase text-text-tertiary">
+                  {t('members.memberDetails.generalGroup', {
+                    ns: 'common',
+                  })}
+                </div>
+                <div className="flex flex-wrap gap-1.5">
+                  {builtinRoles.map(role => (
+                    <PermissionRoleChip
+                      key={role.id}
+                      roleKey={role.id}
+                      label={role.name}
+                    />
+                  ))}
+                </div>
               </div>
-              <div className="flex flex-wrap gap-1.5">
-                {assignedRoles.map(role => (
-                  <PermissionRoleChip
-                    key={role.key}
-                    roleKey={role.key}
-                    label={role.label}
-                    highlighted
-                  />
-                ))}
+            )}
+            {customRoles.length > 0 && (
+              <div className="mt-4">
+                <div className="mb-2 system-2xs-medium-uppercase text-text-tertiary">
+                  {t('members.memberDetails.customGroup', {
+                    ns: 'common',
+                  })}
+                </div>
+                <div className="flex flex-wrap gap-1.5">
+                  {customRoles.map(role => (
+                    <PermissionRoleChip
+                      key={role.id}
+                      roleKey={role.id}
+                      label={role.name}
+                    />
+                  ))}
+                </div>
               </div>
-            </div>
+            )}
           </div>
         </DialogContent>
       </Dialog>
 
       {assignOpen && (
         <AssignRolesModal
-          open={assignOpen}
           member={member}
-          onClose={() => setAssignOpen(false)}
+          onClose={handleClose}
           onSubmit={handleAssignSubmit}
         />
       )}
