@@ -2,15 +2,15 @@
 
 import type { AppInstanceBasicInfo, AppInstanceCard } from '@dify/contracts/enterprise/types.gen'
 import type { NavItem } from '@/app/components/header/nav/nav-selector'
-import { skipToken, useQuery } from '@tanstack/react-query'
-import { useSetAtom } from 'jotai'
+import { keepPreviousData, skipToken, useInfiniteQuery, useQuery } from '@tanstack/react-query'
+import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import Nav from '@/app/components/header/nav'
-import { useParams, useRouter, useSelectedLayoutSegment } from '@/next/navigation'
+import { useParams, useSelectedLayoutSegment } from '@/next/navigation'
 import { consoleQuery } from '@/service/client'
 import { toAppMode } from '../app-mode'
-import { SOURCE_APPS_PAGE_SIZE } from '../data'
-import { openCreateInstanceModalAtom } from '../store'
+import { CreateInstanceModal } from '../components/create-instance-modal'
+import { getNextPageParamFromPagination, SOURCE_APPS_PAGE_SIZE } from '../data'
 
 function navItemFromListApp(app: AppInstanceCard): NavItem[] {
   if (!app.id || !app.name)
@@ -48,31 +48,35 @@ function navItemFromOverview(instance?: AppInstanceBasicInfo): NavItem | undefin
 
 export function DeploymentsNav() {
   const { t } = useTranslation()
-  const router = useRouter()
   const selectedSegment = useSelectedLayoutSegment()
   const isActive = selectedSegment === 'deployments'
   const params = useParams<{ appInstanceId?: string }>()
   const appInstanceId = params?.appInstanceId
+  const [createModalOpen, setCreateModalOpen] = useState(false)
 
-  const openCreateInstanceModal = useSetAtom(openCreateInstanceModalAtom)
   const { data: currentInstance } = useQuery(consoleQuery.enterprise.appDeploy.getAppInstanceOverview.queryOptions({
     input: appInstanceId
       ? { params: { appInstanceId } }
       : skipToken,
-    enabled: isActive && Boolean(appInstanceId),
+    enabled: isActive,
     select: data => data.instance,
   }))
 
-  const listQuery = useQuery(consoleQuery.enterprise.appDeploy.listAppInstances.queryOptions({
-    input: {
-      query: {
-        pageNumber: 1,
-        resultsPerPage: SOURCE_APPS_PAGE_SIZE,
-      },
-    },
+  const listQuery = useInfiniteQuery({
+    ...consoleQuery.enterprise.appDeploy.listAppInstances.infiniteOptions({
+      input: pageParam => ({
+        query: {
+          pageNumber: Number(pageParam),
+          resultsPerPage: SOURCE_APPS_PAGE_SIZE,
+        },
+      }),
+      getNextPageParam: lastPage => getNextPageParamFromPagination(lastPage.pagination),
+      initialPageParam: 1,
+      placeholderData: keepPreviousData,
+    }),
     enabled: isActive,
-  }))
-  const appNavItems = listQuery.data?.data?.flatMap(navItemFromListApp) ?? []
+  })
+  const appNavItems = listQuery.data?.pages.flatMap(page => page.data?.flatMap(navItemFromListApp) ?? []) ?? []
   const currentNavItem = navItemFromOverview(currentInstance)
 
   const navigationItems: NavItem[] = isActive
@@ -86,23 +90,31 @@ export function DeploymentsNav() {
     : undefined
 
   function handleCreate() {
-    openCreateInstanceModal()
-    if (selectedSegment !== 'deployments' || appInstanceId)
-      router.push('/deployments')
+    setCreateModalOpen(true)
+  }
+
+  function handleLoadMore() {
+    if (listQuery.hasNextPage && !listQuery.isFetchingNextPage)
+      void listQuery.fetchNextPage()
   }
 
   return (
-    <Nav
-      isApp={false}
-      icon={<span aria-hidden className="i-ri-rocket-line size-4" />}
-      activeIcon={<span aria-hidden className="i-ri-rocket-fill size-4" />}
-      text={t('menus.deployments', { ns: 'common' })}
-      activeSegment="deployments"
-      link="/deployments"
-      curNav={curNav}
-      navigationItems={navigationItems}
-      createText={t('deployments:createModal.title')}
-      onCreate={handleCreate}
-    />
+    <>
+      <Nav
+        isApp={false}
+        icon={<span aria-hidden className="i-ri-rocket-line size-4" />}
+        activeIcon={<span aria-hidden className="i-ri-rocket-fill size-4" />}
+        text={t('menus.deployments', { ns: 'common' })}
+        activeSegment="deployments"
+        link="/deployments"
+        curNav={curNav}
+        navigationItems={navigationItems}
+        createText={t('deployments:createModal.title')}
+        onCreate={handleCreate}
+        onLoadMore={handleLoadMore}
+        isLoadingMore={listQuery.isFetchingNextPage}
+      />
+      <CreateInstanceModal open={createModalOpen} onOpenChange={setCreateModalOpen} />
+    </>
   )
 }

@@ -9,6 +9,16 @@ type SectionProps = {
   children: ReactNode
 }
 
+export function SectionState({ children }: {
+  children: ReactNode
+}) {
+  return (
+    <div className="rounded-lg border border-dashed border-components-panel-border bg-components-panel-bg-blur px-4 py-6 text-center system-sm-regular text-text-tertiary">
+      {children}
+    </div>
+  )
+}
+
 export function Section({ title, description, action, children }: SectionProps) {
   return (
     <div className="flex flex-col gap-3 rounded-xl border border-components-panel-border bg-components-panel-bg p-4">

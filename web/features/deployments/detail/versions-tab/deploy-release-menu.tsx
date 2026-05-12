@@ -44,7 +44,10 @@ export function DeployReleaseMenu({ appInstanceId, releaseId, releaseRows }: {
     })) ?? []
   const environments = environmentOptions.filter(env => env.id)
   const deploymentRows = environmentDeployments?.data?.filter(row => Boolean(row.environment?.id) && !isUndeployedDeploymentRow(row)) ?? []
-  const targetRelease = releaseRows.find(release => release.id === releaseId) ?? { id: releaseId }
+  const targetRelease = releaseRows.find(release => release.id === releaseId)
+
+  if (!targetRelease)
+    return null
 
   return (
     <DropdownMenu modal={false} open={open} onOpenChange={setOpen}>

@@ -12,7 +12,7 @@ import { useMutation } from '@tanstack/react-query'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { consoleQuery } from '@/service/client'
-import { environmentName } from '../../environment'
+import { environmentName } from '../../../environment'
 
 function ApiKeyRow({ appInstanceId, apiKey }: {
   appInstanceId: string

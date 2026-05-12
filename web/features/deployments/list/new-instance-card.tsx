@@ -1,18 +1,16 @@
 'use client'
 
 import { cn } from '@langgenius/dify-ui/cn'
-import { useSetAtom } from 'jotai'
+import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { openCreateInstanceModalAtom } from '../store'
+import { CreateInstanceModal } from '../components/create-instance-modal'
 
-type NewInstanceActionProps = {
+function NewInstanceAction({ icon, label, disabled, onClick }: {
   icon: string
   label: string
   disabled?: boolean
   onClick?: () => void
-}
-
-function NewInstanceAction({ icon, label, disabled, onClick }: NewInstanceActionProps) {
+}) {
   const { t } = useTranslation('deployments')
 
   return (
@@ -22,7 +20,7 @@ function NewInstanceAction({ icon, label, disabled, onClick }: NewInstanceAction
       disabled={disabled}
       title={disabled ? t('newInstance.comingSoon') : undefined}
       className={cn(
-        'mb-1 flex h-8 w-full items-center gap-2 rounded-lg px-6 text-left system-sm-medium text-text-tertiary hover:bg-state-base-hover hover:text-text-secondary',
+        'flex h-8 w-full items-center gap-2 rounded-lg px-6 text-left system-sm-medium text-text-tertiary hover:bg-state-base-hover hover:text-text-secondary',
         disabled
           ? 'cursor-not-allowed opacity-50 hover:bg-transparent hover:text-text-tertiary'
           : 'cursor-pointer',
@@ -41,14 +39,17 @@ function NewInstanceAction({ icon, label, disabled, onClick }: NewInstanceAction
 
 function CreateFromStudioAction() {
   const { t } = useTranslation('deployments')
-  const openCreateInstanceModal = useSetAtom(openCreateInstanceModalAtom)
+  const [createModalOpen, setCreateModalOpen] = useState(false)
 
   return (
-    <NewInstanceAction
-      icon="i-ri-stack-line"
-      label={t('newInstance.fromStudio')}
-      onClick={openCreateInstanceModal}
-    />
+    <>
+      <NewInstanceAction
+        icon="i-ri-stack-line"
+        label={t('newInstance.fromStudio')}
+        onClick={() => setCreateModalOpen(true)}
+      />
+      <CreateInstanceModal open={createModalOpen} onOpenChange={setCreateModalOpen} />
+    </>
   )
 }
 
@@ -57,7 +58,7 @@ export function NewInstanceCard() {
 
   return (
     <div className="relative col-span-1 inline-flex h-40 flex-col justify-between rounded-xl border border-components-card-border bg-components-card-bg">
-      <div className="grow rounded-t-xl p-2">
+      <div className="flex grow flex-col gap-1 rounded-t-xl p-2">
         <div className="px-6 pt-2 pb-1 text-xs/[18px] font-medium text-text-tertiary">
           {t('newInstance.title')}
         </div>

@@ -2,7 +2,7 @@
 import { cn } from '@langgenius/dify-ui/cn'
 import { useTranslation } from 'react-i18next'
 
-type DeployStatus = 'ready' | 'deploying' | 'deploy_failed'
+type DeployStatus = 'ready' | 'deploying' | 'deploy_failed' | 'unknown'
 type EnvironmentMode = 'shared' | 'isolated'
 type EnvironmentHealth = 'ready' | 'degraded'
 
@@ -10,12 +10,14 @@ const statusStyles: Record<DeployStatus, string> = {
   ready: 'border-util-colors-green-green-200 bg-util-colors-green-green-50 text-util-colors-green-green-700',
   deploying: 'border-util-colors-warning-warning-200 bg-util-colors-warning-warning-50 text-util-colors-warning-warning-700',
   deploy_failed: 'border-util-colors-red-red-200 bg-util-colors-red-red-50 text-util-colors-red-red-700',
+  unknown: 'border-divider-subtle bg-background-default-subtle text-text-tertiary',
 }
 
 const statusKey = {
   ready: 'status.ready',
   deploying: 'status.deploying',
   deploy_failed: 'status.deployFailed',
+  unknown: 'status.unknown',
 } as const satisfies Record<DeployStatus, string>
 
 const baseBadge = 'inline-flex items-center gap-1 rounded-md border px-2 py-0.5 system-xs-medium whitespace-nowrap'

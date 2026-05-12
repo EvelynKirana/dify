@@ -2,12 +2,16 @@
 
 import type { ReleaseRow, RuntimeInstanceRow } from '@dify/contracts/enterprise/types.gen'
 import type { ReactNode } from 'react'
+import type { ReleaseDeployment } from './release-deployments'
 import { cn } from '@langgenius/dify-ui/cn'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@langgenius/dify-ui/tooltip'
-import { useQuery } from '@tanstack/react-query'
+import { keepPreviousData, useQuery } from '@tanstack/react-query'
+import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
+import Pagination from '@/app/components/base/pagination'
+import { SkeletonRectangle, SkeletonRow } from '@/app/components/base/skeleton'
 import { consoleQuery } from '@/service/client'
-import { DEPLOYMENT_PAGE_SIZE } from '../../data'
+import { RELEASE_HISTORY_PAGE_SIZE } from '../../data'
 import {
   formatDate,
   releaseCommit,
@@ -19,6 +23,8 @@ import { DeployedToBadge } from './deployed-to-badge'
 import { getReleaseDeployments } from './release-deployments'
 
 const GRID_TEMPLATE = 'grid-cols-[minmax(0,0.9fr)_minmax(0,1fr)_minmax(0,0.8fr)_minmax(0,1.5fr)_96px]'
+const RELEASE_TABLE_HEADER_SKELETON_KEYS = ['version', 'description', 'author', 'deployments', 'actions']
+const RELEASE_TABLE_ROW_SKELETON_KEYS = ['latest', 'previous', 'older', 'archived', 'initial']
 
 type ReleaseRowWithId = ReleaseRow & {
   id: string
@@ -38,10 +44,94 @@ function ReleaseHistoryTableState({ children }: {
   )
 }
 
-function ReleaseHistoryRows({ appInstanceId, releaseRows, deploymentRows }: {
+function ReleaseHistoryTableSkeleton() {
+  return (
+    <div className="overflow-hidden rounded-xl border border-components-panel-border bg-components-panel-bg">
+      <div className={cn(
+        'hidden items-center gap-4 border-b border-divider-subtle px-4 py-3 pc:grid',
+        GRID_TEMPLATE,
+      )}
+      >
+        {RELEASE_TABLE_HEADER_SKELETON_KEYS.map(key => (
+          <SkeletonRectangle key={key} className="h-3 w-20 animate-pulse" />
+        ))}
+      </div>
+      {RELEASE_TABLE_ROW_SKELETON_KEYS.map(key => (
+        <div key={key} className="border-b border-divider-subtle last:border-b-0">
+          <div className="flex flex-col gap-3 p-4 pc:hidden">
+            <div className="flex items-start justify-between gap-3">
+              <div className="min-w-0">
+                <SkeletonRectangle className="h-3 w-24 animate-pulse" />
+                <SkeletonRow className="mt-1 gap-2">
+                  <SkeletonRectangle className="h-3 w-28 animate-pulse" />
+                  <SkeletonRectangle className="h-3 w-20 animate-pulse" />
+                </SkeletonRow>
+              </div>
+              <SkeletonRectangle className="my-0 h-7 w-8 animate-pulse rounded-lg" />
+            </div>
+            <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
+              <SkeletonRectangle className="h-3 w-20 animate-pulse" />
+              <ReleaseDeploymentsSkeleton />
+            </div>
+          </div>
+          <div className={cn('hidden items-center gap-4 px-4 py-3 pc:grid', GRID_TEMPLATE)}>
+            <SkeletonRectangle className="h-3 w-24 animate-pulse" />
+            <SkeletonRectangle className="h-3 w-32 animate-pulse" />
+            <SkeletonRectangle className="h-3 w-24 animate-pulse" />
+            <ReleaseDeploymentsSkeleton />
+            <div className="hidden justify-end pc:flex">
+              <SkeletonRectangle className="my-0 h-7 w-8 animate-pulse rounded-lg" />
+            </div>
+          </div>
+        </div>
+      ))}
+    </div>
+  )
+}
+
+function ReleaseDeploymentsSkeleton() {
+  return (
+    <SkeletonRow className="gap-1">
+      <SkeletonRectangle className="my-0 h-5 w-20 animate-pulse rounded-md" />
+      <SkeletonRectangle className="my-0 h-5 w-18 animate-pulse rounded-md" />
+    </SkeletonRow>
+  )
+}
+
+function ReleaseDeploymentsContent({
+  items,
+  isLoading,
+  hasError,
+  loadFailedLabel,
+}: {
+  items: ReleaseDeployment[]
+  isLoading?: boolean
+  hasError?: boolean
+  loadFailedLabel: string
+}) {
+  if (isLoading)
+    return <ReleaseDeploymentsSkeleton />
+
+  if (hasError)
+    return <span className="system-sm-regular text-text-tertiary">{loadFailedLabel}</span>
+
+  if (items.length === 0)
+    return <span className="system-sm-regular text-text-quaternary">—</span>
+
+  return items.map(item => (
+    <DeployedToBadge
+      key={`${item.environmentId}-${item.state}`}
+      item={item}
+    />
+  ))
+}
+
+function ReleaseHistoryRows({ appInstanceId, releaseRows, deploymentRows, deployedToLoading, deployedToHasError }: {
   appInstanceId: string
   releaseRows: ReleaseRowWithId[]
   deploymentRows: RuntimeInstanceRow[]
+  deployedToLoading?: boolean
+  deployedToHasError?: boolean
 }) {
   const { t } = useTranslation('deployments')
 
@@ -62,6 +152,7 @@ function ReleaseHistoryRows({ appInstanceId, releaseRows, deploymentRows }: {
       {releaseRows.map((row) => {
         const release = row
         const releaseDeployments = getReleaseDeployments(row, deploymentRows)
+
         return (
           <div key={release.id} className="border-b border-divider-subtle last:border-b-0">
             <div className="flex flex-col gap-3 p-4 pc:hidden">
@@ -94,14 +185,12 @@ function ReleaseHistoryRows({ appInstanceId, releaseRows, deploymentRows }: {
                   {t('versions.col.deployedTo')}
                 </div>
                 <div className="flex min-w-0 flex-wrap gap-1">
-                  {releaseDeployments.length === 0
-                    ? <span className="system-sm-regular text-text-quaternary">—</span>
-                    : releaseDeployments.map(item => (
-                        <DeployedToBadge
-                          key={`${item.environmentId}-${item.state}`}
-                          item={item}
-                        />
-                      ))}
+                  <ReleaseDeploymentsContent
+                    items={releaseDeployments}
+                    isLoading={deployedToLoading}
+                    hasError={deployedToHasError}
+                    loadFailedLabel={t('common.loadFailed')}
+                  />
                 </div>
               </div>
             </div>
@@ -127,14 +216,12 @@ function ReleaseHistoryRows({ appInstanceId, releaseRows, deploymentRows }: {
               <div className="system-sm-regular text-text-secondary">{formatDate(release.createdAt)}</div>
               <div className="system-sm-regular text-text-secondary">{row.createdBy?.name ?? '—'}</div>
               <div className="flex flex-wrap gap-1">
-                {releaseDeployments.length === 0
-                  ? <span className="system-sm-regular text-text-quaternary">—</span>
-                  : releaseDeployments.map(item => (
-                      <DeployedToBadge
-                        key={`${item.environmentId}-${item.state}`}
-                        item={item}
-                      />
-                    ))}
+                <ReleaseDeploymentsContent
+                  items={releaseDeployments}
+                  isLoading={deployedToLoading}
+                  hasError={deployedToHasError}
+                  loadFailedLabel={t('common.loadFailed')}
+                />
               </div>
               <div className="flex justify-end gap-1">
                 <DeployReleaseMenu releaseId={release.id} appInstanceId={appInstanceId} releaseRows={releaseRows} />
@@ -151,6 +238,7 @@ export function ReleaseHistoryTable({ appInstanceId }: {
   appInstanceId: string
 }) {
   const { t } = useTranslation('deployments')
+  const [currentPage, setCurrentPage] = useState(0)
   const input = { params: { appInstanceId } }
   const overviewQuery = useQuery(consoleQuery.enterprise.appDeploy.getAppInstanceOverview.queryOptions({
     input,
@@ -159,12 +247,14 @@ export function ReleaseHistoryTable({ appInstanceId }: {
     input: {
       ...input,
       query: {
-        pageNumber: 1,
-        resultsPerPage: DEPLOYMENT_PAGE_SIZE,
+        pageNumber: currentPage + 1,
+        resultsPerPage: RELEASE_HISTORY_PAGE_SIZE,
       },
     },
+    placeholderData: keepPreviousData,
   }))
   const releaseRows = releaseHistoryQuery.data?.data?.filter(hasReleaseId) ?? []
+  const totalReleases = releaseHistoryQuery.data?.pagination?.totalCount ?? releaseRows.length
   const shouldLoadRuntimeInstances = releaseRows.length > 0
   const environmentDeploymentsQuery = useQuery(consoleQuery.enterprise.appDeploy.listRuntimeInstances.queryOptions({
     input,
@@ -172,20 +262,21 @@ export function ReleaseHistoryTable({ appInstanceId }: {
   }))
   const isLoading = releaseHistoryQuery.isLoading
     || (releaseRows.length === 0 && overviewQuery.isLoading)
-    || (shouldLoadRuntimeInstances && environmentDeploymentsQuery.isLoading)
+  const hasError = releaseHistoryQuery.isError
+    || (releaseRows.length === 0 && overviewQuery.isError)
+  const deployedToLoading = shouldLoadRuntimeInstances && environmentDeploymentsQuery.isLoading
+  const deployedToHasError = shouldLoadRuntimeInstances && environmentDeploymentsQuery.isError
   const sourceAppUnavailable = overviewQuery.data?.instance?.canCreateRelease === false
   const deploymentRows = environmentDeploymentsQuery.data?.data?.filter(row => Boolean(row.environment?.id) && !isUndeployedDeploymentRow(row)) ?? []
 
   if (isLoading) {
+    return <ReleaseHistoryTableSkeleton />
+  }
+
+  if (hasError) {
     return (
       <ReleaseHistoryTableState>
-        <span
-          aria-label={t('versions.releaseHistory')}
-          className="inline-flex items-center"
-          role="status"
-        >
-          <span className="size-4 animate-spin rounded-full border-2 border-components-panel-border border-t-transparent" />
-        </span>
+        {t('common.loadFailed')}
       </ReleaseHistoryTableState>
     )
   }
@@ -199,10 +290,23 @@ export function ReleaseHistoryTable({ appInstanceId }: {
   }
 
   return (
-    <ReleaseHistoryRows
-      appInstanceId={appInstanceId}
-      releaseRows={releaseRows}
-      deploymentRows={deploymentRows}
-    />
+    <div className="flex flex-col gap-3">
+      <ReleaseHistoryRows
+        appInstanceId={appInstanceId}
+        releaseRows={releaseRows}
+        deploymentRows={deploymentRows}
+        deployedToLoading={deployedToLoading}
+        deployedToHasError={deployedToHasError}
+      />
+      {totalReleases > RELEASE_HISTORY_PAGE_SIZE && (
+        <Pagination
+          className="rounded-xl border border-components-panel-border bg-components-panel-bg"
+          current={currentPage}
+          total={totalReleases}
+          limit={RELEASE_HISTORY_PAGE_SIZE}
+          onChange={setCurrentPage}
+        />
+      )}
+    </div>
   )
 }

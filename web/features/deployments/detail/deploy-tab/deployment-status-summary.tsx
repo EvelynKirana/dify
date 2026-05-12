@@ -42,6 +42,15 @@ export function DeploymentStatusSummary({ row }: {
     )
   }
 
+  if (status === 'unknown') {
+    return (
+      <span className="inline-flex items-center gap-1.5 system-sm-medium text-text-tertiary">
+        <span className="i-ri-question-line size-3.5" />
+        {t('status.unknown')}
+      </span>
+    )
+  }
+
   return (
     <span className="inline-flex items-center gap-1.5 system-sm-medium text-util-colors-green-green-700">
       <span className="size-1.5 rounded-full bg-util-colors-green-green-500" />

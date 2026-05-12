@@ -20,8 +20,10 @@ import { skipToken, useMutation, useQuery } from '@tanstack/react-query'
 import { useDebounce } from 'ahooks'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
+import Input from '@/app/components/base/input'
+import { SkeletonRectangle, SkeletonRow } from '@/app/components/base/skeleton'
 import { consoleQuery } from '@/service/client'
-import { environmentName } from '../../environment'
+import { environmentName } from '../../../environment'
 
 type AccessPermissionKind = 'organization' | 'specific' | 'anyone'
 
@@ -130,6 +132,8 @@ function subjectKey(subject: Pick<SelectableAccessSubject, 'id' | 'subjectType'>
   return `${subject.subjectType}:${subject.id}`
 }
 
+const SUBJECT_PICKER_SKELETON_KEYS = ['first-subject', 'second-subject', 'third-subject']
+
 function policySubjects(subjects: SelectableAccessSubject[]): AccessSubject[] {
   return subjects.map(subject => ({
     subjectId: subject.id,
@@ -203,15 +207,14 @@ function SubjectPicker({
   const debouncedKeyword = useDebounce(keyword, { wait: 300 })
   const selectedKeys = new Set(selectedSubjects.map(subjectKey))
   const subjectsQuery = useQuery(consoleQuery.enterprise.appDeploy.searchAccessSubjects.queryOptions({
-    input: open
-      ? {
-          params: { appInstanceId },
-          query: {
-            keyword: debouncedKeyword.trim() || undefined,
-            subjectTypes: ['account', 'group'],
-          },
-        }
-      : skipToken,
+    input: {
+      params: { appInstanceId },
+      query: {
+        keyword: debouncedKeyword.trim() || undefined,
+        subjectTypes: ['account', 'group'],
+      },
+    },
+    enabled: open,
   }))
   const subjects = subjectsQuery.data?.data
     ?.map(normalizeSubject)
@@ -249,21 +252,23 @@ function SubjectPicker({
         <PopoverContent placement="bottom-start" sideOffset={4} popupClassName="w-90 p-0">
           <div className="flex max-h-105 flex-col overflow-hidden rounded-xl border border-components-panel-border bg-components-panel-bg shadow-lg">
             <div className="border-b border-divider-subtle p-2">
-              <div className="flex h-8 items-center gap-2 rounded-lg border border-components-input-border-active bg-components-input-bg-normal px-2">
-                <span className="i-ri-search-line size-4 shrink-0 text-text-tertiary" />
-                <input
-                  value={keyword}
-                  onChange={e => setKeyword(e.target.value)}
-                  placeholder={t('access.members.searchPlaceholder')}
-                  className="min-w-0 flex-1 bg-transparent system-sm-regular text-text-primary outline-hidden placeholder:text-text-quaternary"
-                />
-              </div>
+              <Input
+                showLeftIcon
+                value={keyword}
+                onChange={e => setKeyword(e.target.value)}
+                placeholder={t('access.members.searchPlaceholder')}
+                className="h-8"
+              />
             </div>
             <div className="min-h-10 overflow-y-auto p-1">
               {subjectsQuery.isLoading
                 ? (
-                    <div className="flex h-16 items-center justify-center">
-                      <span className="size-4 animate-spin rounded-full border-2 border-components-panel-border border-t-transparent" />
+                    <div className="flex flex-col gap-2 px-3 py-3">
+                      {SUBJECT_PICKER_SKELETON_KEYS.map(key => (
+                        <SkeletonRow key={key} className="h-6">
+                          <SkeletonRectangle className="h-3 w-full animate-pulse" />
+                        </SkeletonRow>
+                      ))}
                     </div>
                   )
                 : subjects.length === 0
@@ -344,20 +349,20 @@ export function EnvironmentPermissionRow({
     kind?: AccessPermissionKind
     subjects?: SelectableAccessSubject[]
   }>({})
-  const [isSaving, setIsSaving] = useState(false)
   const hasDraft = draft.fingerprint === policyFingerprint
   const permissionKind = hasDraft && draft.kind ? draft.kind : policyKind
   const subjects = hasDraft && draft.subjects ? draft.subjects : policySelectedSubjects
+  const isSaving = setEnvironmentAccessPolicy.isPending
+  const controlsDisabled = isSaving || policyQuery.isLoading || policyQuery.isError
 
-  const persistPolicy = async (nextKind: AccessPermissionKind, nextSubjects: SelectableAccessSubject[]) => {
+  const persistPolicy = (nextKind: AccessPermissionKind, nextSubjects: SelectableAccessSubject[]) => {
     if (!environmentId)
       return
     if (nextKind === 'specific' && nextSubjects.length === 0)
       return
 
-    setIsSaving(true)
-    try {
-      await setEnvironmentAccessPolicy.mutateAsync({
+    setEnvironmentAccessPolicy.mutate(
+      {
         params: {
           appInstanceId,
           environmentId,
@@ -366,15 +371,16 @@ export function EnvironmentPermissionRow({
           accessMode: permissionKeyToAccessMode(nextKind),
           subjects: nextKind === 'specific' ? policySubjects(nextSubjects) : [],
         },
-      })
-      setDraft({})
-    }
-    catch {
-      toast.error(t('access.permission.updateFailed'))
-    }
-    finally {
-      setIsSaving(false)
-    }
+      },
+      {
+        onSuccess: () => {
+          setDraft({})
+        },
+        onError: () => {
+          toast.error(t('access.permission.updateFailed'))
+        },
+      },
+    )
   }
 
   const handlePermissionChange = (nextKind: AccessPermissionKind) => {
@@ -384,10 +390,10 @@ export function EnvironmentPermissionRow({
       subjects: nextKind === 'specific' ? subjects : [],
     })
     if (nextKind === 'specific') {
-      void persistPolicy(nextKind, subjects)
+      persistPolicy(nextKind, subjects)
       return
     }
-    void persistPolicy(nextKind, [])
+    persistPolicy(nextKind, [])
   }
 
   const handleSubjectsChange = (nextSubjects: SelectableAccessSubject[]) => {
@@ -398,7 +404,7 @@ export function EnvironmentPermissionRow({
       kind: 'specific',
       subjects: nextSubjects,
     })
-    void persistPolicy('specific', nextSubjects)
+    persistPolicy('specific', nextSubjects)
   }
 
   return (
@@ -407,19 +413,28 @@ export function EnvironmentPermissionRow({
         <span className="min-w-35 system-xs-regular text-text-tertiary">
           {environmentName(environment)}
         </span>
-        <PermissionPicker
-          value={permissionKind}
-          disabled={isSaving || policyQuery.isLoading}
-          onChange={handlePermissionChange}
-        />
+        {policyQuery.isLoading
+          ? <SkeletonRectangle className="my-0 h-8 w-55 animate-pulse rounded-lg" />
+          : (
+              <PermissionPicker
+                value={permissionKind}
+                disabled={controlsDisabled}
+                onChange={handlePermissionChange}
+              />
+            )}
       </div>
+      {policyQuery.isError && (
+        <div className="system-xs-regular text-text-destructive">
+          {t('common.loadFailed')}
+        </div>
+      )}
       {permissionKind === 'specific' && (
         <div className="flex flex-col gap-2 pl-0 sm:pl-38">
           <div className="flex flex-wrap items-center gap-2">
             <SubjectPicker
               appInstanceId={appInstanceId}
               selectedSubjects={subjects}
-              disabled={isSaving || policyQuery.isLoading}
+              disabled={controlsDisabled}
               onChange={handleSubjectsChange}
             />
             {subjects.length === 0 && (
@@ -434,7 +449,7 @@ export function EnvironmentPermissionRow({
                 <SubjectPill
                   key={subjectKey(subject)}
                   subject={subject}
-                  disabled={isSaving || subjects.length <= 1}
+                  disabled={controlsDisabled || subjects.length <= 1}
                   onRemove={() => handleSubjectsChange(subjects.filter(item => subjectKey(item) !== subjectKey(subject)))}
                 />
               ))}

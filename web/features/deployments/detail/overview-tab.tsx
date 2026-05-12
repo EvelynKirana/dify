@@ -6,15 +6,80 @@ import { useQuery } from '@tanstack/react-query'
 import { useSetAtom } from 'jotai'
 import { useTranslation } from 'react-i18next'
 import { getAppModeLabel } from '@/app/components/app-sidebar/app-info/app-mode-labels'
+import { SkeletonRectangle } from '@/app/components/base/skeleton'
 import Link from '@/next/link'
 import { consoleQuery } from '@/service/client'
 import { toAppMode } from '../app-mode'
 import { StatusBadge } from '../components/status-badge'
 import { DEPLOYMENT_PAGE_SIZE } from '../data'
 import { releaseLabel } from '../release'
+import { deploymentStatus } from '../runtime-status'
 import { openDeployDrawerAtom } from '../store'
 import { webappUrl } from '../webapp-url'
-import { Section } from './common'
+import { Section, SectionState } from './common'
+
+const STATUS_ROW_SKELETON_KEYS = ['primary', 'secondary']
+
+function InfoRowsSkeleton({ rows }: {
+  rows: Array<{
+    key: string
+    label: string
+    valueClassName: string
+  }>
+}) {
+  return (
+    <div className="flex flex-col divide-y divide-divider-subtle">
+      {rows.map(row => (
+        <div key={row.key} className="flex items-start gap-3 py-1.5">
+          <span className="w-32 shrink-0 system-xs-regular text-text-tertiary">{row.label}</span>
+          <div className="min-w-0 flex-1 py-1">
+            <SkeletonRectangle className={cn('my-0 h-3 animate-pulse', row.valueClassName)} />
+          </div>
+        </div>
+      ))}
+    </div>
+  )
+}
+
+function StatusRowsSkeleton() {
+  return (
+    <div className="flex flex-col divide-y divide-divider-subtle">
+      {STATUS_ROW_SKELETON_KEYS.map(key => (
+        <div key={key} className="flex items-center justify-between gap-3 py-2">
+          <div className="flex min-w-0 flex-col gap-1.5">
+            <SkeletonRectangle className="my-0 h-3 w-32 animate-pulse" />
+            <SkeletonRectangle className="my-0 h-2.5 w-24 animate-pulse" />
+          </div>
+          <SkeletonRectangle className="my-0 h-5 w-20 animate-pulse rounded-md" />
+        </div>
+      ))}
+    </div>
+  )
+}
+
+function AccessRowsSkeleton({ rows }: {
+  rows: Array<{
+    key: string
+    label: string
+    hintClassName: string
+    showMeta?: boolean
+  }>
+}) {
+  return (
+    <div className="flex flex-col divide-y divide-divider-subtle">
+      {rows.map(row => (
+        <div key={row.key} className="flex items-center justify-between gap-3 py-1.5">
+          <div className="flex min-w-0 flex-col gap-1.5">
+            <span className="system-sm-medium text-text-primary">{row.label}</span>
+            <SkeletonRectangle className={cn('my-0 h-2.5 animate-pulse', row.hintClassName)} />
+            {row.showMeta && <SkeletonRectangle className="my-0 h-2.5 w-14 animate-pulse" />}
+          </div>
+          <SkeletonRectangle className="my-0 h-4 w-16 animate-pulse" />
+        </div>
+      ))}
+    </div>
+  )
+}
 
 function InfoRow({ label, value, mono }: {
   label: string
@@ -29,14 +94,12 @@ function InfoRow({ label, value, mono }: {
   )
 }
 
-type AccessOverviewRowProps = {
+function AccessOverviewRow({ label, enabled, hint, meta }: {
   label: string
   enabled: boolean
   hint?: string
   meta?: string
-}
-
-function AccessOverviewRow({ label, enabled, hint, meta }: AccessOverviewRowProps) {
+}) {
   const { t } = useTranslation('deployments')
 
   return (
@@ -62,15 +125,6 @@ function AccessOverviewRow({ label, enabled, hint, meta }: AccessOverviewRowProp
   )
 }
 
-function overviewDeploymentStatus(status?: string): 'deploying' | 'deploy_failed' | 'ready' {
-  const normalized = status?.toLowerCase() ?? ''
-  if (normalized.includes('deploying') || normalized.includes('pending'))
-    return 'deploying'
-  if (normalized.includes('fail') || normalized.includes('error'))
-    return 'deploy_failed'
-  return 'ready'
-}
-
 function DeployFromOverviewButton({ appInstanceId }: {
   appInstanceId: string
 }) {
@@ -89,15 +143,43 @@ function BasicInfoSection({ appInstanceId }: {
 }) {
   const { t } = useTranslation('deployments')
   const { t: tCommon } = useTranslation()
-  const { data: overview } = useQuery(consoleQuery.enterprise.appDeploy.getAppInstanceOverview.queryOptions({
+  const overviewQuery = useQuery(consoleQuery.enterprise.appDeploy.getAppInstanceOverview.queryOptions({
     input: {
       params: { appInstanceId },
     },
   }))
+  const overview = overviewQuery.data
   const overviewApp = overview?.instance
+  const skeletonRows = [
+    { key: 'name', label: t('overview.name'), valueClassName: 'w-30' },
+    { key: 'description', label: t('overview.description'), valueClassName: 'w-18' },
+    { key: 'source-app', label: t('overview.sourceApp'), valueClassName: 'w-30' },
+    { key: 'app-mode', label: t('overview.appMode'), valueClassName: 'w-18' },
+  ]
 
-  if (!overviewApp?.id)
-    return null
+  if (overviewQuery.isLoading) {
+    return (
+      <Section title={t('overview.basicInfo')}>
+        <InfoRowsSkeleton rows={skeletonRows} />
+      </Section>
+    )
+  }
+
+  if (overviewQuery.isError) {
+    return (
+      <Section title={t('overview.basicInfo')}>
+        <SectionState>{t('common.loadFailed')}</SectionState>
+      </Section>
+    )
+  }
+
+  if (!overviewApp?.id) {
+    return (
+      <Section title={t('overview.basicInfo')}>
+        <SectionState>{t('detail.notFound')}</SectionState>
+      </Section>
+    )
+  }
 
   const appName = overviewApp.name ?? overviewApp.id
   const appModeLabel = getAppModeLabel(toAppMode(overviewApp.mode), tCommon)
@@ -119,10 +201,10 @@ function DeploymentStatusSection({ appInstanceId }: {
 }) {
   const { t } = useTranslation('deployments')
   const input = { params: { appInstanceId } }
-  const { data: overview } = useQuery(consoleQuery.enterprise.appDeploy.getAppInstanceOverview.queryOptions({
+  const overviewQuery = useQuery(consoleQuery.enterprise.appDeploy.getAppInstanceOverview.queryOptions({
     input,
   }))
-  const { data: releaseHistory } = useQuery(consoleQuery.enterprise.appDeploy.listReleases.queryOptions({
+  const releaseHistoryQuery = useQuery(consoleQuery.enterprise.appDeploy.listReleases.queryOptions({
     input: {
       ...input,
       query: {
@@ -131,23 +213,47 @@ function DeploymentStatusSection({ appInstanceId }: {
       },
     },
   }))
+  const overview = overviewQuery.data
+  const releaseHistory = releaseHistoryQuery.data
   const overviewApp = overview?.instance
   const deployments = overview?.deployments?.filter(row => row.environment?.id && row.status?.toLowerCase() !== 'undeployed') ?? []
   const releaseRows = releaseHistory?.data?.filter(row => row.id) ?? []
   const canCreateRelease = overviewApp?.canCreateRelease ?? true
+  const action = (
+    <Button nativeButton={false} size="small" variant="secondary" render={<Link href={`/deployments/${appInstanceId}/deploy`} />}>
+      {t('overview.viewDeployments')}
+      <span className="i-ri-arrow-right-up-line size-3.5" />
+    </Button>
+  )
 
-  if (!overviewApp?.id)
-    return null
+  if (overviewQuery.isLoading || releaseHistoryQuery.isLoading) {
+    return (
+      <Section title={t('overview.deploymentStatus')} action={action}>
+        <StatusRowsSkeleton />
+      </Section>
+    )
+  }
+
+  if (overviewQuery.isError || releaseHistoryQuery.isError) {
+    return (
+      <Section title={t('overview.deploymentStatus')} action={action}>
+        <SectionState>{t('common.loadFailed')}</SectionState>
+      </Section>
+    )
+  }
+
+  if (!overviewApp?.id) {
+    return (
+      <Section title={t('overview.deploymentStatus')} action={action}>
+        <SectionState>{t('detail.notFound')}</SectionState>
+      </Section>
+    )
+  }
 
   return (
     <Section
       title={t('overview.deploymentStatus')}
-      action={(
-        <Button nativeButton={false} size="small" variant="secondary" render={<Link href={`/deployments/${appInstanceId}/deploy`} />}>
-          {t('overview.viewDeployments')}
-          <span className="i-ri-arrow-right-up-line size-3.5" />
-        </Button>
-      )}
+      action={action}
     >
       {deployments.length === 0
         ? (
@@ -178,7 +284,7 @@ function DeploymentStatusSection({ appInstanceId }: {
         : (
             <div className="flex flex-col divide-y divide-divider-subtle">
               {deployments.map((row) => {
-                const status = overviewDeploymentStatus(row.status)
+                const status = deploymentStatus(row)
                 return (
                   <div key={row.environment?.id} className="flex items-center justify-between gap-3 py-2">
                     <div className="flex min-w-0 flex-col">
@@ -202,26 +308,58 @@ function AccessStatusSection({ appInstanceId }: {
 }) {
   const { t } = useTranslation('deployments')
   const input = { params: { appInstanceId } }
-  const { data: overview } = useQuery(consoleQuery.enterprise.appDeploy.getAppInstanceOverview.queryOptions({
+  const overviewQuery = useQuery(consoleQuery.enterprise.appDeploy.getAppInstanceOverview.queryOptions({
     input,
   }))
-  const { data: accessConfig } = useQuery(consoleQuery.enterprise.appDeploy.getAppInstanceAccess.queryOptions({
+  const accessConfigQuery = useQuery(consoleQuery.enterprise.appDeploy.getAppInstanceAccess.queryOptions({
     input,
   }))
+  const overview = overviewQuery.data
+  const accessConfig = accessConfigQuery.data
   const webappAccessUrl = webappUrl(overview?.access?.webappUrl)
   const cliUrl = overview?.access?.cliUrl
   const apiUrl = overview?.access?.apiUrl ?? accessConfig?.developerApi?.apiUrl
   const apiKeysCount = overview?.access?.apiKeyCount ?? accessConfig?.developerApi?.apiKeys?.length ?? 0
+  const skeletonRows = [
+    { key: 'webapp', label: t('overview.webapp'), hintClassName: 'w-28' },
+    { key: 'cli', label: t('overview.cli'), hintClassName: 'w-44' },
+    { key: 'api', label: t('overview.api'), hintClassName: 'w-64', showMeta: true },
+  ]
+  const action = (
+    <Button nativeButton={false} size="small" variant="secondary" render={<Link href={`/deployments/${appInstanceId}/settings`} />}>
+      {t('overview.configureAccess')}
+      <span className="i-ri-arrow-right-up-line size-3.5" />
+    </Button>
+  )
+
+  if (overviewQuery.isLoading || accessConfigQuery.isLoading) {
+    return (
+      <Section title={t('overview.accessStatus')} action={action}>
+        <AccessRowsSkeleton rows={skeletonRows} />
+      </Section>
+    )
+  }
+
+  if (overviewQuery.isError || accessConfigQuery.isError) {
+    return (
+      <Section title={t('overview.accessStatus')} action={action}>
+        <SectionState>{t('common.loadFailed')}</SectionState>
+      </Section>
+    )
+  }
+
+  if (!overview?.instance?.id) {
+    return (
+      <Section title={t('overview.accessStatus')} action={action}>
+        <SectionState>{t('detail.notFound')}</SectionState>
+      </Section>
+    )
+  }
 
   return (
     <Section
       title={t('overview.accessStatus')}
-      action={(
-        <Button nativeButton={false} size="small" variant="secondary" render={<Link href={`/deployments/${appInstanceId}/settings`} />}>
-          {t('overview.configureAccess')}
-          <span className="i-ri-arrow-right-up-line size-3.5" />
-        </Button>
-      )}
+      action={action}
     >
       <div className="flex flex-col divide-y divide-divider-subtle">
         <AccessOverviewRow

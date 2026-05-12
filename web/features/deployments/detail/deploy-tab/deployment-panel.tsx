@@ -18,8 +18,8 @@ function InfoBlock({ title, children }: {
   children: ReactNode
 }) {
   return (
-    <div className="min-w-0 rounded-lg bg-background-default px-3 py-2.5">
-      <div className="mb-2 system-xs-medium-uppercase text-text-tertiary">{title}</div>
+    <div className="flex min-w-0 flex-col gap-2 rounded-lg bg-background-default px-3 py-2.5">
+      <div className="system-xs-medium-uppercase text-text-tertiary">{title}</div>
       <div className="flex flex-col gap-1.5">{children}</div>
     </div>
   )

@@ -1,16 +1,26 @@
 import type { RuntimeInstanceRow } from '@dify/contracts/enterprise/types.gen'
 
-type DeploymentUiStatus = 'ready' | 'deploying' | 'deploy_failed'
+type DeploymentUiStatus = 'ready' | 'deploying' | 'deploy_failed' | 'unknown'
 
 export function isUndeployedDeploymentRow(row?: RuntimeInstanceRow) {
   return (row?.status?.toLowerCase() ?? '').includes('undeployed') || (!row?.id && !row?.currentRelease && !row?.detail)
 }
 
-export function deploymentStatus(row: RuntimeInstanceRow): DeploymentUiStatus {
-  const runtimeStatus = row.status?.toLowerCase() ?? ''
+export function deploymentStatus(row?: Pick<RuntimeInstanceRow, 'status'>): DeploymentUiStatus {
+  const runtimeStatus = row?.status?.toLowerCase() ?? ''
+  if (!runtimeStatus || runtimeStatus.includes('undeployed'))
+    return 'unknown'
   if (runtimeStatus.includes('deploying') || runtimeStatus.includes('pending'))
     return 'deploying'
   if (runtimeStatus.includes('fail') || runtimeStatus.includes('error'))
     return 'deploy_failed'
-  return 'ready'
+  if (runtimeStatus.includes('ready')
+    || runtimeStatus.includes('running')
+    || runtimeStatus.includes('active')
+    || runtimeStatus.includes('success')
+    || runtimeStatus.includes('succeed')
+    || runtimeStatus.includes('deployed')) {
+    return 'ready'
+  }
+  return 'unknown'
 }

@@ -11,8 +11,6 @@ export const deployDrawerAppInstanceIdAtom = atom<string | undefined>(undefined)
 export const deployDrawerEnvironmentIdAtom = atom<string | undefined>(undefined)
 export const deployDrawerReleaseIdAtom = atom<string | undefined>(undefined)
 
-export const createInstanceModalOpenAtom = atom(false)
-
 export const openDeployDrawerAtom = atom(null, (_get, set, params: OpenDeployDrawerParams) => {
   set(deployDrawerAppInstanceIdAtom, params.appInstanceId)
   set(deployDrawerEnvironmentIdAtom, params.environmentId)
@@ -24,11 +22,4 @@ export const closeDeployDrawerAtom = atom(null, (_get, set) => {
   set(deployDrawerAppInstanceIdAtom, undefined)
   set(deployDrawerEnvironmentIdAtom, undefined)
   set(deployDrawerReleaseIdAtom, undefined)
-})
-
-export const openCreateInstanceModalAtom = atom(null, (_get, set) => {
-  set(createInstanceModalOpenAtom, true)
-})
-export const closeCreateInstanceModalAtom = atom(null, (_get, set) => {
-  set(createInstanceModalOpenAtom, false)
 })

@@ -1,6 +1,5 @@
 'use client'
 import { useSuspenseQuery } from '@tanstack/react-query'
-import { useCallback } from 'react'
 import DifyLogo from '@/app/components/base/logo/dify-logo'
 import WorkplaceSelector from '@/app/components/header/account-dropdown/workplace-selector'
 import { ACCOUNT_SETTING_TAB } from '@/app/components/header/account-setting/constants'
@@ -29,7 +28,7 @@ const navClassName = `
   cursor-pointer
 `
 
-const Header = () => {
+export function Header() {
   const { isCurrentWorkspaceEditor, isCurrentWorkspaceDatasetOperator } = useAppContext()
   const media = useBreakpoints()
   const isMobile = media === MediaType.mobile
@@ -38,29 +37,32 @@ const Header = () => {
   const { data: systemFeatures } = useSuspenseQuery(systemFeaturesQueryOptions())
   const isFreePlan = plan.type === Plan.sandbox
   const isBrandingEnabled = systemFeatures.branding.enabled
-  const handlePlanClick = useCallback(() => {
+
+  function handlePlanClick() {
     if (isFreePlan)
       setShowPricingModal()
     else
       setShowAccountSettingModal({ payload: ACCOUNT_SETTING_TAB.BILLING })
-  }, [isFreePlan, setShowAccountSettingModal, setShowPricingModal])
+  }
 
-  const renderLogo = () => (
-    <h1>
-      <Link href="/apps" className="flex h-8 shrink-0 items-center justify-center overflow-hidden px-0.5 indent-[-9999px] whitespace-nowrap">
-        {isBrandingEnabled && systemFeatures.branding.application_title ? systemFeatures.branding.application_title : 'Dify'}
-        {systemFeatures.branding.enabled && systemFeatures.branding.workspace_logo
-          ? (
-              <img
-                src={systemFeatures.branding.workspace_logo}
-                className="block h-[22px] w-auto object-contain"
-                alt="logo"
-              />
-            )
-          : <DifyLogo />}
-      </Link>
-    </h1>
-  )
+  function renderLogo() {
+    return (
+      <h1>
+        <Link href="/apps" className="flex h-8 shrink-0 items-center justify-center overflow-hidden px-0.5 indent-[-9999px] whitespace-nowrap">
+          {isBrandingEnabled && systemFeatures.branding.application_title ? systemFeatures.branding.application_title : 'Dify'}
+          {systemFeatures.branding.enabled && systemFeatures.branding.workspace_logo
+            ? (
+                <img
+                  src={systemFeatures.branding.workspace_logo}
+                  className="block h-[22px] w-auto object-contain"
+                  alt="logo"
+                />
+              )
+            : <DifyLogo />}
+        </Link>
+      </h1>
+    )
+  }
 
   if (isMobile) {
     return (
@@ -74,14 +76,12 @@ const Header = () => {
             </WorkspaceProvider>
             {enableBilling ? <PlanBadge allowHover sandboxAsUpgrade plan={plan.type} onClick={handlePlanClick} /> : <LicenseNav />}
           </div>
-          <div className="flex items-center">
-            <div className="mr-2">
-              <PluginsNav />
-            </div>
+          <div className="flex items-center gap-2">
+            <PluginsNav />
             <AccountDropdown />
           </div>
         </div>
-        <div className="my-1 flex items-center justify-center space-x-1">
+        <div className="my-1 flex items-center justify-center gap-1">
           {!isCurrentWorkspaceDatasetOperator && <ExploreNav className={navClassName} />}
           {!isCurrentWorkspaceDatasetOperator && <AppNav />}
           {(isCurrentWorkspaceEditor || isCurrentWorkspaceDatasetOperator) && <DatasetNav />}
@@ -102,21 +102,18 @@ const Header = () => {
         </WorkspaceProvider>
         {enableBilling ? <PlanBadge allowHover sandboxAsUpgrade plan={plan.type} onClick={handlePlanClick} /> : <LicenseNav />}
       </div>
-      <div className="flex items-center space-x-2">
+      <div className="flex items-center gap-2">
         {!isCurrentWorkspaceDatasetOperator && <ExploreNav className={navClassName} />}
         {!isCurrentWorkspaceDatasetOperator && <AppNav />}
         {(isCurrentWorkspaceEditor || isCurrentWorkspaceDatasetOperator) && <DatasetNav />}
         {!isCurrentWorkspaceDatasetOperator && <ToolsNav className={navClassName} />}
         {isCurrentWorkspaceEditor && <DeploymentsNav />}
       </div>
-      <div className="flex min-w-0 flex-1 items-center justify-end pr-3 pl-2 min-[1280px]:pl-3">
+      <div className="flex min-w-0 flex-1 items-center justify-end gap-2 pr-3 pl-2 min-[1280px]:pl-3">
         <EnvNav />
-        <div className="mr-2">
-          <PluginsNav />
-        </div>
+        <PluginsNav />
         <AccountDropdown />
       </div>
     </div>
   )
 }
-export default Header

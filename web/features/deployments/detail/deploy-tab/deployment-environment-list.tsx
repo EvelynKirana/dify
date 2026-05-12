@@ -41,9 +41,12 @@ function DeploymentRowActions({ appInstanceId, envId, row }: {
   const undeployDeployment = useMutation(consoleQuery.enterprise.appDeploy.undeployRuntimeInstance.mutationOptions())
   const isUndeployed = isUndeployedDeploymentRow(row)
   const status = deploymentStatus(row)
+  const runtimeInstanceId = row.id
 
   function handleRuntimeAction() {
-    const runtimeInstanceId = row.id ?? ''
+    if (!runtimeInstanceId)
+      return
+
     setMenuOpen(false)
 
     if (status === 'deploying') {
@@ -85,12 +88,15 @@ function DeploymentRowActions({ appInstanceId, envId, row }: {
             ? t('deployTab.deployOtherVersion')
             : status === 'deploying'
               ? t('deployTab.viewProgress')
-              : t('deployTab.viewError')}
+              : status === 'deploy_failed'
+                ? t('deployTab.viewError')
+                : t('deployTab.deployOtherVersion')}
       </Button>
       {!isUndeployed && (
         <DropdownMenu modal={false} open={menuOpen} onOpenChange={setMenuOpen}>
           <DropdownMenuTrigger
             aria-label={t('deployTab.moreActions')}
+            disabled={!runtimeInstanceId}
             className="flex size-7 items-center justify-center rounded-md text-text-tertiary hover:bg-state-base-hover hover:text-text-secondary"
           >
             <span className="i-ri-more-line size-4" />

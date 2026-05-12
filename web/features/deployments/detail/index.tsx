@@ -2,13 +2,9 @@
 
 import type { ReactNode } from 'react'
 import type { InstanceDetailTabKey } from './tabs'
-import { Button } from '@langgenius/dify-ui/button'
-import { useQuery } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import useDocumentTitle from '@/hooks/use-document-title'
-import Link from '@/next/link'
 import { useSelectedLayoutSegment } from '@/next/navigation'
-import { consoleQuery } from '@/service/client'
 import { DeployDrawer } from '../components/deploy-drawer'
 import { DeploymentSidebar } from './deployment-sidebar'
 import { isInstanceDetailTabKey } from './tabs'
@@ -21,44 +17,13 @@ export function InstanceDetail({ appInstanceId, children }: {
   const selectedSegment = useSelectedLayoutSegment()
   const selectedTab = selectedSegment ?? undefined
   const activeTab: InstanceDetailTabKey = isInstanceDetailTabKey(selectedTab) ? selectedTab : 'overview'
-  const overviewQuery = useQuery(consoleQuery.enterprise.appDeploy.getAppInstanceOverview.queryOptions({
-    input: {
-      params: { appInstanceId },
-    },
-  }))
 
   useDocumentTitle(t('documentTitle.detail'))
-
-  const app = overviewQuery.data?.instance
-  const resolvedAppInstanceId = app?.id
-
-  if (!resolvedAppInstanceId && overviewQuery.isLoading) {
-    return (
-      <div className="flex h-full items-center justify-center bg-background-body">
-        <span className="size-6 animate-spin rounded-full border-2 border-components-panel-border border-t-transparent" />
-      </div>
-    )
-  }
-
-  if (!resolvedAppInstanceId || !app) {
-    return (
-      <div className="flex h-full flex-col items-center justify-center gap-3 bg-background-body">
-        <div className="title-xl-semi-bold text-text-primary">{t('detail.notFound')}</div>
-        <Button nativeButton={false} variant="secondary" render={<Link href="/deployments" />}>
-          <span aria-hidden className="i-ri-arrow-left-line size-4" />
-          {t('detail.backToInstances')}
-        </Button>
-      </div>
-    )
-  }
 
   return (
     <>
       <div className="relative flex h-full overflow-hidden rounded-t-2xl shadow-xs">
-        <DeploymentSidebar
-          app={app}
-        />
-
+        <DeploymentSidebar appInstanceId={appInstanceId} />
         <div className="grow overflow-hidden bg-components-panel-bg">
           <div className="flex h-full flex-col overflow-hidden">
             <div className="flex shrink-0 items-center justify-between border-b border-solid border-b-divider-regular px-6 py-3">
@@ -75,7 +40,6 @@ export function InstanceDetail({ appInstanceId, children }: {
           </div>
         </div>
       </div>
-
       <DeployDrawer />
     </>
   )

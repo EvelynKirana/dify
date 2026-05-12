@@ -1,6 +1,6 @@
 'use client'
 
-import type { DeploymentBindingOptionSlot, DeploymentEnvironmentOption, DeploymentRuntimeBinding, ReleaseRow } from '@dify/contracts/enterprise/types.gen'
+import type { DeploymentBindingOptionSlot, DeploymentEnvironmentOption, DeploymentRuntimeBinding, ReleaseRow, RuntimeInstanceRow } from '@dify/contracts/enterprise/types.gen'
 import { Button } from '@langgenius/dify-ui/button'
 import { DialogDescription, DialogTitle } from '@langgenius/dify-ui/dialog'
 import { toast } from '@langgenius/dify-ui/toast'
@@ -8,7 +8,9 @@ import { skipToken, useMutation, useQuery } from '@tanstack/react-query'
 import { useSetAtom } from 'jotai'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
+import { SkeletonContainer, SkeletonRectangle, SkeletonRow } from '@/app/components/base/skeleton'
 import { consoleQuery } from '@/service/client'
+import { DEPLOYMENT_PAGE_SIZE } from '../../data'
 import { environmentId, environmentMode, environmentName } from '../../environment'
 import { releaseCommit, releaseLabel } from '../../release'
 import { releaseDeploymentAction } from '../../release-action'
@@ -22,16 +24,22 @@ import {
 
 type DeployFormProps = {
   appInstanceId: string
+  lockedEnvId?: string
+  presetReleaseId?: string
+}
+
+type DeployReadyFormProps = DeployFormProps & {
   environments: EnvironmentOption[]
   releases: ReleaseRow[]
   defaultReleaseId?: string
-  lockedEnvId?: string
-  presetReleaseId?: string
+  runtimeRows: RuntimeInstanceRow[]
 }
 
 type EnvironmentOption = DeploymentEnvironmentOption & {
   disabled?: boolean
 }
+
+const DEPLOY_FORM_FIELD_SKELETON_KEYS = ['environment', 'release']
 
 type BindingSelections = Record<string, string>
 
@@ -125,8 +133,12 @@ function BindingOptionsPanel({
 
   if (isLoading) {
     return (
-      <div className="rounded-xl border border-divider-subtle bg-background-default-subtle px-3 py-4 system-sm-regular text-text-quaternary">
-        {t('deployDrawer.loadingBindings')}
+      <div className="rounded-xl border border-divider-subtle bg-background-default-subtle px-3 py-4">
+        <SkeletonContainer className="gap-2">
+          <SkeletonRectangle className="h-3 w-32 animate-pulse" />
+          <SkeletonRectangle className="h-3 w-2/3 animate-pulse" />
+          <SkeletonRectangle className="my-0 h-8 w-full animate-pulse rounded-lg" />
+        </SkeletonContainer>
       </div>
     )
   }
@@ -201,22 +213,49 @@ function BindingOptionsPanel({
   )
 }
 
-export function DeployForm({
+function DeployFormSkeleton() {
+  return (
+    <div className="flex flex-col gap-5">
+      <SkeletonContainer className="gap-2">
+        <SkeletonRectangle className="h-5 w-44 animate-pulse" />
+        <SkeletonRectangle className="h-3 w-72 animate-pulse" />
+      </SkeletonContainer>
+
+      {DEPLOY_FORM_FIELD_SKELETON_KEYS.map(key => (
+        <SkeletonContainer key={key} className="gap-2">
+          <SkeletonRectangle className="h-3 w-24 animate-pulse" />
+          <SkeletonRectangle className="my-0 h-9 w-full animate-pulse rounded-lg" />
+        </SkeletonContainer>
+      ))}
+
+      <div className="rounded-xl border border-divider-subtle bg-background-default-subtle px-3 py-4">
+        <SkeletonContainer className="gap-2">
+          <SkeletonRectangle className="h-3 w-32 animate-pulse" />
+          <SkeletonRectangle className="h-3 w-2/3 animate-pulse" />
+          <SkeletonRectangle className="my-0 h-8 w-full animate-pulse rounded-lg" />
+        </SkeletonContainer>
+      </div>
+
+      <SkeletonRow className="justify-end">
+        <SkeletonRectangle className="my-0 h-8 w-18 animate-pulse rounded-lg" />
+        <SkeletonRectangle className="my-0 h-8 w-22 animate-pulse rounded-lg" />
+      </SkeletonRow>
+    </div>
+  )
+}
+
+function DeployReadyForm({
   appInstanceId,
   environments,
   releases,
   defaultReleaseId,
   lockedEnvId,
   presetReleaseId,
-}: DeployFormProps) {
+  runtimeRows,
+}: DeployReadyFormProps) {
   const { t } = useTranslation('deployments')
   const closeDeployDrawer = useSetAtom(closeDeployDrawerAtom)
   const startDeploy = useMutation(consoleQuery.enterprise.appDeploy.createDeployment.mutationOptions())
-  const { data: environmentDeployments } = useQuery(consoleQuery.enterprise.appDeploy.listRuntimeInstances.queryOptions({
-    input: {
-      params: { appInstanceId },
-    },
-  }))
   const presetRelease = presetReleaseId ? releases.find(r => r.id === presetReleaseId) : undefined
   const displayedRelease: ReleaseRow | undefined = presetRelease ?? (presetReleaseId ? { id: presetReleaseId } : undefined)
   const isExistingRelease = Boolean(presetReleaseId)
@@ -232,7 +271,7 @@ export function DeployForm({
   const selectedRelease = releases.find(release => release.id === selectedReleaseId)
   const targetReleaseId = displayedRelease?.id ?? selectedRelease?.id ?? selectedReleaseId
   const targetRelease = displayedRelease ?? selectedRelease ?? (targetReleaseId ? { id: targetReleaseId } : undefined)
-  const deploymentRows = environmentDeployments?.data?.filter(row => Boolean(row.environment?.id) && !isUndeployedDeploymentRow(row)) ?? []
+  const deploymentRows = runtimeRows.filter(row => Boolean(row.environment?.id) && !isUndeployedDeploymentRow(row))
   const selectedDeploymentRow = deploymentRows.find(row => environmentId(row.environment) === selectedEnvironmentId)
   const action = releaseDeploymentAction({
     targetRelease,
@@ -297,32 +336,25 @@ export function DeployForm({
     if (!canDeploy || !targetReleaseId)
       return
 
-    void (async () => {
-      try {
-        await startDeploy.mutateAsync({
-          params: {
-            appInstanceId,
-          },
-          body: {
-            environmentId: selectedEnvironmentId,
-            releaseId: targetReleaseId,
-            bindings: deploymentBindings,
-          },
-        })
-        closeDeployDrawer()
-      }
-      catch {
-        toast.error(t('deployDrawer.deployFailed'))
-      }
-    })()
-  }
-
-  if (!environmentDeployments) {
-    return (
-      <div className="flex items-center gap-2 p-4 system-sm-regular text-text-tertiary">
-        <span className="size-4 animate-spin rounded-full border-2 border-components-panel-border border-t-transparent" />
-        {t('createModal.loadingApps')}
-      </div>
+    startDeploy.mutate(
+      {
+        params: {
+          appInstanceId,
+        },
+        body: {
+          environmentId: selectedEnvironmentId,
+          releaseId: targetReleaseId,
+          bindings: deploymentBindings,
+        },
+      },
+      {
+        onSuccess: () => {
+          closeDeployDrawer()
+        },
+        onError: () => {
+          toast.error(t('deployDrawer.deployFailed'))
+        },
+      },
     )
   }
 
@@ -405,7 +437,7 @@ export function DeployForm({
       )}
 
       <div className="flex justify-end gap-2">
-        <Button variant="secondary" onClick={closeDeployDrawer}>
+        <Button type="button" variant="secondary" onClick={closeDeployDrawer}>
           {t('deployDrawer.cancel')}
         </Button>
         <Button variant="primary" disabled={!canDeploy} onClick={handleDeploy}>
@@ -413,5 +445,64 @@ export function DeployForm({
         </Button>
       </div>
     </div>
+  )
+}
+
+export function DeployForm({
+  appInstanceId,
+  lockedEnvId,
+  presetReleaseId,
+}: DeployFormProps) {
+  const { t } = useTranslation('deployments')
+  const releaseHistoryQuery = useQuery(consoleQuery.enterprise.appDeploy.listReleases.queryOptions({
+    input: {
+      params: { appInstanceId },
+      query: {
+        pageNumber: 1,
+        resultsPerPage: DEPLOYMENT_PAGE_SIZE,
+      },
+    },
+  }))
+  const environmentOptionsQuery = useQuery(consoleQuery.enterprise.appDeploy.listDeploymentEnvironmentOptions.queryOptions())
+  const runtimeInstancesQuery = useQuery(consoleQuery.enterprise.appDeploy.listRuntimeInstances.queryOptions({
+    input: {
+      params: { appInstanceId },
+    },
+  }))
+
+  if (releaseHistoryQuery.isLoading || environmentOptionsQuery.isLoading || runtimeInstancesQuery.isLoading) {
+    return <DeployFormSkeleton />
+  }
+
+  if (releaseHistoryQuery.isError || environmentOptionsQuery.isError || runtimeInstancesQuery.isError) {
+    return (
+      <div className="p-4 system-sm-regular text-text-destructive">
+        {t('common.loadFailed')}
+      </div>
+    )
+  }
+
+  const environments = environmentOptionsQuery.data?.environments
+    ?.filter(environment => environment.id)
+    .map(environment => ({
+      ...environment,
+      disabled: environment.deployable === false,
+    })) ?? []
+  const releases = releaseHistoryQuery.data?.data?.filter(release => release.id) ?? []
+  const defaultReleaseId = releases[0]?.id
+  const runtimeRows = runtimeInstancesQuery.data?.data ?? []
+  const formKey = `${appInstanceId}-${lockedEnvId ?? 'any'}-${presetReleaseId ?? 'new'}-${defaultReleaseId ?? 'none'}`
+
+  return (
+    <DeployReadyForm
+      key={formKey}
+      appInstanceId={appInstanceId}
+      environments={environments}
+      releases={releases}
+      defaultReleaseId={defaultReleaseId}
+      lockedEnvId={lockedEnvId}
+      presetReleaseId={presetReleaseId}
+      runtimeRows={runtimeRows}
+    />
   )
 }
