@@ -1281,7 +1281,7 @@ class TenantService:
         perms = {
             "add": [TenantAccountRole.OWNER, TenantAccountRole.ADMIN],
             "remove": [TenantAccountRole.OWNER],
-            "update": [TenantAccountRole.OWNER],
+            "update": [TenantAccountRole.OWNER, TenantAccountRole.ADMIN],
         }
         if action not in {"add", "remove", "update"}:
             raise InvalidActionError("Invalid action.")
@@ -1370,6 +1370,7 @@ class TenantService:
     def update_member_role(tenant: Tenant, member: Account, new_role: str, operator: Account):
         """Update member role"""
         TenantService.check_member_permission(tenant, operator, member, "update")
+        new_tenant_role = TenantAccountRole(new_role)
 
         target_member_join = db.session.scalar(
             select(TenantAccountJoin)
@@ -1379,6 +1380,13 @@ class TenantService:
 
         if not target_member_join:
             raise MemberNotInTenantError("Member not in tenant.")
+
+        operator_role = TenantService.get_user_role(operator, tenant)
+        target_role = TenantAccountRole(target_member_join.role)
+        if operator_role == TenantAccountRole.ADMIN and (
+            target_role == TenantAccountRole.OWNER or new_tenant_role == TenantAccountRole.OWNER
+        ):
+            raise NoPermissionError("No permission to update member.")
 
         if target_member_join.role == new_role:
             raise RoleAlreadyAssignedError("The provided role is already assigned to the member.")
@@ -1394,7 +1402,7 @@ class TenantService:
                 current_owner_join.role = TenantAccountRole.ADMIN
 
         # Update the role of the target member
-        target_member_join.role = TenantAccountRole(new_role)
+        target_member_join.role = new_tenant_role
         db.session.commit()
 
     @staticmethod
