@@ -9,6 +9,7 @@ export default class HelpEnvironment extends DifyCommand {
   ]
 
   async run(): Promise<void> {
+    await this.parse(HelpEnvironment)
     process.stdout.write(runHelpEnvironment())
   }
 }

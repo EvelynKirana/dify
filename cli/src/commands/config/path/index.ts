@@ -10,6 +10,7 @@ export default class ConfigPath extends DifyCommand {
   ]
 
   async run(): Promise<void> {
+    await this.parse(ConfigPath)
     process.stdout.write(runConfigPath({ dir: resolveConfigDir() }))
   }
 }

@@ -9,6 +9,7 @@ export default class HelpAccount extends DifyCommand {
   ]
 
   async run(): Promise<void> {
+    await this.parse(HelpAccount)
     process.stdout.write(runHelpAccount())
   }
 }
