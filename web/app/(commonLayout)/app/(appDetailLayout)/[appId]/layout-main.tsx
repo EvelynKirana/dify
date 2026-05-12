@@ -21,6 +21,8 @@ import { useCallback, useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useShallow } from 'zustand/react/shallow'
 import AppSideBar from '@/app/components/app-sidebar'
+import { AppInfoDetailLayer } from '@/app/components/app-sidebar/app-info'
+import { useAppInfoActions } from '@/app/components/app-sidebar/app-info/use-app-info-actions'
 import { useStore } from '@/app/components/app/store'
 import Loading from '@/app/components/base/loading'
 import { useAppContext } from '@/context/app-context'
@@ -53,6 +55,7 @@ const AppDetailLayout: FC<IAppDetailLayoutProps> = (props) => {
   const isMobile = media === MediaType.mobile
   const { canAccess: canAccessSnippetsAndEvaluation } = useSnippetAndEvaluationPlanAccess()
   const { isCurrentWorkspaceEditor, isLoadingCurrentWorkspace, currentWorkspace } = useAppContext()
+  const appInfoActions = useAppInfoActions({ resetKey: appId })
   const { appDetail, setAppDetail, setAppSidebarExpand } = useStore(useShallow(state => ({
     appDetail: state.appDetail,
     setAppDetail: state.setAppDetail,
@@ -188,11 +191,13 @@ const AppDetailLayout: FC<IAppDetailLayoutProps> = (props) => {
       {appDetail && (
         <AppSideBar
           navigation={navigation}
+          appInfoActions={appInfoActions}
         />
       )}
       <div className="grow overflow-hidden bg-components-panel-bg">
         {children}
       </div>
+      <AppInfoDetailLayer actions={appInfoActions} />
     </div>
   )
 }

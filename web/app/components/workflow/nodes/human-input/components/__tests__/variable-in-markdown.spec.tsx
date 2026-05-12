@@ -142,6 +142,27 @@ describe('variable-in-markdown', () => {
       expect(screen.getByText('Approved')).toBeInTheDocument()
     })
 
+    it('should render dynamic select inputs as variable information without a select control', () => {
+      render(
+        <Note
+          input={{
+            type: InputVarType.select,
+            output_variable_name: 'approval',
+            option_source: {
+              type: 'variable',
+              selector: ['node-1', 'options'],
+              value: [],
+            },
+          }}
+          nodeName={nodeId => nodeId === 'node-1' ? 'Start Node' : nodeId}
+        />,
+      )
+
+      expect(screen.queryByTestId('human-input-note-select-preview')).not.toBeInTheDocument()
+      expect(screen.queryByRole('combobox', { name: 'human-input-note-select' })).not.toBeInTheDocument()
+      expect(screen.getByText('{{Start Node/options}}')).toBeInTheDocument()
+    })
+
     it('should open the select preview and show option items', async () => {
       const user = userEvent.setup()
 

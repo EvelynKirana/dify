@@ -5,7 +5,11 @@ import { InputVarType, SupportUploadFileTypes } from '@/app/components/workflow/
 import { TransferMethod } from '@/types/app'
 import {
   getButtonStyle,
+  getFormContentInputNames,
   getRelativeTime,
+  getRenderedFormInputs,
+  hasInvalidRequiredHumanInput,
+  hasInvalidSelectOrFileInput,
   initializeInputs,
   isRelativeTimeSameOrAfter,
   splitByOutputVar,
@@ -77,6 +81,23 @@ describe('human-input utils', () => {
 
     it('should return original content when no placeholders exist', () => {
       expect(splitByOutputVar('no placeholders')).toEqual(['no placeholders'])
+    })
+  })
+
+  describe('form content inputs', () => {
+    it('should extract and filter input fields rendered in form content', () => {
+      const formInputs: FormInputItem[] = [
+        selectInput({ output_variable_name: 'visible_select' }),
+        paragraphInput({ output_variable_name: 'visible_paragraph' }),
+        fileInput({ output_variable_name: 'stale_file' }),
+      ]
+      const content = 'Select {{#$output.visible_select#}} and write {{#$output.visible_paragraph#}}'
+
+      expect(getFormContentInputNames(content)).toEqual(['visible_select', 'visible_paragraph'])
+      expect(getRenderedFormInputs(formInputs, content).map(input => input.output_variable_name)).toEqual([
+        'visible_select',
+        'visible_paragraph',
+      ])
     })
   })
 
@@ -218,6 +239,22 @@ describe('human-input utils', () => {
         avatar: null,
         attachments: [],
       })
+    })
+  })
+
+  describe('required input checks', () => {
+    it('should ignore fields that are not present in values', () => {
+      const formInputs: FormInputItem[] = [
+        selectInput({ output_variable_name: 'visible_select' }),
+        fileInput({ output_variable_name: 'stale_file' }),
+        paragraphInput({ output_variable_name: 'stale_paragraph' }),
+      ]
+      const values = {
+        visible_select: 'approved',
+      }
+
+      expect(hasInvalidSelectOrFileInput(formInputs, values)).toBe(false)
+      expect(hasInvalidRequiredHumanInput(formInputs, values)).toBe(false)
     })
   })
 

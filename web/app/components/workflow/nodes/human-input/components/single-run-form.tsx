@@ -10,7 +10,7 @@ import * as React from 'react'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import ContentItem from '@/app/components/base/chat/chat/answer/human-input-content/content-item'
-import { getButtonStyle, hasInvalidSelectOrFileInput, initializeInputs, splitByOutputVar } from '@/app/components/base/chat/chat/answer/human-input-content/utils'
+import { getButtonStyle, getRenderedFormInputs, hasInvalidSelectOrFileInput, initializeInputs, splitByOutputVar } from '@/app/components/base/chat/chat/answer/human-input-content/utils'
 
 type Props = {
   nodeName: string
@@ -28,8 +28,9 @@ const FormContent = ({
   onSubmit,
 }: Props) => {
   const { t } = useTranslation()
-  const defaultInputs = initializeInputs(data.inputs, data.resolved_default_values || {})
   const contentList = splitByOutputVar(data.form_content)
+  const renderedFormInputs = getRenderedFormInputs(data.inputs, data.form_content)
+  const defaultInputs = initializeInputs(renderedFormInputs, data.resolved_default_values || {})
   const [inputs, setInputs] = useState(defaultInputs)
   const [isSubmitting, setIsSubmitting] = useState(false)
 
@@ -40,7 +41,7 @@ const FormContent = ({
     }))
   }
 
-  const hasEmptySelectOrFileInput = hasInvalidSelectOrFileInput(data.inputs, inputs)
+  const hasEmptySelectOrFileInput = hasInvalidSelectOrFileInput(renderedFormInputs, inputs)
 
   const submit = async (actionID: string) => {
     setIsSubmitting(true)
@@ -52,10 +53,14 @@ const FormContent = ({
     <>
       {showBackButton && (
         <div className="flex items-center p-4 pb-1">
-          <div className="flex cursor-pointer items-center system-sm-semibold-uppercase text-text-accent" onClick={handleBack}>
-            <RiArrowLeftLine className="mr-1 h-4 w-4" />
+          <button
+            type="button"
+            className="flex cursor-pointer items-center border-none bg-transparent p-0 text-left system-sm-semibold-uppercase text-text-accent"
+            onClick={handleBack}
+          >
+            <RiArrowLeftLine className="mr-1 h-4 w-4" aria-hidden />
             {t('nodes.humanInput.singleRun.back', { ns: 'workflow' })}
-          </div>
+          </button>
           <div className="mx-1 system-xs-regular text-divider-deep">/</div>
           <div className="system-sm-semibold-uppercase text-text-secondary">{nodeName}</div>
         </div>

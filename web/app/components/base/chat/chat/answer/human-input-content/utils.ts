@@ -41,6 +41,16 @@ export const splitByOutputVar = (content: string): string[] => {
   return parts.filter(part => part.length > 0)
 }
 
+export const getFormContentInputNames = (content: string) => {
+  const outputVarRegex = /\{\{#\$output\.([^#]+)#\}\}/g
+  return [...content.matchAll(outputVarRegex)].map(match => match[1]!)
+}
+
+export const getRenderedFormInputs = (formInputs: FormInputItem[], content: string) => {
+  const inputNames = new Set(getFormContentInputNames(content))
+  return formInputs.filter(input => inputNames.has(input.output_variable_name))
+}
+
 export const initializeInputs = (formInputs: FormInputItem[], defaultValues: Record<string, HumanInputResolvedValue> = {}) => {
   const initialInputs: Record<string, HumanInputFieldValue> = {}
   formInputs.forEach((item) => {
@@ -87,6 +97,9 @@ export const hasInvalidSelectOrFileInput = (
   values: Record<string, HumanInputFieldValue>,
 ) => {
   return formInputs.some((input) => {
+    if (!(input.output_variable_name in values))
+      return false
+
     const value = values[input.output_variable_name]
 
     if (isSelectFormInput(input))
@@ -107,6 +120,9 @@ export const hasInvalidRequiredHumanInput = (
   values: Record<string, HumanInputFieldValue>,
 ) => {
   return formInputs.some((input) => {
+    if (!(input.output_variable_name in values))
+      return false
+
     const value = values[input.output_variable_name]
 
     if (isParagraphFormInput(input))

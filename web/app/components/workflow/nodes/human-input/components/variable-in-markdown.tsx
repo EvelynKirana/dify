@@ -93,6 +93,17 @@ const formatVariablePath = (path: string) => {
     .replace('#}}', '}}')
 }
 
+const sourceToVariablePath = (
+  source: { selector: string[] },
+  nodeName: (nodeId: string) => string,
+) => {
+  if (!source.selector.length)
+    return ''
+
+  const path = `{{#${source.selector.join('.')}#}}`
+  return replaceNodeIdsWithNames(path, nodeName)
+}
+
 export function rehypeVariable() {
   return (tree: MarkdownNode) => {
     visitTextNodes(tree, (value) => {
@@ -202,11 +213,19 @@ export const Note: React.FC<{ input: FormInputItem, nodeName: (nodeId: string) =
   const { t } = useTranslation()
   if (isSelectFormInput(input)) {
     const isVariable = input.option_source.type === 'variable'
-    const label = isVariable
-      ? t('nodes.humanInput.insertInputField.variable', { ns: 'workflow' })
-      : input.option_source.value[0] || t('variableConfig.select', { ns: 'appDebug' })
-    const options = isVariable ? [label] : input.option_source.value
-    return <SelectPreview label={label} options={options} />
+    if (isVariable) {
+      const variablePath = sourceToVariablePath(input.option_source, nodeName)
+      return (
+        <div className="my-3 rounded-[10px] bg-components-input-bg-normal px-2.5 py-2">
+          {variablePath
+            ? <Variable path={variablePath} />
+            : <span>{t('nodes.humanInput.insertInputField.variable', { ns: 'workflow' })}</span>}
+        </div>
+      )
+    }
+
+    const label = input.option_source.value[0] || t('variableConfig.select', { ns: 'appDebug' })
+    return <SelectPreview label={label} options={input.option_source.value} />
   }
 
   if (isFileFormInput(input)) {
@@ -218,8 +237,7 @@ export const Note: React.FC<{ input: FormInputItem, nodeName: (nodeId: string) =
   }
 
   const isVariable = input.default.type === 'variable'
-  const path = `{{#${input.default.selector.join('.')}#}}`
-  const newPath = path ? replaceNodeIdsWithNames(path, nodeName) : path
+  const newPath = sourceToVariablePath(input.default, nodeName)
   return (
     <div className="my-3 rounded-[10px] bg-components-input-bg-normal px-2.5 py-2">
       {isVariable ? <Variable path={newPath} /> : <span>{input.default.value}</span>}

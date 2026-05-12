@@ -1,44 +1,56 @@
-import type { inferParserType } from 'nuqs'
-import { debounce, parseAsArrayOf, parseAsBoolean, parseAsString, useQueryStates } from 'nuqs'
+import { debounce, parseAsArrayOf, parseAsBoolean, parseAsString, parseAsStringLiteral, useQueryStates } from 'nuqs'
 import { useCallback, useMemo } from 'react'
+import { AppModes } from '@/types/app'
 import { APP_LIST_SEARCH_DEBOUNCE_MS } from '../constants'
 
-const appListQueryParsers = {
-  tagIDs: parseAsArrayOf(parseAsString, ';').withDefault([]),
-  creatorIDs: parseAsArrayOf(parseAsString, ';').withDefault([]),
-  keywords: parseAsString.withDefault('').withOptions({
-    shallow: false,
-    limitUrlUpdates: debounce(APP_LIST_SEARCH_DEBOUNCE_MS),
-  }),
-  isCreatedByMe: parseAsBoolean.withDefault(false),
+const APP_LIST_CATEGORY_VALUES = ['all', ...AppModes] as const
+export type AppListCategory = typeof APP_LIST_CATEGORY_VALUES[number]
+
+const appListCategorySet = new Set<string>(APP_LIST_CATEGORY_VALUES)
+
+export const isAppListCategory = (value: string): value is AppListCategory => {
+  return appListCategorySet.has(value)
 }
 
-export type AppsQuery = inferParserType<typeof appListQueryParsers>
+const appListQueryParsers = {
+  category: parseAsStringLiteral(APP_LIST_CATEGORY_VALUES)
+    .withDefault('all')
+    .withOptions({ history: 'push' }),
+  tagIDs: parseAsArrayOf(parseAsString, ';')
+    .withDefault([])
+    .withOptions({ history: 'push' }),
+  keywords: parseAsString.withDefault('').withOptions({
+    limitUrlUpdates: debounce(APP_LIST_SEARCH_DEBOUNCE_MS),
+  }),
+  isCreatedByMe: parseAsBoolean
+    .withDefault(false)
+    .withOptions({ history: 'push' }),
+}
 
 export function useAppsQueryState() {
   const [query, setQuery] = useQueryStates(appListQueryParsers)
+
+  const setCategory = useCallback((category: AppListCategory) => {
+    setQuery({ category })
+  }, [setQuery])
 
   const setKeywords = useCallback((keywords: string) => {
     setQuery({ keywords })
   }, [setQuery])
 
   const setTagIDs = useCallback((tagIDs: string[]) => {
-    setQuery({ tagIDs }, { history: 'push' })
-  }, [setQuery])
-
-  const setCreatorIDs = useCallback((creatorIDs: string[]) => {
-    setQuery({ creatorIDs }, { history: 'push' })
+    setQuery({ tagIDs })
   }, [setQuery])
 
   const setIsCreatedByMe = useCallback((isCreatedByMe: boolean) => {
-    setQuery({ isCreatedByMe }, { history: 'push' })
+    setQuery({ isCreatedByMe })
   }, [setQuery])
 
   return useMemo(() => ({
     query,
+    setCategory,
     setKeywords,
     setTagIDs,
-    setCreatorIDs,
     setIsCreatedByMe,
-  }), [query, setKeywords, setTagIDs, setCreatorIDs, setIsCreatedByMe])
+  }), [query, setCategory, setKeywords, setTagIDs, setIsCreatedByMe])
 }

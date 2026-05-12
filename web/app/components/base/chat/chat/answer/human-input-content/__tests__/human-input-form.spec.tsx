@@ -111,7 +111,7 @@ describe('HumanInputForm', () => {
     expect(contentItems[1])!.toHaveTextContent('{{#$output.field1#}}')
     expect(contentItems[2])!.toHaveTextContent('Part 2')
 
-    const buttons = screen.getAllByTestId('action-button')
+    const buttons = screen.getAllByRole('button').filter(button => button.textContent !== 'Update')
     expect(buttons).toHaveLength(4)
     expect(buttons[0])!.toHaveTextContent('Submit')
     expect(buttons[1])!.toHaveTextContent('Cancel')
@@ -249,6 +249,59 @@ describe('HumanInputForm', () => {
           url: '',
           upload_file_id: 'upload-file-2',
         },
+      },
+    })
+  })
+
+  it('should ignore input fields that are not rendered in form content when checking actions', async () => {
+    const user = userEvent.setup()
+    const mockOnSubmit = vi.fn().mockResolvedValue(undefined)
+    const formDataWithStaleInput: HumanInputFormData = {
+      ...mockFormData,
+      form_content: '{{#$output.field2#}}',
+      inputs: [
+        {
+          type: InputVarType.select,
+          output_variable_name: 'field2',
+          option_source: {
+            type: 'constant',
+            value: ['approved'],
+            selector: [],
+          },
+        },
+        {
+          type: InputVarType.select,
+          output_variable_name: 'stale_select',
+          option_source: {
+            type: 'constant',
+            value: ['unused'],
+            selector: [],
+          },
+        },
+        {
+          type: InputVarType.singleFile,
+          output_variable_name: 'stale_file',
+          allowed_file_extensions: ['.png'],
+          allowed_file_types: [SupportUploadFileTypes.image],
+          allowed_file_upload_methods: [TransferMethod.local_file],
+        },
+      ] as FormInputItem[],
+    }
+
+    render(<HumanInputForm formData={formDataWithStaleInput} onSubmit={mockOnSubmit} />)
+
+    const submitButton = screen.getByRole('button', { name: 'Submit' })
+    expect(submitButton).toBeDisabled()
+
+    await user.click(screen.getByTestId('update-select'))
+    expect(submitButton).toBeEnabled()
+
+    await user.click(submitButton)
+
+    expect(mockOnSubmit).toHaveBeenCalledWith('token_123', {
+      action: 'action_1',
+      inputs: {
+        field2: 'approved',
       },
     })
   })

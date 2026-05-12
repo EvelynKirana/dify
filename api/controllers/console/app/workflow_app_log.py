@@ -210,7 +210,7 @@ class WorkflowAppLogApi(Resource):
         """
         Get workflow app logs
         """
-        args = WorkflowAppLogQuery.model_validate(request.args.to_dict(flat=True))  # type: ignore
+        args = WorkflowAppLogQuery.model_validate(request.args.to_dict(flat=True))
 
         # get paginate workflow app logs
         workflow_app_service = WorkflowAppService()
@@ -253,7 +253,7 @@ class WorkflowArchivedLogApi(Resource):
         """
         Get workflow archived logs
         """
-        args = WorkflowAppLogQuery.model_validate(request.args.to_dict(flat=True))  # type: ignore
+        args = WorkflowAppLogQuery.model_validate(request.args.to_dict(flat=True))
 
         workflow_app_service = WorkflowAppService()
         with sessionmaker(db.engine, expire_on_commit=False).begin() as session:

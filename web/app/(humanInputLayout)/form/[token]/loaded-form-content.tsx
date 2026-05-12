@@ -10,7 +10,7 @@ import { useTranslation } from 'react-i18next'
 import AppIcon from '@/app/components/base/app-icon'
 import ContentItem from '@/app/components/base/chat/chat/answer/human-input-content/content-item'
 import ExpirationTime from '@/app/components/base/chat/chat/answer/human-input-content/expiration-time'
-import { getButtonStyle, hasInvalidRequiredHumanInput, initializeInputs, splitByOutputVar } from '@/app/components/base/chat/chat/answer/human-input-content/utils'
+import { getButtonStyle, getRenderedFormInputs, hasInvalidRequiredHumanInput, initializeInputs, splitByOutputVar } from '@/app/components/base/chat/chat/answer/human-input-content/utils'
 import DifyLogo from '@/app/components/base/logo/dify-logo'
 
 type LoadedFormContentProps = {
@@ -25,8 +25,9 @@ const LoadedFormContent = ({
   onSubmit,
 }: LoadedFormContentProps) => {
   const { t } = useTranslation()
+  const renderedFormInputs = getRenderedFormInputs(formData.inputs, formData.form_content)
   const [inputs, setInputs] = useState<Record<string, HumanInputFieldValue>>(() =>
-    initializeInputs(formData.inputs, formData.resolved_default_values),
+    initializeInputs(renderedFormInputs, formData.resolved_default_values),
   )
 
   const contentList = useMemo(() => {
@@ -43,7 +44,7 @@ const LoadedFormContent = ({
     onSubmit(inputs, actionID, formData.inputs)
   }
 
-  const isActionDisabled = isSubmitting || hasInvalidRequiredHumanInput(formData.inputs, inputs)
+  const isActionDisabled = isSubmitting || hasInvalidRequiredHumanInput(renderedFormInputs, inputs)
   const site = formData.site.site
 
   return (
