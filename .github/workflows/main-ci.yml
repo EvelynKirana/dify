@@ -210,7 +210,7 @@ jobs:
       - pre_job
       - check-changes
     if: needs.pre_job.outputs.should_skip != 'true' && needs.check-changes.outputs.cli-changed != 'true'
-    runs-on: ubuntu-latest
+    runs-on: depot-ubuntu-24.04
     steps:
       - name: Report skipped CLI tests
         run: echo "No CLI-related changes detected; skipping CLI tests."
@@ -223,7 +223,7 @@ jobs:
       - check-changes
       - cli-tests-run
       - cli-tests-skip
-    runs-on: ubuntu-latest
+    runs-on: depot-ubuntu-24.04
     steps:
       - name: Finalize CLI Tests status
         env:

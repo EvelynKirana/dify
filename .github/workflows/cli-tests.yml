@@ -16,7 +16,7 @@ concurrency:
 jobs:
   test:
     name: CLI Tests
-    runs-on: ubuntu-latest
+    runs-on: depot-ubuntu-24.04
     env:
       CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
     defaults:
