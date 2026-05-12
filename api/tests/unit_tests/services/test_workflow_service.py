@@ -11,6 +11,7 @@ This test suite covers:
 
 import json
 import uuid
+from types import SimpleNamespace
 from typing import Any, cast
 from unittest.mock import ANY, MagicMock, Mock, patch, sentinel
 
@@ -2649,8 +2650,13 @@ class TestWorkflowServiceHumanInputOperations:
 
         mock_node = MagicMock()
         mock_node.node_data = MagicMock()
+        mock_node.node_data.user_actions = [
+            SimpleNamespace(id="submit", title="card_visa_enterprise_001"),
+        ]
         mock_node.node_data.outputs_field_names.return_value = ["field1"]
         mock_node.node_data.inputs = []
+        mock_node.render_form_content_before_submission.return_value = "Ticket: {{#$output.field1#}}"
+        mock_node.render_form_content_with_outputs.return_value = "Ticket: val1"
 
         with (
             patch("services.workflow_service.db"),
@@ -2670,6 +2676,8 @@ class TestWorkflowServiceHumanInputOperations:
             )
             assert result["__action_id"] == "submit"
             mock_validate.assert_called_once()
+            assert result["__action_value"] == "card_visa_enterprise_001"
+            assert result["__rendered_content"] == "Ticket: val1"
             mock_saver_cls.return_value.save.assert_called_once()
 
     def test_test_human_input_delivery_success(self, service: WorkflowService) -> None:
@@ -2850,7 +2858,7 @@ class TestWorkflowServiceFreeNodeExecution:
             mock_node_cls.validate_node_data.assert_called_once_with(sentinel.adapted_node_data)
             mock_node_cls.assert_called_once_with(
                 node_id="n-1",
-                config=sentinel.node_data,
+                data=sentinel.node_data,
                 graph_init_params=mock_graph_init_context_cls.return_value.to_graph_init_params.return_value,
                 graph_runtime_state=ANY,
                 runtime=mock_runtime_cls.return_value,

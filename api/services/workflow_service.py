@@ -1068,8 +1068,13 @@ class WorkflowService:
         )
 
         rendered_content = node.render_form_content_before_submission()
+        selected_action = next(
+            (user_action for user_action in node_data.user_actions if user_action.id == action),
+            None,
+        )
         outputs: dict[str, Any] = dict(normalized_form_inputs)
         outputs["__action_id"] = action
+        outputs["__action_value"] = selected_action.title if selected_action else ""
         outputs["__rendered_content"] = node.render_form_content_with_outputs(
             rendered_content,
             outputs,
@@ -1256,7 +1261,7 @@ class WorkflowService:
         node_data = HumanInputNode.validate_node_data(adapt_human_input_node_data_for_graph(node_config["data"]))
         node = HumanInputNode(
             node_id=node_config["id"],
-            config=node_data,
+            data=node_data,
             graph_init_params=graph_init_params,
             graph_runtime_state=graph_runtime_state,
             runtime=DifyHumanInputNodeRuntime(run_context),

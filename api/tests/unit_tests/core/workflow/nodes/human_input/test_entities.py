@@ -33,6 +33,7 @@ from core.workflow.human_input_adapter import (
 from core.workflow.node_runtime import DifyHumanInputNodeRuntime
 from core.workflow.system_variables import build_system_variables
 from graphon.entities import GraphInitParams
+from graphon.file import File, FileTransferMethod, FileType
 from graphon.node_events import PauseRequestedEvent
 from graphon.node_events.node import StreamCompletedEvent
 from graphon.nodes.human_input.entities import (
@@ -53,6 +54,7 @@ from graphon.nodes.human_input.enums import (
     ValueSourceType,
 )
 from graphon.nodes.human_input.human_input_node import HumanInputNode
+from graphon.nodes.protocols import FileReferenceFactoryProtocol
 from graphon.runtime import GraphRuntimeState, VariablePool
 from graphon.variables.segments import ArrayFileSegment, FileSegment, StringSegment
 from libs.datetime_utils import naive_utc_now
@@ -141,6 +143,23 @@ class InMemoryHumanInputFormRepository(HumanInputFormRepository):
         entity.status_value = HumanInputFormStatus.SUBMITTED
 
 
+class _TestFileReferenceFactory(FileReferenceFactoryProtocol):
+    """Build graph-layer file objects without touching Dify persistence in unit tests."""
+
+    def build_from_mapping(self, *, mapping: Mapping[str, Any]) -> File:
+        return File(
+            file_id=mapping.get("id"),
+            file_type=FileType(mapping["type"]),
+            transfer_method=FileTransferMethod(mapping["transfer_method"]),
+            remote_url=mapping.get("remote_url") or mapping.get("url"),
+            related_id=mapping.get("related_id") or mapping.get("upload_file_id"),
+            filename=mapping.get("filename"),
+            extension=mapping.get("extension"),
+            mime_type=mapping.get("mime_type"),
+            size=mapping.get("size", -1),
+        )
+
+
 def _build_human_input_node(
     *,
     node_id: str,
@@ -154,10 +173,11 @@ def _build_human_input_node(
     )
     return HumanInputNode(
         node_id=node_id,
-        config=typed_node_data,
+        data=typed_node_data,
         graph_init_params=graph_init_params,
         graph_runtime_state=graph_runtime_state,
         runtime=runtime,
+        file_reference_factory=_TestFileReferenceFactory(),
     )
 
 
@@ -206,6 +226,7 @@ class TestFormInput:
 
         assert form_input.type == FormInputType.PARAGRAPH
         assert form_input.output_variable_name == "user_input"
+        assert form_input.default is not None
         assert form_input.default.type == ValueSourceType.CONSTANT
         assert form_input.default.value == "Enter your response here..."
 
@@ -215,6 +236,7 @@ class TestFormInput:
 
         form_input = ParagraphInputConfig(output_variable_name="user_input", default=default)
 
+        assert form_input.default is not None
         assert form_input.default.type == ValueSourceType.VARIABLE
         assert form_input.default.selector == ["node_123", "output_var"]
 
@@ -246,16 +268,16 @@ class TestUserAction:
 
     def test_user_action_length_boundaries(self):
         """Test user action id and title length boundaries."""
-        action = UserActionConfig(id="a" * 20, title="b" * 20)
+        action = UserActionConfig(id="a" * 20, title="b" * 100)
 
         assert action.id == "a" * 20
-        assert action.title == "b" * 20
+        assert action.title == "b" * 100
 
     @pytest.mark.parametrize(
         ("field_name", "value"),
         [
             ("id", "a" * 21),
-            ("title", "b" * 21),
+            ("title", "b" * 101),
         ],
     )
     def test_user_action_length_limits(self, field_name: str, value: str):
@@ -431,7 +453,7 @@ class TestHumanInputNodeVariableResolution:
     """Tests for resolving variable-based defaults in HumanInputNode."""
 
     def test_resolves_variable_defaults(self):
-        variable_pool = VariablePool(
+        variable_pool = VariablePool.from_bootstrap(
             system_variables=build_system_variables(
                 user_id="user",
                 app_id="app",
@@ -506,7 +528,7 @@ class TestHumanInputNodeVariableResolution:
         assert params.resolved_default_values == expected_values
 
     def test_debugger_falls_back_to_recipient_token_when_webapp_disabled(self):
-        variable_pool = VariablePool(
+        variable_pool = VariablePool.from_bootstrap(
             system_variables=build_system_variables(
                 user_id="user",
                 app_id="app",
@@ -567,7 +589,7 @@ class TestHumanInputNodeVariableResolution:
         assert not hasattr(pause_event.reason, "form_token")
 
     def test_webapp_runtime_keeps_form_visible_in_ui_when_webapp_delivery_is_enabled(self):
-        variable_pool = VariablePool(
+        variable_pool = VariablePool.from_bootstrap(
             system_variables=build_system_variables(
                 user_id="user",
                 app_id="app",
@@ -633,7 +655,7 @@ class TestHumanInputNodeVariableResolution:
         assert params.display_in_ui is True
 
     def test_debugger_debug_mode_overrides_email_recipients(self):
-        variable_pool = VariablePool(
+        variable_pool = VariablePool.from_bootstrap(
             system_variables=build_system_variables(
                 user_id="user-123",
                 app_id="app",
@@ -752,7 +774,7 @@ class TestHumanInputNodeRenderedContent:
     """Tests for rendering submitted content."""
 
     def test_replaces_outputs_placeholders_after_submission(self):
-        variable_pool = VariablePool(
+        variable_pool = VariablePool.from_bootstrap(
             system_variables=build_system_variables(
                 user_id="user",
                 app_id="app",
@@ -814,7 +836,7 @@ class TestHumanInputNodeRenderedContent:
         assert node_run_result.outputs["__rendered_content"] == StringSegment(value="Name: Alice")
 
     def test_resume_restores_file_outputs_as_runtime_segments(self):
-        variable_pool = VariablePool(
+        variable_pool = VariablePool.from_bootstrap(
             system_variables=build_system_variables(
                 user_id="user",
                 app_id="app",

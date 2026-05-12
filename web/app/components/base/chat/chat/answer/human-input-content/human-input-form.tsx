@@ -55,7 +55,6 @@ const HumanInputForm = ({
             disabled={isActionDisabled}
             variant={getButtonStyle(action.button_style) as ButtonProps['variant']}
             onClick={() => submit(formToken, action.id, inputs)}
-            data-testid="action-button"
           >
             {action.title}
           </Button>
