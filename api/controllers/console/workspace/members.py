@@ -34,8 +34,6 @@ from services.enterprise import rbac_service as enterprise_rbac_service
 from services.errors.account import AccountAlreadyInTenantError
 from services.feature_service import FeatureService
 
-DEFAULT_REF_TEMPLATE_SWAGGER_2_0 = "#/definitions/{model}"
-
 
 class MemberInvitePayload(BaseModel):
     emails: list[str] = Field(default_factory=list)
@@ -60,17 +58,17 @@ class OwnerTransferPayload(BaseModel):
     token: str
 
 
-def reg(cls: type[BaseModel]):
-    console_ns.schema_model(cls.__name__, cls.model_json_schema(ref_template=DEFAULT_REF_TEMPLATE_SWAGGER_2_0))
-
-
-reg(MemberInvitePayload)
-reg(MemberRoleUpdatePayload)
-reg(OwnerTransferEmailPayload)
-reg(OwnerTransferCheckPayload)
-reg(OwnerTransferPayload)
 register_enum_models(console_ns, TenantAccountRole)
-register_schema_models(console_ns, AccountWithRole, AccountWithRoleList)
+register_schema_models(
+    console_ns,
+    AccountWithRole,
+    AccountWithRoleList,
+    MemberInvitePayload,
+    MemberRoleUpdatePayload,
+    OwnerTransferEmailPayload,
+    OwnerTransferCheckPayload,
+    OwnerTransferPayload,
+)
 
 
 def _serialize_member_roles(current_role: str | None, member_roles: list[enterprise_rbac_service.MemberRoleSummary]) -> list[dict[str, str]]:

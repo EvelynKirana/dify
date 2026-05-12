@@ -1,8 +1,6 @@
 'use client'
-import type {
-  OffsetOptions,
-  Placement,
-} from '@floating-ui/react'
+import type { OffsetOptions } from '@floating-ui/react'
+import type { Placement } from '@langgenius/dify-ui/popover'
 import type { FC } from 'react'
 import type { ToolDefaultValue, ToolValue } from './types'
 import type { CustomCollectionBackend } from '@/app/components/tools/types'
@@ -71,6 +69,8 @@ const ToolPicker: FC<Props> = ({
   const { t } = useTranslation()
   const [searchText, setSearchText] = useState('')
   const [tags, setTags] = useState<string[]>([])
+  const sideOffset = typeof offset === 'number' ? offset : (typeof offset === 'function' ? 0 : (offset?.mainAxis ?? 0))
+  const alignOffset = typeof offset === 'number' ? 0 : (typeof offset === 'function' ? 0 : (offset?.crossAxis ?? 0))
 
   const { data: enable_marketplace } = useSuspenseQuery({
     ...systemFeaturesQueryOptions(),
@@ -121,10 +121,10 @@ const ToolPicker: FC<Props> = ({
 
   const handleAddedCustomTool = invalidateCustomTools
 
-  const handleTriggerClick = () => {
-    if (disabled)
+  const handleOpenChange = (nextOpen: boolean) => {
+    if (nextOpen && disabled)
       return
-    onShowChange(true)
+    onShowChange(nextOpen)
   }
 
   const handleSelect = (_type: BlockEnum, tool?: ToolDefaultValue) => {
@@ -163,10 +163,20 @@ const ToolPicker: FC<Props> = ({
       placement={placement}
       offset={offset}
       open={isShow}
-      onOpenChange={onShowChange}
+      onOpenChange={handleOpenChange}
     >
-      <PortalToFollowElemTrigger
-        onClick={handleTriggerClick}
+      <PopoverTrigger
+        nativeButton={false}
+        render={<div className="inline-block" />}
+      >
+        {trigger}
+      </PopoverTrigger>
+
+      <PopoverContent
+        placement={placement}
+        sideOffset={sideOffset}
+        alignOffset={alignOffset}
+        popupClassName="border-none bg-transparent shadow-none"
       >
         {trigger}
       </PortalToFollowElemTrigger>
