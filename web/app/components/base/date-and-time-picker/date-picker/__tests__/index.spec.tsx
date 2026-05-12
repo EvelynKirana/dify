@@ -3,6 +3,20 @@ import { act, fireEvent, render, screen, within } from '@testing-library/react'
 import dayjs from '../../utils/dayjs'
 import DatePicker from '../index'
 
+vi.mock('@langgenius/dify-ui/popover', async () => await import('@/__mocks__/base-ui-popover'))
+vi.mock('@langgenius/dify-ui/button', () => ({
+  Button: ({ children, onClick, disabled, className }: {
+    children?: React.ReactNode
+    onClick?: () => void
+    disabled?: boolean
+    className?: string
+  }) => (
+    <button onClick={onClick as (() => void) | undefined} disabled={disabled as boolean | undefined} className={className as string | undefined}>
+      {children}
+    </button>
+  ),
+}))
+
 // Mock scrollIntoView
 beforeAll(() => {
   Element.prototype.scrollIntoView = vi.fn()
@@ -113,14 +127,13 @@ describe('DatePicker', () => {
       render(<DatePicker {...props} />)
 
       openPicker()
+      expect(screen.getByTestId('popover')).toHaveAttribute('data-open', 'true')
 
-      // Simulate a mousedown event outside the container
       act(() => {
         document.dispatchEvent(new MouseEvent('mousedown', { bubbles: true }))
       })
 
-      // The picker should now be closed - input shows its value
-      // The picker should now be closed - input shows its value
+      expect(screen.getByTestId('popover')).toHaveAttribute('data-open', 'false')
       expect(screen.getByRole('textbox'))!.toBeInTheDocument()
     })
   })
@@ -500,10 +513,7 @@ describe('DatePicker', () => {
       // Open year/month picker
       fireEvent.click(screen.getByText(/2024/))
 
-      // The header in year/month view shows selected month/year with an up arrow
-      // Clicking it closes the year/month picker
-      const headerButtons = screen.getAllByRole('button')
-      fireEvent.click(headerButtons[0]!) // First button in year/month view is the header
+      fireEvent.click(screen.getByRole('button', { name: /time\.months\.June 2024/ }))
 
       // Should return to date view
       expect(screen.getAllByText(/daysInWeek/).length).toBeGreaterThan(0)

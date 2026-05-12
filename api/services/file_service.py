@@ -2,7 +2,7 @@ import base64
 import hashlib
 import os
 import uuid
-from collections.abc import Iterator, Sequence
+from collections.abc import Generator, Sequence  # Changed Iterator to Generator
 from contextlib import contextmanager, suppress
 from tempfile import NamedTemporaryFile
 from typing import Literal
@@ -107,14 +107,13 @@ class FileService:
             hash=hashlib.sha3_256(content).hexdigest(),
             source_url=source_url,
         )
-        # The `UploadFile` ID is generated within its constructor, so flushing to retrieve the ID is unnecessary.
-        # We can directly generate the `source_url` here before committing.
-        if not upload_file.source_url:
-            upload_file.source_url = file_helpers.get_signed_file_url(upload_file_id=upload_file.id)
 
         with self._session_maker(expire_on_commit=False) as session:
             session.add(upload_file)
             session.commit()
+
+        if not upload_file.source_url:
+            upload_file.source_url = file_helpers.get_signed_file_url(upload_file_id=upload_file.id)
 
         return upload_file
 
@@ -324,7 +323,7 @@ class FileService:
     def build_upload_files_zip_tempfile(
         *,
         upload_files: Sequence[UploadFile],
-    ) -> Iterator[str]:
+    ) -> Generator[str, None, None]:  # Changed from Iterator[str]
         """
         Build a ZIP from `UploadFile`s and yield a tempfile path.
 

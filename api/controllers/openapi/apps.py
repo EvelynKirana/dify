@@ -40,7 +40,7 @@ from libs.oauth_bearer import (
 )
 from models import App, Tenant
 from models.model import AppMode
-from services.app_service import AppService
+from services.app_service import AppListParams, AppService
 from services.openapi.visibility import apply_openapi_gate, is_openapi_visible
 from services.tag_service import TagService
 
@@ -284,20 +284,19 @@ class AppListApi(Resource):
                 return empty
             tag_ids = [tag.id for tag in tags]
 
-        args: dict[str, Any] = {
-            "page": query.page,
-            "limit": query.limit,
-            "mode": query.mode.value if query.mode else "",
-            "name": query.name,
-            "status": "normal",
+        params = AppListParams(
+            page=query.page,
+            limit=query.limit,
+            mode=query.mode.value if query.mode else "all",
+            name=query.name,
+            tag_ids=tag_ids,
+            status="normal",
             # Visibility gate pushed into the query — pagination.total stays
             # consistent across pages because invisible rows never count.
-            "openapi_visible": True,
-        }
-        if tag_ids:
-            args["tag_ids"] = tag_ids
+            openapi_visible=True,
+        )
 
-        pagination = AppService().get_paginate_apps(ctx.account_id, workspace_id, args)
+        pagination = AppService().get_paginate_apps(ctx.account_id, workspace_id, params)
         if pagination is None:
             return empty
 

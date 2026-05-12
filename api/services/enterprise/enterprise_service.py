@@ -6,6 +6,7 @@ import uuid
 from datetime import datetime
 from typing import TYPE_CHECKING
 
+from cachetools.func import ttl_cache
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 from configs import dify_config
@@ -112,6 +113,7 @@ def try_join_default_workspace(account_id: str) -> None:
 
 class EnterpriseService:
     @classmethod
+    @ttl_cache(ttl=5)
     def get_info(cls):
         return EnterpriseRequest.send_request("GET", "/info")
 

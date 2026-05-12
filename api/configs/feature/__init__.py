@@ -287,6 +287,27 @@ class MarketplaceConfig(BaseSettings):
     )
 
 
+class CreatorsPlatformConfig(BaseSettings):
+    """
+    Configuration for Creators Platform integration
+    """
+
+    CREATORS_PLATFORM_FEATURES_ENABLED: bool = Field(
+        description="Enable or disable Creators Platform features",
+        default=True,
+    )
+
+    CREATORS_PLATFORM_API_URL: HttpUrl = Field(
+        description="Creators Platform API URL",
+        default=HttpUrl("https://creators.dify.ai"),
+    )
+
+    CREATORS_PLATFORM_OAUTH_CLIENT_ID: str = Field(
+        description="OAuth client ID for Creators Platform integration",
+        default="",
+    )
+
+
 class EndpointConfig(BaseSettings):
     """
     Configuration for various application endpoints and URLs
@@ -1156,6 +1177,18 @@ class MultiModalTransferConfig(BaseSettings):
     )
 
 
+class OpsTraceConfig(BaseSettings):
+    OPS_TRACE_RETRYABLE_DISPATCH_MAX_RETRIES: PositiveInt = Field(
+        description="Maximum retry attempts for transient ops trace provider dispatch failures.",
+        default=60,
+    )
+
+    OPS_TRACE_RETRYABLE_DISPATCH_DELAY_SECONDS: PositiveInt = Field(
+        description="Delay in seconds between transient ops trace provider dispatch retry attempts.",
+        default=5,
+    )
+
+
 class CeleryBeatConfig(BaseSettings):
     CELERY_BEAT_SCHEDULER_TIME: int = Field(
         description="Interval in days for Celery Beat scheduler execution, default to 1 day",
@@ -1325,7 +1358,7 @@ class PositionConfig(BaseSettings):
 class CollaborationConfig(BaseSettings):
     ENABLE_COLLABORATION_MODE: bool = Field(
         description="Whether to enable collaboration mode features across the workspace",
-        default=False,
+        default=True,
     )
 
 
@@ -1427,6 +1460,7 @@ class FeatureConfig(
     AuthConfig,  # Changed from OAuthConfig to AuthConfig
     BillingConfig,
     CodeExecutionSandboxConfig,
+    CreatorsPlatformConfig,
     TriggerConfig,
     AsyncWorkflowConfig,
     PluginConfig,
@@ -1443,6 +1477,7 @@ class FeatureConfig(
     ModelLoadBalanceConfig,
     ModerationConfig,
     MultiModalTransferConfig,
+    OpsTraceConfig,
     PositionConfig,
     RagEtlConfig,
     RepositoryConfig,
