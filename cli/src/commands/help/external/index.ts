@@ -1,0 +1,14 @@
+import { DifyCommand } from '../../_shared/dify-command.js'
+import { runHelpExternal } from './external.js'
+
+export default class HelpExternal extends DifyCommand {
+  static override description = 'Agent-onboarding text for external-SSO bearers (dfoe_)'
+
+  static override examples = [
+    '<%= config.bin %> help external',
+  ]
+
+  async run(): Promise<void> {
+    process.stdout.write(runHelpExternal())
+  }
+}

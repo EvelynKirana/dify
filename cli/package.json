@@ -1,0 +1,128 @@
+{
+  "name": "@langgenius/difyctl",
+  "type": "module",
+  "version": "0.1.0-rc.1",
+  "description": "Dify command-line interface",
+  "difyctl": {
+    "channel": "rc",
+    "compat": {
+      "minDify": "1.6.0",
+      "maxDify": "1.7.0"
+    }
+  },
+  "license": "Apache-2.0",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "bin": {
+    "difyctl": "./bin/run.js"
+  },
+  "files": [
+    "README.md",
+    "bin",
+    "dist",
+    "oclif.manifest.json"
+  ],
+  "engines": {
+    "node": "^22.22.1"
+  },
+  "scripts": {
+    "build": "vp pack && oclif manifest",
+    "dev": "tsx bin/dev.js",
+    "test": "vp test",
+    "test:coverage": "vp test --coverage",
+    "lint": "eslint",
+    "lint:fix": "eslint --fix",
+    "type-check": "tsc",
+    "manifest": "oclif manifest",
+    "pack:tarballs": "oclif pack tarballs --xz --parallel"
+  },
+  "dependencies": {
+    "@napi-rs/keyring": "catalog:",
+    "@oclif/core": "catalog:",
+    "@oclif/plugin-autocomplete": "catalog:",
+    "@oclif/plugin-help": "catalog:",
+    "@oclif/plugin-not-found": "catalog:",
+    "@oclif/plugin-version": "catalog:",
+    "@oclif/plugin-warn-if-update-available": "catalog:",
+    "cli-table3": "catalog:",
+    "eventsource-parser": "catalog:",
+    "js-yaml": "catalog:",
+    "ky": "catalog:",
+    "open": "catalog:",
+    "ora": "catalog:",
+    "picocolors": "catalog:",
+    "std-semver": "catalog:",
+    "zod": "catalog:"
+  },
+  "devDependencies": {
+    "@dify/tsconfig": "workspace:*",
+    "@hono/node-server": "catalog:",
+    "@types/js-yaml": "catalog:",
+    "@types/node": "catalog:",
+    "@vitest/coverage-v8": "catalog:",
+    "eslint": "catalog:",
+    "hono": "catalog:",
+    "oclif": "catalog:",
+    "tsx": "catalog:",
+    "typescript": "catalog:",
+    "vite": "catalog:",
+    "vite-plus": "catalog:",
+    "vitest": "catalog:"
+  },
+  "oclif": {
+    "bin": "difyctl",
+    "dirname": "difyctl",
+    "helpClass": "./dist/help-class",
+    "commands": {
+      "strategy": "pattern",
+      "target": "./dist/commands",
+      "globPatterns": [
+        "**/index.+(js|cjs|mjs|ts)",
+        "!**/_*/**",
+        "!**/*.+(d.ts|test.ts|test.js|test.mjs|spec.ts|spec.js|spec.mjs|d.mts|d.cts|d.mjs)?(x)"
+      ]
+    },
+    "topicSeparator": " ",
+    "plugins": [
+      "@oclif/plugin-help",
+      "@oclif/plugin-not-found",
+      "@oclif/plugin-warn-if-update-available",
+      "@oclif/plugin-autocomplete",
+      "@oclif/plugin-version"
+    ],
+    "topics": {
+      "auth": {
+        "description": "Authentication and session management"
+      },
+      "auth devices": {
+        "description": "Manage active OAuth sessions"
+      },
+      "get": {
+        "description": "List or fetch resources"
+      },
+      "describe": {
+        "description": "Detailed resource view"
+      },
+      "run": {
+        "description": "Invoke an app"
+      },
+      "config": {
+        "description": "Local config management"
+      },
+      "env": {
+        "description": "Environment variable introspection"
+      },
+      "help": {
+        "description": "Long-form topic guides"
+      }
+    },
+    "warn-if-update-available": {
+      "timeoutInDays": 7,
+      "message": "<%= chalk.yellow('A newer dify is available — upgrade dify and CLI together. See dify release notes.') %>"
+    }
+  }
+}

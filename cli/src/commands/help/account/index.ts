@@ -1,0 +1,14 @@
+import { DifyCommand } from '../../_shared/dify-command.js'
+import { runHelpAccount } from './account.js'
+
+export default class HelpAccount extends DifyCommand {
+  static override description = 'Agent-onboarding text for account bearers (dfoa_)'
+
+  static override examples = [
+    '<%= config.bin %> help account',
+  ]
+
+  async run(): Promise<void> {
+    process.stdout.write(runHelpAccount())
+  }
+}

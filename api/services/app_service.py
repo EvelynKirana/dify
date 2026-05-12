@@ -37,7 +37,7 @@ class AppService:
         Get app list with pagination
         :param user_id: user id
         :param tenant_id: tenant id
-        :param args: request args
+        :param args: request args. Optional keys: status (e.g. "normal") restricts App.status.
         :return:
         """
         filters = [App.tenant_id == tenant_id, App.is_universal == False]
@@ -53,6 +53,14 @@ class AppService:
         elif args["mode"] == "agent-chat":
             filters.append(App.mode == AppMode.AGENT_CHAT)
 
+        if args.get("status"):
+            filters.append(App.status == args["status"])
+        # OpenAPI surface visibility gate. Pushed into the query so
+        # `pagination.total` reflects only apps the openapi caller can
+        # actually reach — post-filtering by enable_api after the page
+        # arrives would make `total` page-dependent.
+        if args.get("openapi_visible"):
+            filters.append(App.enable_api.is_(True))
         if args.get("is_created_by_me", False):
             filters.append(App.created_by == user_id)
         if args.get("name"):
