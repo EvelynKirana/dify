@@ -180,6 +180,7 @@ class SystemFeatureModel(BaseModel):
     enable_creators_platform: bool = False
     enable_trial_app: bool = False
     enable_explore_banner: bool = False
+    rbac_enabled: bool = False
 
 
 class FeatureService:
@@ -229,6 +230,7 @@ class FeatureService:
     def get_system_features(cls, is_authenticated: bool = False) -> SystemFeatureModel:
         system_features = SystemFeatureModel()
         system_features.app_dsl_version = CURRENT_APP_DSL_VERSION
+        system_features.rbac_enabled = dify_config.RBAC_ENABLED
 
         cls._fulfill_system_params_from_env(system_features)
 
