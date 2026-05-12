@@ -97,5 +97,11 @@ describe('Description', () => {
 
       expect(container.querySelector('.custom-hero-class')).toBeInTheDocument()
     })
+
+    it('should keep the hero bottom padding fixed during collapse animation', () => {
+      const { container } = render(<Description />)
+
+      expect(container.firstElementChild).toHaveStyle({ paddingBottom: '24px' })
+    })
   })
 })

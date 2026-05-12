@@ -22,7 +22,6 @@ const MAX_SCROLL = 120 // pixels to fully collapse
 const EXPANDED_PADDING_TOP = 32 // pt-8
 const COLLAPSED_PADDING_TOP = 12 // pt-3
 const EXPANDED_PADDING_BOTTOM = 24 // pb-6
-const COLLAPSED_PADDING_BOTTOM = 12 // pb-3
 
 export const Description = ({
   className,
@@ -40,7 +39,7 @@ export const Description = ({
   const titleContentRef = useRef<HTMLDivElement | null>(null)
   const progress = useMotionValue(0)
   const titleHeight = useMotionValue(72)
-  const smoothProgress = useSpring(progress, { stiffness: 260, damping: 34 })
+  const visualProgress = useSpring(progress, { stiffness: 260, damping: 34 })
 
   useLayoutEffect(() => {
     const node = titleContentRef.current
@@ -103,16 +102,15 @@ export const Description = ({
   }, [progress, scrollContainerId])
 
   // Calculate interpolated values
-  const contentOpacity = useTransform(smoothProgress, [0, 1], [1, 0])
-  const contentScale = useTransform(smoothProgress, [0, 1], [1, 0.9])
+  const contentOpacity = useTransform(visualProgress, [0, 1], [1, 0])
+  const contentScale = useTransform(visualProgress, [0, 1], [1, 0.9])
   const titleMaxHeight: MotionValue<number> = useTransform(
-    [smoothProgress, titleHeight],
+    [progress, titleHeight],
     (values: number[]) => values[1] * (1 - values[0]),
   )
-  const tabsMarginTop = useTransform(smoothProgress, [0, 1], [48, marketplaceNav ? 16 : 0])
-  const titleMarginTop = useTransform(smoothProgress, [0, 1], [marketplaceNav ? 80 : 0, 0])
-  const paddingTop = useTransform(smoothProgress, [0, 1], [marketplaceNav ? COLLAPSED_PADDING_TOP : EXPANDED_PADDING_TOP, COLLAPSED_PADDING_TOP])
-  const paddingBottom = useTransform(smoothProgress, [0, 1], [EXPANDED_PADDING_BOTTOM, COLLAPSED_PADDING_BOTTOM])
+  const tabsMarginTop = useTransform(progress, [0, 1], [48, marketplaceNav ? 16 : 0])
+  const titleMarginTop = useTransform(progress, [0, 1], [marketplaceNav ? 80 : 0, 0])
+  const paddingTop = useTransform(progress, [0, 1], [marketplaceNav ? COLLAPSED_PADDING_TOP : EXPANDED_PADDING_TOP, COLLAPSED_PADDING_TOP])
 
   useEffect(() => {
     const container = document.getElementById(scrollContainerId)
@@ -130,13 +128,10 @@ export const Description = ({
       const baseScrollableTop = Math.max(0, currentScrollableTop - lastAppliedOffset)
       const shouldCompensate = baseScrollableTop <= maxHeaderHeight
       const nextOffset = shouldCompensate ? collapsedHeight : 0
-      const offsetDelta = nextOffset - lastAppliedOffset
 
       if (nextOffset > 0) {
         // Only compensate when content is short enough that header collapse can clamp scrollTop.
         container.style.setProperty('--marketplace-header-collapse-offset', `${nextOffset}px`)
-        if (offsetDelta !== 0 && container.scrollTop > 0)
-          container.scrollTop = Math.max(0, container.scrollTop + offsetDelta)
       }
       else {
         container.style.removeProperty('--marketplace-header-collapse-offset')
@@ -155,7 +150,6 @@ export const Description = ({
 
     const observer = new ResizeObserver(updateOffset)
     observer.observe(header)
-    observer.observe(container)
 
     return () => {
       observer.disconnect()
@@ -172,7 +166,7 @@ export const Description = ({
       )}
       style={{
         paddingTop,
-        paddingBottom,
+        paddingBottom: EXPANDED_PADDING_BOTTOM,
       }}
     >
       {/* Blue base background */}
