@@ -81,7 +81,7 @@ function PermissionPicker({ value, disabled, onChange }: {
           return (
             <DropdownMenuItem
               key={kind}
-              onSelect={() => onChange(kind)}
+              onClick={() => onChange(kind)}
               className="mx-0 h-auto items-start gap-3 rounded-lg px-2.5 py-2"
             >
               <span className={cn(itemIcon, 'mt-0.5 size-4 shrink-0 text-text-tertiary')} />
