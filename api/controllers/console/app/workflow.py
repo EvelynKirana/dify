@@ -11,7 +11,11 @@ from werkzeug.exceptions import BadRequest, Forbidden, InternalServerError, NotF
 
 import services
 from controllers.common.controller_schemas import DefaultBlockConfigQuery, WorkflowListQuery, WorkflowUpdatePayload
-from controllers.common.schema import register_response_schema_model, register_schema_models
+from controllers.common.schema import (
+    DEFAULT_REF_TEMPLATE_SWAGGER_2_0,
+    register_response_schema_model,
+    register_schema_models,
+)
 from controllers.console import console_ns
 from controllers.console.app.error import ConversationCompletedError, DraftWorkflowNotExist, DraftWorkflowNotSync
 from controllers.console.app.wraps import get_app_model
@@ -216,6 +220,7 @@ reg(WorkflowOnlineUsersPayload)
 reg(DraftWorkflowTriggerRunPayload)
 reg(DraftWorkflowTriggerRunAllPayload)
 register_response_schema_model(console_ns, WorkflowRunNodeExecutionResponse)
+
 
 # TODO(QuantumGhost): Refactor existing node run API to handle file parameter parsing
 # at the controller level rather than in the workflow logic. This would improve separation
