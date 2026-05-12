@@ -61,6 +61,7 @@ from services.errors.account import (
     TenantNotFoundError,
 )
 from services.errors.workspace import WorkSpaceNotAllowedCreateError, WorkspacesLimitExceededError
+from services.enterprise.rbac_service import RBACService
 from services.feature_service import FeatureService
 from tasks.delete_account_task import delete_account_task
 from tasks.mail_account_deletion_task import send_account_deletion_verification_code
@@ -1545,8 +1546,9 @@ class RegisterService:
                 status=AccountStatus.PENDING,
                 is_setup=True,
             )
-            # Create new tenant member for invited tenant
-            TenantService.create_tenant_member(tenant, account, role)
+            # Create new tenant member for invited tenant (legacy path)
+            if not dify_config.RBAC_ENABLED:
+                TenantService.create_tenant_member(tenant, account, role)
             TenantService.switch_tenant(account, tenant.id)
         else:
             TenantService.check_member_permission(tenant, inviter, account, "add")
@@ -1557,11 +1559,21 @@ class RegisterService:
             )
 
             if not ta:
-                TenantService.create_tenant_member(tenant, account, role)
+                if not dify_config.RBAC_ENABLED:
+                    TenantService.create_tenant_member(tenant, account, role)
 
             # Support resend invitation email when the account is pending status
             if account.status != AccountStatus.PENDING:
                 raise AccountAlreadyInTenantError("Account already in tenant.")
+
+        # Assign RBAC role if RBAC is enabled
+        if dify_config.RBAC_ENABLED:
+            RBACService.MemberRoles.replace(
+                tenant_id=str(tenant.id),
+                account_id=inviter.id,
+                member_account_id=account.id,
+                role_ids=[role],
+            )
 
         token = cls.generate_invite_token(tenant, account)
         language = account.interface_language or "en-US"

@@ -39,7 +39,7 @@ DEFAULT_REF_TEMPLATE_SWAGGER_2_0 = "#/definitions/{model}"
 
 class MemberInvitePayload(BaseModel):
     emails: list[str] = Field(default_factory=list)
-    role: TenantAccountRole
+    role: str
     language: str | None = None
 
 
@@ -149,8 +149,9 @@ class MemberInviteEmailApi(Resource):
         invitee_emails = args.emails
         invitee_role = args.role
         interface_language = args.language
-        if not TenantAccountRole.is_non_owner_role(invitee_role):
-            return {"code": "invalid-role", "message": "Invalid role"}, 400
+        if not dify_config.RBAC_ENABLED:
+            if not TenantAccountRole.is_valid_role(invitee_role) or not TenantAccountRole.is_non_owner_role(invitee_role):
+                return {"code": "invalid-role", "message": "Invalid role"}, 400
         current_user, _ = current_account_with_tenant()
         inviter = current_user
         if not inviter.current_tenant:
